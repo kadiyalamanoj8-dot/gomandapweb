@@ -4,8 +4,8 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Lock, Unlock } from 'lucide-react';
 
-import icon from 'leaflet/dist/images/marker-icon.webp';
-import iconShadow from 'leaflet/dist/images/marker-shadow.webp';
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 let DefaultIcon = L.icon({
     iconUrl: icon,
     shadowUrl: iconShadow,
