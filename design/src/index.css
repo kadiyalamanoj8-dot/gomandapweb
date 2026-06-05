@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #E91E63;
+  --color-brand-secondary: #F48FB1;
+  --color-brand-gold: #FFC107;
+  --color-brand-dark: #1E1E1E;
+}
+
+@layer base {
+  body {
+    background-color: #f9fafb;
+    color: #111827;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+.hover-glow {
+  box-shadow: 0 0 60px rgba(255,193,7,0.5);
+}
+
+@media (min-width: 768px) {
+  .hover-glow {
+    box-shadow: 0 0 100px rgba(255,193,7,0.5);
+  }
+}
+
+.group:hover .hover-glow {
+  box-shadow: 0 0 150px rgba(233,30,99,0.8);
+}
