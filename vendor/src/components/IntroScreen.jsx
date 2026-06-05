@@ -96,13 +96,13 @@ const IntroScreen = ({ onComplete }) => {
       >
         {/* Layer 1: Background Temple (Z: -600) */}
         <motion.div style={{ x: bgX, y: bgY, translateZ: -600, scale: 2 }} className="absolute inset-[-10%] z-0">
-          <img src="/images/temple_background.png" alt="Background" className="w-full h-full object-cover opacity-60" />
+          <img src="/images/.webp" alt="Background" className="w-full h-full object-cover opacity-60" />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60 z-10" />
         </motion.div>
 
         {/* Layer 2: Intricate Mandap Frame (Z: -100) */}
         <motion.div style={{ x: midX, y: midY, translateZ: -100, scale: 1.2 }} className="absolute inset-0 z-20 flex items-center justify-center">
-          <img src="/images/temple_mandap.png" alt="Mandap" className="w-[100vw] md:w-[90vw] h-[80vh] md:h-[90vh] object-contain mix-blend-screen opacity-100" style={{ filter: 'drop-shadow(0 0 30px rgba(255,193,7,0.3))' }} />
+          <img src="/images/.webp" alt="Mandap" className="w-[100vw] md:w-[90vw] h-[80vh] md:h-[90vh] object-contain mix-blend-screen opacity-100" style={{ filter: 'drop-shadow(0 0 30px rgba(255,193,7,0.3))' }} />
         </motion.div>
 
         <motion.div style={{ x: frontX, y: frontY, translateZ: 100, scale: 1.1 }} className="absolute inset-[-5%] z-30 flex items-center justify-center pt-[15vh] md:pt-[10vh]">
@@ -112,7 +112,7 @@ const IntroScreen = ({ onComplete }) => {
                 initial={{ opacity: 0, scale: 0.8, filter: "blur(10px) drop-shadow(0 0 0px transparent)" }}
                 animate={{ opacity: 1, scale: 1, filter: "blur(0px) drop-shadow(0 0 50px rgba(255,193,7,0.6))" }}
                 transition={{ duration: 3, ease: "easeOut", delay: 0.5 }}
-                src="/images/couple_transparent.png" 
+                src="/images/.webp" 
                 alt="Couple" 
                 className="w-[90vw] md:w-[60vw] max-h-[50vh] md:max-h-[60vh] object-contain object-bottom"
               />
@@ -140,8 +140,8 @@ const IntroScreen = ({ onComplete }) => {
         <AnimatePresence>
           {sequence === 'CLOSED' && (
             <motion.div className="absolute inset-[-5%] z-[100] flex pointer-events-none" style={{ transform: "translateZ(300px)" }}>
-              <motion.div exit={{ rotateY: 105, opacity: 0 }} transition={{ duration: 3, ease: [0.25, 1, 0.5, 1] }} className="w-1/2 h-full pointer-events-auto" style={{ backgroundImage: "url('/images/real_temple_doors.png')", backgroundSize: "200% 100%", backgroundPosition: "left", transformOrigin: "left", boxShadow: "50px 0 100px rgba(0,0,0,1)" }} />
-              <motion.div exit={{ rotateY: -105, opacity: 0 }} transition={{ duration: 3, ease: [0.25, 1, 0.5, 1] }} className="w-1/2 h-full pointer-events-auto" style={{ backgroundImage: "url('/images/real_temple_doors.png')", backgroundSize: "200% 100%", backgroundPosition: "right", transformOrigin: "right", boxShadow: "-50px 0 100px rgba(0,0,0,1)" }} />
+              <motion.div exit={{ rotateY: 105, opacity: 0 }} transition={{ duration: 3, ease: [0.25, 1, 0.5, 1] }} className="w-1/2 h-full pointer-events-auto" style={{ backgroundImage: "url('/images/.webp')", backgroundSize: "200% 100%", backgroundPosition: "left", transformOrigin: "left", boxShadow: "50px 0 100px rgba(0,0,0,1)" }} />
+              <motion.div exit={{ rotateY: -105, opacity: 0 }} transition={{ duration: 3, ease: [0.25, 1, 0.5, 1] }} className="w-1/2 h-full pointer-events-auto" style={{ backgroundImage: "url('/images/.webp')", backgroundSize: "200% 100%", backgroundPosition: "right", transformOrigin: "right", boxShadow: "-50px 0 100px rgba(0,0,0,1)" }} />
               
               <motion.div exit={{ opacity: 0, scale: 0.5 }} transition={{ duration: 1 }} className="absolute inset-0 flex items-center justify-center z-30 pointer-events-auto">
                 <button onClick={handleOpen} className="relative w-40 h-40 md:w-56 md:h-56 rounded-full flex items-center justify-center cursor-pointer group">

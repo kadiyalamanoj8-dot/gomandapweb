@@ -7,7 +7,8 @@ const storage = new CloudinaryStorage({
   params: {
     folder: 'gomandap_vendors',
     allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
-    transformation: [{ width: 1000, height: 1000, crop: 'limit' }] // Optimize large images
+    format: 'webp',
+    transformation: [{ width: 1000, height: 1000, crop: 'limit', quality: 'auto', fetch_format: 'webp' }] // Force high compression webp
   },
 });
 

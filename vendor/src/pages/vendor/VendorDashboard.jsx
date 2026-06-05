@@ -42,7 +42,7 @@ const VendorDashboard = () => {
             className={`group w-full flex items-center gap-3 px-4 py-3 rounded-[24px] font-bold text-sm transition-all duration-300 smooth-transition hover:-translate-y-1 hover:shadow-lg ${activeTab === 'overview' ? 'bg-brand-primary/10 text-brand-primary border border-brand-primary/20 shadow-sm' : 'text-gray-600 hover:bg-gray-50 border border-transparent'}`}
           >
             <div className={`relative w-8 h-8 rounded-full flex items-center justify-center ${activeTab === 'overview' ? 'liquid-glass-capsule' : 'bg-gray-100 group-hover:liquid-glass-capsule'}`}>
-              <img src="/images/3d_chart.png" alt="Overview" className="w-10 h-10 object-contain drop-shadow-md scale-125 group-hover:scale-150 smooth-transition" />
+              <img src="/images/.webp" alt="Overview" className="w-10 h-10 object-contain drop-shadow-md scale-125 group-hover:scale-150 smooth-transition" />
             </div>
             Overview
           </button>
@@ -52,7 +52,7 @@ const VendorDashboard = () => {
             className={`group w-full flex items-center gap-3 px-4 py-3 rounded-[24px] font-bold text-sm transition-all duration-300 smooth-transition hover:-translate-y-1 hover:shadow-lg ${activeTab === 'bookings' ? 'bg-brand-primary/10 text-brand-primary border border-brand-primary/20 shadow-sm' : 'text-gray-600 hover:bg-gray-50 border border-transparent'}`}
           >
             <div className={`relative w-8 h-8 rounded-full flex items-center justify-center ${activeTab === 'bookings' ? 'liquid-glass-capsule' : 'bg-gray-100 group-hover:liquid-glass-capsule'}`}>
-              <img src="/images/3d_envelope.png" alt="Bookings" className="w-10 h-10 object-contain drop-shadow-md scale-125 group-hover:scale-150 smooth-transition" />
+              <img src="/images/.webp" alt="Bookings" className="w-10 h-10 object-contain drop-shadow-md scale-125 group-hover:scale-150 smooth-transition" />
             </div>
             Bookings
             <span className="ml-auto bg-brand-primary text-white text-[10px] px-2 py-0.5 rounded-full">1 New</span>
@@ -106,7 +106,7 @@ const VendorDashboard = () => {
                 <div className="flex justify-between items-start relative z-10">
                   <span className="text-sm font-black text-gray-400 uppercase tracking-wider">Profile Views</span>
                   <div className="liquid-glass-capsule w-10 h-10 rounded-full flex items-center justify-center">
-                    <img src="/images/3d_chart.png" className="w-12 h-12 object-contain drop-shadow-md scale-125" alt="Chart" />
+                    <img src="/images/.webp" className="w-12 h-12 object-contain drop-shadow-md scale-125" alt="Chart" />
                   </div>
                 </div>
                 <span className="text-4xl font-black text-gray-900 relative z-10">1,248</span>
@@ -117,7 +117,7 @@ const VendorDashboard = () => {
                 <div className="flex justify-between items-start relative z-10">
                   <span className="text-sm font-black text-gray-400 uppercase tracking-wider">Booking Leads</span>
                   <div className="liquid-glass-capsule w-10 h-10 rounded-full flex items-center justify-center">
-                    <img src="/images/3d_envelope.png" className="w-12 h-12 object-contain drop-shadow-md scale-125" alt="Envelope" />
+                    <img src="/images/.webp" className="w-12 h-12 object-contain drop-shadow-md scale-125" alt="Envelope" />
                   </div>
                 </div>
                 <span className="text-4xl font-black text-gray-900 relative z-10">14</span>

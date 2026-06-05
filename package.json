@@ -11,5 +11,10 @@
     "deploy:vendor": "firebase deploy --only hosting:vendor",
     "deploy:admin": "firebase deploy --only hosting:admin",
     "deploy:all": "npm run build:all && firebase deploy --only hosting"
+  },
+  "dependencies": {
+    "cloudinary": "^2.10.0",
+    "dotenv": "^17.4.2",
+    "sharp": "^0.34.5"
   }
 }

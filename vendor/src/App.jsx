@@ -23,10 +23,10 @@ function AppContent() {
 
     // Heavy assets that cause layout pop-in on first load
     const imagesToPreload = [
-      '/images/temple_background.png',
-      '/images/temple_mandap.png',
-      '/images/couple_transparent.png',
-      '/images/real_temple_doors.png'
+      '/images/.webp',
+      '/images/.webp',
+      '/images/.webp',
+      '/images/.webp'
     ];
 
     let loadedCount = 0;

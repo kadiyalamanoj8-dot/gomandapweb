@@ -16,13 +16,13 @@ const EVENT_CATEGORY_MAP = {
 };
 
 const EVENT_MANDAP_MAP = {
-  'Pelli / Shaadi (The Grand Wedding)': '/images/temple_mandap.png',
-  'Engagement / Nishchithartham': '/images/royal_arch_mandap.png',
-  'Sangeet & Mehendi Night': '/images/neon_sangeet_stage.png',
-  'Reception': '/images/royal_arch_mandap.png',
-  'Half-Saree / Dhoti Functions': '/images/temple_mandap.png',
-  'Cradle Ceremony / Barasala': '/images/modern_gazebo.png',
-  'Birthday Parties & Anniversaries': '/images/modern_gazebo.png'
+  'Pelli / Shaadi (The Grand Wedding)': '/images/.webp',
+  'Engagement / Nishchithartham': '/images/.webp',
+  'Sangeet & Mehendi Night': '/images/.webp',
+  'Reception': '/images/.webp',
+  'Half-Saree / Dhoti Functions': '/images/.webp',
+  'Cradle Ceremony / Barasala': '/images/.webp',
+  'Birthday Parties & Anniversaries': '/images/.webp'
 };
 
 
@@ -152,7 +152,7 @@ const HeroParallax = () => {
     };
   }, [mouseX, mouseY]);
 
-  const currentMandap = EVENT_MANDAP_MAP[eventType] || '/images/temple_mandap.png';
+  const currentMandap = EVENT_MANDAP_MAP[eventType] || '/images/.webp';
 
   return (
     // FIX Z-INDEX & CLIPPING: Outer wrapper does NOT have overflow-hidden.
@@ -172,7 +172,7 @@ const HeroParallax = () => {
         >
           {/* Layer 1: Background Temple (Z: -600) */}
           <motion.div style={{ x: bgX, y: bgY, translateZ: -600, scale: 2, willChange: 'transform' }} className="absolute inset-[-10%] z-0">
-            <img src="/images/temple_background.png" fetchPriority="high" decoding="async" alt="Background" className="w-full h-full object-cover opacity-60" />
+            <img src="/images/.webp" fetchPriority="high" decoding="async" alt="Background" className="w-full h-full object-cover opacity-60" />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60 z-10" />
           </motion.div>
 
@@ -197,7 +197,7 @@ const HeroParallax = () => {
           {/* Layer 3: The Couple Appears (Z: 100) */}
           <motion.div style={{ x: frontX, y: frontY, translateZ: 100, scale: 1.1, willChange: 'transform' }} className="absolute inset-[-5%] z-30 flex items-center justify-center pt-[15vh] md:pt-[10vh]">
             <img 
-              src="/images/couple_transparent.png" 
+              src="/images/.webp" 
               fetchPriority="high" 
               decoding="async"
               alt="Couple" 
