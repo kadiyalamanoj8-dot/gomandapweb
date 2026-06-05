@@ -124,7 +124,7 @@ const VendorLandingPage = () => {
       {/* Hero Section - Full bleed majestic event photo */}
       <section className="relative pt-[60px] h-[95vh] w-full bg-black overflow-hidden flex flex-col justify-between">
         <img 
-          src="/images/royal_arch_mandap.webp" 
+          src="/images/temple_mandap copy.webp" 
           alt="Premium Event" 
           className="absolute inset-0 w-full h-full object-cover object-center opacity-60 scale-105 transform origin-center animate-image-drift"
         />
@@ -156,10 +156,10 @@ const VendorLandingPage = () => {
       {/* Brand Explanation Section */}
       <section className="py-32 px-6 bg-[#FBFBFD] text-center max-w-5xl mx-auto">
         <h2 className="text-4xl md:text-6xl font-black tracking-tight text-[#1D1D1F] mb-8 leading-[1.1]">
-          Why the best vendors <br /> choose Gomandap.
+          Grow your Indian Event Business <br /> with Gomandap.
         </h2>
         <p className="text-xl md:text-2xl font-medium text-[#86868B] leading-relaxed max-w-4xl mx-auto">
-          We built Gomandap because the wedding industry needed a platform that respects the vendor. No hidden fees. No stolen leads. We give you direct access to high-intent clients who are ready to book the best in the business.
+          We built Gomandap because the Indian wedding and event industry needed a simple, honest platform. No hidden fees. No stolen leads. Whether you run a Kalyana Mandapam, a Catering Service, or offer Photography, we give you direct phone calls from families and clients who are ready to book.
         </p>
       </section>
 
@@ -188,7 +188,7 @@ const VendorLandingPage = () => {
               </div>
               <h3 className="text-4xl md:text-5xl font-black text-[#1D1D1F] tracking-tight mb-6 leading-tight">Keep 100% of<br/>your hard work.</h3>
               <p className="text-xl text-[#86868B] font-medium leading-relaxed">
-                We don't take a cut of your success. Close deals directly with clients and keep your entire profit margin. Gomandap is built to grow your business, not tax it.
+                Most platforms take a huge cut of your bookings. We don't! With Gomandap, you talk to the client directly, negotiate your own prices, and keep 100% of the money you make. We simply help clients find your beautiful business.
               </p>
             </div>
           </motion.div>
@@ -212,9 +212,9 @@ const VendorLandingPage = () => {
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 font-bold text-xs uppercase tracking-wider mb-6">
                 <ShieldCheck size={16} /> Verified Leads
               </div>
-              <h3 className="text-4xl md:text-5xl font-black text-[#1D1D1F] tracking-tight mb-6 leading-tight">High-intent clients.<br/>Zero spam.</h3>
+              <h3 className="text-4xl md:text-5xl font-black text-[#1D1D1F] tracking-tight mb-6 leading-tight">Real clients.<br/>Zero spam calls.</h3>
               <p className="text-xl text-[#86868B] font-medium leading-relaxed">
-                Every client phone number is OTP-verified before they can contact you. Spend your time talking to real couples planning real events, not filtering out fake inquiries.
+                Tired of fake inquiries and time-wasters? Every single client phone number on Gomandap is OTP-verified before they can see your contact details. Spend your time talking to real families planning real weddings and events.
               </p>
             </div>
           </motion.div>
@@ -238,9 +238,9 @@ const VendorLandingPage = () => {
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 text-brand-primary font-bold text-xs uppercase tracking-wider mb-6">
                 <Building2 size={16} /> Elite Dashboard
               </div>
-              <h3 className="text-4xl md:text-5xl font-black text-[#1D1D1F] tracking-tight mb-6 leading-tight">Your digital<br/>storefront.</h3>
+              <h3 className="text-4xl md:text-5xl font-black text-[#1D1D1F] tracking-tight mb-6 leading-tight">Your premium<br/>digital storefront.</h3>
               <p className="text-xl text-[#86868B] font-medium leading-relaxed mb-8">
-                Manage your profile, track views, and respond to client inquiries from a state-of-the-art dashboard designed specifically for Indian event professionals.
+                Upload your best photos, showcase your pricing, and build a brand that stands out. Our easy-to-use Vendor Dashboard lets you manage all your leads and profile views right from your phone.
               </p>
               <button onClick={() => setShowAuthModal(true)} className="px-8 py-4 bg-[#1D1D1F] text-white font-bold rounded-2xl hover:bg-black transition-colors shadow-lg shadow-black/20">
                 Create Your Storefront
