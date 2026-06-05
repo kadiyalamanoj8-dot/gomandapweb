@@ -1,8 +1,14 @@
-import React, { useMemo } from 'react';
-import { X, SlidersHorizontal, Search } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { X, SlidersHorizontal, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CATEGORIES } from '../../data/mockData';
+import { CATEGORIES, CATEGORY_BUCKETS } from '../../data/mockData';
 import { useSettings } from '../../context/SettingsContext';
+import * as Icons from 'lucide-react';
+
+const IconComponent = ({ name, ...props }) => {
+  const Icon = Icons[name] || Icons.HelpCircle;
+  return <Icon {...props} />;
+};
 
 const VENUE_CATEGORIES = ['Banquet Halls', 'Kalyana Mandapams', 'Open Lawns & Farmhouses', 'Resorts & Destination Venues', '5-Star Hotels', 'Party & Mini Halls', 'Temples & Ashrams'];
 const PHOTO_CATEGORIES = ['Photography & Videography'];
@@ -13,12 +19,35 @@ const DJ_CATEGORIES = ['DJs & Sound Systems', 'Live Musicians / Band Baaja'];
 const JEWELRY_CATEGORIES = ['Wedding Clothes / Boutiques', 'Jewelry Shops'];
 const LOGISTICS_CATEGORIES = ['Wedding Cards & Invites', 'Cars & Buses (Travel)', 'Astrologers / Pundits', 'Honeymoon Packages'];
 
-const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [] }) => {
+const ICON_MAP = {
+  'Banquet Halls':               '/images/3d_banquet.png',
+  'Kalyana Mandapams':           '/images/3d_mandapam.png',
+  'Open Lawns & Farmhouses':     '/images/3d_lawn.png',
+  'Resorts & Destination Venues':'/images/3d_resort.png',
+  '5-Star Hotels':               '/images/3d_5star.png',
+  'Party & Mini Halls':          '/images/3d_partyhall.png',
+  'Temples & Ashrams':           '/images/3d_temple.png',
+  'Catering Service':            '/images/3d_food.png',
+  'Stage & Venue Decor':         '/images/3d_food.png',
+  'Photography & Videography':   '/images/3d_camera.png',
+  'DJs & Sound Systems':         '/images/3d_dj.png',
+  'Live Musicians / Band Baaja': '/images/3d_band.png',
+  'Makeup Artists (MUA)':        '/images/3d_makeup.png',
+  'Mehndi Designers':            '/images/3d_makeup.png',
+  'Wedding Clothes / Boutiques': '/images/3d_clothes.png',
+  'Jewelry Shops':               '/images/3d_jewelry.png',
+  'Wedding Cards & Invites':     '/images/3d_invitation.png',
+  'Cars & Buses (Travel)':       '/images/3d_car.png',
+  'Astrologers / Pundits':       '/images/3d_astrologer.png',
+  'Honeymoon Packages':          '/images/3d_honeymoon.png',
+  'Event Planners':              '/images/3d_planner.png',
+};
+
+const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [], toggleCategory }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isCategoryEnabled } = useSettings();
-  const activeCategories = CATEGORIES.filter(cat => isCategoryEnabled(cat.label));
-
+  
   const inHouseCatering = searchParams.get('inHouseCatering') === 'true';
   const inHousePhotography = searchParams.get('inHousePhotography') === 'true';
   const inHouseDecorations = searchParams.get('inHouseDecorations') === 'true';
@@ -37,7 +66,6 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [] 
   const activeSchemas = useMemo(() => {
     const schemas = new Set();
     
-    // Default to VENUE if nothing selected to show something
     if (selectedCategories.length === 0) {
       schemas.add('VENUE');
       return Array.from(schemas);
@@ -60,7 +88,6 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [] 
   const [dynamicFilters, setDynamicFilters] = useState([]);
   const [isLoadingFilters, setIsLoadingFilters] = useState(true);
 
-  // Fetch dynamic filters from MongoDB when active schemas change
   React.useEffect(() => {
     const fetchFilters = async () => {
       setIsLoadingFilters(true);
@@ -70,7 +97,6 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [] 
         const data = await res.json();
         
         if (data.success) {
-          // Combine all filters from all matching schemas
           const combinedFilters = data.data.flatMap(schema => schema.filters);
           setDynamicFilters(combinedFilters);
         }
@@ -84,7 +110,6 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [] 
     fetchFilters();
   }, [activeSchemas]);
 
-  // Helper to render dynamic filter blocks
   const renderDynamicBlock = (block) => {
     if (block.type === 'RADIO') {
       return (
@@ -120,10 +145,7 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [] 
                   type="checkbox" 
                   value={opt.value}
                   className="w-4 h-4 accent-brand-primary rounded cursor-pointer border-gray-300" 
-                  onChange={(e) => {
-                    // Handling array logic for checkboxes is complex via URL params without a helper, 
-                    // keeping simple toggle for now or using a generic handleFilterChange
-                  }}
+                  onChange={(e) => {}}
                 />
                 <span className="text-sm font-bold text-gray-600 group-hover:text-brand-primary transition-colors">{opt.label}</span>
               </label>
@@ -133,6 +155,14 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [] 
       );
     }
     return null;
+  };
+
+  const [expandedBuckets, setExpandedBuckets] = useState(
+    CATEGORY_BUCKETS.reduce((acc, bucket) => ({ ...acc, [bucket.id]: true }), {})
+  );
+
+  const toggleBucket = (id) => {
+    setExpandedBuckets(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   return (
@@ -151,7 +181,7 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [] 
 
       <div className="space-y-8 md:space-y-6">
         
-        {/* Locality Search - Common for all */}
+        {/* Locality Search */}
         <div>
           <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Locality / City</h3>
           <div className="relative">
@@ -164,10 +194,64 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [] 
           </div>
         </div>
 
-        {/* We removed the static list of categories here because it's now in the massive horizontal scroll above the search results! */}
+        {/* Categories Section */}
+        <div className="pt-2 border-t border-gray-100">
+          <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-4">Browse Categories</h3>
+          <div className="flex flex-col gap-4">
+            {CATEGORY_BUCKETS.map(bucket => {
+              const isActive = bucket.categories.some(c => selectedCategories.includes(c.label));
+              const isExpanded = expandedBuckets[bucket.id];
+              return (
+                <div key={bucket.id} className="flex flex-col">
+                  <button 
+                    onClick={() => toggleBucket(bucket.id)}
+                    className="flex justify-between items-center w-full text-left py-1 group"
+                  >
+                    <span className={`text-sm font-bold transition-colors ${isActive ? 'text-brand-primary' : 'text-gray-800 group-hover:text-brand-primary'}`}>
+                      {bucket.label}
+                    </span>
+                    {isExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+                  </button>
+                  
+                  {isExpanded && (
+                    <div className="flex flex-col gap-1.5 mt-2 ml-1">
+                      {bucket.categories.map(cat => {
+                        if (!isCategoryEnabled(cat.label)) return null;
+                        const isSelected = selectedCategories.includes(cat.label);
+                        const icon3d = ICON_MAP[cat.label];
+                        return (
+                          <button
+                            key={cat.id}
+                            onClick={() => toggleCategory && toggleCategory(cat.label)}
+                            className={`flex items-center gap-3 p-2 rounded-xl transition-all ${
+                              isSelected 
+                                ? 'bg-brand-primary/10 border border-brand-primary/20' 
+                                : 'hover:bg-gray-50 border border-transparent'
+                            }`}
+                          >
+                            <div className="w-7 h-7 shrink-0 flex items-center justify-center">
+                              {icon3d ? (
+                                <img src={icon3d} alt={cat.label} className="w-full h-full object-contain drop-shadow-sm" />
+                              ) : (
+                                <IconComponent name={cat.iconName} size={16} className={isSelected ? 'text-brand-primary' : 'text-gray-500'} />
+                              )}
+                            </div>
+                            <span className={`text-xs font-bold text-left leading-tight ${isSelected ? 'text-brand-primary' : 'text-gray-600'}`}>
+                              {cat.label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Dynamic MongoDB Filters */}
-        <div className="space-y-2">
+        <div className="pt-4 border-t border-gray-100 space-y-2">
           {isLoadingFilters ? (
             <div className="py-10 text-center">
               <div className="w-6 h-6 border-2 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -180,7 +264,6 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [] 
 
       </div>
       
-      {/* Mobile Sticky Apply Button */}
       {isMobileOpen && (
         <div className="sticky bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 mt-auto">
           <button 

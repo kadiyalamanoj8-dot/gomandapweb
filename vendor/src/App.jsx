@@ -36,11 +36,17 @@ function AppContent() {
       setIsPreloading(false);
     }, 8000);
 
-    imagesToPreload.forEach(src => {
+    imagesToPreload.forEach(async (src) => {
       const img = new Image();
       img.src = src;
-      img.onload = handleImageLoad;
-      img.onerror = handleImageLoad;
+      
+      try {
+        await img.decode();
+        handleImageLoad();
+      } catch (err) {
+        console.warn(`Failed to decode ${src}`, err);
+        handleImageLoad();
+      }
     });
 
     function handleImageLoad() {

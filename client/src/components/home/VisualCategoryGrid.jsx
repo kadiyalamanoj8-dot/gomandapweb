@@ -10,63 +10,127 @@ const IconComponent = ({ name, ...props }) => {
   return <Icon {...props} />;
 };
 
+// Full icon map for ALL categories using the edited "copy" images
+const ICON_MAP = {
+  'Banquet Halls':              '/images/3d_venue copy.png',
+  'Kalyana Mandapams':          '/images/temple_mandap copy.png',
+  'Open Lawns & Farmhouses':    '/images/3d_lawn_farmhouse_1780657291134 copy.png',
+  'Resorts & Destination Venues':'/images/modern_gazebo copy.png',
+  '5-Star Hotels':              '/images/3d_5star_hotel_1780657276128 copy.png',
+  'Party & Mini Halls':         '/images/neon_sangeet_stage copy.png',
+  'Temples & Ashrams':          '/images/temple_mandap copy.png',
+  'Catering Service':           '/images/3d_food copy.png',
+  'Stage & Venue Decor':        '/images/3d_decor copy.png',
+  'Photography & Videography':  '/images/3d_camera copy.png',
+  'DJs & Sound Systems':        '/images/3d_dj copy.png',
+  'Live Musicians / Band Baaja':'/images/3d_band copy.png',
+  'Makeup Artists (MUA)':       '/images/3d_makeup copy.png',
+  'Mehndi Designers':           '/images/3d_mehndi_1780657262687 copy.png',
+  'Wedding Clothes / Boutiques':'/images/3d_clothes copy.png',
+  'Jewelry Shops':              '/images/3d_jewelry copy.png',
+  'Wedding Cards & Invites':    '/images/3d_invitation copy.png',
+  'Cars & Buses (Travel)':      '/images/3d_car copy.png',
+  'Astrologers / Pundits':      '/images/3d_astrologer copy.png',
+  'Honeymoon Packages':         '/images/3d_honeymoon copy.png',
+  'Event Planners':             '/images/3d_planner copy.png',
+};
+
+// Simple animated icon component without borders or containers
+const SimpleAnimatedIconCard = ({ cat, icon3d, iconName, delay, onClick }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-30px' }}
+      transition={{ delay, duration: 0.4 }}
+      className="cursor-pointer group flex flex-col items-center gap-2"
+      onClick={onClick}
+    >
+      {/* Container just for the image and floating animation */}
+      <motion.div 
+        animate={{ y: [0, -8, 0] }}
+        transition={{ 
+          repeat: Infinity, 
+          duration: 3, 
+          ease: "easeInOut",
+          delay: delay * 2 // stagger the animation start slightly
+        }}
+        className="relative z-10 w-24 h-24 flex items-center justify-center"
+      >
+        {icon3d ? (
+          <img
+            src={icon3d}
+            alt={cat.label}
+            className="w-full h-full object-contain"
+            style={{
+              filter: 'drop-shadow(0 15px 20px rgba(0,0,0,0.15)) drop-shadow(0 5px 10px rgba(0,0,0,0.1))',
+              pointerEvents: 'none',
+            }}
+          />
+        ) : (
+          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-400">
+            <IconComponent name={iconName} size={32} />
+          </div>
+        )}
+      </motion.div>
+      
+      {/* Label */}
+      <p className="text-center text-[12px] sm:text-sm font-bold text-gray-800 leading-tight px-1 group-hover:text-brand-primary transition-colors flex items-start justify-center">
+        {cat.label}
+      </p>
+    </motion.div>
+  );
+};
+
 const VisualCategoryGrid = () => {
   const navigate = useNavigate();
   const { isCategoryEnabled } = useSettings();
 
-  const activeVenueCategories = VENUE_CATEGORIES.filter(cat => isCategoryEnabled(cat.label));
+  const activeVenueCategories  = VENUE_CATEGORIES.filter(cat => isCategoryEnabled(cat.label));
   const activeVendorCategories = VENDOR_CATEGORIES.filter(cat => isCategoryEnabled(cat.label));
 
   return (
-    <section className="py-10 bg-white border-b border-gray-100">
+    <section className="py-10 bg-gradient-to-b from-gray-50 to-white border-b border-gray-100">
       <div className="w-full max-w-7xl mx-auto px-4 md:px-8">
-        
-        {/* Venues Section */}
-        <div className="mb-10">
-          <h2 className="text-xl md:text-2xl font-black text-gray-900 mb-2">Find Wedding Venues</h2>
-          <p className="text-sm font-semibold text-gray-500 mb-6">Discover the perfect location for your grand celebration.</p>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 md:gap-4">
+
+        {/* ── VENUES ── */}
+        <div className="mb-12">
+          <div className="mb-6">
+            <h2 className="text-xl md:text-2xl font-black text-gray-900 mb-1">Find Wedding Venues</h2>
+            <p className="text-sm font-semibold text-gray-400">Discover the perfect location for your grand celebration.</p>
+          </div>
+
+          <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-6 lg:gap-8">
             {activeVenueCategories.map((cat, idx) => (
-              <motion.div 
+              <SimpleAnimatedIconCard
                 key={cat.id}
+                cat={cat}
+                iconName={cat.iconName}
+                icon3d={ICON_MAP[cat.label]}
+                delay={idx * 0.04}
                 onClick={() => navigate(`/search?category=${encodeURIComponent(cat.label)}`)}
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.05 }}
-                className="cursor-pointer bg-white rounded-2xl p-4 border border-gray-100 shadow-[0_4px_15px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_25px_rgb(0,0,0,0.06)] hover:border-brand-primary/30 flex flex-col items-center justify-center text-center transition-all group"
-              >
-                <div className="w-12 h-12 rounded-xl bg-brand-primary/5 flex items-center justify-center text-brand-primary mb-3 group-hover:scale-110 group-hover:bg-brand-primary/10 transition-transform">
-                  <IconComponent name={cat.iconName} size={24} />
-                </div>
-                <span className="text-xs md:text-sm font-bold text-gray-700 leading-tight group-hover:text-brand-primary transition-colors">{cat.label}</span>
-              </motion.div>
+              />
             ))}
           </div>
         </div>
 
-        {/* Vendors Section */}
+        {/* ── VENDORS ── */}
         <div>
-          <h2 className="text-xl md:text-2xl font-black text-gray-900 mb-2">Book Expert Vendors</h2>
-          <p className="text-sm font-semibold text-gray-500 mb-6">From photographers to makeup artists, find the best professionals.</p>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 md:gap-4">
+          <div className="mb-6">
+            <h2 className="text-xl md:text-2xl font-black text-gray-900 mb-1">Book Expert Vendors</h2>
+            <p className="text-sm font-semibold text-gray-400">From photographers to makeup artists, find the best professionals.</p>
+          </div>
+
+          <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-6 lg:gap-8">
             {activeVendorCategories.slice(0, 14).map((cat, idx) => (
-              <motion.div 
+              <SimpleAnimatedIconCard
                 key={cat.id}
+                cat={cat}
+                iconName={cat.iconName}
+                icon3d={ICON_MAP[cat.label]}
+                delay={idx * 0.04}
                 onClick={() => navigate(`/search?category=${encodeURIComponent(cat.label)}`)}
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.05 }}
-                className="cursor-pointer bg-white rounded-2xl p-4 border border-gray-100 shadow-[0_4px_15px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_25px_rgb(0,0,0,0.06)] hover:border-brand-secondary/30 flex flex-col items-center justify-center text-center transition-all group"
-              >
-                <div className="w-12 h-12 rounded-xl bg-brand-secondary/5 flex items-center justify-center text-brand-secondary mb-3 group-hover:scale-110 group-hover:bg-brand-secondary/10 transition-transform">
-                  <IconComponent name={cat.iconName} size={24} />
-                </div>
-                <span className="text-xs md:text-sm font-bold text-gray-700 leading-tight group-hover:text-brand-secondary transition-colors">{cat.label}</span>
-              </motion.div>
+              />
             ))}
           </div>
         </div>
@@ -77,3 +141,4 @@ const VisualCategoryGrid = () => {
 };
 
 export default VisualCategoryGrid;
+

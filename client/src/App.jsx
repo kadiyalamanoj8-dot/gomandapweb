@@ -39,11 +39,19 @@ function AppContent() {
       setIsPreloading(false);
     }, 8000);
 
-    imagesToPreload.forEach(src => {
+    imagesToPreload.forEach(async (src) => {
       const img = new Image();
       img.src = src;
-      img.onload = handleImageLoad;
-      img.onerror = handleImageLoad;
+      
+      try {
+        // Force the browser to decode the image on a background thread
+        // This completely eliminates the GPU stutter when the parallax first renders
+        await img.decode();
+        handleImageLoad();
+      } catch (err) {
+        console.warn(`Failed to decode ${src}`, err);
+        handleImageLoad(); // Still proceed so we don't hang
+      }
     });
 
     function handleImageLoad() {

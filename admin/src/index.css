@@ -10,4 +10,19 @@
 body {
   background-color: #f9fafb; /* gray-50 */
   color: #111827; /* gray-900 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.smooth-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
 }

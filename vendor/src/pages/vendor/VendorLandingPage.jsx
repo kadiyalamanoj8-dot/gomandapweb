@@ -23,6 +23,30 @@ const FloatingBadge = ({ text, icon: Icon, delay, top, left, right, bottom }) =>
   </motion.div>
 );
 
+const ICON_MAP = {
+  'Banquet Halls':               '/images/3d_banquet.png',
+  'Kalyana Mandapams':           '/images/3d_mandapam.png',
+  'Open Lawns & Farmhouses':     '/images/3d_lawn.png',
+  'Resorts & Destination Venues':'/images/3d_resort.png',
+  '5-Star Hotels':               '/images/3d_5star.png',
+  'Party & Mini Halls':          '/images/3d_partyhall.png',
+  'Temples & Ashrams':           '/images/3d_temple.png',
+  'Catering Service':            '/images/3d_food.png',
+  'Stage & Venue Decor':         '/images/3d_food.png',
+  'Photography & Videography':   '/images/3d_camera.png',
+  'DJs & Sound Systems':         '/images/3d_dj.png',
+  'Live Musicians / Band Baaja': '/images/3d_band.png',
+  'Makeup Artists (MUA)':        '/images/3d_makeup.png',
+  'Mehndi Designers':            '/images/3d_makeup.png',
+  'Wedding Clothes / Boutiques': '/images/3d_clothes.png',
+  'Jewelry Shops':               '/images/3d_jewelry.png',
+  'Wedding Cards & Invites':     '/images/3d_invitation.png',
+  'Cars & Buses (Travel)':       '/images/3d_car.png',
+  'Astrologers / Pundits':       '/images/3d_astrologer.png',
+  'Honeymoon Packages':          '/images/3d_honeymoon.png',
+  'Event Planners':              '/images/3d_planner.png',
+};
+
 const VendorLandingPage = () => {
   const navigate = useNavigate();
 
@@ -260,19 +284,32 @@ const VendorLandingPage = () => {
             <p className="text-sm md:text-xl text-rose-200 font-medium max-w-2xl mx-auto">We provide a platform for 20+ types of wedding services across India.</p>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            {CATEGORIES.slice(0, 12).map((cat, idx) => (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.03 }}
-                key={cat.id} 
-                className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-6 text-center hover:bg-rose-900/50 hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-all cursor-pointer group"
-              >
-                <span className="text-sm md:text-base font-bold text-amber-50 group-hover:text-amber-400 transition-colors">{cat.label}</span>
-              </motion.div>
-            ))}
+          <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 md:gap-4">
+            {CATEGORIES.slice(0, 12).map((cat, idx) => {
+              const icon3d = ICON_MAP[cat.label];
+              return (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.03 }}
+                  key={cat.id} 
+                  className="flex flex-col items-center gap-3 group cursor-pointer"
+                >
+                  <div className="w-[84px] h-[84px] bg-white/5 backdrop-blur-md border border-white/10 rounded-[24px] flex items-center justify-center group-hover:bg-rose-900/40 group-hover:border-amber-500/50 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-all relative overflow-hidden">
+                    <span className="absolute inset-0 bg-gradient-to-tr from-rose-500/10 to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative z-10 w-12 h-12 flex items-center justify-center">
+                      {icon3d && (
+                        <img src={icon3d} alt={cat.label} className="w-12 h-12 object-contain drop-shadow-md group-hover:scale-110 transition-transform duration-300" />
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-[11px] sm:text-xs font-bold text-amber-50/80 group-hover:text-amber-400 transition-colors text-center leading-tight px-1 h-8 flex items-start justify-center">
+                    {cat.label}
+                  </p>
+                </motion.div>
+              );
+            })}
           </div>
           
           <div className="mt-12 md:mt-16 text-center">

@@ -17,6 +17,30 @@ const IconComponent = ({ name, ...props }) => {
   return <Icon {...props} />;
 };
 
+const ICON_MAP = {
+  'Banquet Halls':               '/images/3d_banquet.png',
+  'Kalyana Mandapams':           '/images/3d_mandapam.png',
+  'Open Lawns & Farmhouses':     '/images/3d_lawn.png',
+  'Resorts & Destination Venues':'/images/3d_resort.png',
+  '5-Star Hotels':               '/images/3d_5star.png',
+  'Party & Mini Halls':          '/images/3d_partyhall.png',
+  'Temples & Ashrams':           '/images/3d_temple.png',
+  'Catering Service':            '/images/3d_food.png',
+  'Stage & Venue Decor':         '/images/3d_food.png',
+  'Photography & Videography':   '/images/3d_camera.png',
+  'DJs & Sound Systems':         '/images/3d_dj.png',
+  'Live Musicians / Band Baaja': '/images/3d_band.png',
+  'Makeup Artists (MUA)':        '/images/3d_makeup.png',
+  'Mehndi Designers':            '/images/3d_makeup.png',
+  'Wedding Clothes / Boutiques': '/images/3d_clothes.png',
+  'Jewelry Shops':               '/images/3d_jewelry.png',
+  'Wedding Cards & Invites':     '/images/3d_invitation.png',
+  'Cars & Buses (Travel)':       '/images/3d_car.png',
+  'Astrologers / Pundits':       '/images/3d_astrologer.png',
+  'Honeymoon Packages':          '/images/3d_honeymoon.png',
+  'Event Planners':              '/images/3d_planner.png',
+};
+
 const VendorOnboarding = () => {
   const { submitOnboarding, saveDraft, vendorProfile } = useVendor();
   const { isCategoryEnabled } = useSettings();
@@ -286,40 +310,98 @@ const VendorOnboarding = () => {
               <div>
                 <h4 className="text-sm font-bold text-brand-primary uppercase tracking-widest mb-4">1. Wedding Venues</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {activeVenueCategories.map(cat => (
-                    <div 
-                      key={cat.id} 
-                      onClick={() => handleCategorySelect(cat.label)}
-                      className={`cursor-pointer rounded-2xl p-4 border-2 flex flex-col items-center justify-center text-center transition-all ${
-                        basicInfo.category === cat.label 
-                          ? 'border-brand-primary bg-brand-primary/5 shadow-md scale-105' 
-                          : 'border-gray-100 bg-gray-50 hover:border-gray-300 hover:bg-gray-100'
-                      }`}
-                    >
-                      <IconComponent name={cat.iconName} size={28} className={`mb-3 ${basicInfo.category === cat.label ? 'text-brand-primary' : 'text-gray-500'}`} />
-                      <span className={`text-xs font-bold leading-tight ${basicInfo.category === cat.label ? 'text-brand-primary' : 'text-gray-700'}`}>{cat.label}</span>
-                    </div>
-                  ))}
+                  {activeVenueCategories.map((cat, idx) => {
+                    const isSelected = basicInfo.category === cat.label;
+                    const icon3d = ICON_MAP[cat.label];
+                    return (
+                      <motion.div
+                        key={cat.id}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.03 }}
+                        className="flex flex-col items-center gap-2 group"
+                      >
+                        <button
+                          onClick={() => handleCategorySelect(cat.label)}
+                          className={`lg-card w-[84px] h-[84px] flex items-center justify-center rounded-[24px] transition-all relative overflow-hidden ${
+                            isSelected 
+                              ? 'selected scale-105 shadow-[0_8px_20px_rgba(239,68,68,0.3)] border-2 border-brand-primary' 
+                              : 'hover:scale-105 border border-transparent'
+                          }`}
+                        >
+                          <span
+                            className="lg-glow"
+                            style={{ background: isSelected ? 'rgba(239,68,68,0.35)' : 'rgba(239,68,68,0.1)' }}
+                          />
+                          <div className="w-12 h-12 flex items-center justify-center relative z-10 pointer-events-none">
+                            {icon3d ? (
+                              <img
+                                src={icon3d}
+                                alt={cat.label}
+                                className="icon-float w-12 h-12 object-contain drop-shadow-md"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-brand-primary/10 flex items-center justify-center">
+                                <IconComponent name={cat.iconName} size={22} className={isSelected ? 'text-brand-primary' : 'text-gray-500'} />
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                        <p className={`text-[11px] font-bold text-center leading-tight px-1 h-8 flex items-start justify-center transition-colors ${isSelected ? 'text-brand-primary' : 'text-gray-600 group-hover:text-gray-900'}`}>
+                          {cat.label}
+                        </p>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
 
               <div className="mt-8">
                 <h4 className="text-sm font-bold text-brand-secondary uppercase tracking-widest mb-4">2. Wedding Vendors</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {activeVendorCategories.map(cat => (
-                    <div 
-                      key={cat.id} 
-                      onClick={() => handleCategorySelect(cat.label)}
-                      className={`cursor-pointer rounded-2xl p-4 border-2 flex flex-col items-center justify-center text-center transition-all ${
-                        basicInfo.category === cat.label 
-                          ? 'border-brand-secondary bg-brand-secondary/5 shadow-md scale-105' 
-                          : 'border-gray-100 bg-gray-50 hover:border-gray-300 hover:bg-gray-100'
-                      }`}
-                    >
-                      <IconComponent name={cat.iconName} size={28} className={`mb-3 ${basicInfo.category === cat.label ? 'text-brand-secondary' : 'text-gray-500'}`} />
-                      <span className={`text-xs font-bold leading-tight ${basicInfo.category === cat.label ? 'text-brand-secondary' : 'text-gray-700'}`}>{cat.label}</span>
-                    </div>
-                  ))}
+                  {activeVendorCategories.map((cat, idx) => {
+                    const isSelected = basicInfo.category === cat.label;
+                    const icon3d = ICON_MAP[cat.label];
+                    return (
+                      <motion.div
+                        key={cat.id}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.03 }}
+                        className="flex flex-col items-center gap-2 group"
+                      >
+                        <button
+                          onClick={() => handleCategorySelect(cat.label)}
+                          className={`lg-card w-[84px] h-[84px] flex items-center justify-center rounded-[24px] transition-all relative overflow-hidden ${
+                            isSelected 
+                              ? 'selected scale-105 shadow-[0_8px_20px_rgba(251,146,60,0.3)] border-2 border-brand-secondary' 
+                              : 'hover:scale-105 border border-transparent'
+                          }`}
+                        >
+                          <span
+                            className="lg-glow"
+                            style={{ background: isSelected ? 'rgba(251,146,60,0.35)' : 'rgba(251,146,60,0.1)' }}
+                          />
+                          <div className="w-12 h-12 flex items-center justify-center relative z-10 pointer-events-none">
+                            {icon3d ? (
+                              <img
+                                src={icon3d}
+                                alt={cat.label}
+                                className="icon-float w-12 h-12 object-contain drop-shadow-md"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-brand-secondary/10 flex items-center justify-center">
+                                <IconComponent name={cat.iconName} size={22} className={isSelected ? 'text-brand-secondary' : 'text-gray-500'} />
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                        <p className={`text-[11px] font-bold text-center leading-tight px-1 h-8 flex items-start justify-center transition-colors ${isSelected ? 'text-brand-secondary' : 'text-gray-600 group-hover:text-gray-900'}`}>
+                          {cat.label}
+                        </p>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
             </div>

@@ -4,7 +4,183 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
 @layer utilities {
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  
+  .smooth-transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity;
+  }
+  
+  .liquid-glass-capsule {
+    @apply relative overflow-hidden backdrop-blur-xl border border-white/30;
+    background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);
+    box-shadow: 
+      inset 0 1px 1px rgba(255,255,255,0.6),
+      inset 0 -1px 1px rgba(0,0,0,0.1),
+      0 8px 32px rgba(0,0,0,0.1);
+  }
+  
+  .liquid-glass-capsule::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  /* === LIQUID GLASS CATEGORY CARD === */
+  .lg-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 24px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.35) 60%, rgba(255,255,255,0.15) 100%);
+    border: 1px solid rgba(255,255,255,0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow:
+      0 2px 0 rgba(255,255,255,0.9) inset,
+      0 -1px 0 rgba(0,0,0,0.08) inset,
+      1px 0 0 rgba(255,255,255,0.6) inset,
+      -1px 0 0 rgba(255,255,255,0.6) inset,
+      0 8px 32px rgba(0,0,0,0.08),
+      0 2px 8px rgba(0,0,0,0.04);
+    cursor: pointer;
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    will-change: transform, box-shadow;
+  }
+
+  .lg-card:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow:
+      0 2px 0 rgba(255,255,255,0.9) inset,
+      0 -1px 0 rgba(0,0,0,0.08) inset,
+      1px 0 0 rgba(255,255,255,0.6) inset,
+      -1px 0 0 rgba(255,255,255,0.6) inset,
+      0 20px 60px rgba(0,0,0,0.12),
+      0 8px 24px rgba(0,0,0,0.06);
+  }
+
+  /* Top specular glare highlight */
+  .lg-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 5%; right: 5%;
+    height: 45%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.0) 100%);
+    border-radius: 0 0 60% 60%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Ripple ring animation */
+  .lg-card::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 26px;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0%, rgba(255,255,255,0.6) 20%, transparent 40%,
+      transparent 60%, rgba(255,255,255,0.4) 80%, transparent 100%
+    );
+    animation: ripple-rotate 4s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .lg-card:hover::after {
+    opacity: 1;
+  }
+
+  .lg-card.selected {
+    border-color: rgba(239,68,68,0.4);
+    background: linear-gradient(145deg, rgba(239,68,68,0.12) 0%, rgba(255,255,255,0.6) 60%, rgba(239,68,68,0.05) 100%);
+    box-shadow:
+      0 2px 0 rgba(255,255,255,0.9) inset,
+      0 -1px 0 rgba(0,0,0,0.08) inset,
+      0 8px 32px rgba(239,68,68,0.15),
+      0 2px 8px rgba(239,68,68,0.1);
+  }
+
+  .lg-card.selected:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow:
+      0 2px 0 rgba(255,255,255,0.9) inset,
+      0 -1px 0 rgba(0,0,0,0.08) inset,
+      0 24px 60px rgba(239,68,68,0.2),
+      0 8px 24px rgba(239,68,68,0.12);
+  }
+
+  /* Ambient glow blob behind the card */
+  .lg-glow {
+    position: absolute;
+    bottom: -30%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70%;
+    height: 60%;
+    border-radius: 50%;
+    filter: blur(20px);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .lg-card:hover .lg-glow {
+    opacity: 0.6;
+  }
+
+  /* Floating icon animation */
+  @keyframes float-icon {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-5px); }
+  }
+
+  .icon-float {
+    animation: float-icon 3s ease-in-out infinite;
+  }
+
+  /* Ripple rotate for border shimmer */
+  @keyframes ripple-rotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* Ripple pulse on click */
+  @keyframes ripple-click {
+    0%   { transform: scale(0); opacity: 0.5; }
+    100% { transform: scale(4); opacity: 0; }
+  }
+
+  .ripple-click-ring {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(239,68,68,0.3);
+    width: 40px; height: 40px;
+    margin-left: -20px; margin-top: -20px;
+    animation: ripple-click 0.6s linear;
+    pointer-events: none;
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }

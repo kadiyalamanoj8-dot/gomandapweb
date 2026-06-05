@@ -1,14 +1,37 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import { Search, MapPin, Calendar, PartyPopper } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { EVENT_TYPES } from '../../data/mockData';
 import CustomDropdown from '../ui/CustomDropdown';
 
+const EVENT_CATEGORY_MAP = {
+  'Pelli / Shaadi (The Grand Wedding)': ['Banquet Halls', 'Kalyana Mandapams', 'Open Lawns & Farmhouses', 'Photography & Videography', 'Makeup Artists (MUA)'],
+  'Engagement / Nishchithartham': ['Banquet Halls', 'Party & Mini Halls', 'Stage & Venue Decor', 'Photography & Videography', 'Makeup Artists (MUA)'],
+  'Sangeet & Mehendi Night': ['Open Lawns & Farmhouses', 'Party & Mini Halls', 'Mehndi Designers', 'DJs & Sound Systems', 'Photography & Videography'],
+  'Reception': ['Banquet Halls', '5-Star Hotels', 'Stage & Venue Decor', 'Catering Service', 'Live Musicians / Band Baaja'],
+  'Half-Saree / Dhoti Functions': ['Party & Mini Halls', 'Temples & Ashrams', 'Catering Service', 'Photography & Videography', 'Makeup Artists (MUA)'],
+  'Cradle Ceremony / Barasala': ['Party & Mini Halls', 'Catering Service', 'Photography & Videography', 'Event Planners'],
+  'Birthday Parties & Anniversaries': ['Party & Mini Halls', 'Open Lawns & Farmhouses', 'Catering Service', 'Stage & Venue Decor', 'DJs & Sound Systems']
+};
+
+const EVENT_MANDAP_MAP = {
+  'Pelli / Shaadi (The Grand Wedding)': '/images/temple_mandap.png',
+  'Engagement / Nishchithartham': '/images/royal_arch_mandap.png',
+  'Sangeet & Mehendi Night': '/images/neon_sangeet_stage.png',
+  'Reception': '/images/royal_arch_mandap.png',
+  'Half-Saree / Dhoti Functions': '/images/temple_mandap.png',
+  'Cradle Ceremony / Barasala': '/images/modern_gazebo.png',
+  'Birthday Parties & Anniversaries': '/images/modern_gazebo.png'
+};
+
+
+
 const HeroParallax = () => {
   const containerRef = useRef(null);
   const navigate = useNavigate();
   const [eventType, setEventType] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
   
   // Location Autocomplete State
   const [locationQuery, setLocationQuery] = useState('');
@@ -66,7 +89,15 @@ const HeroParallax = () => {
   };
 
   const handleSearch = () => {
-    let url = `/search?category=${encodeURIComponent(eventType)}`;
+    // Default to the first category if none selected but an event is chosen
+    let searchCategory = selectedCategory;
+    if (!searchCategory && eventType && EVENT_CATEGORY_MAP[eventType]) {
+        searchCategory = EVENT_CATEGORY_MAP[eventType][0];
+    } else if (!searchCategory) {
+        searchCategory = 'Banquet Halls'; // Fallback
+    }
+
+    let url = `/search?category=${encodeURIComponent(searchCategory)}`;
     if (selectedLocation) {
         url += `&lat=${selectedLocation.lat}&lng=${selectedLocation.lon}&locName=${encodeURIComponent(selectedLocation.display_name.split(',')[0])}`;
     }
@@ -121,6 +152,8 @@ const HeroParallax = () => {
     };
   }, [mouseX, mouseY]);
 
+  const currentMandap = EVENT_MANDAP_MAP[eventType] || '/images/temple_mandap.png';
+
   return (
     // FIX Z-INDEX & CLIPPING: Outer wrapper does NOT have overflow-hidden.
     // It provides a high z-index (z-40) to ensure dropdowns overlap sections below it.
@@ -138,22 +171,37 @@ const HeroParallax = () => {
           className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none"
         >
           {/* Layer 1: Background Temple (Z: -600) */}
-          <motion.div style={{ x: bgX, y: bgY, translateZ: -600, scale: 2 }} className="absolute inset-[-10%] z-0">
-            <img src="/images/temple_background.png" alt="Background" className="w-full h-full object-cover opacity-60" />
+          <motion.div style={{ x: bgX, y: bgY, translateZ: -600, scale: 2, willChange: 'transform' }} className="absolute inset-[-10%] z-0">
+            <img src="/images/temple_background.png" fetchPriority="high" decoding="async" alt="Background" className="w-full h-full object-cover opacity-60" />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60 z-10" />
           </motion.div>
 
-          {/* Layer 2: Intricate Mandap Frame (Z: -100) */}
-          <motion.div style={{ x: midX, y: midY, translateZ: -100, scale: 1.2 }} className="absolute inset-0 z-20 flex items-center justify-center">
-            <img src="/images/temple_mandap.png" alt="Mandap" className="w-[100vw] md:w-[90vw] h-[80vh] md:h-[90vh] object-contain mix-blend-screen opacity-100" style={{ filter: 'drop-shadow(0 0 30px rgba(255,193,7,0.3))' }} />
+          {/* Layer 2: Dynamic Mandap Frame (Z: -100) */}
+          <motion.div style={{ x: midX, y: midY, translateZ: -100, scale: 1.2, willChange: 'transform' }} className="absolute inset-0 z-20 flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              <motion.img 
+                key={currentMandap}
+                src={currentMandap} 
+                fetchPriority="high" 
+                decoding="async" 
+                alt="Mandap" 
+                initial={{ opacity: 0, filter: 'blur(10px)' }}
+                animate={{ opacity: 1, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, filter: 'blur(10px)' }}
+                transition={{ duration: 1.2, ease: "easeInOut" }}
+                className="absolute w-[100vw] md:w-[90vw] h-[80vh] md:h-[90vh] object-contain mix-blend-screen opacity-100" 
+              />
+            </AnimatePresence>
           </motion.div>
 
           {/* Layer 3: The Couple Appears (Z: 100) */}
-          <motion.div style={{ x: frontX, y: frontY, translateZ: 100, scale: 1.1 }} className="absolute inset-[-5%] z-30 flex items-center justify-center pt-[15vh] md:pt-[10vh]">
+          <motion.div style={{ x: frontX, y: frontY, translateZ: 100, scale: 1.1, willChange: 'transform' }} className="absolute inset-[-5%] z-30 flex items-center justify-center pt-[15vh] md:pt-[10vh]">
             <img 
               src="/images/couple_transparent.png" 
+              fetchPriority="high" 
+              decoding="async"
               alt="Couple" 
-              className="w-[90vw] md:w-[60vw] max-h-[50vh] md:max-h-[60vh] object-contain object-bottom drop-shadow-[0_0_50px_#FFC107]"
+              className="w-[90vw] md:w-[60vw] max-h-[50vh] md:max-h-[60vh] object-contain object-bottom drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
             />
           </motion.div>
 
@@ -283,6 +331,36 @@ const HeroParallax = () => {
             </div>
 
           </div>
+
+          {/* Dynamic Category Chips Row */}
+          {eventType && EVENT_CATEGORY_MAP[eventType] && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginTop: 24 }}
+              className="flex flex-wrap items-center justify-center gap-2 md:gap-3"
+            >
+              {EVENT_CATEGORY_MAP[eventType].map((cat, idx) => {
+                const isSelected = selectedCategory === cat;
+                return (
+                  <motion.button
+                    key={cat}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-4 py-2 rounded-full text-sm md:text-base font-bold transition-all shadow-sm flex items-center gap-2 ${
+                      isSelected 
+                        ? 'bg-brand-primary text-white border-none shadow-[0_4px_12px_rgba(239,68,68,0.4)]' 
+                        : 'bg-black/40 backdrop-blur-md text-white/80 border border-white/20 hover:bg-white/20'
+                    }`}
+                  >
+                    {cat}
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+          )}
+
         </div>
       </motion.div>
     </div>
