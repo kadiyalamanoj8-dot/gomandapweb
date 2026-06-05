@@ -9,7 +9,7 @@ const IntroScreen = ({ onComplete }) => {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const springConfig = { damping: 50, stiffness: 100, mass: 2 };
+  const springConfig = { damping: 30, stiffness: 200, mass: 0.5 };
   const smoothX = useSpring(mouseX, springConfig);
   const smoothY = useSpring(mouseY, springConfig);
 
@@ -43,10 +43,28 @@ const IntroScreen = ({ onComplete }) => {
 
     const handleOrientation = (e) => {
       if (sequence !== 'CLOSED' || !e.gamma || !e.beta) return;
-      const x = Math.max(-1, Math.min(1, e.gamma / 45));
-      const y = Math.max(-1, Math.min(1, (e.beta - 45) / 45));
-      mouseX.set(x);
-      mouseY.set(y);
+      
+      let x = 0;
+      let y = 0;
+      
+      const orientation = window.orientation || 0;
+      
+      if (orientation === 90) {
+        x = e.beta;
+        y = -e.gamma;
+      } else if (orientation === -90) {
+        x = -e.beta;
+        y = e.gamma;
+      } else {
+        x = e.gamma;
+        y = e.beta - 45;
+      }
+
+      const normalizedX = Math.max(-1, Math.min(1, x / 45));
+      const normalizedY = Math.max(-1, Math.min(1, y / 45));
+      
+      mouseX.set(normalizedX);
+      mouseY.set(normalizedY);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -95,8 +113,8 @@ const IntroScreen = ({ onComplete }) => {
         className="relative w-full h-full flex items-center justify-center pointer-events-none"
       >
         {/* Layer 1: Background Temple (Z: -600) */}
-        <motion.div style={{ x: bgX, y: bgY, translateZ: -600, scale: 2 }} className="absolute inset-[-10%] z-0">
-          <img src="/images/temple_background.webp" alt="Background" className="w-full h-full object-cover opacity-60" />
+        <motion.div style={{ x: bgX, y: bgY, translateZ: -600, scale: 1.2 }} className="absolute inset-[-10%] z-0">
+          <img src="/images/temple_background.webp" alt="Background" className="w-full h-full object-cover opacity-80" />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60 z-10" />
         </motion.div>
 
