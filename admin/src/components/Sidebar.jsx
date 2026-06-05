@@ -1,13 +1,22 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { Store, LayoutDashboard, Settings, LogOut, X, Sliders } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { Store, LayoutDashboard, Settings, LogOut, X, Sliders, Globe } from 'lucide-react';
+import { useAdminAuth } from '../context/AdminAuthContext';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
+  const { logout } = useAdminAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <>
       {/* Mobile Backdrop */}
       {isOpen && (
-        <div 
+        <div
           className="lg:hidden fixed inset-0 z-40 bg-gray-900/50 backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
         />
@@ -19,50 +28,59 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className="p-6 flex items-center justify-between">
-          <h1 className="text-2xl font-black text-brand-primary tracking-tight">Gomandap <span className="text-gray-400 font-medium ml-1 text-lg">Admin</span></h1>
-          <button 
+        <div className="p-6 flex items-center justify-between border-b border-white/5">
+          <div>
+            <h1 className="text-xl font-black tracking-tight text-white">Gomandap <span className="text-brand-primary">Admin</span></h1>
+            <p className="text-xs text-gray-500 font-semibold mt-0.5">Platform Control Center</p>
+          </div>
+          <button
             className="lg:hidden p-2 -mr-2 text-gray-400 hover:text-white"
             onClick={() => setIsOpen(false)}
           >
             <X size={24} />
           </button>
         </div>
-        
-        <nav className="flex-1 px-4 space-y-2 mt-4">
-          <NavLink 
-            to="/dashboard" 
+
+        <nav className="flex-1 px-4 space-y-1 mt-6 overflow-y-auto">
+          <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-4 mb-2">Management</p>
+          <NavLink
+            to="/dashboard"
             onClick={() => setIsOpen(false)}
-            className={({isActive}) => `flex items-center gap-3 px-4 py-3.5 rounded-xl text-base lg:text-sm font-bold transition-colors ${isActive ? 'bg-brand-primary text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}
+            className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
           >
-            <LayoutDashboard size={20} /> Dashboard
+            <LayoutDashboard size={18} /> Dashboard
           </NavLink>
-          <NavLink 
-            to="/vendors" 
+          <NavLink
+            to="/vendors"
             onClick={() => setIsOpen(false)}
-            className={({isActive}) => `flex items-center gap-3 px-4 py-3.5 rounded-xl text-base lg:text-sm font-bold transition-colors ${isActive ? 'bg-brand-primary text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}
+            className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
           >
-            <Store size={20} /> Vendor Approvals
+            <Store size={18} /> Vendor Approvals
           </NavLink>
-          <NavLink 
-            to="/category-settings" 
+
+          <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-4 mb-2 mt-6">Configuration</p>
+          <NavLink
+            to="/category-settings"
             onClick={() => setIsOpen(false)}
-            className={({isActive}) => `flex items-center gap-3 px-4 py-3.5 rounded-xl text-base lg:text-sm font-bold transition-colors ${isActive ? 'bg-brand-primary text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}
+            className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
           >
-            <Sliders size={20} /> Category Controls
+            <Sliders size={18} /> Category Controls
           </NavLink>
-          <NavLink 
-            to="/settings" 
+          <NavLink
+            to="/content-manager"
             onClick={() => setIsOpen(false)}
-            className={({isActive}) => `flex items-center gap-3 px-4 py-3.5 rounded-xl text-base lg:text-sm font-bold transition-colors ${isActive ? 'bg-brand-primary text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}
+            className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
           >
-            <Settings size={20} /> Settings
+            <Globe size={18} /> Content Manager
           </NavLink>
         </nav>
 
-        <div className="p-4 mt-auto border-t border-gray-800 pb-safe">
-          <button className="flex items-center gap-3 px-4 py-4 lg:py-3 text-base lg:text-sm font-bold text-gray-400 hover:text-red-500 transition-colors w-full">
-            <LogOut size={20} /> Sign Out
+        <div className="p-4 mt-auto border-t border-white/5">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all w-full"
+          >
+            <LogOut size={18} /> Sign Out
           </button>
         </div>
       </div>

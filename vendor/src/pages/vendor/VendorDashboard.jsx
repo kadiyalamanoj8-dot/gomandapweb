@@ -8,10 +8,60 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 const VendorDashboard = () => {
-  const { vendorProfile, vendorStatus, logoutVendor } = useVendor();
+  const { vendorProfile, vendorStatus, logoutVendor, updateVendorProfile } = useVendor();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // Profile Edit State
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editForm, setEditForm] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Initialize edit form when profile is loaded or changes
+  useEffect(() => {
+    if (vendorProfile && !editForm) {
+      setEditForm({
+        name: vendorProfile.name || '',
+        ownerName: vendorProfile.ownerName || '',
+        phone: vendorProfile.contact?.phone || '',
+        city: vendorProfile.address?.city || '',
+      });
+    }
+  }, [vendorProfile]);
+
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+    try {
+      const payload = {
+        name: editForm.name,
+        ownerName: editForm.ownerName,
+        contact: { ...vendorProfile.contact, phone: editForm.phone },
+        address: { ...vendorProfile.address, city: editForm.city }
+      };
+
+      const res = await fetch(`https://gomandap-api.onrender.com/api/vendors/draft/${vendorProfile._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        updateVendorProfile(data.data);
+        setIsEditingProfile(false);
+        // Using alert since react-hot-toast isn't imported, or we could add it
+        alert('Profile updated successfully!');
+      } else {
+        alert('Failed to update profile: ' + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error while saving profile.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Protection: Ensure only approved vendors see this
   if (vendorStatus !== 'approved' || !vendorProfile) {
@@ -371,28 +421,117 @@ const VendorDashboard = () => {
           </motion.div>
         )}
 
-        {/* Profile Tab Placeholder */}
+        {/* Profile Tab */}
         {activeTab === 'profile' && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="bg-black/40 backdrop-blur-2xl rounded-[2.5rem] p-10 border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.5)] relative z-10 max-w-7xl mx-auto">
-            <div className="flex items-center gap-6 mb-10">
-              <div className="w-24 h-24 rounded-full border-4 border-white/20 shadow-lg overflow-hidden">
-                <img src={vendorProfile.imageUrl || "https://i.pravatar.cc/150"} alt={vendorProfile.name} className="w-full h-full object-cover" />
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="bg-black/40 backdrop-blur-2xl rounded-[2.5rem] p-6 md:p-10 border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.5)] relative z-10 max-w-4xl mx-auto">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10">
+              <div className="flex items-center gap-6">
+                <div className="w-24 h-24 rounded-full border-4 border-white/20 shadow-lg overflow-hidden shrink-0">
+                  <img src={vendorProfile.portfolioImages?.[0] || vendorProfile.imageUrl || "https://i.pravatar.cc/150"} alt={vendorProfile.name} className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black tracking-tight text-white mb-1">{vendorProfile.name}</h2>
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-brand-gold text-sm font-bold border border-brand-gold/20">{vendorProfile.category}</span>
+                </div>
               </div>
-              <div>
-                <h2 className="text-2xl font-black tracking-tight text-white mb-1">{vendorProfile.name}</h2>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-brand-gold text-sm font-bold border border-brand-gold/20">{vendorProfile.category}</span>
-              </div>
+              
+              {!isEditingProfile ? (
+                <button 
+                  onClick={() => setIsEditingProfile(true)}
+                  className="px-6 py-3 bg-brand-gold text-black rounded-xl font-bold hover:bg-yellow-500 transition-colors shadow-lg w-full md:w-auto"
+                >
+                  Edit Profile
+                </button>
+              ) : (
+                <div className="flex gap-3 w-full md:w-auto">
+                  <button 
+                    onClick={() => {
+                      setIsEditingProfile(false);
+                      setEditForm({
+                        name: vendorProfile.name || '',
+                        ownerName: vendorProfile.ownerName || '',
+                        phone: vendorProfile.contact?.phone || '',
+                        city: vendorProfile.address?.city || '',
+                      });
+                    }}
+                    className="flex-1 md:flex-none px-6 py-3 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleSaveProfile}
+                    disabled={isSaving}
+                    className="flex-1 md:flex-none px-6 py-3 bg-brand-gold text-black rounded-xl font-bold hover:bg-yellow-500 transition-colors shadow-lg disabled:opacity-50"
+                  >
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              )}
             </div>
              
-             <h3 className="text-lg font-bold text-white mb-4">Public Profile Data</h3>
-             <div className="bg-white/5 p-6 rounded-[1.5rem] border border-white/10 shadow-inner">
-               <pre className="text-[13px] text-white/70 font-mono whitespace-pre-wrap leading-relaxed">
-                 {JSON.stringify(vendorProfile, null, 2)}
-               </pre>
-             </div>
-             <p className="text-[15px] font-medium text-white/50 mt-6 text-center">
-               (Editing will be enabled when Supabase DB is connected in Phase 11)
-             </p>
+            <div className="bg-white/5 p-6 md:p-8 rounded-[1.5rem] border border-white/10 shadow-inner">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-white/50 uppercase tracking-widest mb-2">Business Name</label>
+                  {isEditingProfile ? (
+                    <input 
+                      type="text" 
+                      value={editForm.name} 
+                      onChange={e => setEditForm({...editForm, name: e.target.value})}
+                      className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold transition-colors"
+                    />
+                  ) : (
+                    <div className="text-lg font-semibold text-white bg-black/20 rounded-xl px-4 py-3 border border-transparent">{vendorProfile.name}</div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-white/50 uppercase tracking-widest mb-2">Owner Name</label>
+                  {isEditingProfile ? (
+                    <input 
+                      type="text" 
+                      value={editForm.ownerName} 
+                      onChange={e => setEditForm({...editForm, ownerName: e.target.value})}
+                      className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold transition-colors"
+                    />
+                  ) : (
+                    <div className="text-lg font-semibold text-white bg-black/20 rounded-xl px-4 py-3 border border-transparent">{vendorProfile.ownerName}</div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-white/50 uppercase tracking-widest mb-2">Contact Phone</label>
+                  {isEditingProfile ? (
+                    <input 
+                      type="tel" 
+                      value={editForm.phone} 
+                      onChange={e => setEditForm({...editForm, phone: e.target.value})}
+                      className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold transition-colors"
+                    />
+                  ) : (
+                    <div className="text-lg font-semibold text-white bg-black/20 rounded-xl px-4 py-3 border border-transparent">{vendorProfile.contact?.phone}</div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-white/50 uppercase tracking-widest mb-2">City</label>
+                  {isEditingProfile ? (
+                    <input 
+                      type="text" 
+                      value={editForm.city} 
+                      onChange={e => setEditForm({...editForm, city: e.target.value})}
+                      className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold transition-colors"
+                    />
+                  ) : (
+                    <div className="text-lg font-semibold text-white bg-black/20 rounded-xl px-4 py-3 border border-transparent">{vendorProfile.address?.city}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <p className="text-[13px] font-medium text-white/40 mt-6 text-center">
+              More advanced editing options (pricing, features, portfolio images) will be available in future updates.
+            </p>
           </motion.div>
         )}
 

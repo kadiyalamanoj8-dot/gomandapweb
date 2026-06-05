@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, CheckCircle2, XCircle, Landmark, MapPin, Phone, Building2, Store, Star, Send } from 'lucide-react';
-import { getCategorySchema } from '../../../client/src/config/categorySchemas';
+import { getCategorySchema } from '../config/categorySchemas';
 import LocationMapAdmin from './LocationMapAdmin';
 
 const VendorDetailsModal = ({ vendor, onClose, onUpdateStatus }) => {

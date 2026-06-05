@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const upload = require('../middleware/upload');
 const { createDraft, syncVendorAuth, updateDraft, getApprovedVendors, getVendorById, getAllVendors, updateVendorStatus, updateLocationLock } = require('../controllers/vendorController');
+const { protect, admin } = require('../middleware/authMiddleware');
 
 // @route   POST /api/vendors/draft
 // @desc    Create a draft vendor application
@@ -25,8 +26,8 @@ router.get('/', getApprovedVendors);
 
 // @route   GET /api/vendors/admin/all
 // @desc    Get all vendors (admin only)
-// @access  Public
-router.get('/admin/all', getAllVendors);
+// @access  Private/Admin
+router.get('/admin/all', protect, admin, getAllVendors);
 
 // @route   GET /api/vendors/:id
 // @desc    Get single vendor by ID
@@ -35,12 +36,12 @@ router.get('/:id', getVendorById);
 
 // @route   PATCH /api/vendors/:id/status
 // @desc    Update vendor status
-// @access  Public
-router.patch('/:id/status', updateVendorStatus);
+// @access  Private/Admin
+router.patch('/:id/status', protect, admin, updateVendorStatus);
 
 // @route   PATCH /api/vendors/:id/location-lock
 // @desc    Update vendor location lock status
-// @access  Public
-router.patch('/:id/location-lock', updateLocationLock);
+// @access  Private/Admin
+router.patch('/:id/location-lock', protect, admin, updateLocationLock);
 
 module.exports = router;

@@ -17,6 +17,8 @@ import { AuthProvider } from './context/AuthContext';
 import LoginModal from './components/auth/LoginModal';
 import ProfilePage from './pages/ProfilePage';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { HelmetProvider } from 'react-helmet-async';
+import DynamicSEO from './components/DynamicSEO';
 
 function AppContent() {
   const location = useLocation();
@@ -85,24 +87,27 @@ function AppContent() {
         {!isPreloading && !hasEntered && <IntroScreen onComplete={() => setHasEntered(true)} />}
       </AnimatePresence>
       {!isPreloading && hasEntered && (
-        <div className="font-sans antialiased text-gray-900 bg-white min-h-screen pb-16 md:pb-0">
-      <SpatialNavbar />
-      <CartDrawer />
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/venues" element={<SearchPage />} />
-          <Route path="/vendors" element={<SearchPage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/vendor/:id" element={<VendorDetailsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          
-          <Route path="*" element={<HomePage />} /> 
-        </Routes>
-      </AnimatePresence>
-      <Footer />
-      <MobileBottomNav />
-    </div>
+        <div className="flex flex-col min-h-screen bg-gray-50 overflow-x-hidden pt-[72px]">
+          <DynamicSEO appTarget="client" pageName="global" />
+          <SpatialNavbar />
+          <main className="flex-grow w-full relative z-0">
+            <CartDrawer />
+            <AnimatePresence mode="wait">
+              <Routes location={location} key={location.pathname}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/venues" element={<SearchPage />} />
+                <Route path="/vendors" element={<SearchPage />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/vendor/:id" element={<VendorDetailsPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                
+                <Route path="*" element={<HomePage />} /> 
+              </Routes>
+            </AnimatePresence>
+          </main>
+          <Footer />
+          <MobileBottomNav />
+        </div>
       )}
     </>
   );
@@ -110,20 +115,22 @@ function AppContent() {
 
 function App() {
   return (
-    <GoogleOAuthProvider clientId="525881024479-s9c7umr8e5r5mrtqdld53o6o1mvar4l0.apps.googleusercontent.com">
-      <Router>
-        <AuthProvider>
-          <SettingsProvider>
-            <VendorProvider>
-              <CartProvider>
-                <AppContent />
-                <LoginModal />
-              </CartProvider>
-            </VendorProvider>
-          </SettingsProvider>
-        </AuthProvider>
-      </Router>
-    </GoogleOAuthProvider>
+    <HelmetProvider>
+      <GoogleOAuthProvider clientId="525881024479-s9c7umr8e5r5mrtqdld53o6o1mvar4l0.apps.googleusercontent.com">
+        <Router>
+          <AuthProvider>
+            <SettingsProvider>
+              <VendorProvider>
+                <CartProvider>
+                  <AppContent />
+                  <LoginModal />
+                </CartProvider>
+              </VendorProvider>
+            </SettingsProvider>
+          </AuthProvider>
+        </Router>
+      </GoogleOAuthProvider>
+    </HelmetProvider>
   );
 }
 

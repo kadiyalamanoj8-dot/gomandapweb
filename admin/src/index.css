@@ -1,14 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-  :root {
-    --color-brand-primary: #EF4444;
-    --color-brand-secondary: #F59E0B;
-    --color-brand-gold: #B8860B;
-    --color-brand-black: #111111;
-  }
+@theme {
+  --color-brand-primary: #EF4444;
+  --color-brand-secondary: #F59E0B;
+  --color-brand-gold: #B8860B;
+  --color-brand-black: #111111;
 }
 
 body {
@@ -29,4 +25,36 @@ body {
 .smooth-transition {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform, opacity;
+}
+
+/* Hide scrollbars but keep scrolling */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* No scrollbar shorthand */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Safe area padding for mobile devices */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Pulse animation for skeleton loaders */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-skeleton {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
 }

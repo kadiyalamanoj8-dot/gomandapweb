@@ -131,6 +131,11 @@ export const VendorProvider = ({ children }) => {
     localStorage.removeItem('gomandap_vendor_token');
   };
 
+  const updateVendorProfile = (updatedProfile) => {
+    setVendorProfile(updatedProfile);
+    localStorage.setItem('gomandap_vendor_profile', JSON.stringify(updatedProfile));
+  };
+
   return (
     <VendorContext.Provider value={{
       vendorStatus,
@@ -139,7 +144,8 @@ export const VendorProvider = ({ children }) => {
       submitOnboarding,
       saveDraft,
       simulateAdminApproval,
-      logoutVendor
+      logoutVendor,
+      updateVendorProfile
     }}>
       {children}
     </VendorContext.Provider>

@@ -31,6 +31,9 @@ app.use('/api/settings', settingsRoutes);
 const filterRoutes = require('./routes/filterRoutes');
 app.use('/api/filters', filterRoutes);
 
+const dynamicContentRoutes = require('./routes/dynamicContentRoutes');
+app.use('/api/content', dynamicContentRoutes);
+
 const PORT = process.env.PORT || 5000;
 
 // Auto-seed Admin

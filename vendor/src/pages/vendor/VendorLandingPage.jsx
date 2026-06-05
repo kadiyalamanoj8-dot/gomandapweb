@@ -9,6 +9,7 @@ import { CATEGORIES } from '../../data/mockData';
 import { useVendor } from '../../context/VendorContext';
 import { auth } from '../../config/firebase';
 import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import Footer from '../../components/layout/Footer';
 
 const ICON_MAP = {
   'Banquet Halls':              '/images/3d_venue copy.webp',
@@ -283,17 +284,8 @@ const VendorLandingPage = () => {
         </div>
       </section>
 
-      {/* Minimal Footer */}
-      <footer className="bg-[#FBFBFD] py-12 border-t border-gray-200/50">
-        <div className="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-[13px] text-[#86868B] font-medium">
-          <div>Copyright © {new Date().getFullYear()} Gomandap Inc. All rights reserved.</div>
-          <div className="flex gap-6 mt-4 md:mt-0">
-            <a href="#" className="hover:text-[#1D1D1F] transition-colors">Terms of Use</a>
-            <a href="#" className="hover:text-[#1D1D1F] transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-[#1D1D1F] transition-colors">Support</a>
-          </div>
-        </div>
-      </footer>
+      {/* Dynamic Footer */}
+      <Footer />
 
       {/* Auth Modal (Apple Login Style) */}
       <AnimatePresence>

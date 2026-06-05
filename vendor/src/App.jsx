@@ -11,6 +11,8 @@ import VendorPending from './pages/vendor/VendorPending';
 import VendorDashboard from './pages/vendor/VendorDashboard';
 import IntroScreen from './components/IntroScreen';
 import Preloader from './components/Preloader';
+import { HelmetProvider } from 'react-helmet-async';
+import DynamicSEO from './components/DynamicSEO';
 
 function AppContent() {
   const [hasEntered, setHasEntered] = useState(false);
@@ -77,16 +79,17 @@ function AppContent() {
       </AnimatePresence>
       {!isPreloading && hasEntered && (
         <div className="font-sans antialiased text-gray-900 bg-white min-h-screen">
-      <AnimatePresence mode="wait">
-        <Routes>
-          <Route path="/" element={<VendorLandingPage />} />
-          <Route path="/onboarding" element={<VendorOnboarding />} />
-          <Route path="/pending" element={<VendorPending />} />
-          <Route path="/dashboard" element={<VendorDashboard />} />
-          <Route path="*" element={<Navigate to="/" replace />} /> 
-        </Routes>
-      </AnimatePresence>
-    </div>
+          <DynamicSEO appTarget="vendor" pageName="global" />
+          <AnimatePresence mode="wait">
+            <Routes>
+              <Route path="/" element={<VendorLandingPage />} />
+              <Route path="/onboarding" element={<VendorOnboarding />} />
+              <Route path="/pending" element={<VendorPending />} />
+              <Route path="/dashboard" element={<VendorDashboard />} />
+              <Route path="*" element={<Navigate to="/" replace />} /> 
+            </Routes>
+          </AnimatePresence>
+        </div>
       )}
     </>
   );
@@ -94,13 +97,15 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <SettingsProvider>
-        <VendorProvider>
-          <AppContent />
-        </VendorProvider>
-      </SettingsProvider>
-    </Router>
+    <HelmetProvider>
+      <Router>
+        <SettingsProvider>
+          <VendorProvider>
+            <AppContent />
+          </VendorProvider>
+        </SettingsProvider>
+      </Router>
+    </HelmetProvider>
   );
 }
 
