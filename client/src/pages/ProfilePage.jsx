@@ -24,14 +24,20 @@ const ProfilePage = () => {
         {/* Header & Personal Info */}
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center md:items-start justify-between gap-6">
           <div className="flex items-center gap-6">
-            <div className="w-24 h-24 bg-brand-primary/10 rounded-full flex items-center justify-center text-brand-primary">
-              <User size={40} />
-            </div>
+            {user.profilePicture ? (
+              <img src={user.profilePicture} alt="Profile" className="w-24 h-24 rounded-full border-4 border-brand-primary/20 object-cover shadow-sm" />
+            ) : (
+              <div className="w-24 h-24 bg-brand-primary/10 rounded-full flex items-center justify-center text-brand-primary">
+                <User size={40} />
+              </div>
+            )}
             <div>
-              <h1 className="text-3xl font-black text-gray-900 tracking-tight">Welcome Back</h1>
+              <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+                {user.name ? `Welcome, ${user.name}` : 'Welcome Back'}
+              </h1>
               <div className="flex items-center gap-2 text-gray-600 mt-2">
                 <Phone size={16} />
-                <span className="font-medium tracking-wide">{user.phoneNumber || '+91 XXXX XXXX'}</span>
+                <span className="font-medium tracking-wide">{user.phoneNumber || user.email}</span>
                 <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full">Verified</span>
               </div>
             </div>

@@ -3,13 +3,17 @@ const mongoose = require('mongoose');
 const loginHistorySchema = new mongoose.Schema({
   loginTime: { type: Date, default: Date.now },
   deviceInfo: { type: String },
-  ipAddress: { type: String }
+  ipAddress: { type: String },
+  authProvider: { type: String, default: 'phone' } // 'phone' or 'google'
 });
 
 const userSchema = new mongoose.Schema({
-  phoneNumber: { type: String, required: true, unique: true },
-  firebaseUid: { type: String }, // For future real firebase integration
+  phoneNumber: { type: String, unique: true, sparse: true },
+  email: { type: String, unique: true, sparse: true },
+  googleId: { type: String },
+  firebaseUid: { type: String }, 
   name: { type: String },
+  profilePicture: { type: String },
   loginHistory: [loginHistorySchema],
   savedVendors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Vendor' }],
   inquiries: [{

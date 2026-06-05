@@ -45,6 +45,33 @@ export const AuthProvider = ({ children }) => {
     return false;
   };
 
+  const loginWithGoogle = async (googleToken) => {
+    try {
+      const res = await fetch('https://gomandap-api.onrender.com/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          token: googleToken,
+          deviceInfo: navigator.userAgent
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUser(data);
+        localStorage.setItem('gomandap_client_user', JSON.stringify(data));
+        setShowLoginModal(false);
+        if (pendingAction) {
+          pendingAction();
+          setPendingAction(null);
+        }
+        return true;
+      }
+    } catch (error) {
+      console.error("Google Login failed:", error);
+    }
+    return false;
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('gomandap_client_user');
@@ -60,7 +87,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, requireAuth, showLoginModal, setShowLoginModal }}>
+    <AuthContext.Provider value={{ user, login, loginWithGoogle, logout, requireAuth, showLoginModal, setShowLoginModal }}>
       {children}
     </AuthContext.Provider>
   );

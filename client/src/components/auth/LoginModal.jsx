@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Phone, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
 
 const LoginModal = () => {
-  const { showLoginModal, setShowLoginModal, login } = useAuth();
+  const { showLoginModal, setShowLoginModal, login, loginWithGoogle } = useAuth();
   const [phone, setPhone] = useState('');
   const [step, setStep] = useState('phone'); // phone -> otp
   const [otp, setOtp] = useState('');
@@ -94,6 +95,27 @@ const LoginModal = () => {
                   {isLoading ? 'Sending...' : 'Send OTP'}
                   {!isLoading && <ArrowRight size={18} />}
                 </button>
+
+                <div className="relative flex items-center justify-center py-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-white/10"></div>
+                  </div>
+                  <div className="relative px-4 text-sm text-gray-400 bg-transparent backdrop-blur-xl">Or</div>
+                </div>
+
+                <div className="flex justify-center w-full">
+                  <GoogleLogin
+                    onSuccess={credentialResponse => {
+                      loginWithGoogle(credentialResponse.credential);
+                    }}
+                    onError={() => {
+                      console.log('Google Login Failed');
+                    }}
+                    useOneTap
+                    theme="filled_black"
+                    shape="pill"
+                  />
+                </div>
               </form>
             ) : (
               <form onSubmit={handleVerifyOtp} className="space-y-4">

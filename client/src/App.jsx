@@ -16,6 +16,7 @@ import Preloader from './components/Preloader';
 import { AuthProvider } from './context/AuthContext';
 import LoginModal from './components/auth/LoginModal';
 import ProfilePage from './pages/ProfilePage';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 function AppContent() {
   const location = useLocation();
@@ -109,18 +110,20 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <SettingsProvider>
-          <VendorProvider>
-            <CartProvider>
-              <AppContent />
-              <LoginModal />
-            </CartProvider>
-          </VendorProvider>
-        </SettingsProvider>
-      </AuthProvider>
-    </Router>
+    <GoogleOAuthProvider clientId="525881024479-s9c7umr8e5r5mrtqdld53o6o1mvar4l0.apps.googleusercontent.com">
+      <Router>
+        <AuthProvider>
+          <SettingsProvider>
+            <VendorProvider>
+              <CartProvider>
+                <AppContent />
+                <LoginModal />
+              </CartProvider>
+            </VendorProvider>
+          </SettingsProvider>
+        </AuthProvider>
+      </Router>
+    </GoogleOAuthProvider>
   );
 }
 
