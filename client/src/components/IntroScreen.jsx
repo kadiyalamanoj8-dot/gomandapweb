@@ -41,30 +41,34 @@ const IntroScreen = ({ onComplete }) => {
       mouseY.set(y);
     };
 
+    let rAF;
     const handleOrientation = (e) => {
       if (sequence !== 'CLOSED' || !e.gamma || !e.beta) return;
       
-      let x = 0;
-      let y = 0;
-      
-      const orientation = window.orientation || 0;
-      
-      if (orientation === 90) {
-        x = e.beta;
-        y = -e.gamma;
-      } else if (orientation === -90) {
-        x = -e.beta;
-        y = e.gamma;
-      } else {
-        x = e.gamma;
-        y = e.beta - 45;
-      }
+      if (rAF) cancelAnimationFrame(rAF);
+      rAF = requestAnimationFrame(() => {
+        let x = 0;
+        let y = 0;
+        
+        const orientation = window.orientation || 0;
+        
+        if (orientation === 90) {
+          x = e.beta;
+          y = -e.gamma;
+        } else if (orientation === -90) {
+          x = -e.beta;
+          y = e.gamma;
+        } else {
+          x = e.gamma;
+          y = e.beta - 45;
+        }
 
-      const normalizedX = Math.max(-1, Math.min(1, x / 45));
-      const normalizedY = Math.max(-1, Math.min(1, y / 45));
-      
-      mouseX.set(normalizedX);
-      mouseY.set(normalizedY);
+        const normalizedX = Math.max(-1, Math.min(1, x / 45));
+        const normalizedY = Math.max(-1, Math.min(1, y / 45));
+        
+        mouseX.set(normalizedX);
+        mouseY.set(normalizedY);
+      });
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -76,6 +80,17 @@ const IntroScreen = ({ onComplete }) => {
   }, [sequence, mouseX, mouseY]);
 
   const handleOpen = () => {
+    // Request iOS 13+ Gyroscope Permissions
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then(response => {
+          if (response === 'granted') {
+            console.log('Gyroscope permission granted');
+          }
+        })
+        .catch(console.error);
+    }
+
     setSequence('FLYING');
     doorRotateYLeft.set(-110);
     doorRotateYRight.set(110);
@@ -154,12 +169,12 @@ const IntroScreen = ({ onComplete }) => {
           ))}
         </div>
 
-        {/* Layer 4: The 3D Doors (Z: 300) */}
+        {/* Layer 4: The 3D Doors (Z: 50) */}
         <AnimatePresence>
           {sequence === 'CLOSED' && (
-            <motion.div className="absolute inset-[-5%] z-[100] flex pointer-events-none" style={{ transform: "translateZ(300px)" }}>
-              <motion.div exit={{ rotateY: 105, opacity: 0 }} transition={{ duration: 3, ease: [0.25, 1, 0.5, 1] }} className="w-1/2 h-full pointer-events-auto" style={{ backgroundImage: "url('/images/real_temple_doors.webp')", backgroundSize: "200% 100%", backgroundPosition: "left", transformOrigin: "left", boxShadow: "50px 0 100px rgba(0,0,0,1)" }} />
-              <motion.div exit={{ rotateY: -105, opacity: 0 }} transition={{ duration: 3, ease: [0.25, 1, 0.5, 1] }} className="w-1/2 h-full pointer-events-auto" style={{ backgroundImage: "url('/images/real_temple_doors.webp')", backgroundSize: "200% 100%", backgroundPosition: "right", transformOrigin: "right", boxShadow: "-50px 0 100px rgba(0,0,0,1)" }} />
+            <motion.div className="absolute inset-[-5%] z-[100] flex pointer-events-none" style={{ transform: "translateZ(50px)", willChange: "transform" }}>
+              <motion.div exit={{ rotateY: 105, opacity: 0 }} transition={{ duration: 3, ease: [0.25, 1, 0.5, 1] }} className="w-1/2 h-full pointer-events-auto" style={{ backgroundImage: "url('/images/real_temple_doors.webp')", backgroundSize: "200% 100%", backgroundPosition: "left", transformOrigin: "left", boxShadow: "50px 0 100px rgba(0,0,0,1)", willChange: "transform, opacity" }} />
+              <motion.div exit={{ rotateY: -105, opacity: 0 }} transition={{ duration: 3, ease: [0.25, 1, 0.5, 1] }} className="w-1/2 h-full pointer-events-auto" style={{ backgroundImage: "url('/images/real_temple_doors.webp')", backgroundSize: "200% 100%", backgroundPosition: "right", transformOrigin: "right", boxShadow: "-50px 0 100px rgba(0,0,0,1)", willChange: "transform, opacity" }} />
               
               <motion.div exit={{ opacity: 0, scale: 0.5 }} transition={{ duration: 1 }} className="absolute inset-0 flex items-center justify-center z-30 pointer-events-auto">
                 <button onClick={handleOpen} className="relative w-40 h-40 md:w-56 md:h-56 rounded-full flex items-center justify-center cursor-pointer group">
