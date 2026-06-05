@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   TrendingUp, ShieldCheck, MapPin, Phone, Mail, 
   ChevronRight, Sparkles, CheckCircle2, IndianRupee, Star,
@@ -25,6 +25,21 @@ const FloatingBadge = ({ text, icon: Icon, delay, top, left, right, bottom }) =>
 
 const VendorLandingPage = () => {
   const navigate = useNavigate();
+
+  // Animated Image Carousel State
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const heroImages = [
+    "https://images.unsplash.com/photo-1519225421980-a95ce669bfaa?auto=format&fit=crop&w=800&q=80", // Mandap
+    "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=800&q=80", // Mehendi / Celebration
+    "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80"  // Wedding Elements
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen bg-orange-50/30 selection:bg-orange-500/20 overflow-hidden font-sans">
@@ -100,14 +115,23 @@ const VendorLandingPage = () => {
             className="flex-1 relative w-full h-[300px] sm:h-[400px] md:h-[500px] lg:perspective-1000 mt-8 lg:mt-0"
           >
             <div className="relative w-full h-full lg:transform-style-3d lg:rotate-y-[-10deg] lg:rotate-x-[5deg] lg:hover:rotate-y-0 lg:hover:rotate-x-0 transition-transform duration-700">
-              {/* Main Wedding/Mandap Image */}
+              {/* Main Wedding/Mandap Image (Animated Carousel) */}
               <div className="absolute inset-0 bg-white p-2 md:p-3 rounded-3xl md:rounded-[2.5rem] shadow-2xl border border-orange-100 overflow-hidden">
-                <img 
-                  src="https://images.unsplash.com/photo-1519225421980-a95ce669bfaa?auto=format&fit=crop&w=800&q=80" 
-                  alt="Beautiful Indian Mandap Decoration" 
-                  className="w-full h-full object-cover rounded-[1.25rem] md:rounded-[2rem] opacity-95"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-rose-900/40 via-transparent to-transparent rounded-[1.25rem] md:rounded-[2rem]"></div>
+                <div className="relative w-full h-full rounded-[1.25rem] md:rounded-[2rem] overflow-hidden">
+                  <AnimatePresence>
+                    <motion.img 
+                      key={currentImageIndex}
+                      initial={{ opacity: 0, scale: 1.1 }}
+                      animate={{ opacity: 0.95, scale: 1 }}
+                      exit={{ opacity: 0, scale: 1.05 }}
+                      transition={{ duration: 1.5, ease: "easeInOut" }}
+                      src={heroImages[currentImageIndex]} 
+                      alt="Indian Wedding Business" 
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  </AnimatePresence>
+                  <div className="absolute inset-0 bg-gradient-to-t from-rose-900/40 via-transparent to-transparent pointer-events-none"></div>
+                </div>
               </div>
               
               {/* Floating Trust Badges */}

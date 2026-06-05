@@ -206,7 +206,7 @@ const HeroParallax = () => {
                   placeholder="What are you planning?"
                   variant="glass"
                   className="!px-1 !py-1 !min-h-0 !bg-transparent text-white"
-                  dropdownClassName="mt-6 w-[calc(100%+40px)] -ml-[20px]"
+                  dropdownClassName="mt-6 w-[calc(100vw-40px)] max-w-[400px] left-1/2 -translate-x-1/2"
                 />
               </div>
             </div>
@@ -240,7 +240,7 @@ const HeroParallax = () => {
 
                   {/* Autocomplete Dropdown */}
                   {locationResults.length > 0 && (
-                    <div className="absolute top-full left-0 mt-4 w-[calc(100%+40px)] -ml-[20px] bg-black/70 backdrop-blur-3xl border border-white/20 shadow-[0_30px_60px_rgba(0,0,0,0.6)] rounded-[24px] overflow-hidden divide-y divide-white/10 z-[9999]">
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[calc(100vw-40px)] max-w-[400px] bg-black/70 backdrop-blur-3xl border border-white/20 shadow-[0_30px_60px_rgba(0,0,0,0.6)] rounded-[24px] overflow-hidden divide-y divide-white/10 z-[9999]">
                       {locationResults.map((loc, i) => (
                         <div 
                           key={i} 
