@@ -4,8 +4,8 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Lock, Unlock } from 'lucide-react';
 
-import icon from 'leaflet/dist/images/.webp';
-import iconShadow from 'leaflet/dist/images/.webp';
+import icon from 'leaflet/dist/images/marker-icon.webp';
+import iconShadow from 'leaflet/dist/images/marker-shadow.webp';
 let DefaultIcon = L.icon({
     iconUrl: icon,
     shadowUrl: iconShadow,
@@ -83,7 +83,7 @@ const LocationMapAdmin = ({ vendorId, locationData }) => {
         <div className="h-[250px] w-full rounded-2xl overflow-hidden border border-gray-200 z-0 relative">
           <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
             <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.webp"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
             />
             {position && <Marker position={position}></Marker>}
