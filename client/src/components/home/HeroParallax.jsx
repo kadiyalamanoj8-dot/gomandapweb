@@ -113,8 +113,8 @@ const HeroParallax = () => {
   const smoothX = useSpring(mouseX, springConfig);
   const smoothY = useSpring(mouseY, springConfig);
 
-  const rotateX = useTransform(smoothY, [-0.5, 0.5], [8, -8]);
-  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-12, 12]);
+  const rotateX = useTransform(smoothY, [-0.5, 0.5], [4, -4]);
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-6, 6]);
   
   // Parallax Transforms
   const bgX = useTransform(smoothX, [-1, 1], [-10, 10]);
@@ -123,8 +123,8 @@ const HeroParallax = () => {
   const midX = useTransform(smoothX, [-1, 1], [-25, 25]);
   const midY = useTransform(smoothY, [-1, 1], [-25, 25]);
 
-  const frontX = useTransform(smoothX, [-1, 1], [-50, 50]);
-  const frontY = useTransform(smoothY, [-1, 1], [-50, 50]);
+  const frontX = useTransform(smoothX, [-1, 1], [-30, 30]);
+  const frontY = useTransform(smoothY, [-1, 1], [-30, 30]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -162,8 +162,8 @@ const HeroParallax = () => {
         }
 
         // Clamp values and normalize to [-1, 1]
-        const normalizedX = Math.max(-1, Math.min(1, x / 45));
-        const normalizedY = Math.max(-1, Math.min(1, y / 45));
+        const normalizedX = Math.max(-1, Math.min(1, x / 60));
+        const normalizedY = Math.max(-1, Math.min(1, y / 60));
         
         mouseX.set(normalizedX);
         mouseY.set(normalizedY);
@@ -197,13 +197,13 @@ const HeroParallax = () => {
             className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none"
           >
             {/* Layer 1: Background Temple (Z: -600) */}
-            <motion.div style={{ x: bgX, y: bgY, translateZ: -600, scale: 1.2, willChange: 'transform' }} className="absolute inset-[-10%] z-0">
+            <motion.div style={{ x: bgX, y: bgY, translateZ: -600, scale: 1.35, willChange: 'transform' }} className="absolute inset-[-20%] z-0">
               <img src="/images/temple_background.webp" fetchPriority="high" decoding="async" alt="Background" className="w-full h-full object-cover opacity-80" style={{ willChange: 'transform' }} />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60 z-10" />
             </motion.div>
   
             {/* Layer 2: Dynamic Mandap Frame (Z: -100) */}
-            <motion.div style={{ x: midX, y: midY, translateZ: -100, scale: 1.2, willChange: 'transform' }} className="absolute inset-0 z-20 flex items-center justify-center">
+            <motion.div style={{ x: midX, y: midY, translateZ: -100, scale: 1.3, willChange: 'transform' }} className="absolute inset-0 z-20 flex items-center justify-center">
               <AnimatePresence mode="wait">
                 <motion.img 
                   key={currentMandap}
