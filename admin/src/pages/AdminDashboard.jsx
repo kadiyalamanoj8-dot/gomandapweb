@@ -103,7 +103,6 @@ const AdminDashboard = () => {
             <Filter size={18} /> Filter
           </button>
         </div>
-      </div>
 
       {activeTab === 'vendors' && (
         <div className="bg-white rounded-2xl md:shadow-sm md:border border-gray-100 overflow-hidden bg-transparent md:bg-white">
@@ -178,7 +177,7 @@ const AdminDashboard = () => {
                       </div>
                       <div>
                         <div className="font-bold text-gray-900">{vendor.name}</div>
-                        <div className="text-xs font-semibold text-gray-500">{vendor.ownerName} • {vendor.contact?.phone}</div>
+                        <div className="text-xs font-semibold text-gray-500">{vendor.ownerName} - {vendor.contact?.phone}</div>
                       </div>
                     </div>
                   </td>
