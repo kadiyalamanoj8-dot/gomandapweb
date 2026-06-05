@@ -163,66 +163,90 @@ const VendorLandingPage = () => {
         </p>
       </section>
 
-      {/* Apple-Style Bento Grid for Marketing */}
-      <section className="max-w-[1400px] mx-auto px-6 pb-32">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-[400px]">
+      {/* Apple-Style Bento Grid for Marketing -> REPLACED WITH PROFESSIONAL ZIG-ZAG 3D ICON EXPLANATIONS */}
+      <section className="max-w-6xl mx-auto px-6 pb-32">
+        <div className="space-y-32">
           
-          {/* Long Photo Explanation (Col Span 2 on large screens, row span 2) */}
-          <div className="lg:col-span-2 lg:row-span-2 bg-[#111111] rounded-[2rem] overflow-hidden relative group">
-            <img 
-              src="/images/real_temple_doors.webp" 
-              alt="0% Commission" 
-              className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-[1.5s]" 
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-            <div className="absolute bottom-0 left-0 p-10 md:p-14 w-full">
-              <h3 className="text-4xl md:text-6xl font-black text-white tracking-tight mb-4">0% Commission.<br/>100% Yours.</h3>
-              <p className="text-xl text-gray-300 font-medium max-w-xl">
-                We believe your hard work belongs to you. Close deals directly with clients without worrying about platform cuts.
+          {/* Feature 1: Zero Commission */}
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }}
+            className="flex flex-col md:flex-row items-center gap-12 md:gap-20"
+          >
+            <div className="md:w-1/2 flex justify-center">
+              <div className="relative w-64 h-64 md:w-80 md:h-80">
+                <div className="absolute inset-0 bg-brand-gold/20 rounded-full blur-[80px]"></div>
+                <img 
+                  src="/images/3d_planner copy.webp" 
+                  alt="Zero Commission" 
+                  className="w-full h-full object-contain relative z-10 filter drop-shadow-2xl animate-[float_6s_ease-in-out_infinite]" 
+                />
+              </div>
+            </div>
+            <div className="md:w-1/2 text-center md:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-gold/10 text-brand-gold font-bold text-xs uppercase tracking-wider mb-6">
+                <TrendingUp size={16} /> 0% Commission
+              </div>
+              <h3 className="text-4xl md:text-5xl font-black text-[#1D1D1F] tracking-tight mb-6 leading-tight">Keep 100% of<br/>your hard work.</h3>
+              <p className="text-xl text-[#86868B] font-medium leading-relaxed">
+                We don't take a cut of your success. Close deals directly with clients and keep your entire profit margin. Gomandap is built to grow your business, not tax it.
               </p>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Short Photo Explanation */}
-          <div className="bg-[#1D1D1F] rounded-[2rem] overflow-hidden relative group">
-            <img 
-              src="/images/neon_sangeet_stage.webp" 
-              alt="Direct Contact" 
-              className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-[1.5s]" 
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-            <div className="absolute bottom-0 left-0 p-10">
-              <h3 className="text-3xl font-black text-white tracking-tight mb-2">Direct Contact.</h3>
-              <p className="text-lg text-gray-300 font-medium">Clients call you directly. No middlemen.</p>
+          {/* Feature 2: Verified Leads */}
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }}
+            className="flex flex-col md:flex-row-reverse items-center gap-12 md:gap-20"
+          >
+            <div className="md:w-1/2 flex justify-center">
+              <div className="relative w-64 h-64 md:w-80 md:h-80">
+                <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-[80px]"></div>
+                <img 
+                  src="/images/3d_invitation copy.webp" 
+                  alt="Verified Leads" 
+                  className="w-full h-full object-contain relative z-10 filter drop-shadow-2xl animate-[float_5s_ease-in-out_infinite_reverse]" 
+                />
+              </div>
             </div>
-          </div>
-
-          {/* Clean Graphic/Text Explanation */}
-          <div className="bg-white rounded-[2rem] p-10 flex flex-col justify-between border border-gray-200/60 shadow-sm group">
-            <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-6">
-              <ShieldCheck size={32} />
-            </div>
-            <div>
-              <h3 className="text-3xl font-black text-[#1D1D1F] tracking-tight mb-2">Verified Leads.</h3>
-              <p className="text-lg text-[#86868B] font-medium">Every phone number is OTP-verified. Say goodbye to spam inquiries.</p>
-            </div>
-          </div>
-
-          {/* Wide Landscape Photo */}
-          <div className="md:col-span-2 bg-[#111111] rounded-[2rem] overflow-hidden relative group">
-            <img 
-              src="/images/temple_background.webp" 
-              alt="Professional Network" 
-              className="absolute inset-0 w-full h-full object-cover opacity-50 object-bottom group-hover:scale-105 transition-transform duration-[1.5s]" 
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
-            <div className="absolute inset-y-0 left-0 p-10 md:p-14 flex flex-col justify-center max-w-lg">
-              <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">A Network of Excellence.</h3>
-              <p className="text-xl text-gray-300 font-medium">
-                Join thousands of verified photographers, caterers, and venues trusted by families across the country.
+            <div className="md:w-1/2 text-center md:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 font-bold text-xs uppercase tracking-wider mb-6">
+                <ShieldCheck size={16} /> Verified Leads
+              </div>
+              <h3 className="text-4xl md:text-5xl font-black text-[#1D1D1F] tracking-tight mb-6 leading-tight">High-intent clients.<br/>Zero spam.</h3>
+              <p className="text-xl text-[#86868B] font-medium leading-relaxed">
+                Every client phone number is OTP-verified before they can contact you. Spend your time talking to real couples planning real events, not filtering out fake inquiries.
               </p>
             </div>
-          </div>
+          </motion.div>
+
+          {/* Feature 3: Powerful Dashboard */}
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }}
+            className="flex flex-col md:flex-row items-center gap-12 md:gap-20"
+          >
+            <div className="md:w-1/2 flex justify-center">
+              <div className="relative w-64 h-64 md:w-80 md:h-80">
+                <div className="absolute inset-0 bg-brand-primary/20 rounded-full blur-[80px]"></div>
+                <img 
+                  src="/images/3d_venue copy.webp" 
+                  alt="Professional Dashboard" 
+                  className="w-full h-full object-contain relative z-10 filter drop-shadow-2xl animate-[float_7s_ease-in-out_infinite]" 
+                />
+              </div>
+            </div>
+            <div className="md:w-1/2 text-center md:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 text-brand-primary font-bold text-xs uppercase tracking-wider mb-6">
+                <Building2 size={16} /> Elite Dashboard
+              </div>
+              <h3 className="text-4xl md:text-5xl font-black text-[#1D1D1F] tracking-tight mb-6 leading-tight">Your digital<br/>storefront.</h3>
+              <p className="text-xl text-[#86868B] font-medium leading-relaxed mb-8">
+                Manage your profile, track views, and respond to client inquiries from a state-of-the-art dashboard designed specifically for Indian event professionals.
+              </p>
+              <button onClick={() => setShowAuthModal(true)} className="px-8 py-4 bg-[#1D1D1F] text-white font-bold rounded-2xl hover:bg-black transition-colors shadow-lg shadow-black/20">
+                Create Your Storefront
+              </button>
+            </div>
+          </motion.div>
 
         </div>
       </section>
@@ -360,6 +384,11 @@ const VendorLandingPage = () => {
           0% { transform: scale(1.05) translate(0, 0); }
           50% { transform: scale(1.1) translate(-1%, -1%); }
           100% { transform: scale(1.05) translate(0, 0); }
+        }
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-15px); }
+          100% { transform: translateY(0px); }
         }
         .animate-image-drift {
           animation: image-drift 30s ease-in-out infinite;
