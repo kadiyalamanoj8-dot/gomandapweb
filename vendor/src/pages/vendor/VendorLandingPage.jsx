@@ -2,26 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  TrendingUp, ShieldCheck, MapPin, Phone, Mail, 
-  ChevronRight, Sparkles, CheckCircle2, IndianRupee, Star,
-  Search, MessageSquare, Handshake, HeartHandshake
+  TrendingUp, ShieldCheck, Phone, 
+  Sparkles, IndianRupee, MessageSquare, X, ArrowRight, Lock
 } from 'lucide-react';
 import { CATEGORIES } from '../../data/mockData';
-
-const FloatingBadge = ({ text, icon: Icon, delay, top, left, right, bottom }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.8, y: 20 }}
-    animate={{ opacity: 1, scale: 1, y: 0 }}
-    transition={{ duration: 0.8, delay, ease: "easeOut" }}
-    className="hidden md:flex absolute bg-white/95 backdrop-blur-xl border border-orange-100 px-4 py-3 rounded-2xl shadow-xl items-center gap-3 z-20 pointer-events-none"
-    style={{ top, left, right, bottom }}
-  >
-    <div className="bg-orange-100 p-2 rounded-xl text-orange-600">
-      <Icon size={18} />
-    </div>
-    <span className="font-bold text-gray-900 text-sm whitespace-nowrap">{text}</span>
-  </motion.div>
-);
+import { useVendor } from '../../context/VendorContext';
+import { auth } from '../../config/firebase';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 
 const ICON_MAP = {
   'Banquet Halls':               '/images/3d_venue copy.webp',
@@ -49,294 +36,370 @@ const ICON_MAP = {
 
 const VendorLandingPage = () => {
   const navigate = useNavigate();
+  const { vendorStatus, loginWithPhone } = useVendor();
 
-  // Animated Image Carousel State
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const heroImages = [
-    "https://images.unsplash.com/photo-1519225421980-a95ce669bfaa?auto=format&fit=crop&w=800&q=80", // Mandap
-    "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=800&q=80", // Mehendi / Celebration
-    "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80"  // Wedding Elements
-  ];
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [phone, setPhone] = useState('');
+  const [step, setStep] = useState('phone'); // phone -> otp
+  const [otp, setOtp] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState(null);
 
+  // Auto redirect if already logged in
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
+    if (vendorStatus !== 'unregistered') {
+      if (vendorStatus === 'draft') navigate('/onboarding');
+      else navigate('/dashboard');
+    }
+  }, [vendorStatus, navigate]);
+
+  // Setup Recaptcha
+  useEffect(() => {
+    if (showAuthModal && !window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'vendor-recaptcha-container', {
+        'size': 'invisible',
+        'callback': (response) => {}
+      });
+    }
+  }, [showAuthModal]);
+
+  const handleSendOtp = async (e) => {
+    e.preventDefault();
+    if (phone.length < 10) return;
+    setIsLoading(true);
+    
+    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
+
+    try {
+      const appVerifier = window.recaptchaVerifier;
+      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+      setConfirmationResult(confirmation);
+      setStep('otp');
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      alert("Failed to send OTP. Ensure billing is enabled and domains are authorized in Firebase.");
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.render().then(widgetId => {
+          window.grecaptcha.reset(widgetId);
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (otp.length < 6) return;
+    setIsLoading(true);
+    
+    try {
+      const result = await confirmationResult.confirm(otp);
+      const user = result.user;
+      
+      const res = await loginWithPhone(user.phoneNumber);
+      if (res.success) {
+        if (res.action === 'dashboard') {
+          navigate('/dashboard');
+        } else {
+          // New vendor or draft
+          navigate('/onboarding', { state: { phone: res.phoneNumber } });
+        }
+      } else {
+        alert("Backend sync failed.");
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      alert("Invalid OTP code.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Intro Animation Variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1, transition: { duration: 0.6, ease: "easeOut" } }
+  };
 
   return (
-    <div className="min-h-screen bg-orange-50/30 selection:bg-orange-500/20 overflow-hidden font-sans">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden selection:bg-brand-primary/30">
       
-      {/* 3D Dynamic Background Elements - Indian Festive Colors */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        {/* Marigold Orange / Saffron Glow */}
-        <div className="absolute top-[-10%] right-[-5%] w-[300px] md:w-[600px] h-[300px] md:h-[600px] rounded-full bg-gradient-to-br from-orange-400/20 to-amber-300/20 blur-[80px] md:blur-[120px] opacity-80"></div>
-        {/* Deep Red / Rose Glow */}
-        <div className="absolute bottom-[-10%] left-[-10%] w-[400px] md:w-[800px] h-[400px] md:h-[800px] rounded-full bg-gradient-to-tr from-rose-500/10 to-red-600/10 blur-[90px] md:blur-[120px] opacity-70"></div>
-      </div>
-
-      {/* Navigation */}
-      <nav className="fixed top-2 left-2 right-2 md:top-4 md:left-4 md:right-4 lg:left-8 lg:right-8 bg-white/80 backdrop-blur-2xl z-50 border border-orange-100/50 rounded-2xl md:rounded-3xl px-4 md:px-6 py-3 md:py-4 flex justify-between items-center shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="flex flex-col">
-            <span className="text-2xl font-black text-rose-700 leading-none tracking-tight">Gomandap</span>
-            <span className="text-[9px] md:text-[10px] font-bold text-orange-600 uppercase tracking-widest leading-none mt-1">Business Partner</span>
-          </div>
+      {/* 1. Cinematic Hero Section */}
+      <section className="relative min-h-[90vh] flex items-center justify-center pt-20 pb-12 px-4 overflow-hidden">
+        {/* Animated Background Elements */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <motion.div 
+            animate={{ rotate: 360 }} transition={{ duration: 100, repeat: Infinity, ease: "linear" }}
+            className="absolute -top-[20%] -right-[10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-brand-primary/20 to-orange-400/20 blur-[80px]"
+          />
+          <motion.div 
+            animate={{ rotate: -360 }} transition={{ duration: 150, repeat: Infinity, ease: "linear" }}
+            className="absolute -bottom-[20%] -left-[10%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-pink-500/10 to-brand-primary/20 blur-[80px]"
+          />
         </div>
-        <button 
-          onClick={() => navigate('/onboarding')}
-          className="bg-gradient-to-r from-rose-600 to-orange-500 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-xl font-bold text-xs md:text-sm shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all flex items-center gap-1 md:gap-2 whitespace-nowrap shrink-0"
-        >
-          Join Free <ChevronRight size={14} className="hidden md:block" />
-        </button>
-      </nav>
 
-      {/* HERO SECTION - Indian Aesthetics & Simple English */}
-      <section className="relative pt-32 pb-16 md:pt-40 md:pb-20 px-4 md:px-8 z-10">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-10 md:gap-16">
-          
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="flex-1 text-center lg:text-left relative z-10 w-full"
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-white border border-orange-100 shadow-sm mb-6 md:mb-8 mx-auto lg:mx-0">
-              <Sparkles size={14} className="text-amber-500 shrink-0" />
-              <span className="text-[10px] md:text-xs font-bold text-orange-700 uppercase tracking-wider">India's Trusted Wedding Network</span>
-            </div>
+        <div className="container mx-auto max-w-7xl relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
             
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 leading-[1.1] mb-4 md:mb-6 tracking-tight">
-              Grow Your Wedding Business.<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-orange-500">
-                Zero Joining Fees.
-              </span>
-            </h1>
-            
-            <p className="text-base sm:text-lg md:text-xl text-gray-700 font-medium mb-8 md:mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed px-2 md:px-0">
-              Join thousands of trusted Mandap owners, Caterers, and Photographers. Get genuine bookings from verified families directly through Gomandap. Pay commission only when you earn.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 justify-center lg:justify-start">
-              <button 
-                onClick={() => navigate('/onboarding')}
-                className="w-full sm:w-auto bg-gradient-to-r from-rose-600 to-orange-500 text-white px-6 md:px-8 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-base md:text-lg shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 md:hover:-translate-y-1 transition-all flex items-center justify-center gap-2 border border-orange-400/50"
-              >
-                Create Free Profile Now
-              </button>
-              <div className="text-xs md:text-sm font-bold text-gray-600 flex items-center gap-1.5 md:gap-2 bg-white/50 px-4 py-2 rounded-full border border-orange-100">
-                <CheckCircle2 size={16} className="text-green-600 shrink-0" /> Takes only 2 minutes
-              </div>
-            </div>
-          </motion.div>
-
-          {/* 3D Hero Graphic - Festive Theme */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="flex-1 relative w-full h-[300px] sm:h-[400px] md:h-[500px] lg:perspective-1000 mt-8 lg:mt-0"
-          >
-            <div className="relative w-full h-full lg:transform-style-3d lg:rotate-y-[-10deg] lg:rotate-x-[5deg] lg:hover:rotate-y-0 lg:hover:rotate-x-0 transition-transform duration-700">
-              {/* Main Wedding/Mandap Image (Animated Carousel) */}
-              <div className="absolute inset-0 bg-white p-2 md:p-3 rounded-3xl md:rounded-[2.5rem] shadow-2xl border border-orange-100 overflow-hidden">
-                <div className="relative w-full h-full rounded-[1.25rem] md:rounded-[2rem] overflow-hidden">
-                  <AnimatePresence>
-                    <motion.img 
-                      key={currentImageIndex}
-                      initial={{ opacity: 0, scale: 1.1 }}
-                      animate={{ opacity: 0.95, scale: 1 }}
-                      exit={{ opacity: 0, scale: 1.05 }}
-                      transition={{ duration: 1.5, ease: "easeInOut" }}
-                      src={heroImages[currentImageIndex]} 
-                      alt="Indian Wedding Business" 
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
-                  </AnimatePresence>
-                  <div className="absolute inset-0 bg-gradient-to-t from-rose-900/40 via-transparent to-transparent pointer-events-none"></div>
-                </div>
-              </div>
+            {/* Hero Content */}
+            <motion.div 
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="lg:w-1/2 text-center lg:text-left"
+            >
+              <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-brand-primary/20 shadow-sm text-brand-primary font-bold text-sm mb-6">
+                <Sparkles size={16} /> <span>0% Commission Platform</span>
+              </motion.div>
               
-              {/* Floating Trust Badges */}
-              <FloatingBadge text="100% Genuine Leads" icon={ShieldCheck} delay={0.6} top="15%" left="-10%" />
-              <FloatingBadge text="₹0 Registration Fee" icon={IndianRupee} delay={0.8} bottom="25%" right="-5%" />
-              <FloatingBadge text="Verified Customers" icon={Star} delay={1.0} top="40%" right="-15%" />
-            </div>
-          </motion.div>
+              <motion.div variants={itemVariants} className="relative">
+                <h1 className="text-5xl md:text-7xl font-black text-gray-900 leading-[1.1] tracking-tight mb-6">
+                  Grow Your <br/>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-orange-500">
+                    Wedding Business
+                  </span>
+                </h1>
+                <p className="text-lg md:text-xl text-gray-600 font-medium mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                  Join Gomandap, the fastest-growing network of verified wedding vendors. Get direct leads, connect with clients instantly, and manage your bookings—all in one place.
+                </p>
+              </motion.div>
 
-        </div>
-      </section>
-
-      {/* HOW IT WORKS - Simplified */}
-      <section className="py-16 md:py-24 px-4 md:px-8 relative z-10 bg-white border-y border-orange-100">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-3 tracking-tight">How Gomandap Works</h2>
-            <p className="text-base md:text-lg text-gray-600 font-medium max-w-2xl mx-auto">A very simple and risk-free process for business owners.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 relative">
-            {/* Connecting Line */}
-            <div className="hidden md:block absolute top-[40%] left-[15%] right-[15%] h-1 bg-gradient-to-r from-orange-100 via-rose-100 to-orange-100 -translate-y-1/2 z-0 rounded-full"></div>
-
-            {[
-              {
-                step: "1",
-                title: "Create Free Profile",
-                desc: "Fill your business details, add photos, and set your prices. There are no joining fees at all.",
-                icon: Search,
-                color: "text-amber-600",
-                bg: "bg-amber-100 border-amber-200"
-              },
-              {
-                step: "2",
-                title: "Get Customer Messages",
-                desc: "Families looking for your service will view your profile and send direct messages to you.",
-                icon: MessageSquare,
-                color: "text-rose-600",
-                bg: "bg-rose-100 border-rose-200"
-              },
-              {
-                step: "3",
-                title: "Confirm & Earn",
-                desc: "Chat with the customers and finalize the deal. Pay us a small commission only after successful booking.",
-                icon: Handshake,
-                color: "text-green-600",
-                bg: "bg-green-100 border-green-200"
-              }
-            ].map((item, idx) => (
-              <div key={idx} className="relative z-10 flex flex-col items-center text-center bg-orange-50/30 p-6 rounded-3xl md:bg-transparent md:p-0 md:rounded-none shadow-sm md:shadow-none border border-orange-50 md:border-none">
-                <div className={`w-16 h-16 rounded-full ${item.bg} border-4 flex items-center justify-center mb-6 shadow-lg`}>
-                  <item.icon size={28} className={item.color} />
+              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+                <button 
+                  onClick={() => setShowAuthModal(true)}
+                  className="w-full sm:w-auto px-8 py-4 bg-gray-900 hover:bg-black text-white rounded-2xl font-bold text-lg transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center justify-center gap-2"
+                >
+                  Start Selling <ArrowRight size={20} />
+                </button>
+                <div className="flex items-center gap-4 text-sm font-bold text-gray-500">
+                  <div className="flex -space-x-3">
+                    <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-200"></div>
+                    <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-300"></div>
+                    <div className="w-10 h-10 rounded-full border-2 border-white bg-brand-primary/20 flex items-center justify-center text-brand-primary">+1k</div>
+                  </div>
+                  <span>Vendors Registered</span>
                 </div>
-                <div className="inline-block px-4 py-1.5 bg-orange-100 rounded-full text-xs font-black text-orange-800 mb-4 border border-orange-200">STEP {item.step}</div>
-                <h3 className="text-xl md:text-2xl font-black text-gray-900 mb-3">{item.title}</h3>
-                <p className="text-sm md:text-base text-gray-600 font-medium leading-relaxed">{item.desc}</p>
+              </motion.div>
+            </motion.div>
+
+            {/* Hero Visual - Floating Grid */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1, delay: 0.3 }}
+              className="lg:w-1/2 relative"
+            >
+              <div className="relative w-full max-w-lg mx-auto aspect-square">
+                {/* Center Image */}
+                <motion.div 
+                  animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute inset-0 m-auto w-64 h-64 bg-white rounded-full shadow-2xl p-4 z-20 flex items-center justify-center border border-gray-100"
+                >
+                  <img src="/images/temple_mandap copy.webp" className="w-full h-full object-cover rounded-full" alt="Mandap" />
+                </motion.div>
+                
+                {/* Orbiting Elements */}
+                <motion.div animate={{ y: [0, 15, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }} className="absolute top-10 right-10 w-32 h-32 bg-white rounded-2xl shadow-xl p-3 z-30 -rotate-12 border border-gray-100">
+                  <img src="/images/3d_camera copy.webp" className="w-full h-full object-contain" alt="Photography" />
+                </motion.div>
+                <motion.div animate={{ y: [0, -15, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }} className="absolute bottom-10 left-10 w-40 h-40 bg-white rounded-2xl shadow-xl p-3 z-30 rotate-12 border border-gray-100">
+                  <img src="/images/3d_food copy.webp" className="w-full h-full object-contain" alt="Catering" />
+                </motion.div>
+                
+                {/* Abstract Data Cards */}
+                <motion.div className="absolute top-1/4 -left-10 bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-lg border border-gray-100 z-40">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 text-green-600 rounded-lg"><TrendingUp size={20} /></div>
+                    <div>
+                      <div className="text-xs text-gray-500 font-bold">New Leads</div>
+                      <div className="text-lg font-black text-gray-900">+42 This Week</div>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
-            ))}
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* WHY GOMANDAP (Value Props) */}
-      <section className="py-16 md:py-24 px-4 md:px-8 relative z-10">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight">Solve Your Business Problems</h2>
-            <p className="text-base md:text-xl text-gray-600 font-medium max-w-2xl mx-auto">We built Gomandap to solve the biggest problem for Indian Vendors: <strong className="text-rose-700">Fake window-shoppers & dead leads.</strong></p>
+      {/* 2. Why Join Gomandap (Value Proposition) */}
+      <section className="py-24 bg-white relative">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 tracking-tight">Why the best vendors choose us</h2>
+            <p className="text-lg text-gray-600 font-medium">We built Gomandap to solve the biggest problems in the wedding industry. No hidden fees, no fake leads, just business.</p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+
+          <div className="grid md:grid-cols-3 gap-8">
             {[
-              {
-                icon: IndianRupee,
-                title: "Pay Only For Success",
-                desc: "No monthly subscriptions. No pay-per-lead charges. You only pay when a customer officially books you.",
-                color: "from-green-500 to-emerald-500",
-                shadow: "shadow-green-500/20"
-              },
-              {
-                icon: ShieldCheck,
-                title: "Only Serious Customers",
-                desc: "Families see your exact pricing and details before they contact you. By the time they message you, they are ready to book.",
-                color: "from-rose-500 to-red-500",
-                shadow: "shadow-rose-500/20"
-              },
-              {
-                icon: HeartHandshake,
-                title: "Built for Indian Business",
-                desc: "Easy to use from your mobile phone. Chat with customers directly in simple language. We support you.",
-                color: "from-orange-500 to-amber-500",
-                shadow: "shadow-orange-500/20"
-              }
-            ].map((feature, idx) => (
+              { icon: IndianRupee, title: "0% Commission", desc: "You keep 100% of what you earn. We don't take a cut from your bookings.", color: "text-green-600", bg: "bg-green-100" },
+              { icon: MessageSquare, title: "Direct Contact", desc: "Clients message or call you directly. No middlemen interfering with your deals.", color: "text-blue-600", bg: "bg-blue-100" },
+              { icon: ShieldCheck, title: "Verified Leads", desc: "Every client phone number is verified via OTP, ensuring you only deal with real customers.", color: "text-brand-primary", bg: "bg-brand-primary/10" }
+            ].map((feature, i) => (
               <motion.div 
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className={`group relative bg-white rounded-3xl p-6 md:p-8 border border-orange-100 shadow-xl ${feature.shadow} transition-all duration-500 md:hover:-translate-y-2 overflow-hidden`}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="bg-gray-50 rounded-3xl p-8 border border-gray-100 hover:shadow-xl transition-all group"
               >
-                <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6 shadow-lg text-white transform md:group-hover:scale-110 transition-transform duration-500`}>
-                  <feature.icon size={28} className="md:w-8 md:h-8" />
+                <div className={`w-16 h-16 rounded-2xl ${feature.bg} ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                  <feature.icon size={32} />
                 </div>
-                <h3 className="text-xl md:text-2xl font-black text-gray-900 mb-3 tracking-tight relative z-20">{feature.title}</h3>
-                <p className="text-sm md:text-base text-gray-600 font-medium leading-relaxed relative z-20">{feature.desc}</p>
+                <h3 className="text-2xl font-black text-gray-900 mb-4">{feature.title}</h3>
+                <p className="text-gray-600 font-medium leading-relaxed">{feature.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CATEGORY SHOWCASE (Premium Deep Red / Maroon Mode) */}
-      <section className="py-16 md:py-24 px-4 md:px-8 bg-[#3d0c11] text-white relative overflow-hidden rounded-t-[2rem] md:rounded-t-[3rem] border-t-4 border-amber-500">
-        {/* Abstract BG - Mandala / Rangoli feel */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-6xl opacity-30 pointer-events-none">
-          <div className="absolute top-[-20%] left-[20%] w-[300px] md:w-[600px] h-[300px] md:h-[600px] rounded-full bg-rose-600/40 blur-[100px]"></div>
-          <div className="absolute bottom-[-10%] right-[10%] w-[400px] h-[400px] rounded-full bg-amber-500/30 blur-[120px]"></div>
-        </div>
-        
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-10 md:mb-16">
-            <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tight text-amber-50">We Support All Wedding Businesses</h2>
-            <p className="text-sm md:text-xl text-rose-200 font-medium max-w-2xl mx-auto">We provide a platform for 20+ types of wedding services across India.</p>
-          </div>
-          
-          <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 md:gap-4">
-            {CATEGORIES.slice(0, 12).map((cat, idx) => {
-              const icon3d = ICON_MAP[cat.label];
-              return (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.03 }}
-                  key={cat.id} 
-                  className="flex flex-col items-center gap-3 group cursor-pointer"
-                >
-                  <div className="w-[84px] h-[84px] bg-white/5 backdrop-blur-md border border-white/10 rounded-[24px] flex items-center justify-center group-hover:bg-rose-900/40 group-hover:border-amber-500/50 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-all relative overflow-hidden">
-                    <span className="absolute inset-0 bg-gradient-to-tr from-rose-500/10 to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative z-10 w-12 h-12 flex items-center justify-center">
-                      {icon3d && (
-                        <img src={icon3d} alt={cat.label} className="w-12 h-12 object-contain drop-shadow-md group-hover:scale-110 transition-transform duration-300" />
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-[11px] sm:text-xs font-bold text-amber-50/80 group-hover:text-amber-400 transition-colors text-center leading-tight px-1 h-8 flex items-start justify-center">
-                    {cat.label}
-                  </p>
-                </motion.div>
-              );
-            })}
-          </div>
-          
-          <div className="mt-12 md:mt-16 text-center">
+      {/* 3. The 21 Categories Grid */}
+      <section className="py-24 bg-gray-50">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+            <div className="max-w-2xl">
+              <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight">What you can list</h2>
+              <p className="text-lg text-gray-600 font-medium">Gomandap supports 21 distinct wedding categories. Find your niche and start receiving inquiries today.</p>
+            </div>
             <button 
-              onClick={() => navigate('/onboarding')}
-              className="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-orange-500 text-[#3d0c11] px-8 py-3.5 md:px-10 md:py-4 rounded-xl md:rounded-2xl font-black text-base md:text-lg shadow-xl shadow-amber-500/20 hover:scale-105 transition-transform border border-amber-300"
+              onClick={() => setShowAuthModal(true)}
+              className="px-6 py-3 bg-white border-2 border-gray-900 text-gray-900 rounded-xl font-bold hover:bg-gray-900 hover:text-white transition-colors"
             >
-              See All Categories & Join
+              List Your Business
             </button>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {CATEGORIES.map((cat, idx) => (
+              <motion.div 
+                key={cat.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: (idx % 5) * 0.1 }}
+                className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md hover:border-brand-primary/30 transition-all text-center group cursor-pointer"
+                onClick={() => setShowAuthModal(true)}
+              >
+                <div className="w-16 h-16 mx-auto bg-gray-50 rounded-xl p-3 mb-3 group-hover:scale-110 transition-transform">
+                  <img 
+                    src={ICON_MAP[cat.name] || '/images/3d_venue copy.webp'} 
+                    alt={cat.name}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <h4 className="text-xs font-bold text-gray-900 leading-tight">{cat.name}</h4>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="bg-[#2a080c] pt-10 pb-8 md:pb-12 px-4 md:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8 text-center md:text-left">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl font-black text-amber-500 tracking-tight">Gomandap</span>
-          </div>
-          
-          <div className="flex flex-col md:flex-row flex-wrap justify-center gap-4 md:gap-8 text-xs md:text-sm font-semibold text-rose-200/60">
-            <span className="flex items-center justify-center gap-2 hover:text-amber-400 transition-colors cursor-pointer"><MapPin size={16} /> HQ: Mumbai, India</span>
-            <span className="flex items-center justify-center gap-2 hover:text-amber-400 transition-colors cursor-pointer"><Phone size={16} /> +91 98765 43210</span>
-            <span className="flex items-center justify-center gap-2 hover:text-amber-400 transition-colors cursor-pointer"><Mail size={16} /> vendor-support@gomandap.com</span>
-          </div>
-        </div>
-      </footer>
+      {/* 4. Firebase Phone Auth Modal */}
+      <AnimatePresence>
+        {showAuthModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ y: 50, opacity: 0, scale: 0.95 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 20, opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-md bg-white shadow-2xl rounded-3xl overflow-hidden"
+            >
+              {/* Close */}
+              <button 
+                onClick={() => setShowAuthModal(false)}
+                className="absolute z-10 p-2 text-gray-400 transition-colors rounded-full top-4 right-4 hover:bg-gray-100"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="p-8 pb-6">
+                <div className="w-12 h-12 bg-brand-primary/10 rounded-2xl flex items-center justify-center mb-6">
+                  <ShieldCheck size={24} className="text-brand-primary" />
+                </div>
+                <h2 className="text-2xl font-black text-gray-900 mb-2">
+                  {step === 'phone' ? 'Vendor Portal' : 'Verify Identity'}
+                </h2>
+                <p className="text-sm text-gray-500 font-medium">
+                  {step === 'phone' 
+                    ? 'Enter your mobile number to login or register your business.' 
+                    : `We sent a secure OTP to ${phone}`}
+                </p>
+              </div>
+
+              <div id="vendor-recaptcha-container"></div>
+
+              <div className="p-8 pt-0">
+                {step === 'phone' ? (
+                  <form onSubmit={handleSendOtp} className="space-y-4">
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 pointer-events-none">
+                        <Phone size={18} />
+                      </div>
+                      <input
+                        type="tel"
+                        required
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="Enter mobile number"
+                        className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 font-bold transition-all"
+                      />
+                    </div>
+                    <button 
+                      type="submit"
+                      disabled={isLoading || phone.length < 10}
+                      className="w-full flex items-center justify-center gap-2 py-4 font-bold text-white transition-all bg-gray-900 hover:bg-black rounded-xl disabled:opacity-50"
+                    >
+                      {isLoading ? 'Sending OTP...' : 'Continue'}
+                      {!isLoading && <ArrowRight size={18} />}
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleVerifyOtp} className="space-y-4">
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 pointer-events-none">
+                        <Lock size={18} />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        maxLength={6}
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                        placeholder="6-digit OTP"
+                        className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 font-bold tracking-widest text-lg transition-all"
+                      />
+                    </div>
+                    <button 
+                      type="submit"
+                      disabled={isLoading || otp.length < 6}
+                      className="w-full flex items-center justify-center gap-2 py-4 font-bold text-white transition-all bg-brand-primary hover:bg-orange-600 rounded-xl shadow-lg shadow-brand-primary/30 disabled:opacity-50"
+                    >
+                      {isLoading ? 'Verifying...' : 'Verify & Login'}
+                    </button>
+                  </form>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 };

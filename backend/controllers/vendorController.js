@@ -1,5 +1,12 @@
 const Vendor = require('../models/Vendor');
 const Settings = require('../models/Settings');
+const jwt = require('jsonwebtoken');
+
+const generateToken = (id) => {
+  return jwt.sign({ id, role: 'vendor' }, process.env.JWT_SECRET || 'fallback_secret', {
+    expiresIn: '30d',
+  });
+};
 
 // @desc    Initialize a vendor draft at Step 1
 // @route   POST /api/vendors/draft
@@ -15,6 +22,37 @@ const createDraft = async (req, res) => {
     res.status(201).json({ success: true, data: savedVendor });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+// @desc    Sync Vendor Auth (Login or Redirect to Onboard)
+// @route   POST /api/vendors/auth/sync
+// @access  Public
+const syncVendorAuth = async (req, res) => {
+  try {
+    const { phoneNumber } = req.body;
+    
+    // Find a vendor with this phone number
+    const vendor = await Vendor.findOne({ 'contact.phone': phoneNumber });
+
+    if (vendor && vendor.status !== 'draft') {
+      // Vendor exists and completed onboarding
+      return res.json({
+        success: true,
+        action: 'dashboard',
+        vendorId: vendor._id,
+        token: generateToken(vendor._id)
+      });
+    } else {
+      // New vendor, or draft vendor (needs onboarding)
+      return res.json({
+        success: true,
+        action: 'onboard',
+        phoneNumber
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server Error during auth sync' });
   }
 };
 
@@ -212,6 +250,7 @@ const updateLocationLock = async (req, res) => {
 
 module.exports = {
   createDraft,
+  syncVendorAuth,
   updateDraft,
   getApprovedVendors,
   getVendorById,

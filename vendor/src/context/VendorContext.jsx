@@ -37,6 +37,36 @@ export const VendorProvider = ({ children }) => {
     }
   }, []);
 
+  const loginWithPhone = async (phoneNumber) => {
+    try {
+      const res = await fetch('https://gomandap-api.onrender.com/api/vendors/auth/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        if (data.action === 'dashboard') {
+          localStorage.setItem('gomandap_vendor_token', data.token);
+          // Fetch the vendor profile using the ID
+          const profileRes = await fetch(`https://gomandap-api.onrender.com/api/vendors/${data.vendorId}`);
+          const profileData = await profileRes.json();
+          if (profileData.success) {
+            setVendorProfile(profileData.data);
+            setVendorStatus(profileData.data.status);
+            localStorage.setItem('gomandap_vendor_profile', JSON.stringify(profileData.data));
+            localStorage.setItem('gomandap_vendor_status', profileData.data.status);
+          }
+        }
+        return { success: true, action: data.action, phoneNumber: data.phoneNumber };
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
+    return { success: false };
+  };
+
   const submitOnboarding = async (formData) => {
     try {
       const response = await fetch('https://gomandap-api.onrender.com/api/vendors/onboard', {
@@ -98,12 +128,14 @@ export const VendorProvider = ({ children }) => {
     setVendorProfile(null);
     localStorage.removeItem('gomandap_vendor_status');
     localStorage.removeItem('gomandap_vendor_profile');
+    localStorage.removeItem('gomandap_vendor_token');
   };
 
   return (
     <VendorContext.Provider value={{
       vendorStatus,
       vendorProfile,
+      loginWithPhone,
       submitOnboarding,
       saveDraft,
       simulateAdminApproval,

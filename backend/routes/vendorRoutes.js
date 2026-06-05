@@ -1,12 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const upload = require('../middleware/upload');
-const { createDraft, updateDraft, getApprovedVendors, getVendorById, getAllVendors, updateVendorStatus, updateLocationLock } = require('../controllers/vendorController');
+const { createDraft, syncVendorAuth, updateDraft, getApprovedVendors, getVendorById, getAllVendors, updateVendorStatus, updateLocationLock } = require('../controllers/vendorController');
 
 // @route   POST /api/vendors/draft
 // @desc    Create a draft vendor application
 // @access  Public
 router.post('/draft', createDraft);
+
+// @route   POST /api/vendors/auth/sync
+// @desc    Sync Vendor Auth
+// @access  Public
+router.post('/auth/sync', syncVendorAuth);
 
 // @route   PATCH /api/vendors/draft/:id
 // @desc    Update a draft vendor application with images
