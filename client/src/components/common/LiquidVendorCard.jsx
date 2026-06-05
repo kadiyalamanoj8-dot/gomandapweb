@@ -153,14 +153,16 @@ const LiquidVendorCard = ({ vendor, layout = 'carousel' }) => {
   return (
     <motion.div
       onClick={addRipple}
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ scale: 1.02, y: -4 }}
       whileTap={{ scale: 0.98 }}
-      className={`relative rounded-2xl bg-white shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden group flex flex-col ${
+      className={`relative rounded-[1.5rem] bg-white shadow-sm hover:shadow-[0_20px_40px_-15px_rgba(255,51,102,0.15)] transition-all duration-400 cursor-pointer overflow-hidden group flex flex-col border border-transparent hover:border-brand-primary/10 ${
         layout === 'carousel' 
           ? 'w-[200px] md:w-[240px] shrink-0 snap-start' 
           : 'w-full h-full'
       }`}
     >
+      {/* Glow Effect Element */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/0 via-brand-primary/0 to-brand-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[1.5rem] pointer-events-none z-10"></div>
       {/* Authentic Liquid Ripple Container */}
       <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none z-30 mix-blend-overlay">
         <AnimatePresence>

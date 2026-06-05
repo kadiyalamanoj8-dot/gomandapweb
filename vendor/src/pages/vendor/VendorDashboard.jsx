@@ -3,15 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useVendor } from '../../context/VendorContext';
 import { 
   LogOut, Eye, CheckCircle2, ChevronRight, Bell, Menu, X, 
-  MapPin, TrendingUp, Sparkles, CalendarDays 
+  MapPin, TrendingUp, Sparkles, CalendarDays, Plus, Trash2 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getCategorySchema } from '../../config/categorySchemas';
 
 const VendorDashboard = () => {
   const { vendorProfile, vendorStatus, logoutVendor, updateVendorProfile } = useVendor();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [inquiries, setInquiries] = useState([]);
   
   // Profile Edit State
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -26,9 +28,66 @@ const VendorDashboard = () => {
         ownerName: vendorProfile.ownerName || '',
         phone: vendorProfile.contact?.phone || '',
         city: vendorProfile.address?.city || '',
+        customBlocks: vendorProfile.customBlocks || { pricingPackages: [] },
+        deepFeatures: vendorProfile.deepFeatures || {}
       });
+      fetchInquiries();
     }
   }, [vendorProfile]);
+
+  const fetchInquiries = async () => {
+    if (!vendorProfile?._id) return;
+    try {
+      const res = await fetch(`https://gomandap-api.onrender.com/api/inquiries/vendor/${vendorProfile._id}`);
+      const data = await res.json();
+      if (data.success) {
+        setInquiries(data.data);
+      }
+    } catch (err) {
+      console.error("Failed to load inquiries", err);
+    }
+  };
+
+  const schema = getCategorySchema(vendorProfile?.category);
+
+  const handleAddPackage = () => {
+    setEditForm(prev => ({
+      ...prev,
+      customBlocks: {
+        ...prev.customBlocks,
+        pricingPackages: [...(prev.customBlocks?.pricingPackages || []), { title: '', price: '', desc: '' }]
+      }
+    }));
+  };
+
+  const handleRemovePackage = (index) => {
+    setEditForm(prev => ({
+      ...prev,
+      customBlocks: {
+        ...prev.customBlocks,
+        pricingPackages: prev.customBlocks.pricingPackages.filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  const handlePackageChange = (index, field, value) => {
+    const newPackages = [...(editForm.customBlocks?.pricingPackages || [])];
+    newPackages[index][field] = value;
+    setEditForm(prev => ({
+      ...prev,
+      customBlocks: { ...prev.customBlocks, pricingPackages: newPackages }
+    }));
+  };
+
+  const handleFeatureToggle = (feature) => {
+    const currentFeatures = { ...editForm.deepFeatures };
+    if (currentFeatures[feature] === "Yes") {
+      delete currentFeatures[feature];
+    } else {
+      currentFeatures[feature] = "Yes";
+    }
+    setEditForm(prev => ({ ...prev, deepFeatures: currentFeatures }));
+  };
 
   const handleSaveProfile = async () => {
     setIsSaving(true);
@@ -37,7 +96,9 @@ const VendorDashboard = () => {
         name: editForm.name,
         ownerName: editForm.ownerName,
         contact: { ...vendorProfile.contact, phone: editForm.phone },
-        address: { ...vendorProfile.address, city: editForm.city }
+        address: { ...vendorProfile.address, city: editForm.city },
+        customBlocks: editForm.customBlocks,
+        deepFeatures: editForm.deepFeatures
       };
 
       const res = await fetch(`https://gomandap-api.onrender.com/api/vendors/draft/${vendorProfile._id}`, {
@@ -152,8 +213,12 @@ const VendorDashboard = () => {
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-300 ${activeTab === 'bookings' ? 'scale-110 drop-shadow-lg' : 'grayscale-[0.3] opacity-80'}`}>
               <img src="/images/3d_invitation copy.webp" alt="Bookings" className="w-full h-full object-contain" />
             </div>
-            Messages
-            <span className="ml-auto bg-brand-primary text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-md">1</span>
+            Leads & Inquiries
+            {inquiries.filter(i => i.status === 'new').length > 0 && (
+              <span className="ml-auto bg-rose-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-md">
+                {inquiries.filter(i => i.status === 'new').length}
+              </span>
+            )}
           </button>
           
           <button 
@@ -316,7 +381,7 @@ const VendorDashboard = () => {
                    <div className="absolute -left-10 -top-10 w-32 h-32 bg-emerald-500/20 rounded-full blur-[50px] group-hover:bg-emerald-500/30 transition-colors"></div>
                    <div className="relative z-10">
                      <span className="text-sm font-bold text-white/60 uppercase tracking-wider block mb-1">Active Leads</span>
-                     <span className="text-4xl font-black text-white">42</span>
+                     <span className="text-4xl font-black text-white">{inquiries.length || 0}</span>
                    </div>
                    <div className="w-16 h-16 relative z-10">
                      <img src="/images/3d_invitation copy.webp" className="w-full h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" alt="Leads" />
@@ -337,84 +402,58 @@ const VendorDashboard = () => {
               </div>
               
               <div className="space-y-4">
-                {/* Ticket 1 */}
-                <div className="relative bg-gradient-to-r from-black/60 to-black/40 backdrop-blur-2xl rounded-3xl p-6 border border-white/10 shadow-xl overflow-hidden group hover:-translate-y-1 hover:shadow-[0_20px_40px_rgb(0,0,0,0.4)] transition-all duration-300">
-                  {/* Side Color Bar */}
-                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-primary"></div>
-                  {/* Ticket Stamp Background */}
-                  <div className="absolute right-0 top-0 opacity-5 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
-                    <CalendarDays size={200} />
-                  </div>
-                  
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-                    <div className="flex items-center gap-5">
-                      <div className="w-14 h-14 rounded-2xl bg-brand-primary/20 text-brand-primary flex items-center justify-center font-black text-xl border border-brand-primary/30 shadow-inner">
-                        A
-                      </div>
-                      <div>
-                        <h4 className="text-xl font-bold text-white mb-1">Aditya & Sneha's Wedding</h4>
-                        <p className="text-sm font-medium text-white/60 flex items-center gap-2">
-                          <MapPin size={14} /> Guntur, Andhra Pradesh
-                        </p>
-                      </div>
+                {inquiries.slice(0, 3).map((inquiry) => (
+                  <div key={inquiry._id} className="relative bg-gradient-to-r from-black/60 to-black/40 backdrop-blur-2xl rounded-3xl p-6 border border-white/10 shadow-xl overflow-hidden group hover:-translate-y-1 hover:shadow-[0_20px_40px_rgb(0,0,0,0.4)] transition-all duration-300">
+                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${inquiry.status === 'new' ? 'bg-rose-500' : 'bg-brand-primary'}`}></div>
+                    <div className="absolute right-0 top-0 opacity-5 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
+                      <CalendarDays size={200} />
                     </div>
                     
-                    <div className="flex items-center justify-between md:justify-end gap-8">
-                      <div className="text-left md:text-right">
-                        <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest mb-1">Event Date</p>
-                        <p className="text-lg font-bold text-white">Nov 24, 2026</p>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                      <div className="flex items-center gap-5">
+                        <div className={`w-14 h-14 rounded-2xl ${inquiry.status === 'new' ? 'bg-rose-500/20 text-rose-500 border-rose-500/30' : 'bg-brand-primary/20 text-brand-primary border-brand-primary/30'} flex items-center justify-center font-black text-xl border shadow-inner`}>
+                          {inquiry.clientName.charAt(0)}
+                        </div>
+                        <div>
+                          <h4 className="text-xl font-bold text-white mb-1">{inquiry.clientName}'s Inquiry</h4>
+                          <p className="text-sm font-medium text-white/60 flex items-center gap-2">
+                            <MapPin size={14} /> Contact: {inquiry.clientPhone}
+                          </p>
+                        </div>
                       </div>
-                      <div className="h-10 w-px bg-white/10 hidden md:block"></div>
-                      <div className="text-left md:text-right">
-                         <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-emerald-500/20 text-emerald-400 text-[13px] font-bold rounded-full border border-emerald-500/30">
-                           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                           Hot Lead
-                         </span>
+                      
+                      <div className="flex items-center justify-between md:justify-end gap-8">
+                        <div className="text-left md:text-right">
+                          <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest mb-1">Event Date</p>
+                          <p className="text-lg font-bold text-white">{new Date(inquiry.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                        </div>
+                        <div className="h-10 w-px bg-white/10 hidden md:block"></div>
+                        <div className="text-left md:text-right">
+                          {inquiry.status === 'new' ? (
+                            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-rose-500/20 text-rose-400 text-[13px] font-bold rounded-full border border-rose-500/30">
+                              <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
+                              New Lead
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-brand-primary/20 text-brand-primary text-[13px] font-bold rounded-full border border-brand-primary/30">
+                              Viewed
+                            </span>
+                          )}
+                        </div>
+                        <button onClick={() => setActiveTab('bookings')} className="px-6 py-3 bg-white text-black rounded-xl font-bold text-[15px] hover:bg-gray-200 transition-colors shadow-lg shadow-white/10">
+                          Respond
+                        </button>
                       </div>
-                      <button className="px-6 py-3 bg-white text-black rounded-xl font-bold text-[15px] hover:bg-gray-200 transition-colors shadow-lg shadow-white/10">
-                        Respond
-                      </button>
                     </div>
                   </div>
-                </div>
+                ))}
 
-                {/* Ticket 2 */}
-                <div className="relative bg-gradient-to-r from-black/60 to-black/40 backdrop-blur-2xl rounded-3xl p-6 border border-white/10 shadow-xl overflow-hidden group hover:-translate-y-1 hover:shadow-[0_20px_40px_rgb(0,0,0,0.4)] transition-all duration-300">
-                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-gold"></div>
-                  <div className="absolute right-0 top-0 opacity-5 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
-                    <CalendarDays size={200} />
+                {inquiries.length === 0 && (
+                  <div className="text-center py-12 bg-white/5 rounded-3xl border border-white/10 border-dashed">
+                    <p className="text-white/40 font-semibold mb-2">No live inquiries yet.</p>
+                    <p className="text-white/20 text-sm">Your new leads will appear here automatically.</p>
                   </div>
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-                    <div className="flex items-center gap-5">
-                      <div className="w-14 h-14 rounded-2xl bg-brand-gold/20 text-brand-gold flex items-center justify-center font-black text-xl border border-brand-gold/30 shadow-inner">
-                        M
-                      </div>
-                      <div>
-                        <h4 className="text-xl font-bold text-white mb-1">Meera's Sangeet</h4>
-                        <p className="text-sm font-medium text-white/60 flex items-center gap-2">
-                          <MapPin size={14} /> Hyderabad, Telangana
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between md:justify-end gap-8">
-                      <div className="text-left md:text-right">
-                        <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest mb-1">Event Date</p>
-                        <p className="text-lg font-bold text-white">Dec 05, 2026</p>
-                      </div>
-                      <div className="h-10 w-px bg-white/10 hidden md:block"></div>
-                      <div className="text-left md:text-right">
-                         <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-blue-500/20 text-blue-400 text-[13px] font-bold rounded-full border border-blue-500/30">
-                           Viewed
-                         </span>
-                      </div>
-                      <button className="px-6 py-3 bg-white/10 text-white rounded-xl font-bold text-[15px] hover:bg-white/20 transition-colors">
-                        View Details
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
+                )}
               </div>
             </motion.div>
 
@@ -528,23 +567,174 @@ const VendorDashboard = () => {
                 </div>
               </div>
             </div>
+
+            {/* Features Editor */}
+            {schema?.featuresList && (
+              <div className="bg-white/5 p-6 md:p-8 rounded-[1.5rem] border border-white/10 shadow-inner mt-6">
+                <h3 className="text-lg font-black text-white mb-4">Service Features & Amenities</h3>
+                {isEditingProfile ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {schema.featuresList.map((feature, i) => (
+                      <label key={i} className="flex items-center gap-3 p-3 rounded-xl border border-white/10 hover:bg-white/5 cursor-pointer transition-colors">
+                        <input 
+                          type="checkbox" 
+                          checked={editForm.deepFeatures?.[feature] === "Yes"}
+                          onChange={() => handleFeatureToggle(feature)}
+                          className="w-5 h-5 accent-brand-gold bg-black/50 border border-white/20 rounded cursor-pointer"
+                        />
+                        <span className="text-sm font-semibold text-white/80">{feature}</span>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(vendorProfile.deepFeatures || {}).map(([key, value], i) => 
+                      value === "Yes" && (
+                        <span key={i} className="px-4 py-2 bg-black/30 border border-white/10 rounded-xl text-sm font-semibold text-white/80">
+                          {key}
+                        </span>
+                      )
+                    )}
+                    {(!vendorProfile.deepFeatures || Object.keys(vendorProfile.deepFeatures).length === 0) && (
+                      <span className="text-sm font-semibold text-white/40">No features specified yet.</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Pricing Packages Editor */}
+            <div className="bg-white/5 p-6 md:p-8 rounded-[1.5rem] border border-white/10 shadow-inner mt-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-black text-white">Pricing Packages</h3>
+                {isEditingProfile && (
+                  <button onClick={handleAddPackage} className="flex items-center gap-2 px-4 py-2 bg-brand-gold/20 text-brand-gold rounded-xl font-bold text-sm hover:bg-brand-gold/30 transition-colors">
+                    <Plus size={16} /> Add Package
+                  </button>
+                )}
+              </div>
+
+              {isEditingProfile ? (
+                <div className="space-y-4">
+                  {editForm.customBlocks?.pricingPackages?.map((pkg, i) => (
+                    <div key={i} className="bg-black/40 p-5 rounded-2xl border border-white/10 relative group">
+                      <button onClick={() => handleRemovePackage(i)} className="absolute top-4 right-4 p-2 text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors">
+                        <Trash2 size={18} />
+                      </button>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">Package Name</label>
+                          <input type="text" value={pkg.title} onChange={e => handlePackageChange(i, 'title', e.target.value)} placeholder="e.g. Standard Decor" className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-brand-gold" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">Price</label>
+                          <input type="text" value={pkg.price} onChange={e => handlePackageChange(i, 'price', e.target.value)} placeholder="e.g. ₹50,000" className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-brand-gold font-bold text-sm focus:outline-none focus:border-brand-gold" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">Description / What's Included</label>
+                        <input type="text" value={pkg.desc} onChange={e => handlePackageChange(i, 'desc', e.target.value)} placeholder="e.g. Stage setup, mandap flowers, and entrance arch" className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-white/80 text-sm focus:outline-none focus:border-brand-gold" />
+                      </div>
+                    </div>
+                  ))}
+                  {(!editForm.customBlocks?.pricingPackages || editForm.customBlocks.pricingPackages.length === 0) && (
+                    <div className="text-center py-8 border-2 border-dashed border-white/10 rounded-2xl">
+                      <p className="text-sm font-semibold text-white/40 mb-2">No packages added yet.</p>
+                      <button onClick={handleAddPackage} className="text-brand-gold font-bold text-sm hover:underline">Create your first package</button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {vendorProfile.customBlocks?.pricingPackages?.map((pkg, i) => (
+                    <div key={i} className="bg-black/30 border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-colors">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="text-base font-black text-white">{pkg.title}</h4>
+                        <span className="text-sm font-black text-brand-gold">{pkg.price}</span>
+                      </div>
+                      <p className="text-sm font-semibold text-white/60">{pkg.desc}</p>
+                    </div>
+                  ))}
+                  {(!vendorProfile.customBlocks?.pricingPackages || vendorProfile.customBlocks.pricingPackages.length === 0) && (
+                    <span className="text-sm font-semibold text-white/40 col-span-2">No packages specified yet.</span>
+                  )}
+                </div>
+              )}
+            </div>
             
-            <p className="text-[13px] font-medium text-white/40 mt-6 text-center">
+            <p className="text-[13px] font-medium text-white/40 mt-8 text-center border-t border-white/10 pt-6">
               More advanced editing options (pricing, features, portfolio images) will be available in future updates.
             </p>
           </motion.div>
         )}
 
-        {/* Bookings Tab Placeholder */}
+        {/* Bookings / Leads Tab */}
         {activeTab === 'bookings' && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="bg-black/40 backdrop-blur-2xl rounded-[2.5rem] p-10 border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.5)] flex flex-col items-center justify-center min-h-[400px] text-center relative z-10 max-w-7xl mx-auto">
-             <div className="w-32 h-32 mb-6 opacity-90 drop-shadow-2xl">
-               <img src="/images/3d_invitation copy.webp" alt="Messages" className="w-full h-full object-contain" />
-             </div>
-             <h2 className="text-2xl font-black tracking-tight text-white mb-2">Message Center</h2>
-             <p className="text-lg font-medium text-white/60 max-w-md">
-               Your client inquiries and direct messages will appear here.
-             </p>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="bg-black/40 backdrop-blur-2xl rounded-[2.5rem] p-6 md:p-10 border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.5)] min-h-[500px] relative z-10 max-w-7xl mx-auto">
+            <h2 className="text-3xl font-black tracking-tight text-white mb-8 flex items-center gap-3">
+              <CalendarDays className="text-brand-primary" size={32} /> Leads & Inquiries
+            </h2>
+            
+            <div className="grid grid-cols-1 gap-4">
+              {inquiries.map(inquiry => (
+                <div key={inquiry._id} className="bg-white/5 rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-colors">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex gap-4">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-lg ${inquiry.status === 'new' ? 'bg-rose-500/20 text-rose-500 border border-rose-500/30' : 'bg-gray-500/20 text-gray-400'}`}>
+                        {inquiry.clientName.charAt(0)}
+                      </div>
+                      <div>
+                        <h4 className="text-xl font-bold text-white">{inquiry.clientName}</h4>
+                        <div className="flex items-center gap-3 text-sm font-semibold text-white/50 mt-1">
+                          <span className="flex items-center gap-1"><Icons.Phone size={14}/> {inquiry.clientPhone}</span>
+                          <span className="flex items-center gap-1"><CalendarDays size={14}/> {new Date(inquiry.eventDate).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {inquiry.status === 'new' && (
+                      <span className="bg-rose-500/20 text-rose-500 text-xs font-bold px-3 py-1 rounded-full border border-rose-500/30">NEW</span>
+                    )}
+                  </div>
+                  
+                  <div className="bg-black/30 rounded-xl p-4 mb-4 border border-white/5">
+                    <p className="text-white/80 font-medium whitespace-pre-wrap text-sm leading-relaxed">
+                      {inquiry.message}
+                    </p>
+                    <div className="mt-3 pt-3 border-t border-white/5 flex gap-4 text-xs font-semibold text-brand-gold">
+                      {inquiry.eventType && <span>Event: {inquiry.eventType}</span>}
+                      {inquiry.guestCount && <span>Guests: {inquiry.guestCount}</span>}
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end gap-3">
+                    <a 
+                      href={`tel:${inquiry.clientPhone}`}
+                      className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-bold text-sm transition-colors flex items-center gap-2"
+                    >
+                      <Icons.Phone size={14} /> Call Client
+                    </a>
+                    <a 
+                      href={`https://wa.me/91${inquiry.clientPhone}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold text-sm transition-colors flex items-center gap-2 shadow-lg shadow-green-500/20"
+                    >
+                      <Icons.MessageCircle size={14} /> WhatsApp
+                    </a>
+                  </div>
+                </div>
+              ))}
+
+              {inquiries.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                   <div className="w-24 h-24 mb-6 opacity-50 drop-shadow-2xl grayscale">
+                     <img src="/images/3d_invitation copy.webp" alt="Messages" className="w-full h-full object-contain" />
+                   </div>
+                   <h3 className="text-xl font-black text-white/50 mb-2">No leads yet</h3>
+                   <p className="text-white/40 font-medium">When clients request a quote on your storefront, they will appear here.</p>
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
 

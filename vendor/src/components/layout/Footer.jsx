@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Globe, Facebook, Instagram, Twitter, Linkedin, Youtube } from 'lucide-react';
+import { Globe, Share2, MessageCircle, AtSign, Link as LinkIcon } from 'lucide-react';
 import axios from 'axios';
 
 const Footer = () => {
@@ -22,11 +22,11 @@ const Footer = () => {
 
   const getIcon = (platform) => {
     const p = platform.toLowerCase();
-    if (p.includes('facebook')) return <Facebook size={18} />;
-    if (p.includes('instagram')) return <Instagram size={18} />;
-    if (p.includes('twitter') || p.includes('x')) return <Twitter size={18} />;
-    if (p.includes('linkedin')) return <Linkedin size={18} />;
-    if (p.includes('youtube')) return <Youtube size={18} />;
+    if (p.includes('facebook')) return <Globe size={18} />;
+    if (p.includes('instagram')) return <AtSign size={18} />;
+    if (p.includes('twitter') || p.includes('x')) return <MessageCircle size={18} />;
+    if (p.includes('linkedin')) return <Share2 size={18} />;
+    if (p.includes('youtube')) return <LinkIcon size={18} />;
     return <Globe size={18} />;
   };
 

@@ -46,7 +46,7 @@ const SwipeableCategorySlider = () => {
   return (
     <section className="py-6 bg-white overflow-hidden relative group">
       <div className="w-full max-w-7xl mx-auto px-4 md:px-8 relative">
-        <h2 className="text-lg font-bold mb-4 text-gray-900 md:text-xl">Browse by Category</h2>
+        <h2 className="text-xl md:text-3xl font-black mb-6 text-gray-900 tracking-tight">Browse by Category</h2>
         
         {/* Desktop Navigation Arrows */}
         <button 
@@ -83,15 +83,15 @@ const SwipeableCategorySlider = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.03, type: "spring" }}
-                whileHover={{ scale: 1.05 }}
-                className="snap-start shrink-0 w-20 md:w-24 flex flex-col items-center gap-2 group/item"
+                whileHover={{ scale: 1.08, y: -4 }}
+                className="snap-start shrink-0 w-24 md:w-32 flex flex-col items-center gap-3 group/item"
                 // Prevent drag from triggering click if user dragged
                 onClick={(e) => isDragging && e.preventDefault()}
               >
-                <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 group-hover/item:bg-brand-primary/10 group-hover/item:text-brand-primary shadow-sm group-hover/item:shadow-md transition-all duration-300 pointer-events-none">
-                  {Icon && <Icon size={24} strokeWidth={1.5} />}
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-[1.25rem] bg-gray-50 flex items-center justify-center text-gray-500 group-hover/item:bg-gradient-to-tr group-hover/item:from-brand-primary/10 group-hover/item:to-brand-primary/5 group-hover/item:text-brand-primary shadow-sm group-hover/item:shadow-lg transition-all duration-300 pointer-events-none border border-gray-100 group-hover/item:border-brand-primary/20">
+                  {Icon && <Icon size={28} strokeWidth={1.5} />}
                 </div>
-                <span className="text-[10px] md:text-xs font-semibold text-center text-gray-700 group-hover/item:text-brand-primary transition-colors pointer-events-none leading-tight">
+                <span className="text-[11px] md:text-sm font-bold text-center text-gray-600 group-hover/item:text-brand-primary transition-colors pointer-events-none leading-tight">
                   {category.label}
                 </span>
               </motion.div>

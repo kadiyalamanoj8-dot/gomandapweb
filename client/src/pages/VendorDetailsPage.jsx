@@ -18,6 +18,11 @@ const VendorDetailsPage = () => {
   // Dynamic state for the booking form fields
   const [formData, setFormData] = useState({});
 
+  // Inquiry/Quote State
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+  const [quoteForm, setQuoteForm] = useState({ name: '', phone: '', message: '' });
+  const [isSendingQuote, setIsSendingQuote] = useState(false);
+
   useEffect(() => {
     window.scrollTo(0, 0);
     
@@ -83,6 +88,46 @@ const VendorDetailsPage = () => {
 
   const handleAddToCart = () => {
     addToCart(vendor, formData);
+  };
+
+  const handleSendQuote = async () => {
+    if (!quoteForm.name || !quoteForm.phone || !quoteForm.message) {
+      alert("Please fill out your name, phone number, and message.");
+      return;
+    }
+    setIsSendingQuote(true);
+    try {
+      const payload = {
+        vendorId: vendor.id,
+        clientName: quoteForm.name,
+        clientPhone: quoteForm.phone,
+        eventDate: formData.date || new Date().toISOString(), // Fallback to today if not selected
+        message: quoteForm.message,
+        // Optional fields from form
+        guestCount: formData.guests || formData.guestSize || formData.quantity || '',
+        eventType: formData.eventType || formData.serviceType || formData.designType || ''
+      };
+      
+      const res = await fetch('https://gomandap-api.onrender.com/api/inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setIsQuoteModalOpen(false);
+        setQuoteForm({ name: '', phone: '', message: '' });
+        alert('Your quote request has been sent to the vendor! They will contact you shortly.');
+      } else {
+        alert(data.message || 'Failed to send inquiry.');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Network error. Please try again.');
+    } finally {
+      setIsSendingQuote(false);
+    }
   };
 
   // Build gallery array dynamically based on Cloudinary uploads, fallback to Unsplash
@@ -302,14 +347,22 @@ const VendorDetailsPage = () => {
               {/* Desktop Buttons */}
               <div className="hidden lg:flex flex-col gap-3">
                 <button 
-                  onClick={handleAddToCart}
-                  className="w-full bg-brand-primary/10 text-brand-primary border border-brand-primary/20 py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 hover:bg-brand-primary/20 transition-all active:scale-95"
+                  onClick={() => setIsQuoteModalOpen(true)}
+                  className="w-full bg-brand-primary text-white py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 shadow-3d hover:shadow-3d-hover hover:-translate-y-1 transition-all active:scale-95"
                 >
-                  <ShoppingCart size={20} /> Add to Cart
+                  <Icons.MessageSquare size={20} /> Request Quote
                 </button>
-                <button className="w-full bg-brand-primary text-white py-4 rounded-2xl font-black text-lg justify-center shadow-3d hover:shadow-3d-hover hover:-translate-y-1 transition-all active:scale-95">
-                  Book Now
-                </button>
+                <div className="flex gap-3">
+                  <button 
+                    onClick={handleAddToCart}
+                    className="flex-1 bg-brand-primary/10 text-brand-primary border border-brand-primary/20 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-brand-primary/20 transition-all active:scale-95"
+                  >
+                    <ShoppingCart size={18} /> Cart
+                  </button>
+                  <button className="flex-1 bg-gray-900 text-white py-3.5 rounded-xl font-bold shadow-lg hover:bg-gray-800 transition-all active:scale-95">
+                    Book Now
+                  </button>
+                </div>
               </div>
 
               <p className="hidden lg:flex items-center justify-center gap-2 text-xs font-bold text-gray-400 mt-4 text-center">
@@ -321,23 +374,82 @@ const VendorDetailsPage = () => {
           {/* Mobile Fixed Booking Bar */}
           <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50 flex justify-between items-center pb-safe gap-3">
             <div className="flex-1">
-              <span className="text-2xl font-black text-gray-900 block leading-none">{vendor.pricePerPlate}</span>
+              <span className="text-xl md:text-2xl font-black text-gray-900 block leading-none truncate">{vendor.pricePerPlate}</span>
               <span className="text-[10px] font-bold text-gray-500 uppercase">{schema.pricingUnit.replace('/', 'Per')}</span>
             </div>
             
             <button 
-              onClick={handleAddToCart}
-              className="bg-brand-primary/10 text-brand-primary p-3.5 rounded-xl border border-brand-primary/20 active:scale-95 transition-transform"
+              onClick={() => setIsQuoteModalOpen(true)}
+              className="flex-[1.5] bg-brand-primary text-white py-3.5 rounded-xl font-black text-sm md:text-base shadow-lg active:scale-95 transition-transform text-center flex items-center justify-center gap-2"
             >
-              <ShoppingCart size={24} />
-            </button>
-            <button className="flex-1 bg-brand-primary text-white py-3.5 rounded-xl font-black text-base shadow-lg active:scale-95 transition-transform text-center">
-              Book Now
+              <Icons.MessageSquare size={18} /> Get Quote
             </button>
           </div>
 
         </div>
       </div>
+
+      {/* Quote/Inquiry Modal */}
+      {isQuoteModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden flex flex-col">
+            <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <div>
+                <h3 className="text-xl font-black text-gray-900">Request Quote</h3>
+                <p className="text-xs font-bold text-gray-500 mt-1">Direct message to {vendor.name}</p>
+              </div>
+              <button onClick={() => setIsQuoteModalOpen(false)} className="p-2 bg-white rounded-full border border-gray-200 text-gray-400 hover:text-gray-900 shadow-sm">
+                <Icons.X size={18} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Your Name</label>
+                <input 
+                  type="text" 
+                  value={quoteForm.name} 
+                  onChange={e => setQuoteForm({...quoteForm, name: e.target.value})}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:border-brand-primary font-semibold"
+                  placeholder="e.g. Rahul Kumar"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Phone Number</label>
+                <input 
+                  type="tel" 
+                  value={quoteForm.phone} 
+                  onChange={e => setQuoteForm({...quoteForm, phone: e.target.value})}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:border-brand-primary font-semibold"
+                  placeholder="e.g. 9876543210"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Message / Requirements</label>
+                <textarea 
+                  value={quoteForm.message} 
+                  onChange={e => setQuoteForm({...quoteForm, message: e.target.value})}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:border-brand-primary font-semibold min-h-[100px] resize-none"
+                  placeholder={`Hi, I'm interested in booking ${vendor.name} for my event. Please share pricing and availability...`}
+                />
+              </div>
+              
+              <button 
+                onClick={handleSendQuote}
+                disabled={isSendingQuote}
+                className="w-full mt-4 bg-brand-primary text-white py-4 rounded-xl font-black text-lg flex items-center justify-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform active:scale-95 disabled:opacity-50"
+              >
+                {isSendingQuote ? 'Sending...' : (
+                  <>
+                    <Icons.Send size={18} /> Send Inquiry
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

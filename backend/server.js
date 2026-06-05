@@ -34,6 +34,9 @@ app.use('/api/filters', filterRoutes);
 const dynamicContentRoutes = require('./routes/dynamicContentRoutes');
 app.use('/api/content', dynamicContentRoutes);
 
+const inquiryRoutes = require('./routes/inquiryRoutes');
+app.use('/api/inquiries', inquiryRoutes);
+
 const PORT = process.env.PORT || 5000;
 
 // Auto-seed Admin
