@@ -41,7 +41,9 @@ const VendorDashboard = () => {
 
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 z-50 flex items-center justify-between px-4">
-        <div className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-rose-500">Gomandap Business</div>
+        <div className="text-xl font-black text-brand-primary tracking-tight">
+          Gomandap <span className="text-gray-500 font-medium ml-1 text-lg">Business</span>
+        </div>
         <button onClick={toggleSidebar} className="p-2 bg-gray-100 rounded-full">
           <Menu size={20} />
         </button>
@@ -67,7 +69,9 @@ const VendorDashboard = () => {
         </button>
 
         <div className="p-8 pb-4">
-          <div className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-rose-500">Gomandap Business</div>
+          <div className="text-2xl font-black text-brand-primary tracking-tight">
+            Gomandap <span className="text-gray-500 font-medium ml-1 text-lg">Business</span>
+          </div>
         </div>
         
         <div className="flex-1 p-4 space-y-2 mt-4">
@@ -76,7 +80,7 @@ const VendorDashboard = () => {
             className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-semibold text-[15px] transition-all duration-300 ${activeTab === 'overview' ? 'bg-white shadow-[0_4px_20px_rgba(0,0,0,0.05)] text-gray-900 border border-gray-100' : 'text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 border border-transparent'}`}
           >
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-300 ${activeTab === 'overview' ? 'scale-110 drop-shadow-md' : 'grayscale-[0.5] opacity-80'}`}>
-              <img src="/images/3d_dashboard_icon.png" alt="Overview" className="w-full h-full object-contain" />
+              <img src="/images/3d_venue copy.webp" alt="Overview" className="w-full h-full object-contain" />
             </div>
             Overview
           </button>
@@ -86,7 +90,7 @@ const VendorDashboard = () => {
             className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-semibold text-[15px] transition-all duration-300 ${activeTab === 'bookings' ? 'bg-white shadow-[0_4px_20px_rgba(0,0,0,0.05)] text-gray-900 border border-gray-100' : 'text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 border border-transparent'}`}
           >
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-300 ${activeTab === 'bookings' ? 'scale-110 drop-shadow-md' : 'grayscale-[0.5] opacity-80'}`}>
-              <img src="/images/3d_calendar_icon.png" alt="Bookings" className="w-full h-full object-contain" />
+              <img src="/images/3d_invitation copy.webp" alt="Bookings" className="w-full h-full object-contain" />
             </div>
             Messages
             <span className="ml-auto bg-rose-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-sm">1</span>
@@ -97,7 +101,7 @@ const VendorDashboard = () => {
             className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-semibold text-[15px] transition-all duration-300 ${activeTab === 'profile' ? 'bg-white shadow-[0_4px_20px_rgba(0,0,0,0.05)] text-gray-900 border border-gray-100' : 'text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 border border-transparent'}`}
           >
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-300 ${activeTab === 'profile' ? 'scale-110 drop-shadow-md' : 'grayscale-[0.5] opacity-80'}`}>
-              <img src="/images/3d_settings_icon.png" alt="Profile" className="w-full h-full object-contain" />
+              <img src="/images/3d_planner copy.webp" alt="Profile" className="w-full h-full object-contain" />
             </div>
             Business Profile
           </button>
@@ -138,14 +142,14 @@ const VendorDashboard = () => {
 
         {activeTab === 'overview' && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="space-y-10">
-            {/* KPI Cards (Apple Business Style) */}
+            {/* KPI Cards (Indian Event Style) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white/80 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] border border-gray-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between min-h-[180px] relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100/50 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
                 <div className="flex justify-between items-start relative z-10 mb-8">
-                  <span className="text-[15px] font-semibold text-gray-500">Total Views</span>
+                  <span className="text-[15px] font-semibold text-gray-500">Profile Views</span>
                   <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center">
-                    <img src="/images/3d_dashboard_icon.png" className="w-8 h-8 object-contain drop-shadow-sm" alt="Views" />
+                    <img src="/images/3d_venue copy.webp" className="w-8 h-8 object-contain drop-shadow-sm" alt="Views" />
                   </div>
                 </div>
                 <div className="relative z-10 flex items-baseline gap-2">
@@ -155,11 +159,11 @@ const VendorDashboard = () => {
               </div>
               
               <div className="bg-white/80 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] border border-gray-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between min-h-[180px] relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100/50 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-rose-100/50 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
                 <div className="flex justify-between items-start relative z-10 mb-8">
                   <span className="text-[15px] font-semibold text-gray-500">Active Leads</span>
-                  <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
-                    <img src="/images/3d_calendar_icon.png" className="w-8 h-8 object-contain drop-shadow-sm" alt="Leads" />
+                  <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center">
+                    <img src="/images/3d_invitation copy.webp" className="w-8 h-8 object-contain drop-shadow-sm" alt="Leads" />
                   </div>
                 </div>
                 <div className="relative z-10 flex items-baseline gap-2">
@@ -168,12 +172,12 @@ const VendorDashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-gray-900 to-black p-6 md:p-8 rounded-[2rem] border border-gray-800 shadow-[0_12px_40px_rgb(0,0,0,0.15)] flex flex-col justify-between min-h-[180px] relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-orange-500/30 to-rose-500/30 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
+              <div className="bg-gradient-to-br from-[#1A0B05] to-[#3A0000] p-6 md:p-8 rounded-[2rem] border border-red-900/50 shadow-[0_12px_40px_rgb(0,0,0,0.15)] flex flex-col justify-between min-h-[180px] relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-amber-500/30 to-rose-500/30 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
                 <div className="flex justify-between items-start relative z-10 mb-8">
-                  <span className="text-[15px] font-semibold text-gray-400">Revenue Pipeline</span>
+                  <span className="text-[15px] font-semibold text-orange-200/80">Est. Revenue</span>
                   <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-md">
-                    <CheckCircle2 size={24} className="text-white" strokeWidth={2.5} />
+                    <CheckCircle2 size={24} className="text-amber-400" strokeWidth={2.5} />
                   </div>
                 </div>
                 <div className="relative z-10">
@@ -262,7 +266,7 @@ const VendorDashboard = () => {
         {activeTab === 'bookings' && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] p-10 border border-gray-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col items-center justify-center min-h-[400px] text-center">
              <div className="w-32 h-32 mb-6 opacity-80">
-               <img src="/images/3d_calendar_icon.png" alt="Messages" className="w-full h-full object-contain" />
+               <img src="/images/3d_invitation copy.webp" alt="Messages" className="w-full h-full object-contain" />
              </div>
              <h2 className="text-2xl font-bold tracking-tight text-gray-900 mb-2">Message Center</h2>
              <p className="text-lg font-medium text-gray-500 max-w-md">

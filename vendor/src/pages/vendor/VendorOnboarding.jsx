@@ -263,12 +263,22 @@ const VendorOnboarding = () => {
   const isStep4Valid = bankingInfo.accountNumber && bankingInfo.ifscCode && bankingInfo.bankName && bankingInfo.accountName;
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] pt-24 pb-16">
-      <div className="max-w-4xl mx-auto px-4 md:px-8">
+    <div className="min-h-screen bg-[#FBFBFD] pt-24 pb-16 font-sans text-[#1D1D1F]">
+      
+      {/* Apple-style sticky transparent/blur header */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#FBFBFD]/80 backdrop-blur-xl border-b border-gray-200/50 transition-all duration-300">
+        <div className="container mx-auto max-w-[1400px] px-6 h-[60px] flex items-center justify-between">
+          <div className="text-xl font-black text-brand-primary tracking-tight">
+            Gomandap <span className="text-gray-500 font-medium ml-1 text-lg">Business</span>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-4xl mx-auto px-4 md:px-8 mt-12">
         
         {/* Modern 5-Step Progress Header */}
         <div className="mb-10 text-center">
-          <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight mb-6">Partner Onboarding</h1>
+          <h1 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight mb-6">Partner Onboarding</h1>
           
           <div className="flex justify-between items-center max-w-2xl mx-auto relative">
             <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2 z-0"></div>

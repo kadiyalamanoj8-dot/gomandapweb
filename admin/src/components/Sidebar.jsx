@@ -20,7 +20,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="p-6 flex items-center justify-between">
-          <h1 className="text-2xl font-black tracking-tight text-white">Gomandap <span className="text-brand-primary">Admin</span></h1>
+          <h1 className="text-2xl font-black text-brand-primary tracking-tight">Gomandap <span className="text-gray-400 font-medium ml-1 text-lg">Admin</span></h1>
           <button 
             className="lg:hidden p-2 -mr-2 text-gray-400 hover:text-white"
             onClick={() => setIsOpen(false)}
