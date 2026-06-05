@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Phone, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
+import { auth } from '../../config/firebase';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 
 const LoginModal = () => {
   const { showLoginModal, setShowLoginModal, login, loginWithGoogle } = useAuth();
@@ -10,29 +12,67 @@ const LoginModal = () => {
   const [step, setStep] = useState('phone'); // phone -> otp
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState(null);
+
+  useEffect(() => {
+    if (showLoginModal && !window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': (response) => {
+          // reCAPTCHA solved
+        }
+      });
+    }
+  }, [showLoginModal]);
 
   if (!showLoginModal) return null;
 
-  const handleSendOtp = (e) => {
+  const handleSendOtp = async (e) => {
     e.preventDefault();
     if (phone.length < 10) return;
     setIsLoading(true);
-    // Mocking Firebase OTP Send
-    setTimeout(() => {
-      setIsLoading(false);
+    
+    // Format phone number with country code if not present
+    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
+
+    try {
+      const appVerifier = window.recaptchaVerifier;
+      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+      setConfirmationResult(confirmation);
       setStep('otp');
-    }, 1500);
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      alert("Failed to send OTP. Ensure billing is enabled and domains are authorized in Firebase.");
+      // Reset recaptcha on error
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.render().then(widgetId => {
+          grecaptcha.reset(widgetId);
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    if (otp.length < 4) return;
+    if (otp.length < 6) return;
     setIsLoading(true);
-    // Mocking Firebase OTP Verification & Backend Sync
-    const success = await login(phone);
-    setIsLoading(false);
-    if (!success) {
-      alert("Verification failed. Please try again.");
+    
+    try {
+      const result = await confirmationResult.confirm(otp);
+      const user = result.user;
+      
+      // Sync verified phone number with our MongoDB backend
+      const success = await login(user.phoneNumber);
+      if (!success) {
+        alert("Backend sync failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      alert("Invalid OTP code.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -66,9 +106,11 @@ const LoginModal = () => {
             <p className="text-sm text-gray-300">
               {step === 'phone' 
                 ? 'Sign in to contact vendors and save your favorites.' 
-                : We sent a code to }
+                : `We sent a code to ${phone}`}
             </p>
           </div>
+
+          <div id="recaptcha-container"></div>
 
           {/* Form */}
           <div className="p-8 pt-0">

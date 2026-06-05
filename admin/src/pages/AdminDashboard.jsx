@@ -106,8 +106,7 @@ const AdminDashboard = () => {
       </div>
 
       {activeTab === 'vendors' && (
-      {/* Responsive Container */}
-      <div className="bg-white rounded-2xl md:shadow-sm md:border border-gray-100 overflow-hidden bg-transparent md:bg-white">
+        <div className="bg-white rounded-2xl md:shadow-sm md:border border-gray-100 overflow-hidden bg-transparent md:bg-white">
 
         
         {/* Mobile View: Cards */}
