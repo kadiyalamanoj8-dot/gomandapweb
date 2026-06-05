@@ -240,8 +240,8 @@ const HeroParallax = () => {
             Discover India's finest banquet halls, lawns, and top-tier wedding professionals.
           </p>
 
-          {/* iOS Style Floating Pill Search Bar */}
-          <div className="w-full bg-black/30 backdrop-blur-3xl rounded-[32px] md:rounded-full p-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/20 flex flex-col md:flex-row items-center gap-1 md:gap-0 mx-auto">
+          {/* Liquid Glass Pill Search Bar */}
+          <div className="w-full bg-white/10 backdrop-blur-md shadow-[inset_0_1px_1px_rgba(255,255,255,0.8),0_8px_32px_rgba(0,0,0,0.4)] border border-white/40 rounded-[32px] md:rounded-full p-2.5 flex flex-col md:flex-row items-center gap-1 md:gap-0 mx-auto">
             
             {/* iOS Segment: Event Type */}
             <div className="flex-1 w-full md:w-auto relative group rounded-full hover:bg-white/10 transition-colors cursor-pointer">
@@ -331,35 +331,6 @@ const HeroParallax = () => {
             </div>
 
           </div>
-
-          {/* Dynamic Category Chips Row */}
-          {eventType && EVENT_CATEGORY_MAP[eventType] && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0, marginTop: 0 }}
-              animate={{ opacity: 1, height: 'auto', marginTop: 24 }}
-              className="flex flex-wrap items-center justify-center gap-2 md:gap-3"
-            >
-              {EVENT_CATEGORY_MAP[eventType].map((cat, idx) => {
-                const isSelected = selectedCategory === cat;
-                return (
-                  <motion.button
-                    key={cat}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`px-4 py-2 rounded-full text-sm md:text-base font-bold transition-all shadow-sm flex items-center gap-2 ${
-                      isSelected 
-                        ? 'bg-brand-primary text-white border-none shadow-[0_4px_12px_rgba(239,68,68,0.4)]' 
-                        : 'bg-black/40 backdrop-blur-md text-white/80 border border-white/20 hover:bg-white/20'
-                    }`}
-                  >
-                    {cat}
-                  </motion.button>
-                );
-              })}
-            </motion.div>
-          )}
 
         </div>
       </motion.div>

@@ -135,62 +135,6 @@ const SearchPage = () => {
           <span className="text-brand-primary shrink-0">{targetCategories.join(' & ')}</span>
         </div>
 
-        {/* ── Borderless Animated Category Grid ── */}
-        <div className="mb-8">
-          <h2 className="text-sm font-black text-gray-500 uppercase tracking-widest mb-4">Select Categories</h2>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-11 gap-3">
-            {CATEGORIES.map((cat, idx) => {
-              const isSelected = targetCategories.includes(cat.label);
-              const icon3d     = ICON_MAP[cat.label] || null;
-              return (
-                <motion.div
-                  key={cat.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.03, duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
-                  className="flex flex-col items-center gap-2 group cursor-pointer"
-                  onClick={() => toggleCategory(cat.label)}
-                >
-                  <motion.div 
-                    animate={{ y: [0, -6, 0], scale: isSelected ? 1.1 : 1 }}
-                    transition={{ 
-                      y: { repeat: Infinity, duration: 3, ease: "easeInOut", delay: idx * 0.05 },
-                      scale: { duration: 0.2 }
-                    }}
-                    className="w-16 h-16 flex items-center justify-center relative z-10 pointer-events-none"
-                  >
-                    {icon3d ? (
-                      <img
-                        src={icon3d}
-                        alt={cat.label}
-                        className="w-full h-full object-contain"
-                        style={{
-                          filter: isSelected 
-                            ? 'drop-shadow(0 15px 20px rgba(239,68,68,0.25)) drop-shadow(0 5px 10px rgba(239,68,68,0.15))' 
-                            : 'drop-shadow(0 10px 15px rgba(0,0,0,0.1)) drop-shadow(0 4px 6px rgba(0,0,0,0.05))',
-                          pointerEvents: 'none',
-                        }}
-                      />
-                    ) : (
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isSelected ? 'bg-brand-primary/20' : 'bg-gray-100'}`}>
-                        <IconComponent
-                          name={cat.iconName}
-                          size={24}
-                          className={isSelected ? 'text-brand-primary' : 'text-gray-400'}
-                        />
-                      </div>
-                    )}
-                  </motion.div>
-                  <p className={`text-[10px] sm:text-xs font-bold text-center leading-snug px-1 flex items-start justify-center transition-colors ${isSelected ? 'text-brand-primary' : 'text-gray-600 group-hover:text-brand-primary'}`}>
-                    {cat.label}
-                  </p>
-                </motion.div>
-              );
-            })}
-
-          </div>
-        </div>
-
         {/* Results Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 bg-white p-5 md:p-6 rounded-3xl shadow-[0_2px_20px_rgb(0,0,0,0.02)] border border-gray-100">
           <div>
