@@ -3,7 +3,6 @@ import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from
 import { Search, MapPin, Calendar, PartyPopper } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { EVENT_TYPES } from '../../data/mockData';
-import CustomDropdown from '../ui/CustomDropdown';
 
 const EVENT_CATEGORY_MAP = {
   'Pelli / Shaadi (The Grand Wedding)': ['Banquet Halls', 'Kalyana Mandapams', 'Open Lawns & Farmhouses', 'Photography & Videography', 'Makeup Artists (MUA)'],
@@ -31,6 +30,7 @@ const HeroParallax = () => {
   const containerRef = useRef(null);
   const navigate = useNavigate();
   const [eventType, setEventType] = useState('');
+  const [isEventPickerOpen, setIsEventPickerOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
   
   // Location Autocomplete State
@@ -260,22 +260,51 @@ const HeroParallax = () => {
 
           {/* Liquid Glass Pill Search Bar */}
           <div className="w-full bg-white/10 backdrop-blur-md shadow-[inset_0_1px_1px_rgba(255,255,255,0.8),0_8px_32px_rgba(0,0,0,0.4)] border border-white/40 rounded-[32px] md:rounded-full p-2.5 flex flex-col md:flex-row items-center gap-1 md:gap-0 mx-auto">
-            
-            {/* iOS Segment: Event Type */}
-            <div className="flex-1 w-full md:w-auto relative group rounded-full hover:bg-white/10 transition-colors cursor-pointer">
-              <div className="px-6 py-2 md:py-3 flex flex-col items-start w-full">
-                <span className="text-[11px] font-bold text-white/50 uppercase tracking-widest mb-0.5 ml-1">Event Type</span>
-                <CustomDropdown
-                  options={EVENT_TYPES}
-                  value={eventType}
-                  onChange={setEventType}
-                  placeholder="What are you planning?"
-                  variant="glass"
-                  className="!px-1 !py-1 !min-h-0 !bg-transparent text-white"
-                  dropdownClassName="mt-6 w-full !left-0 md:w-[350px] md:!left-1/2 md:-translate-x-1/2"
-                />
+                        {/* iOS Segment: Event Type */}
+              <div 
+                className="flex-1 w-full md:w-auto relative group rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+                onClick={() => setIsEventPickerOpen(!isEventPickerOpen)}
+              >
+                <div className="px-6 py-2 md:py-3 flex flex-col items-start w-full pointer-events-none">
+                  <span className="text-[11px] font-bold text-white/50 uppercase tracking-widest mb-0.5 ml-1">Event Type</span>
+                  <div className="px-1 py-1 w-full bg-transparent text-white font-semibold text-[17px] tracking-tight truncate">
+                    {eventType || "What are you planning?"}
+                  </div>
+                </div>
+
+                {/* Event Picker Grid Popover */}
+                <AnimatePresence>
+                  {isEventPickerOpen && (
+                    <>
+                      {/* Invisible Full Screen Overlay for click-outside */}
+                      <div className="fixed inset-0 z-[290] cursor-default" onClick={(e) => { e.stopPropagation(); setIsEventPickerOpen(false); }} />
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="absolute top-full left-0 right-0 md:left-1/2 md:right-auto md:-translate-x-1/2 mt-4 md:w-[600px] bg-black/80 backdrop-blur-3xl border border-white/20 rounded-3xl p-4 md:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[300] cursor-default"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto md:max-h-none hide-scrollbar">
+                          {EVENT_TYPES.map(type => (
+                            <button
+                              key={type}
+                              onClick={() => {
+                                setEventType(type);
+                                setIsEventPickerOpen(false);
+                              }}
+                              className={`text-left px-4 py-3.5 rounded-xl transition-all duration-200 border ${eventType === type ? 'bg-brand-primary/20 border-brand-primary/50 text-brand-primary shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-white/5 border-white/10 text-white hover:bg-white/15 hover:border-white/30'}`}
+                            >
+                              <span className="font-medium text-[15px]">{type}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
 
             <div className="hidden md:block w-px h-12 bg-white/20 mx-2"></div>
 
