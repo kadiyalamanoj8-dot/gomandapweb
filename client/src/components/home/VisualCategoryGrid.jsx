@@ -61,6 +61,8 @@ const SimpleAnimatedIconCard = ({ cat, icon3d, iconName, delay, onClick }) => {
           <img
             src={icon3d}
             alt={cat.label}
+            fetchpriority={delay < 0.2 ? "high" : "auto"}
+            loading={delay < 0.2 ? "eager" : "lazy"}
             className="w-full h-full object-contain"
             style={{
               filter: 'drop-shadow(0 15px 20px rgba(0,0,0,0.15)) drop-shadow(0 5px 10px rgba(0,0,0,0.1))',

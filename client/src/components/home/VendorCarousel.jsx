@@ -56,7 +56,7 @@ const VendorCarousel = ({ title, subtitle, vendors, bgColor = "bg-white" }) => {
                 View All
               </button>
             )}
-            <div className="flex gap-2">
+            <div className="flex gap-2 gpu-accelerated">
               <button onClick={scrollLeft} className="w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-brand-primary hover:border-brand-primary shadow-sm hover:shadow-md transition-all">
                 <Icons.ChevronLeft size={16} />
               </button>

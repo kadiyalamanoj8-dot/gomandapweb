@@ -1,10 +1,14 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
-  --color-brand-primary: #EF4444;
-  --color-brand-secondary: #F59E0B;
-  --color-brand-gold: #B8860B;
-  --color-brand-black: #111111;
+@layer base {
+  :root {
+    --color-brand-primary: #EF4444;
+    --color-brand-secondary: #F59E0B;
+    --color-brand-gold: #B8860B;
+    --color-brand-black: #111111;
+  }
 }
 
 body {
