@@ -5,14 +5,24 @@ import FilterSidebar from '../components/search/FilterSidebar';
 import { SlidersHorizontal, ChevronRight, Home, ArrowUpDown } from 'lucide-react';
 import { useLocation, Link, useSearchParams } from 'react-router-dom';
 import CustomDropdown from '../components/ui/CustomDropdown';
+import * as Icons from 'lucide-react';
+
+const IconComponent = ({ name, ...props }) => {
+  const Icon = Icons[name] || Icons.HelpCircle;
+  return <Icon {...props} />;
+};
 
 const SearchPage = () => {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Read category and location from URL query param
-  // Fallback to "Banquet Halls"
-  const targetCategoryLabel = searchParams.get('category') || 'Banquet Halls';
+  // Parse multi-select categories
+  const targetCategories = searchParams.getAll('category');
+  if (targetCategories.length === 0) {
+    // Default fallback if accessed directly
+    targetCategories.push('Banquet Halls');
+  }
+
   const lat = searchParams.get('lat');
   const lng = searchParams.get('lng');
   const locName = searchParams.get('locName');
@@ -20,7 +30,31 @@ const SearchPage = () => {
   const [sortOption, setSortOption] = useState('Popularity');
   
   const [searchResults, setSearchResults] = useState([]);
+  const [recommendedResults, setRecommendedResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const toggleCategory = (catLabel) => {
+    const newParams = new URLSearchParams(searchParams);
+    const currentCats = newParams.getAll('category');
+    
+    newParams.delete('category'); // Clear all
+    
+    if (currentCats.includes(catLabel)) {
+      // Remove it (unless it's the last one)
+      const remaining = currentCats.filter(c => c !== catLabel);
+      if (remaining.length > 0) {
+        remaining.forEach(c => newParams.append('category', c));
+      } else {
+        newParams.append('category', catLabel); // Don't let it be completely empty
+      }
+    } else {
+      // Add it
+      currentCats.forEach(c => newParams.append('category', c));
+      newParams.append('category', catLabel);
+    }
+    
+    setSearchParams(newParams);
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -31,7 +65,8 @@ const SearchPage = () => {
         const inHousePhotography = searchParams.get('inHousePhotography') === 'true';
         const inHouseDecorations = searchParams.get('inHouseDecorations') === 'true';
 
-        let url = `http://localhost:5000/api/vendors?category=${encodeURIComponent(targetCategoryLabel)}`;
+        // Pass multiple categories separated by comma
+        let url = `http://localhost:5000/api/vendors?categories=${encodeURIComponent(targetCategories.join(','))}`;
         if (inHouseCatering) url += `&inHouseCatering=true`;
         if (inHousePhotography) url += `&inHousePhotography=true`;
         if (inHouseDecorations) url += `&inHouseDecorations=true`;
@@ -61,7 +96,13 @@ const SearchPage = () => {
             contact: v.contact,
             pricingPackages: v.customBlocks?.pricingPackages || []
           }));
-          setSearchResults(mappedData);
+          
+          // Split into recommended and standard based on featured flag or rating
+          const recommended = mappedData.filter(v => v.rating >= 4.8);
+          const standard = mappedData.filter(v => v.rating < 4.8);
+          
+          setRecommendedResults(recommended);
+          setSearchResults(standard.length > 0 ? standard : mappedData); // Fallback if no non-recommended
         }
       } catch (error) {
         console.error("Error fetching vendors:", error);
@@ -70,7 +111,7 @@ const SearchPage = () => {
       }
     };
     fetchVendors();
-  }, [targetCategoryLabel, searchParams]);
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen bg-gray-50/50 pt-28 pb-24 md:pb-16">
@@ -84,17 +125,43 @@ const SearchPage = () => {
           <ChevronRight size={12} className="shrink-0" />
           <span className="shrink-0">Vendors</span>
           <ChevronRight size={12} className="shrink-0" />
-          <span className="text-brand-primary shrink-0">{targetCategoryLabel}</span>
+          <span className="text-brand-primary shrink-0">{targetCategories.join(' & ')}</span>
+        </div>
+
+        {/* Visual Category Multi-Selector */}
+        <div className="mb-6">
+          <h2 className="text-sm font-black text-gray-500 uppercase tracking-widest mb-3">Select Categories</h2>
+          <div className="w-full overflow-x-auto no-scrollbar pb-4 -mx-4 px-4 md:mx-0 md:px-0">
+            <div className="flex gap-3 md:gap-4 w-max">
+              {CATEGORIES.map(cat => {
+                const isSelected = targetCategories.includes(cat.label);
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => toggleCategory(cat.label)}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-full border-2 font-bold text-sm transition-all shadow-sm shrink-0 ${
+                      isSelected 
+                        ? 'bg-brand-primary text-white border-brand-primary shadow-brand-primary/20' 
+                        : 'bg-white text-gray-600 border-gray-100 hover:border-brand-primary/40 hover:bg-brand-primary/5'
+                    }`}
+                  >
+                    <IconComponent name={cat.iconName} size={16} className={isSelected ? "text-white" : "text-brand-primary"} />
+                    {cat.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         </div>
 
         {/* Results Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 bg-white p-5 md:p-6 rounded-3xl shadow-[0_2px_20px_rgb(0,0,0,0.02)] border border-gray-100">
           <div>
             <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
-              {targetCategoryLabel} {locName ? `near ${locName}` : 'in India'}
+              {targetCategories.length > 1 ? 'Multiple Categories' : targetCategories[0]} {locName ? `near ${locName}` : 'in India'}
             </h1>
             <p className="text-sm font-bold text-gray-500 mt-1">
-              Showing {searchResults.length} handpicked {targetCategoryLabel.toLowerCase()}
+              Showing {searchResults.length + recommendedResults.length} handpicked professionals
             </p>
           </div>
           
@@ -129,15 +196,35 @@ const SearchPage = () => {
         <div className="flex flex-col md:flex-row gap-6 lg:gap-8 relative items-start">
           
           {/* Sidebar */}
-          <FilterSidebar isMobileOpen={isMobileFiltersOpen} setIsMobileOpen={setIsMobileFiltersOpen} selectedCategory={targetCategoryLabel} />
+          <FilterSidebar isMobileOpen={isMobileFiltersOpen} setIsMobileOpen={setIsMobileFiltersOpen} selectedCategories={targetCategories} />
 
-          {/* Results List (WeddingBazaar uses massive horizontal lists, not grids) */}
-          <div className="flex-1 w-full">
+          {/* Results List */}
+          <div className="flex-1 w-full min-w-0">
+            
+            {/* Recommended Carousel Section */}
+            {!isLoading && recommendedResults.length > 0 && (
+              <div className="mb-10">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-1.5 bg-brand-gold/10 rounded-lg">
+                    <Icons.Award size={18} className="text-brand-gold" />
+                  </div>
+                  <h2 className="text-lg font-black text-gray-900">Recommended for You</h2>
+                </div>
+                <div className="flex overflow-x-auto gap-4 no-scrollbar pb-4 -mx-4 px-4 md:mx-0 md:px-0 snap-x">
+                  {recommendedResults.map((vendor) => (
+                    <LiquidVendorCard key={vendor.id} vendor={vendor} layout="carousel" />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Standard Results List */}
             <div className="flex flex-col">
+              <h2 className="text-lg font-black text-gray-900 mb-4">All Results</h2>
               {isLoading ? (
-                <div className="py-20 text-center text-gray-500 font-bold text-lg animate-pulse">Loading verified vendors...</div>
-              ) : searchResults.length === 0 ? (
-                <div className="py-20 text-center text-gray-500 font-bold text-lg">No vendors found in this category yet. Be the first to join!</div>
+                <div className="py-20 text-center text-gray-500 font-bold text-lg animate-pulse">Loading verified professionals...</div>
+              ) : searchResults.length === 0 && recommendedResults.length === 0 ? (
+                <div className="py-20 text-center text-gray-500 font-bold text-lg">No vendors found for these categories yet.</div>
               ) : (
                 searchResults.map((vendor) => (
                   <LiquidVendorCard key={vendor.id} vendor={vendor} layout="list" />

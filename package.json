@@ -1,0 +1,15 @@
+{
+  "name": "gomandapweb",
+  "version": "1.0.0",
+  "description": "Gomandap multi-site repository",
+  "scripts": {
+    "build:client": "cd client && npm install && npm run build",
+    "build:vendor": "cd vendor && npm install && npm run build",
+    "build:admin": "cd admin && npm install && npm run build",
+    "build:all": "npm run build:client && npm run build:vendor && npm run build:admin",
+    "deploy:client": "firebase deploy --only hosting:client",
+    "deploy:vendor": "firebase deploy --only hosting:vendor",
+    "deploy:admin": "firebase deploy --only hosting:admin",
+    "deploy:all": "npm run build:all && firebase deploy --only hosting"
+  }
+}

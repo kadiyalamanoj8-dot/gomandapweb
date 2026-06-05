@@ -25,6 +25,9 @@ app.use('/api/vendors', vendorRoutes);
 const settingsRoutes = require('./routes/settingsRoutes');
 app.use('/api/settings', settingsRoutes);
 
+const filterRoutes = require('./routes/filterRoutes');
+app.use('/api/filters', filterRoutes);
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

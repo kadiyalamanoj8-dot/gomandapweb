@@ -88,7 +88,7 @@ const CustomDropdown = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }} // Apple Spring
-            className={`absolute z-[9999] w-full min-w-[220px] mt-2 ${currentStyle.menu} ${dropdownClassName}`}
+            className={`absolute left-0 z-[9999] w-full min-w-[220px] mt-2 ${currentStyle.menu} ${dropdownClassName}`}
             style={{ transformOrigin: 'top center' }}
           >
             <div className="max-h-[350px] overflow-y-auto custom-scrollbar">

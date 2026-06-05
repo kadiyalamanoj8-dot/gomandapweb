@@ -73,7 +73,7 @@ const updateDraft = async (req, res) => {
 // @access  Public
 const getApprovedVendors = async (req, res) => {
   try {
-    const { category, inHouseCatering, inHousePhotography, inHouseDecorations, lat, lng, radiusInKm, locName } = req.query;
+    const { category, categories, inHouseCatering, inHousePhotography, inHouseDecorations, lat, lng, radiusInKm, locName } = req.query;
     
     // Fetch disabled categories from Settings to exclude them
     const settings = await Settings.findOne();
@@ -86,9 +86,12 @@ const getApprovedVendors = async (req, res) => {
       query.category = { $nin: disabledCategories };
     }
     
-    // If admin is filtering by a specific category, override
-    if (category) {
-      query.category = category;
+    // If admin or client is filtering by specific categories
+    if (categories) {
+      const categoryArray = categories.split(',').map(c => c.trim());
+      query.category = { ...query.category, $in: categoryArray };
+    } else if (category) {
+      query.category = { ...query.category, $eq: category };
     }
 
     // Geospatial Radius Query

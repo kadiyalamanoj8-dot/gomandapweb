@@ -12,17 +12,67 @@ import { VendorProvider } from './context/VendorContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { AnimatePresence } from 'framer-motion';
 import IntroScreen from './components/IntroScreen';
+import Preloader from './components/Preloader';
 
 function AppContent() {
   const location = useLocation();
   const [hasEntered, setHasEntered] = useState(false);
+  const [isPreloading, setIsPreloading] = useState(true);
+  const [preloadProgress, setPreloadProgress] = useState(0);
+
+  React.useEffect(() => {
+    const startTime = Date.now();
+    const MINIMUM_LOAD_TIME = 3500; // Force loader for 3.5 seconds minimum
+    
+    // Heavy assets that cause layout pop-in on first load
+    const imagesToPreload = [
+      '/images/temple_background.png',
+      '/images/temple_mandap.png',
+      '/images/couple_transparent.png',
+      '/images/real_temple_doors.png'
+    ];
+
+    let loadedCount = 0;
+    
+    // Safety timeout in case images hang or fail to load on a bad connection
+    const safetyTimeout = setTimeout(() => {
+      setIsPreloading(false);
+    }, 8000);
+
+    imagesToPreload.forEach(src => {
+      const img = new Image();
+      img.src = src;
+      img.onload = handleImageLoad;
+      img.onerror = handleImageLoad;
+    });
+
+    function handleImageLoad() {
+      loadedCount++;
+      const currentProgress = Math.round((loadedCount / imagesToPreload.length) * 100);
+      setPreloadProgress(currentProgress);
+      
+      if (loadedCount === imagesToPreload.length) {
+        clearTimeout(safetyTimeout);
+        const elapsedTime = Date.now() - startTime;
+        const timeToWait = Math.max(0, MINIMUM_LOAD_TIME - elapsedTime);
+        
+        // Ensure the progress bar visually hits 100% and stays for a moment
+        setTimeout(() => setIsPreloading(false), timeToWait);
+      }
+    }
+    
+    return () => clearTimeout(safetyTimeout);
+  }, []);
 
   return (
     <>
       <AnimatePresence>
-        {!hasEntered && <IntroScreen onComplete={() => setHasEntered(true)} />}
+        {isPreloading && <Preloader progress={preloadProgress} />}
       </AnimatePresence>
-      {hasEntered && (
+      <AnimatePresence>
+        {!isPreloading && !hasEntered && <IntroScreen onComplete={() => setHasEntered(true)} />}
+      </AnimatePresence>
+      {!isPreloading && hasEntered && (
         <div className="font-sans antialiased text-gray-900 bg-white min-h-screen pb-16 md:pb-0">
       <SpatialNavbar />
       <CartDrawer />

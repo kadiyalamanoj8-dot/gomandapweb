@@ -1,0 +1,20 @@
+{
+  "projects": {
+    "default": "gomandap-60eed"
+  },
+  "targets": {
+    "gomandap-60eed": {
+      "hosting": {
+        "client": [
+          "gomandap-60eed"
+        ],
+        "vendor": [
+          "gomandap-vendor-60eed"
+        ],
+        "admin": [
+          "gomandap-admin-60eed"
+        ]
+      }
+    }
+  }
+}
