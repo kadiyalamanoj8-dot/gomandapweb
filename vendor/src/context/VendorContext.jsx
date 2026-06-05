@@ -22,7 +22,7 @@ export const VendorProvider = ({ children }) => {
       
       // Sync with backend to get latest adminFeedback and status
       if (savedProfile._id) {
-        fetch(`http://localhost:5000/api/vendors/${savedProfile._id}`)
+        fetch(`https://gomandap-api.onrender.com/api/vendors/${savedProfile._id}`)
           .then(res => res.json())
           .then(data => {
             if (data.success) {
@@ -39,7 +39,7 @@ export const VendorProvider = ({ children }) => {
 
   const submitOnboarding = async (formData) => {
     try {
-      const response = await fetch('http://localhost:5000/api/vendors/onboard', {
+      const response = await fetch('https://gomandap-api.onrender.com/api/vendors/onboard', {
         method: 'POST',
         body: formData, 
       });
@@ -62,8 +62,8 @@ export const VendorProvider = ({ children }) => {
   const saveDraft = async (formData, vendorId = null) => {
     try {
       const url = vendorId 
-        ? `http://localhost:5000/api/vendors/draft/${vendorId}` 
-        : 'http://localhost:5000/api/vendors/draft';
+        ? `https://gomandap-api.onrender.com/api/vendors/draft/${vendorId}` 
+        : 'https://gomandap-api.onrender.com/api/vendors/draft';
       const method = vendorId ? 'PATCH' : 'POST';
 
       const response = await fetch(url, {

@@ -82,7 +82,7 @@ const SearchPage = () => {
         const inHousePhotography = searchParams.get('inHousePhotography') === 'true';
         const inHouseDecorations = searchParams.get('inHouseDecorations') === 'true';
 
-        let url = `http://localhost:5000/api/vendors?categories=${encodeURIComponent(targetCategories.join(','))}`;
+        let url = `https://gomandap-api.onrender.com/api/vendors?categories=${encodeURIComponent(targetCategories.join(','))}`;
         if (inHouseCatering)    url += `&inHouseCatering=true`;
         if (inHousePhotography) url += `&inHousePhotography=true`;
         if (inHouseDecorations) url += `&inHouseDecorations=true`;

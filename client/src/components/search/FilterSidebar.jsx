@@ -93,7 +93,7 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [],
       setIsLoadingFilters(true);
       try {
         const groupsParam = activeSchemas.join(',');
-        const res = await fetch(`http://localhost:5000/api/filters?groups=${groupsParam}`);
+        const res = await fetch(`https://gomandap-api.onrender.com/api/filters?groups=${groupsParam}`);
         const data = await res.json();
         
         if (data.success) {

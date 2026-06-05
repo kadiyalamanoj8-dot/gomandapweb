@@ -42,7 +42,7 @@ const LocationMapAdmin = ({ vendorId, locationData }) => {
     setIsSaving(true);
     try {
         // Fetch call to update lock status
-        const response = await fetch(`http://localhost:5000/api/vendors/${vendorId}/location-lock`, {
+        const response = await fetch(`https://gomandap-api.onrender.com/api/vendors/${vendorId}/location-lock`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ isLocationLocked: !isLocked })

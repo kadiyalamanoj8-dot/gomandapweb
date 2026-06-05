@@ -30,7 +30,7 @@ const VendorDetailsPage = () => {
     // 2. Otherwise, fetch from backend API
     const fetchVendorDetails = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/vendors/${id}`);
+        const res = await fetch(`https://gomandap-api.onrender.com/api/vendors/${id}`);
         const data = await res.json();
         
         if (data.success) {

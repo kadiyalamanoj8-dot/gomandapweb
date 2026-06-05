@@ -62,7 +62,7 @@ const CATEGORY_BUCKETS = [
   },
 ];
 
-const API_BASE = 'http://localhost:5000';
+const API_BASE = 'https://gomandap-api.onrender.com';
 
 // Animated Toggle Switch Component
 const ToggleSwitch = ({ enabled, onChange, loading }) => (

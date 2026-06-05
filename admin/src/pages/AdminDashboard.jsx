@@ -14,7 +14,7 @@ const AdminDashboard = () => {
 
   const fetchVendors = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/vendors/admin/all');
+      const res = await axios.get('https://gomandap-api.onrender.com/api/vendors/admin/all');
       setVendors(res.data.data);
     } catch (error) {
       console.error("Error fetching vendors:", error);
@@ -28,7 +28,7 @@ const AdminDashboard = () => {
       const payload = { status };
       if (adminFeedback) payload.adminFeedback = adminFeedback;
       
-      await axios.patch(`http://localhost:5000/api/vendors/${id}/status`, payload);
+      await axios.patch(`https://gomandap-api.onrender.com/api/vendors/${id}/status`, payload);
       // Update local state
       setVendors(vendors.map(v => v._id === id ? { ...v, status, adminFeedback: adminFeedback || v.adminFeedback } : v));
       if (selectedVendor && selectedVendor._id === id) {

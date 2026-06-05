@@ -8,7 +8,7 @@ export const SettingsProvider = ({ children }) => {
   const [disabledCategories, setDisabledCategories] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/settings')
+    fetch('https://gomandap-api.onrender.com/api/settings')
       .then(res => res.json())
       .then(data => {
         if (data.success) {
