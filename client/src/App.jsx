@@ -13,6 +13,9 @@ import { SettingsProvider } from './context/SettingsContext';
 import { AnimatePresence } from 'framer-motion';
 import IntroScreen from './components/IntroScreen';
 import Preloader from './components/Preloader';
+import { AuthProvider } from './context/AuthContext';
+import LoginModal from './components/auth/LoginModal';
+import ProfilePage from './pages/ProfilePage';
 
 function AppContent() {
   const location = useLocation();
@@ -91,6 +94,7 @@ function AppContent() {
           <Route path="/vendors" element={<SearchPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/vendor/:id" element={<VendorDetailsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           
           <Route path="*" element={<HomePage />} /> 
         </Routes>
@@ -106,13 +110,16 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <SettingsProvider>
-        <VendorProvider>
-          <CartProvider>
-            <AppContent />
-          </CartProvider>
-        </VendorProvider>
-      </SettingsProvider>
+      <AuthProvider>
+        <SettingsProvider>
+          <VendorProvider>
+            <CartProvider>
+              <AppContent />
+              <LoginModal />
+            </CartProvider>
+          </VendorProvider>
+        </SettingsProvider>
+      </AuthProvider>
     </Router>
   );
 }

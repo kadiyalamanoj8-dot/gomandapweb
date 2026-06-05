@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Star, MapPin, Heart, CheckCircle2, Phone, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getCategorySchema } from '../../config/categorySchemas';
+import { useAuth } from '../../context/AuthContext';
 
 const LiquidVendorCard = ({ vendor, layout = 'carousel' }) => {
   const [ripples, setRipples] = useState([]);
   const navigate = useNavigate();
+  const { requireAuth } = useAuth();
 
   // Function to create an authentic, organic liquid ripple effect
   const addRipple = (e) => {
@@ -22,7 +24,9 @@ const LiquidVendorCard = ({ vendor, layout = 'carousel' }) => {
 
     // Delay navigation slightly to let the user enjoy the ripple effect
     setTimeout(() => {
-      navigate(`/vendor/${vendor.id}`, { state: { vendor } });
+      requireAuth(() => {
+        navigate(`/vendor/${vendor.id || vendor._id}`, { state: { vendor } });
+      });
     }, 350);
   };
 

@@ -4,20 +4,36 @@ import { Search, Filter, MoreVertical, CheckCircle2, XCircle, Clock } from 'luci
 import VendorDetailsModal from '../components/VendorDetailsModal';
 
 const AdminDashboard = () => {
+  const [activeTab, setActiveTab] = useState('vendors'); // 'vendors' | 'clients'
   const [vendors, setVendors] = useState([]);
+  const [clients, setClients] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVendor, setSelectedVendor] = useState(null);
 
   useEffect(() => {
-    fetchVendors();
-  }, []);
+    if (activeTab === 'vendors') fetchVendors();
+    if (activeTab === 'clients') fetchClients();
+  }, [activeTab]);
 
   const fetchVendors = async () => {
+    setIsLoading(true);
     try {
       const res = await axios.get('https://gomandap-api.onrender.com/api/vendors/admin/all');
       setVendors(res.data.data);
     } catch (error) {
       console.error("Error fetching vendors:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchClients = async () => {
+    setIsLoading(true);
+    try {
+      const res = await axios.get('https://gomandap-api.onrender.com/api/auth/users');
+      setClients(res.data.data);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
     } finally {
       setIsLoading(false);
     }
@@ -58,14 +74,30 @@ const AdminDashboard = () => {
     <div className="p-4 md:p-8 pb-24 md:pb-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Vendor Approvals</h1>
-          <p className="text-sm md:text-base text-gray-500 font-medium mt-1">Review and manage vendor applications across all categories.</p>
+          <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Admin Dashboard</h1>
+          <p className="text-sm md:text-base text-gray-500 font-medium mt-1">Manage platform users and vendors.</p>
         </div>
+        
+        <div className="flex bg-gray-100 p-1 rounded-xl">
+          <button 
+            onClick={() => setActiveTab('vendors')}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'vendors' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            Vendors
+          </button>
+          <button 
+            onClick={() => setActiveTab('clients')}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'clients' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            Clients
+          </button>
+        </div>
+      </div>
         
         <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3 md:gap-4">
           <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input type="text" placeholder="Search vendors..." className="pl-10 pr-4 py-3 md:py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-brand-primary w-full md:w-64 shadow-sm" />
+            <input type="text" placeholder={`Search ${activeTab}...`} className="pl-10 pr-4 py-3 md:py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-brand-primary w-full md:w-64 shadow-sm" />
           </div>
           <button className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-4 py-3 md:py-2.5 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 shadow-sm w-full sm:w-auto">
             <Filter size={18} /> Filter
@@ -73,8 +105,10 @@ const AdminDashboard = () => {
         </div>
       </div>
 
+      {activeTab === 'vendors' && (
       {/* Responsive Container */}
       <div className="bg-white rounded-2xl md:shadow-sm md:border border-gray-100 overflow-hidden bg-transparent md:bg-white">
+
         
         {/* Mobile View: Cards */}
         <div className="md:hidden space-y-4">
@@ -177,6 +211,53 @@ const AdminDashboard = () => {
           </table>
         </div>
       </div>
+      )}
+
+      {activeTab === 'clients' && (
+        <div className="bg-white rounded-2xl md:shadow-sm md:border border-gray-100 overflow-hidden">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50/50 border-b border-gray-100">
+                <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Client Info</th>
+                <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Logins</th>
+                <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Last Login</th>
+                <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {isLoading ? (
+                <tr><td colSpan="4" className="py-8 text-center text-gray-500 font-bold">Loading clients...</td></tr>
+              ) : clients.length === 0 ? (
+                <tr><td colSpan="4" className="py-8 text-center text-gray-500 font-bold">No clients registered yet.</td></tr>
+              ) : clients.map((client) => (
+                <tr key={client._id} className="hover:bg-gray-50/50 transition-colors group">
+                  <td className="py-4 px-6">
+                    <div className="font-bold text-gray-900">{client.phoneNumber}</div>
+                    <div className="text-xs text-gray-500 mt-1">ID: {client._id.substring(0,8)}...</div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-xs">
+                      {client.loginHistory?.length || 0}
+                    </span>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="text-sm font-bold text-gray-700">
+                      {client.loginHistory?.length > 0 
+                        ? new Date(client.loginHistory[client.loginHistory.length - 1].loginTime).toLocaleString() 
+                        : 'Never'}
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <button className="text-gray-400 hover:text-brand-primary transition-colors p-2 rounded-lg hover:bg-brand-primary/10">
+                      <MoreVertical size={18} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Vendor Details Modal */}
       {selectedVendor && (

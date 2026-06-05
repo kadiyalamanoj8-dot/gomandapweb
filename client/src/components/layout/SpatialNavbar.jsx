@@ -1,11 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { User, ShoppingCart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 
 const SpatialNavbar = () => {
   const { cartItems, setIsCartOpen } = useCart();
+  const { requireAuth } = useAuth();
+  const navigate = useNavigate();
   const cartCount = cartItems.length;
 
   return (
@@ -42,9 +45,12 @@ const SpatialNavbar = () => {
           )}
         </button>
 
-        <button className="bg-brand-primary text-white px-5 py-2 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-brand-primary-hover shadow-3d hover:shadow-3d-hover transition-all transform hover:-translate-y-0.5">
+        <button 
+          onClick={() => requireAuth(() => navigate('/profile'))}
+          className="bg-brand-primary text-white px-5 py-2 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-brand-primary-hover shadow-3d hover:shadow-3d-hover transition-all transform hover:-translate-y-0.5"
+        >
           <User size={16} />
-          Sign In
+          Profile
         </button>
       </div>
 
@@ -61,7 +67,10 @@ const SpatialNavbar = () => {
             </span>
           )}
         </button>
-        <button className="bg-brand-primary/10 text-brand-primary p-2 rounded-full hover:bg-brand-primary/20 transition-colors">
+        <button 
+          onClick={() => requireAuth(() => navigate('/profile'))}
+          className="bg-brand-primary/10 text-brand-primary p-2 rounded-full hover:bg-brand-primary/20 transition-colors"
+        >
           <User size={20} />
         </button>
       </div>
