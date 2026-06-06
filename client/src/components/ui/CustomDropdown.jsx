@@ -10,7 +10,7 @@ const CustomDropdown = ({
   icon: Icon,
   className = "",
   dropdownClassName = "",
-  variant = "ios" // "ios", "glass", "light", "dark"
+  variant = "ios" // "ios", "glass", "light"
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -31,95 +31,107 @@ const CustomDropdown = ({
 
   const selectedOption = normalizedOptions.find(opt => opt.value === value);
 
+  // LOGO GRADIENT: #DC2626 to #EF4444 (Gomandap brand)
+  const logoGradient = 'linear-gradient(135deg, #DC2626 0%, #EF4444 100%)';
+
   const variants = {
-    ios: { // Dark Clear 3D Glass (for hero sections)
+    ios: {
       button: "bg-transparent text-white border-none",
-      menu: "bg-black/10 backdrop-blur-md border border-white/20 border-t-white/40 shadow-[inset_0_1px_4px_rgba(255,255,255,0.3),0_30px_60px_rgba(0,0,0,0.6)] rounded-[24px] overflow-hidden divide-y divide-white/10",
+      menu: "bg-black/20 backdrop-blur-xl border border-white/20 border-t-white/40 shadow-[inset_0_1px_4px_rgba(255,255,255,0.25),0_30px_60px_rgba(0,0,0,0.7)] rounded-[24px] overflow-hidden",
       item: "text-white hover:bg-white/10 transition-colors active:bg-white/20",
-      activeItem: "text-white font-bold bg-white/10",
-      menuIcon: "text-white/60",
-      activeMenuIcon: "text-white"
+      activeItemBg: "bg-white/10",
+      menuIcon: "text-white/50",
     },
-    glass: { // Dark Clear 3D Glass
+    glass: {
       button: "bg-transparent text-white border-none",
-      menu: "bg-black/10 backdrop-blur-md border border-white/20 border-t-white/40 shadow-[inset_0_1px_4px_rgba(255,255,255,0.3),0_30px_60px_rgba(0,0,0,0.6)] rounded-[24px] overflow-hidden divide-y divide-white/10",
+      menu: "bg-black/20 backdrop-blur-xl border border-white/20 border-t-white/40 shadow-[inset_0_1px_4px_rgba(255,255,255,0.25),0_30px_60px_rgba(0,0,0,0.7)] rounded-[24px] overflow-hidden",
       item: "text-white hover:bg-white/10 transition-colors active:bg-white/20",
-      activeItem: "text-white font-bold bg-white/10",
-      menuIcon: "text-white/60",
-      activeMenuIcon: "text-white"
+      activeItemBg: "bg-white/10",
+      menuIcon: "text-white/50",
     },
-    light: { // Light Clear 3D Glass (for vendor/admin panels)
-      button: "bg-transparent text-gray-900 border border-black/5 shadow-sm hover:border-brand-primary focus:border-brand-primary px-4 py-3 rounded-xl",
-      menu: "bg-white/20 backdrop-blur-md border border-white/50 border-t-white/80 shadow-[inset_0_1px_4px_rgba(255,255,255,0.7),0_20px_50px_rgba(0,0,0,0.1)] rounded-[24px] overflow-hidden divide-y divide-black/5",
-      item: "text-gray-900 hover:bg-white/40 transition-colors active:bg-white/60",
-      activeItem: "text-brand-primary font-bold bg-white/50",
-      menuIcon: "text-gray-500",
-      activeMenuIcon: "text-brand-primary"
+    light: {
+      button: "bg-white/60 text-gray-900 border border-gray-200/60 shadow-sm hover:border-red-400 backdrop-blur-sm px-4 py-3 rounded-2xl",
+      menu: "bg-white/90 backdrop-blur-xl border border-gray-200/60 shadow-[0_20px_60px_rgba(0,0,0,0.12)] rounded-[24px] overflow-hidden",
+      item: "text-gray-800 hover:bg-red-50/60 transition-colors active:bg-red-100/60",
+      activeItemBg: "bg-red-50/60",
+      menuIcon: "text-gray-400",
     }
   };
 
   const currentStyle = variants[variant] || variants.ios;
-  // If variant is iOS or Glass, we change the placeholder and arrow color to be sleek
-  const isDarkBg = variant === 'glass';
+  const isDark = variant === 'glass' || variant === 'ios';
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
-      {/* Visual Button Display */}
+      {/* Trigger Button */}
       <div 
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center justify-between w-full rounded-[18px] cursor-pointer transition-all duration-300 outline-none ${currentStyle.button} ${className}`}
       >
         <div className="flex items-center gap-2 w-full overflow-hidden pointer-events-none">
-          {Icon && <Icon className={isDarkBg ? "text-white" : (variant === 'ios' ? "text-white" : "text-gray-400")} size={20} strokeWidth={2.5} />}
-          <span className={`truncate font-semibold text-[17px] tracking-tight ${!selectedOption && isDarkBg ? 'text-white/70' : ''} ${!selectedOption && variant === 'ios' ? 'text-white/80' : ''} ${!selectedOption && variant === 'light' ? 'text-gray-500' : ''}`}>
+          {Icon && <Icon className={isDark ? "text-white/70" : "text-gray-400"} size={20} strokeWidth={2.5} />}
+          <span className={`truncate font-semibold text-[17px] tracking-tight ${!selectedOption ? (isDark ? 'text-white/60' : 'text-gray-400') : (isDark ? 'text-white' : 'text-gray-900')}`}>
             {selectedOption ? selectedOption.label : placeholder}
           </span>
         </div>
         <ChevronDown 
-          size={20} 
+          size={18} 
           strokeWidth={2.5}
-          className={`shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'} ${isDarkBg || variant === 'ios' ? 'text-white/60' : 'text-gray-400'}`} 
+          className={`shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'} ${isDark ? 'text-white/50' : 'text-gray-400'}`} 
         />
       </div>
 
-      {/* Universal Custom Popover */}
-      <div className="block">
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 15, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className={`absolute left-0 z-[9999] w-full min-w-[220px] mt-2 ${currentStyle.menu} ${dropdownClassName}`}
-              style={{ transformOrigin: 'top center' }}
-            >
-              <div className="max-h-[350px] overflow-y-auto custom-scrollbar">
-                {normalizedOptions.map((option, idx) => {
-                  const isActive = option.value === value;
-                  return (
-                    <div
-                      key={option.value || idx}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onChange(option.value);
-                        setIsOpen(false);
-                      }}
-                      className={`px-5 py-3.5 cursor-pointer flex items-center justify-between gap-3 ${isActive ? currentStyle.activeItem : currentStyle.item}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        {option.icon && <option.icon size={18} strokeWidth={2.5} className={isActive ? currentStyle.activeMenuIcon : currentStyle.menuIcon} />}
-                        <span className={`text-[16px] tracking-tight ${isActive ? 'font-bold' : 'font-medium'}`}>{option.label}</span>
-                      </div>
-                      {isActive && <Check size={18} strokeWidth={3} className={currentStyle.activeMenuIcon} />}
+      {/* Dropdown Menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 12, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className={`absolute left-0 z-[9999] w-full min-w-[220px] mt-2 ${currentStyle.menu} ${dropdownClassName}`}
+            style={{ transformOrigin: 'top center' }}
+          >
+            <div className="max-h-[320px] overflow-y-auto overscroll-contain" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+              {normalizedOptions.map((option, idx) => {
+                const isActive = option.value === value;
+                return (
+                  <div
+                    key={option.value || idx}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onChange(option.value);
+                      setIsOpen(false);
+                    }}
+                    className={`px-5 py-3.5 cursor-pointer flex items-center justify-between gap-3 border-b last:border-b-0 ${isDark ? 'border-white/[0.07]' : 'border-gray-100'} ${isActive ? currentStyle.activeItemBg : currentStyle.item}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {option.icon && (
+                        <option.icon 
+                          size={18} strokeWidth={2.5} 
+                          className={!isActive ? currentStyle.menuIcon : ''} 
+                          style={isActive ? {color: '#EF4444'} : {}} 
+                        />
+                      )}
+                      <span 
+                        className={`text-[15px] tracking-tight ${isActive ? 'font-bold' : 'font-medium'}`}
+                        style={isActive ? {background: logoGradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'} : {}}
+                      >
+                        {option.label}
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+                    {isActive && (
+                      <div className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{background: logoGradient}}>
+                        <Check size={11} strokeWidth={3} className="text-white" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

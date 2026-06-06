@@ -267,7 +267,7 @@ const HeroParallax = () => {
                         {/* iOS Segment: Event Type */}
               <div className="flex-1 w-full md:w-auto relative group rounded-[32px] md:rounded-full hover:bg-white/5 transition-colors cursor-pointer pt-2 md:pt-3 pb-1">
                 <div className="px-6 flex flex-col items-start w-full">
-                  <span className="text-[11px] font-bold text-white/50 uppercase tracking-widest mb-0 ml-1">Event Type</span>
+                  <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-0 ml-1" style={{background: 'linear-gradient(90deg, #DC2626, #EF4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>Event Type</span>
                   <div className="w-full -ml-3">
                     <CustomDropdown
                       options={EVENT_TYPES.map(t => ({label: t, value: t}))}
@@ -284,11 +284,11 @@ const HeroParallax = () => {
             <div className="hidden md:block w-px h-12 bg-white/20 mx-2"></div>
 
             {/* iOS Segment: Location */}
-            <div className="flex-1 w-full md:w-auto relative group rounded-full hover:bg-white/10 transition-colors cursor-text">
+            <div className="flex-1 w-full md:w-auto relative group rounded-full hover:bg-white/5 transition-colors cursor-text">
               <div className="px-6 py-2 md:py-3 flex flex-col items-start w-full">
-                <span className="text-[11px] font-bold text-white/50 uppercase tracking-widest mb-0.5 ml-1">Location</span>
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-0.5 ml-1" style={{background: 'linear-gradient(90deg, #DC2626, #EF4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>Location</span>
                 <div className="flex items-center gap-2 px-1 py-1 w-full relative">
-                  <MapPin size={20} className="text-white shrink-0" strokeWidth={2.5} />
+                  <MapPin size={20} strokeWidth={2.5} style={{color: '#EF4444'}} className="shrink-0" />
                   <input 
                     type="text" 
                     value={locationQuery}
@@ -297,7 +297,7 @@ const HeroParallax = () => {
                       if (selectedLocation) setSelectedLocation(null);
                     }}
                     placeholder="Where is it?" 
-                    className="w-full bg-transparent text-white font-semibold text-[17px] tracking-tight focus:outline-none placeholder-white/50" 
+                    className="w-full bg-transparent text-white font-semibold text-[17px] tracking-tight focus:outline-none placeholder-white/40" 
                   />
                   
                   {/* Locate Me Button */}
@@ -310,15 +310,18 @@ const HeroParallax = () => {
 
                   {/* Autocomplete Dropdown */}
                   {locationResults.length > 0 && (
-                    <div className="absolute top-full left-0 mt-4 w-full md:left-1/2 md:-translate-x-1/2 md:w-[400px] bg-black/10 backdrop-blur-md border border-white/20 border-t-white/40 shadow-[inset_0_1px_4px_rgba(255,255,255,0.3),0_30px_60px_rgba(0,0,0,0.6)] rounded-[24px] overflow-hidden divide-y divide-white/10 z-[9999]">
+                    <div className="absolute top-full left-0 mt-3 w-full md:left-1/2 md:-translate-x-1/2 md:w-[420px] bg-black/20 backdrop-blur-xl border border-white/20 border-t-white/40 shadow-[inset_0_1px_4px_rgba(255,255,255,0.25),0_30px_60px_rgba(0,0,0,0.7)] rounded-[24px] overflow-hidden z-[9999]">
                       {locationResults.map((loc, i) => (
                         <div 
                           key={i} 
                           onClick={() => handleLocationSelect(loc)}
-                          className="px-4 py-2.5 cursor-pointer flex flex-col gap-0.5 hover:bg-white/10 transition-colors"
+                          className="px-5 py-3.5 cursor-pointer flex items-center gap-3 hover:bg-white/10 active:bg-white/20 transition-colors border-b border-white/10 last:border-b-0"
                         >
-                          <span className="text-white font-bold text-[15px] tracking-tight">{loc.display_name.split(',')[0]}</span>
-                          <span className="text-white/60 text-[11px] truncate font-medium">{loc.display_name}</span>
+                          <MapPin size={16} style={{color:'#EF4444'}} className="shrink-0" />
+                          <div className="flex flex-col gap-0.5 min-w-0">
+                            <span className="text-white font-bold text-[15px] tracking-tight truncate">{loc.display_name.split(',')[0]}</span>
+                            <span className="text-white/50 text-[11px] truncate font-medium">{loc.display_name}</span>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -330,23 +333,23 @@ const HeroParallax = () => {
             <div className="hidden md:block w-px h-12 bg-white/20 mx-2"></div>
 
             {/* iOS Segment: Dates & Button */}
-            <div className="flex-1 w-full md:w-auto relative group rounded-[28px] md:rounded-full hover:bg-white/10 transition-colors cursor-text flex items-center justify-between pr-2">
+            <div className="flex-1 w-full md:w-auto relative group rounded-[28px] md:rounded-full hover:bg-white/5 transition-colors cursor-text flex items-center justify-between pr-2">
               <div className="px-6 py-2 md:py-3 flex flex-col items-start w-full">
-                <span className="text-[11px] font-bold text-white/50 uppercase tracking-widest mb-0.5 ml-1">Dates</span>
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-0.5 ml-1" style={{background: 'linear-gradient(90deg, #DC2626, #EF4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>Dates</span>
                 <div className="flex items-center gap-2 px-1 py-1 w-full">
-                  <Calendar size={20} className="text-white shrink-0" strokeWidth={2.5} />
+                  <Calendar size={20} strokeWidth={2.5} style={{color: '#EF4444'}} className="shrink-0" />
                   <input 
                     type="text" 
                     placeholder="When?" 
                     onFocus={(e) => e.target.type = 'date'} 
                     onBlur={(e) => e.target.type = 'text'} 
-                    className="w-full bg-transparent text-white font-semibold text-[17px] tracking-tight focus:outline-none placeholder-white/50 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert" 
+                    className="w-full bg-transparent text-white font-semibold text-[17px] tracking-tight focus:outline-none placeholder-white/40 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert" 
                   />
                 </div>
               </div>
               
-              {/* iOS Massive Search Button */}
-              <button onClick={handleSearch} className="bg-brand-primary text-white rounded-full h-14 w-14 md:w-auto md:px-8 flex items-center justify-center gap-2 font-bold text-[17px] hover:scale-105 hover:bg-brand-secondary shadow-[0_8px_20px_rgba(255,193,7,0.4)] transition-all shrink-0">
+              {/* Premium Gradient Search Button */}
+              <button onClick={handleSearch} className="text-white rounded-full h-14 w-14 md:w-auto md:px-8 flex items-center justify-center gap-2 font-bold text-[17px] hover:scale-105 transition-all shrink-0 shadow-[0_8px_30px_rgba(220,38,38,0.5)]" style={{background: 'linear-gradient(135deg, #DC2626 0%, #EF4444 100%)'}}>
                 <Search size={22} strokeWidth={3} />
                 <span className="hidden md:block">Search</span>
               </button>
