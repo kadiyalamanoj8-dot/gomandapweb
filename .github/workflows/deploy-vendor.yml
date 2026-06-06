@@ -19,6 +19,10 @@ jobs:
         with:
           node-version: '22'
           
+      - name: Install Client Dependencies (Shared Components)
+        run: npm install
+        working-directory: ./client
+
       - name: Install Dependencies
         run: npm install
         working-directory: ./vendor
