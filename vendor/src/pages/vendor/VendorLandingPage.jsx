@@ -162,11 +162,21 @@ const VendorLandingPage = () => {
             Connect directly with verified families ready to book your craft.
           </motion.p>
           <motion.button 
-            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, scale: 0.95 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            whileHover={{ scale: 1.05, filter: "brightness(1.1)" }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1], scale: { duration: 0.2 } }}
             onClick={() => setShowAuthModal(true)}
-            className="px-8 py-4 bg-white text-black rounded-full font-semibold text-[17px] hover:scale-105 transition-transform shadow-[0_0_40px_rgba(255,255,255,0.3)]"
+            className="relative overflow-hidden px-10 md:px-14 py-4 md:py-5 bg-gradient-to-b from-[#FACC15]/90 to-[#D4AF37]/80 backdrop-blur-xl border-t-2 border-white/50 border-x border-[#D4AF37]/30 border-b border-black/40 text-black rounded-full font-black text-[18px] md:text-[22px] tracking-wide shadow-[0_20px_40px_rgba(212,175,55,0.4),inset_0_4px_10px_rgba(255,255,255,0.7)] flex items-center justify-center gap-3"
           >
-            Join Gomandap Business
+            <motion.div 
+              className="absolute inset-0 w-[150%] h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12 filter blur-[2px]"
+              animate={{ x: ['-100%', '100%'] }}
+              transition={{ repeat: Infinity, duration: 2.5, ease: "linear", repeatDelay: 2 }}
+            />
+            <span className="relative z-10 drop-shadow-md">Join Gomandap Business</span>
+            <Sparkles size={24} className="relative z-10 text-black/80 drop-shadow-sm" />
           </motion.button>
         </div>
       </section>
@@ -265,7 +275,7 @@ const VendorLandingPage = () => {
             <p className="text-[21px] font-medium text-[#86868B]">Supporting 21 distinct event categories.</p>
           </div>
 
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 md:gap-6">
             {CATEGORIES.map((cat, idx) => {
               const imageSrc = ICON_MAP[cat.label] || '/images/3d_venue copy.webp';
               return (
@@ -307,7 +317,7 @@ const VendorLandingPage = () => {
                 <X size={20} />
               </button>
 
-              <div className="p-10 flex flex-col items-center text-center">
+              <div className="p-6 md:p-10 flex flex-col items-center text-center">
                 <div className="mb-6">
                    <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center shadow-lg mx-auto">
                      <span className="text-white font-bold text-xl tracking-tighter">G.</span>
