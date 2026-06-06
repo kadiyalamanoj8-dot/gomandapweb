@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
-import LocationPicker from '../../../../client/src/components/vendor/LocationPicker';
+import LocationPicker from '../../components/common/LocationPicker';
 import LazyInput from '../../components/common/LazyInput';
 
 const IconComponent = ({ name, ...props }) => {
