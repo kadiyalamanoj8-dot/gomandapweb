@@ -352,7 +352,7 @@ const HeroParallax = () => {
               </div>
               
               {/* Search Button — sole brand red accent */}
-                <button onClick={handleSearch} className="text-white rounded-full h-14 w-14 md:w-auto md:px-7 flex items-center justify-center gap-2 font-bold text-[16px] hover:opacity-90 hover:scale-[1.03] active:scale-95 transition-all shrink-0 shadow-[0_6px_24px_rgba(220,38,38,0.35)]" style={{background: 'linear-gradient(135deg, #DC2626 0%, #EF4444 100%)'}}>
+                <button onClick={handleSearch} className="btn-liquid text-white rounded-full h-14 w-14 md:w-auto md:px-7 flex items-center justify-center gap-2 font-bold text-[16px] shrink-0 mr-1 md:mr-0">
                   <Search size={22} strokeWidth={3} />
                   <span className="hidden md:block">{t('search_btn')}</span>
                 </button>
