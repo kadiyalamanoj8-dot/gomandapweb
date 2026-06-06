@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import AdminDashboard from './pages/AdminDashboard';
-import CategorySettings from './pages/CategorySettings';
-import ContentManager from './pages/ContentManager';
-import AdminLogin from './pages/AdminLogin';
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const CategorySettings = lazy(() => import('./pages/CategorySettings'));
+const ContentManager = lazy(() => import('./pages/ContentManager'));
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 import Sidebar from './components/Sidebar';
 import { Menu } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
@@ -25,10 +25,12 @@ function AppLayout() {
   // Don't render the layout shell on login page
   if (!isLoggedIn) {
     return (
-      <Routes>
-        <Route path="/login" element={<AdminLogin />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+      <Suspense fallback={<div className="flex h-screen items-center justify-center"><div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div></div>}>
+        <Routes>
+          <Route path="/login" element={<AdminLogin />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </Suspense>
     );
   }
 
@@ -57,14 +59,16 @@ function AppLayout() {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.2 }}
             >
-              <Routes location={location} key={location.pathname}>
-                <Route path="/" element={<Navigate to="/vendors" replace />} />
-                <Route path="/login" element={<Navigate to="/vendors" replace />} />
-                <Route path="/vendors" element={<AuthGuard><AdminDashboard /></AuthGuard>} />
-                <Route path="/dashboard" element={<AuthGuard><AdminDashboard /></AuthGuard>} />
-                <Route path="/category-settings" element={<AuthGuard><CategorySettings /></AuthGuard>} />
-                <Route path="/content-manager" element={<AuthGuard><ContentManager /></AuthGuard>} />
-              </Routes>
+              <Suspense fallback={<div className="flex h-full items-center justify-center"><div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div></div>}>
+                <Routes location={location} key={location.pathname}>
+                  <Route path="/" element={<Navigate to="/vendors" replace />} />
+                  <Route path="/login" element={<Navigate to="/vendors" replace />} />
+                  <Route path="/vendors" element={<AuthGuard><AdminDashboard /></AuthGuard>} />
+                  <Route path="/dashboard" element={<AuthGuard><AdminDashboard /></AuthGuard>} />
+                  <Route path="/category-settings" element={<AuthGuard><CategorySettings /></AuthGuard>} />
+                  <Route path="/content-manager" element={<AuthGuard><ContentManager /></AuthGuard>} />
+                </Routes>
+              </Suspense>
             </motion.div>
           </AnimatePresence>
         </div>

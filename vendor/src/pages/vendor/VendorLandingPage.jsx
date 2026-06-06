@@ -111,7 +111,7 @@ const VendorLandingPage = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F5F5F7]/80 backdrop-blur-xl border-b border-[#1D1D1F]/5 transition-all duration-300">
         <div className="container mx-auto max-w-[1400px] px-6 h-[54px] flex items-center justify-between">
           <div className="flex items-center">
-            <img src="/logo.svg" alt="Gomandap Business Logo" className="h-7 md:h-8 w-auto object-contain hover:scale-105 transition-transform" />
+            <img src="/logo.svg?v=2" alt="Gomandap Business Logo" className="h-7 md:h-8 w-auto object-contain hover:scale-105 transition-transform" />
           </div>
           
           <div className="flex items-center gap-6">

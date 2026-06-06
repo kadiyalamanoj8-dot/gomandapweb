@@ -181,66 +181,69 @@ const HeroParallax = () => {
 
   const currentMandap = EVENT_MANDAP_MAP[eventType] || '/images/temple_mandap.webp';
 
+  const background3D = useMemo(() => (
+    <div 
+      ref={containerRef}
+      className="absolute inset-0 w-full h-full overflow-hidden bg-black z-0"
+      style={{ perspective: '1200px', willChange: 'transform' }}
+    >
+      <motion.div 
+        animate={{ translateZ: 400 }}
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none"
+      >
+        {/* Layer 1: Background Temple (Z: -600) */}
+        <motion.div style={{ x: bgX, y: bgY, translateZ: -600, scale: 1.35, willChange: 'transform' }} className="absolute inset-[-20%] z-0">
+          <img src="/images/temple_background.webp" fetchPriority="high" decoding="async" alt="Background" className="w-full h-full object-cover opacity-80" style={{ willChange: 'transform' }} />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60 z-10" />
+        </motion.div>
+
+        {/* Layer 2: Dynamic Mandap Frame (Z: -100) */}
+        <motion.div style={{ x: midX, y: midY, translateZ: -100, scale: 1.3, willChange: 'transform' }} className="absolute inset-0 z-20 flex items-center justify-center">
+          <AnimatePresence mode="wait">
+            <motion.img 
+              key={currentMandap}
+              src={currentMandap} 
+              initial={{ opacity: 0, filter: 'blur(10px)' }}
+              animate={{ opacity: 1, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, filter: 'blur(10px)' }}
+              transition={{ duration: 1.2, ease: "easeInOut" }}
+              className="absolute w-[100vw] md:w-[90vw] h-[80vh] md:h-[90vh] object-contain mix-blend-screen opacity-100" 
+              style={{ willChange: 'transform, opacity, filter' }}
+            />
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Layer 3: The Couple (Z: 100) */}
+        <motion.div style={{ x: frontX, y: frontY, translateZ: 100, scale: 1.1, willChange: 'transform' }} className="absolute inset-[-5%] z-30 flex items-center justify-center pt-[15vh] md:pt-[10vh]">
+          <img src="/images/couple_transparent.webp" fetchPriority="high" alt="Couple" className="w-[90vw] md:w-[60vw] max-h-[50vh] md:max-h-[60vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)]" style={{ willChange: 'transform' }} />
+        </motion.div>
+
+        {/* Floating Particles (Z: 150) */}
+        <div className="absolute inset-0 z-40 overflow-hidden pointer-events-none" style={{ transform: "translateZ(150px)" }}>
+          {Array.from({ length: 40 }).map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ y: "120vh", x: Math.random() * window.innerWidth, rotate: 0 }}
+              animate={{ y: "-20vh", x: `calc(${Math.random() * 100}vw)`, rotate: 360 }}
+              transition={{ duration: Math.random() * 8 + 5, repeat: Infinity, ease: "linear", delay: Math.random() * 5 }}
+              className={`absolute w-3 h-3 bg-gradient-to-br ${
+                i % 3 === 0 ? 'from-[#FFC107] to-white shadow-[0_0_15px_#FFC107]' : 
+                'from-[#E91E63] to-[#F48FB1] shadow-[0_0_10px_#E91E63] rounded-tr-full rounded-bl-full' 
+              } blur-[1px] opacity-80`}
+            />
+          ))}
+        </div>
+      </motion.div>
+    </div>
+  ), [currentMandap, rotateX, rotateY, bgX, bgY, midX, midY, frontX, frontY]);
+
   return (
     // FIX Z-INDEX & CLIPPING: Outer wrapper does NOT have overflow-hidden.
     // It provides a high z-index (z-40) to ensure dropdowns overlap sections below it.
     <div className="relative w-full h-screen min-h-[600px] md:min-h-[700px] z-40 select-none">
       
-      {/* BACKGROUND 3D CONTAINER: This isolates overflow-hidden to just the parallax art */}
-        <div 
-          ref={containerRef}
-          className="absolute inset-0 w-full h-full overflow-hidden bg-black z-0"
-          style={{ perspective: '1200px', willChange: 'transform' }}
-        >
-          <motion.div 
-            animate={{ translateZ: 400 }}
-            style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-            className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none"
-          >
-            {/* Layer 1: Background Temple (Z: -600) */}
-            <motion.div style={{ x: bgX, y: bgY, translateZ: -600, scale: 1.35, willChange: 'transform' }} className="absolute inset-[-20%] z-0">
-              <img src="/images/temple_background.webp" fetchPriority="high" decoding="async" alt="Background" className="w-full h-full object-cover opacity-80" style={{ willChange: 'transform' }} />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60 z-10" />
-            </motion.div>
-  
-            {/* Layer 2: Dynamic Mandap Frame (Z: -100) */}
-            <motion.div style={{ x: midX, y: midY, translateZ: -100, scale: 1.3, willChange: 'transform' }} className="absolute inset-0 z-20 flex items-center justify-center">
-              <AnimatePresence mode="wait">
-                <motion.img 
-                  key={currentMandap}
-                  src={currentMandap} 
-                  initial={{ opacity: 0, filter: 'blur(10px)' }}
-                  animate={{ opacity: 1, filter: 'blur(0px)' }}
-                  exit={{ opacity: 0, filter: 'blur(10px)' }}
-                  transition={{ duration: 1.2, ease: "easeInOut" }}
-                  className="absolute w-[100vw] md:w-[90vw] h-[80vh] md:h-[90vh] object-contain mix-blend-screen opacity-100" 
-                  style={{ willChange: 'transform, opacity, filter' }}
-                />
-              </AnimatePresence>
-            </motion.div>
-  
-            {/* Layer 3: The Couple (Z: 100) */}
-            <motion.div style={{ x: frontX, y: frontY, translateZ: 100, scale: 1.1, willChange: 'transform' }} className="absolute inset-[-5%] z-30 flex items-center justify-center pt-[15vh] md:pt-[10vh]">
-              <img src="/images/couple_transparent.webp" fetchPriority="high" alt="Couple" className="w-[90vw] md:w-[60vw] max-h-[50vh] md:max-h-[60vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)]" style={{ willChange: 'transform' }} />
-            </motion.div>
-
-          {/* Floating Particles (Z: 150) */}
-          <div className="absolute inset-0 z-40 overflow-hidden pointer-events-none" style={{ transform: "translateZ(150px)" }}>
-            {Array.from({ length: 40 }).map((_, i) => (
-              <motion.div
-                key={i}
-                initial={{ y: "120vh", x: Math.random() * window.innerWidth, rotate: 0 }}
-                animate={{ y: "-20vh", x: `calc(${Math.random() * 100}vw)`, rotate: 360 }}
-                transition={{ duration: Math.random() * 8 + 5, repeat: Infinity, ease: "linear", delay: Math.random() * 5 }}
-                className={`absolute w-3 h-3 bg-gradient-to-br ${
-                  i % 3 === 0 ? 'from-[#FFC107] to-white shadow-[0_0_15px_#FFC107]' : 
-                  'from-[#E91E63] to-[#F48FB1] shadow-[0_0_10px_#E91E63] rounded-tr-full rounded-bl-full' 
-                } blur-[1px] opacity-80`}
-              />
-            ))}
-          </div>
-        </motion.div>
-      </div>
+      {background3D}
 
       {/* FOREGROUND SEARCH UI CONTAINER: Not clipped by overflow-hidden! */}
       <motion.div 
