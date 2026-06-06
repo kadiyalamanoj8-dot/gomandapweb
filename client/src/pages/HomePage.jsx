@@ -7,7 +7,7 @@ import { CATEGORY_BUCKETS, FEATURED_VENDORS, generateFakeVendors } from '../data
 
 const HomePage = () => {
   return (
-    <main className="w-full overflow-x-hidden bg-white">
+    <main className="w-full overflow-x-hidden">
       <HeroParallax />
       <div className="relative z-30 -mt-4 md:-mt-10 bg-white rounded-t-3xl md:rounded-none">
         <Suspense fallback={<div className="h-64 flex items-center justify-center">Loading Categories...</div>}>
