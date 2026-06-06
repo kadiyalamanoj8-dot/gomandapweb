@@ -8,6 +8,7 @@ import { useCart } from '../context/CartContext';
 import * as Icons from 'lucide-react';
 import CustomDropdown from '../components/ui/CustomDropdown';
 import DynamicSEO from '../components/DynamicSEO';
+import LocationMapClient from '../components/vendor/LocationMapClient';
 
 const VendorDetailsPage = () => {
   const { id } = useParams();
@@ -313,6 +314,16 @@ const VendorDetailsPage = () => {
                 ))}
               </div>
             </section>
+
+            {/* Venue Map Location */}
+            {vendor.locationData && (
+              <section>
+                <h2 className="text-2xl font-black text-gray-900 mb-6">Venue Location</h2>
+                <div className="bg-white p-2 rounded-[2rem] border border-gray-100 shadow-sm">
+                  <LocationMapClient locationData={vendor.locationData} />
+                </div>
+              </section>
+            )}
 
           </div>
 

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Map, { Marker } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Lock, Unlock } from 'lucide-react';
 
-const LocationMapAdmin = ({ vendorId, locationData }) => {
+const LocationMapClient = ({ locationData }) => {
   const [viewState, setViewState] = useState({
     longitude: locationData?.coordinates && locationData.coordinates[0] !== 0 ? locationData.coordinates[0] : 78.9629,
     latitude: locationData?.coordinates && locationData.coordinates[0] !== 0 ? locationData.coordinates[1] : 20.5937,
@@ -11,9 +10,6 @@ const LocationMapAdmin = ({ vendorId, locationData }) => {
     pitch: 60,
     bearing: 20
   });
-
-  const [isLocked, setIsLocked] = useState(locationData?.isLocationLocked || false);
-  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (locationData?.coordinates && locationData.coordinates[0] !== 0) {
@@ -25,32 +21,6 @@ const LocationMapAdmin = ({ vendorId, locationData }) => {
     }
   }, [locationData]);
 
-  const toggleLock = async () => {
-    setIsSaving(true);
-    try {
-        const token = localStorage.getItem('adminToken');
-        // If your API url is dynamic, you might need import.meta.env
-        const apiUrl = import.meta.env.VITE_API_URL || 'https://gomandap-api.onrender.com';
-        const response = await fetch(`${apiUrl}/api/vendors/${vendorId}/location-lock`, {
-            method: 'PATCH',
-            headers: { 
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}` 
-            },
-            body: JSON.stringify({ isLocationLocked: !isLocked })
-        });
-        const data = await response.json();
-        if (data.success) {
-            setIsLocked(!isLocked);
-        } else {
-            alert('Failed to update location lock.');
-        }
-    } catch (error) {
-        console.error("Error updating lock status:", error);
-    }
-    setIsSaving(false);
-  };
-
   const transformRequest = (url, resourceType) => {
     const apiKey = import.meta.env.VITE_OLA_MAPS_API_KEY;
     if (url.includes('api.olamaps.io')) {
@@ -61,26 +31,7 @@ const LocationMapAdmin = ({ vendorId, locationData }) => {
 
   return (
     <div className="space-y-4">
-        <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-200">
-            <div>
-                <span className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Location Pin Access</span>
-                <span className={`text-sm font-black ${isLocked ? 'text-red-600' : 'text-green-600'}`}>
-                    {isLocked ? 'Locked (Vendor cannot change)' : 'Unlocked (Vendor can change)'}
-                </span>
-            </div>
-            <button 
-                onClick={toggleLock} 
-                disabled={isSaving}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-colors disabled:opacity-50 ${
-                    isLocked ? 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50' : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-100'
-                }`}
-            >
-                {isLocked ? <Unlock size={16} /> : <Lock size={16} />}
-                {isLocked ? 'Unlock Pin' : 'Lock Pin'}
-            </button>
-        </div>
-
-        <div className="h-[250px] w-full rounded-2xl overflow-hidden border border-gray-200 z-0 relative group">
+        <div className="h-[300px] w-full rounded-2xl overflow-hidden border border-gray-200 z-0 relative group shadow-sm">
           <style>{`
             .maplibregl-ctrl-bottom-left,
             .maplibregl-ctrl-bottom-right,
@@ -119,7 +70,7 @@ const LocationMapAdmin = ({ vendorId, locationData }) => {
         
         {locationData?.googleMapsLink && (
             <div className="text-xs font-semibold text-gray-500 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                <span className="font-bold text-gray-700">Vendor Provided Google Maps Link:</span><br/>
+                <span className="font-bold text-gray-700">Get Directions:</span><br/>
                 <a href={locationData.googleMapsLink} target="_blank" rel="noreferrer" className="text-brand-primary hover:underline break-all">
                     {locationData.googleMapsLink}
                 </a>
@@ -129,4 +80,4 @@ const LocationMapAdmin = ({ vendorId, locationData }) => {
   );
 };
 
-export default LocationMapAdmin;
+export default LocationMapClient;

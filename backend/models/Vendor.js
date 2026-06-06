@@ -32,7 +32,13 @@ const vendorSchema = new mongoose.Schema({
     type: { type: String, enum: ['Point'], default: 'Point' },
     coordinates: { type: [Number], default: [0, 0] }, // [longitude, latitude]
     googleMapsLink: { type: String, default: '' },
-    isLocationLocked: { type: Boolean, default: false }
+    isLocationLocked: { type: Boolean, default: false },
+    parsedAddress: {
+      village: { type: String, default: '' },
+      mandal: { type: String, default: '' },
+      district: { type: String, default: '' },
+      state: { type: String, default: '' }
+    }
   },
 
   // Business specific

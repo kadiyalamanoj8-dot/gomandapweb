@@ -127,7 +127,13 @@ const updateDraft = async (req, res) => {
             type: 'Point',
             coordinates: loc.coordinates || [0,0],
             googleMapsLink: loc.googleMapsLink || '',
-            isLocationLocked: loc.isLocationLocked || false
+            isLocationLocked: loc.isLocationLocked || false,
+            parsedAddress: loc.parsedAddress || {
+              village: '',
+              mandal: '',
+              district: '',
+              state: ''
+            }
         };
     }
 
