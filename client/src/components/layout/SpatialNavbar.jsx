@@ -13,10 +13,10 @@ const SpatialNavbar = () => {
 
   return (
     <motion.nav 
-      initial={{ y: -100, x: "-50%", opacity: 0 }}
-      animate={{ y: 0, x: "-50%", opacity: 1 }}
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 200, damping: 20 }}
-      className="fixed top-4 left-1/2 w-[95%] max-w-7xl z-50 rounded-full glass-panel px-6 py-3 flex justify-between items-center"
+      className="fixed top-0 left-0 w-full z-[300] rounded-b-[2rem] glass-panel px-6 py-3 md:py-4 flex justify-between items-center"
     >
       <Link to="/" className="flex items-center">
         <img src="/logo.svg?v=2" alt="Gomandap Logo" className="h-8 md:h-10 w-auto object-contain hover:scale-105 transition-transform" />
