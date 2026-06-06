@@ -30,6 +30,8 @@ jobs:
       - name: Build Vendor
         run: npm run build
         working-directory: ./vendor
+        env:
+          VITE_OLA_MAPS_API_KEY: ${{ secrets.VITE_OLA_MAPS_API_KEY }}
         
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
