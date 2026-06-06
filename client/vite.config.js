@@ -47,11 +47,22 @@ export default defineConfig({
     chunkSizeWarningLimit: 2000,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          animations: ['framer-motion'],
-          maps: ['leaflet', 'react-leaflet'],
-          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage']
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+              return 'vendor-react';
+            }
+            if (id.includes('framer-motion')) {
+              return 'animations';
+            }
+            if (id.includes('leaflet') || id.includes('react-leaflet')) {
+              return 'maps';
+            }
+            if (id.includes('firebase')) {
+              return 'firebase';
+            }
+            return 'vendor';
+          }
         }
       }
     }
