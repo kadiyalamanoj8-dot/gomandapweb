@@ -139,7 +139,7 @@ const VendorLandingPage = () => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/60 to-black z-10"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-[#F5F5F7] via-transparent to-transparent z-10"></div>
         
-        <div className="relative z-20 w-full max-w-6xl mx-auto px-6 text-center mt-[-10vh]">
+        <div className="relative z-20 w-full max-w-6xl mx-auto px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           >
