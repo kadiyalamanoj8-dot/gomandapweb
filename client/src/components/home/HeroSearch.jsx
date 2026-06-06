@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Search, MapPin, Calendar, Users, PartyPopper } from 'lucide-react';
+import GlassDatePicker from '../ui/GlassDatePicker';
 
 const HeroSearch = () => {
   const [eventType, setEventType] = useState('');
   const [location, setLocation] = useState('');
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState(null);
   const [guests, setGuests] = useState('');
 
   const handleSearch = (e) => {
@@ -55,12 +56,11 @@ const HeroSearch = () => {
           <div className="search-divider"></div>
           
           <div className="search-field">
-            <Calendar size={20} className="search-icon" />
-            <input 
-              type="date" 
-              className="search-input" 
+            <GlassDatePicker
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={setDate}
+              placeholder="Event Date"
+              variant="light"
             />
           </div>
 

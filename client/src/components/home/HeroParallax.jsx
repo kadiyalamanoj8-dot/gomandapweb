@@ -4,6 +4,7 @@ import { Search, MapPin, Calendar, PartyPopper } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { EVENT_TYPES } from '../../data/mockData';
 import CustomDropdown from '../ui/CustomDropdown';
+import GlassDatePicker from '../ui/GlassDatePicker';
 
 const EVENT_CATEGORY_MAP = {
   'Pelli / Shaadi (The Grand Wedding)': ['Banquet Halls', 'Kalyana Mandapams', 'Open Lawns & Farmhouses', 'Photography & Videography', 'Makeup Artists (MUA)'],
@@ -33,6 +34,7 @@ const HeroParallax = () => {
   const [eventType, setEventType] = useState('');
   const [isEventPickerOpen, setIsEventPickerOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedDate, setSelectedDate] = useState(null);
   
   // Location Autocomplete State
   const [locationQuery, setLocationQuery] = useState('');
@@ -336,14 +338,12 @@ const HeroParallax = () => {
             <div className="flex-1 w-full md:w-auto relative group rounded-[28px] md:rounded-full hover:bg-white/5 transition-colors cursor-text flex items-center justify-between pr-2">
               <div className="px-6 py-2 md:py-3 flex flex-col items-start w-full">
                 <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.18em] mb-0.5 ml-1">Dates</span>
-                <div className="flex items-center gap-2 px-1 py-1 w-full">
-                  <Calendar size={18} strokeWidth={2} className="text-white/60 shrink-0" />
-                  <input 
-                    type="text" 
-                    placeholder="When?" 
-                    onFocus={(e) => e.target.type = 'date'} 
-                    onBlur={(e) => e.target.type = 'text'} 
-                    className="w-full bg-transparent text-white font-semibold text-[17px] tracking-tight focus:outline-none placeholder-white/40 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert" 
+                <div className="px-1 py-1 w-full">
+                  <GlassDatePicker
+                    value={selectedDate}
+                    onChange={setSelectedDate}
+                    placeholder="When?"
+                    variant="glass"
                   />
                 </div>
               </div>
