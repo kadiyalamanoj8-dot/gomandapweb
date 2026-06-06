@@ -8,7 +8,7 @@ const DynamicSEO = ({ appTarget = 'vendor', pageName = 'global' }) => {
   useEffect(() => {
     const fetchSeo = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/content');
+        const res = await axios.get('https://gomandap-api.onrender.com/api/content');
         if (res.data && res.data.seoSettings) {
           // Find specific page config or fallback to global
           const specificSeo = res.data.seoSettings.find(s => s.targetApp === appTarget && s.page === pageName);
