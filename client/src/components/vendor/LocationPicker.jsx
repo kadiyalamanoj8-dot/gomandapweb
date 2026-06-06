@@ -65,13 +65,13 @@ const LocationPicker = ({ locationData, onChange }) => {
 
     if (!skipReverseGeocode) {
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&addressdetails=1`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&zoom=18&addressdetails=1`);
         const data = await res.json();
         
         if (data.address) {
           locationDataUpdate.parsedAddress = {
-            village: data.address.village || data.address.town || data.address.suburb || data.address.locality || '',
-            mandal: data.address.county || data.address.subdistrict || '',
+            village: data.address.hamlet || data.address.village || data.address.neighbourhood || data.address.suburb || data.address.town || data.address.locality || '',
+            mandal: data.address.county || data.address.subdistrict || data.address.municipality || '',
             district: data.address.state_district || data.address.city || '',
             state: data.address.state || ''
           };
@@ -159,7 +159,7 @@ const LocationPicker = ({ locationData, onChange }) => {
         <div className="h-[300px] w-full rounded-2xl overflow-hidden border border-gray-200 z-0 relative">
           <MapContainer center={position} zoom={16} style={{ height: '100%', width: '100%' }} attributionControl={false}>
             <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <LocationMarker position={position} setPosition={updatePosition} isLocked={locationData?.isLocationLocked} />
             <MapUpdater position={position} />
