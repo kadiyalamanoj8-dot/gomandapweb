@@ -13,14 +13,15 @@ const SpatialNavbar = () => {
 
   return (
     <motion.nav 
-      initial={{ y: -100, x: "-50%", opacity: 0 }}
-      animate={{ y: 0, x: "-50%", opacity: 1 }}
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 200, damping: 20 }}
-      className="fixed top-4 left-1/2 w-[95%] max-w-7xl z-[300] rounded-full glass-panel px-6 py-3 md:py-4 flex justify-between items-center"
+      className="fixed top-0 left-0 w-full z-[300] rounded-b-[2rem] glass-panel"
     >
-      <Link to="/" className="flex items-center">
-        <img src="/logo.svg?v=2" alt="Gomandap Logo" className="h-8 md:h-10 w-auto object-contain hover:scale-105 transition-transform" />
-      </Link>
+      <div className="w-full max-w-7xl mx-auto px-6 py-3 md:py-4 flex justify-between items-center">
+        <Link to="/" className="flex items-center">
+          <img src="/logo.svg?v=2" alt="Gomandap Logo" className="h-8 md:h-10 w-auto object-contain hover:scale-105 transition-transform" />
+        </Link>
 
       {/* Desktop Links */}
       <div className="hidden md:flex items-center gap-8">
@@ -80,6 +81,7 @@ const SpatialNavbar = () => {
         >
           <User size={20} />
         </button>
+      </div>
       </div>
     </motion.nav>
   );
