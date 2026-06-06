@@ -4,6 +4,7 @@ import { useVendor } from '../../context/VendorContext';
 import { useSettings } from '../../context/SettingsContext';
 import { VENUE_CATEGORIES, VENDOR_CATEGORIES } from '../../data/mockData';
 import { getCategorySchema } from '../../config/categorySchemas';
+import CustomDropdown from '../../components/ui/CustomDropdown';
 import { 
   Camera, Store, MapPin, DollarSign, CheckCircle2, ChevronRight, ChevronLeft,
   Building2, UserCircle2, Briefcase, Landmark, Image as ImageIcon, UploadCloud
@@ -522,14 +523,13 @@ const VendorOnboarding = () => {
                       <div key={field.id}>
                         <label className="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">{field.label}</label>
                         {field.type === 'select' ? (
-                          <select 
+                          <CustomDropdown
                             value={formResponses[field.id] || ''} 
-                            onChange={(e) => setFormResponses({...formResponses, [field.id]: e.target.value})}
-                            className="w-full bg-white border border-brand-primary/20 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary"
-                          >
-                            <option value="" disabled>Select option</option>
-                            {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                          </select>
+                            onChange={(val) => setFormResponses({...formResponses, [field.id]: val})}
+                            options={field.options}
+                            placeholder="Select option"
+                            variant="light"
+                          />
                         ) : (
                           <LazyInput 
                             type={field.type}

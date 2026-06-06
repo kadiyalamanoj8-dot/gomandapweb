@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { LazyMotion, domAnimation, m as motion, AnimatePresence } from 'framer-motion';
 import { 
   X, Phone, Lock, CheckCircle2, ShieldCheck, 
   TrendingUp, Sparkles, Building2, UserCircle2, ArrowRight
@@ -105,7 +105,8 @@ const VendorLandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F] font-sans selection:bg-brand-primary/20">
+    <LazyMotion features={domAnimation}>
+      <div className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F] font-sans selection:bg-brand-primary/20 pb-safe">
       
       {/* Apple-style sticky transparent/blur header */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F5F5F7]/80 backdrop-blur-xl border-b border-[#1D1D1F]/5 transition-all duration-300">
@@ -378,7 +379,8 @@ const VendorLandingPage = () => {
           100% { transform: scale(1.05) translate(0, 0); }
         }
       `}</style>
-    </div>
+      </div>
+    </LazyMotion>
   );
 };
 

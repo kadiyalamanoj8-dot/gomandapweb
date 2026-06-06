@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { LazyMotion, domAnimation, m, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import { Search, MapPin, Calendar, PartyPopper } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { EVENT_TYPES } from '../../data/mockData';
@@ -187,21 +187,21 @@ const HeroParallax = () => {
       className="absolute inset-0 w-full h-full overflow-hidden bg-black z-0"
       style={{ perspective: '1200px', willChange: 'transform' }}
     >
-      <motion.div 
+      <m.div 
         animate={{ translateZ: 400 }}
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
         className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none"
       >
         {/* Layer 1: Background Temple (Z: -600) */}
-        <motion.div style={{ x: bgX, y: bgY, translateZ: -600, scale: 1.35, willChange: 'transform' }} className="absolute inset-[-20%] z-0">
+        <m.div style={{ x: bgX, y: bgY, translateZ: -600, scale: 1.35, willChange: 'transform' }} className="absolute inset-[-20%] z-0">
           <img src="/images/temple_background.webp" fetchPriority="high" decoding="async" alt="Background" className="w-full h-full object-cover opacity-80" style={{ willChange: 'transform' }} />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60 z-10" />
-        </motion.div>
+        </m.div>
 
         {/* Layer 2: Dynamic Mandap Frame (Z: -100) */}
-        <motion.div style={{ x: midX, y: midY, translateZ: -100, scale: 1.3, willChange: 'transform' }} className="absolute inset-0 z-20 flex items-center justify-center">
+        <m.div style={{ x: midX, y: midY, translateZ: -100, scale: 1.3, willChange: 'transform' }} className="absolute inset-0 z-20 flex items-center justify-center">
           <AnimatePresence mode="wait">
-            <motion.img 
+            <m.img 
               key={currentMandap}
               src={currentMandap} 
               initial={{ opacity: 0, filter: 'blur(10px)' }}
@@ -212,17 +212,17 @@ const HeroParallax = () => {
               style={{ willChange: 'transform, opacity, filter' }}
             />
           </AnimatePresence>
-        </motion.div>
+        </m.div>
 
         {/* Layer 3: The Couple (Z: 100) */}
-        <motion.div style={{ x: frontX, y: frontY, translateZ: 100, scale: 1.1, willChange: 'transform' }} className="absolute inset-[-5%] z-30 flex items-center justify-center pt-[15vh] md:pt-[10vh]">
+        <m.div style={{ x: frontX, y: frontY, translateZ: 100, scale: 1.1, willChange: 'transform' }} className="absolute inset-[-5%] z-30 flex items-center justify-center pt-[15vh] md:pt-[10vh]">
           <img src="/images/couple_transparent.webp" fetchPriority="high" alt="Couple" className="w-[90vw] md:w-[60vw] max-h-[50vh] md:max-h-[60vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)]" style={{ willChange: 'transform' }} />
-        </motion.div>
+        </m.div>
 
         {/* Floating Particles (Z: 150) */}
         <div className="absolute inset-0 z-40 overflow-hidden pointer-events-none" style={{ transform: "translateZ(150px)" }}>
           {Array.from({ length: 40 }).map((_, i) => (
-            <motion.div
+            <m.div
               key={i}
               initial={{ y: "120vh", x: Math.random() * window.innerWidth, rotate: 0 }}
               animate={{ y: "-20vh", x: `calc(${Math.random() * 100}vw)`, rotate: 360 }}
@@ -234,19 +234,18 @@ const HeroParallax = () => {
             />
           ))}
         </div>
-      </motion.div>
+      </m.div>
     </div>
   ), [currentMandap, rotateX, rotateY, bgX, bgY, midX, midY, frontX, frontY]);
 
   return (
-    // FIX Z-INDEX & CLIPPING: Outer wrapper does NOT have overflow-hidden.
-    // It provides a high z-index (z-40) to ensure dropdowns overlap sections below it.
-    <div className="relative w-full h-screen min-h-[600px] md:min-h-[700px] z-40 select-none">
+    <LazyMotion features={domAnimation}>
+      <div className="relative w-full h-screen min-h-[600px] md:min-h-[700px] z-40 select-none">
       
       {background3D}
 
       {/* FOREGROUND SEARCH UI CONTAINER: Not clipped by overflow-hidden! */}
-      <motion.div 
+      <m.div 
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay: 0.2 }}
@@ -269,45 +268,47 @@ const HeroParallax = () => {
                 className="flex-1 w-full md:w-auto relative group rounded-full hover:bg-white/10 transition-colors cursor-pointer"
                 onClick={() => setIsEventPickerOpen(!isEventPickerOpen)}
               >
-                <div className="px-6 py-2 md:py-3 flex flex-col items-start w-full pointer-events-none">
+                <div className="px-6 py-2 md:py-3 flex flex-col items-start w-full">
                   <span className="text-[11px] font-bold text-white/50 uppercase tracking-widest mb-0.5 ml-1">Event Type</span>
+                  
                   <div className="px-1 py-1 w-full bg-transparent text-white font-semibold text-[17px] tracking-tight truncate">
                     {eventType || "What are you planning?"}
                   </div>
                 </div>
 
-                {/* Event Picker Grid Popover */}
-                <AnimatePresence>
-                  {isEventPickerOpen && (
-                    <>
-                      {/* Invisible Full Screen Overlay for click-outside */}
-                      <div className="fixed inset-0 z-[290] cursor-default" onClick={(e) => { e.stopPropagation(); setIsEventPickerOpen(false); }} />
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="absolute top-full left-0 right-0 md:left-1/2 md:right-auto md:-translate-x-1/2 mt-4 md:w-[600px] bg-black/80 backdrop-blur-3xl border border-white/20 rounded-3xl p-4 md:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[300] cursor-default"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto md:max-h-none hide-scrollbar">
-                          {EVENT_TYPES.map(type => (
-                            <button
-                              key={type}
-                              onClick={() => {
-                                setEventType(type);
-                                setIsEventPickerOpen(false);
-                              }}
-                              className={`text-left px-4 py-3.5 rounded-xl transition-all duration-200 border ${eventType === type ? 'bg-brand-primary/20 border-brand-primary/50 text-brand-primary shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-white/5 border-white/10 text-white hover:bg-white/15 hover:border-white/30'}`}
-                            >
-                              <span className="font-medium text-[15px]">{type}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </motion.div>
-                    </>
-                  )}
-                </AnimatePresence>
+                {/* Universal Event Picker Grid Popover */}
+                <div className="block">
+                  <AnimatePresence>
+                    {isEventPickerOpen && (
+                      <>
+                        <div className="fixed inset-0 z-[290] cursor-default" onClick={(e) => { e.stopPropagation(); setIsEventPickerOpen(false); }} />
+                        <m.div
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                          transition={{ duration: 0.2, ease: "easeOut" }}
+                          className="absolute top-full left-0 right-0 md:left-1/2 md:-translate-x-1/2 mt-4 md:w-[600px] bg-[#1E1E1E]/80 backdrop-blur-3xl border border-white/10 rounded-2xl md:rounded-3xl p-3 md:p-5 shadow-[0_30px_60px_rgba(0,0,0,0.4)] z-[300] cursor-default"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex flex-wrap justify-center gap-2 md:gap-3 hide-scrollbar">
+                            {EVENT_TYPES.map(type => (
+                              <button
+                                key={type}
+                                onClick={() => {
+                                  setEventType(type);
+                                  setIsEventPickerOpen(false);
+                                }}
+                                className={`text-center px-4 py-2 rounded-full transition-all duration-200 border ${eventType === type ? 'bg-brand-primary/20 border-brand-primary/50 text-brand-primary shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-white/5 border-white/10 text-white hover:bg-white/15 hover:border-white/30'}`}
+                              >
+                                <span className="font-semibold text-[13px] md:text-[14px] whitespace-nowrap">{type}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </m.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
 
             <div className="hidden md:block w-px h-12 bg-white/20 mx-2"></div>
@@ -339,15 +340,15 @@ const HeroParallax = () => {
 
                   {/* Autocomplete Dropdown */}
                   {locationResults.length > 0 && (
-                    <div className="absolute top-full left-0 mt-4 w-full md:left-1/2 md:-translate-x-1/2 md:w-[400px] bg-black/70 backdrop-blur-3xl border border-white/20 shadow-[0_30px_60px_rgba(0,0,0,0.6)] rounded-[24px] overflow-hidden divide-y divide-white/10 z-[9999]">
+                    <div className="absolute top-full left-0 mt-4 w-full md:left-1/2 md:-translate-x-1/2 md:w-[400px] bg-[#1E1E1E]/80 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.4)] rounded-2xl md:rounded-3xl overflow-hidden divide-y divide-white/10 z-[9999]">
                       {locationResults.map((loc, i) => (
                         <div 
                           key={i} 
                           onClick={() => handleLocationSelect(loc)}
-                          className="px-5 py-3.5 cursor-pointer flex flex-col gap-0.5 hover:bg-white/10 transition-colors"
+                          className="px-4 py-2.5 cursor-pointer flex flex-col gap-0.5 hover:bg-white/10 transition-colors"
                         >
-                          <span className="text-white font-bold text-[16px] tracking-tight">{loc.display_name.split(',')[0]}</span>
-                          <span className="text-white/60 text-xs truncate font-medium">{loc.display_name}</span>
+                          <span className="text-white font-bold text-[15px] tracking-tight">{loc.display_name.split(',')[0]}</span>
+                          <span className="text-white/60 text-[11px] truncate font-medium">{loc.display_name}</span>
                         </div>
                       ))}
                     </div>
@@ -384,8 +385,9 @@ const HeroParallax = () => {
           </div>
 
         </div>
-      </motion.div>
+      </m.div>
     </div>
+    </LazyMotion>
   );
 };
 

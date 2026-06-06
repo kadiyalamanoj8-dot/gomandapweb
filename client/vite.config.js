@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import viteCompression from 'vite-plugin-compression'
+import Sitemap from 'vite-plugin-sitemap'
 
 export default defineConfig({
   plugins: [
@@ -31,7 +32,12 @@ export default defineConfig({
         ]
       }
     }),
-    viteCompression({ algorithm: 'brotliCompress' })
+    viteCompression({ algorithm: 'brotliCompress' }),
+    Sitemap({
+      hostname: 'https://gomandap.com',
+      dynamicRoutes: ['/', '/search', '/profile'],
+      exclude: ['/404']
+    })
   ],
   build: {
     chunkSizeWarningLimit: 2000,
