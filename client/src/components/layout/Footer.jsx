@@ -43,7 +43,7 @@ const Footer = () => {
   useEffect(() => {
     const fetchFooter = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/content');
+        const res = await axios.get('https://gomandap-api.onrender.com/api/content');
         if (res.data && res.data.clientFooter) {
           setFooterData(res.data.clientFooter);
         }

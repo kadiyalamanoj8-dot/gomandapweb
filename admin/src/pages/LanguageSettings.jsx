@@ -18,7 +18,7 @@ const LanguageSettings = () => {
 
   const fetchSettings = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/settings');
+      const res = await axios.get('https://gomandap-api.onrender.com/api/settings');
       if (res.data && res.data.data && res.data.data.activeLanguages) {
         setActiveLanguages(res.data.data.activeLanguages);
       }
@@ -45,7 +45,7 @@ const LanguageSettings = () => {
     );
 
     try {
-      await axios.patch('http://localhost:5000/api/settings/languages/toggle', {
+      await axios.patch('https://gomandap-api.onrender.com/api/settings/languages/toggle', {
         language: languageCode,
         enabled: newEnabledState
       });

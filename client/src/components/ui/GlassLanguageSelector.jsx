@@ -23,7 +23,7 @@ const GlassLanguageSelector = () => {
     // Fetch active languages from backend
     const fetchLangs = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/settings');
+        const res = await axios.get('https://gomandap-api.onrender.com/api/settings');
         if (res.data?.data?.activeLanguages) {
           setActiveLanguages(res.data.data.activeLanguages);
         }

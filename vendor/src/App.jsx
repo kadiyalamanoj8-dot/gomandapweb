@@ -95,16 +95,20 @@ function AppContent() {
   );
 }
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
 function App() {
   return (
     <HelmetProvider>
-      <Router>
-        <SettingsProvider>
-          <VendorProvider>
-            <AppContent />
-          </VendorProvider>
-        </SettingsProvider>
-      </Router>
+      <GoogleOAuthProvider clientId="525881024479-s9c7umr8e5r5mrtqdld53o6o1mvar4l0.apps.googleusercontent.com">
+        <Router>
+          <SettingsProvider>
+            <VendorProvider>
+              <AppContent />
+            </VendorProvider>
+          </SettingsProvider>
+        </Router>
+      </GoogleOAuthProvider>
     </HelmetProvider>
   );
 }

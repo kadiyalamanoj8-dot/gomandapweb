@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { jwtDecode } from 'jwt-decode';
 
 const VendorContext = createContext();
 
@@ -37,16 +38,18 @@ export const VendorProvider = ({ children }) => {
     }
   }, []);
 
-  const loginWithGoogle = async (googleProfile) => {
+  const loginWithGoogle = async (googleToken) => {
     try {
+      const decoded = jwtDecode(googleToken);
+      
       const res = await fetch('https://gomandap-api.onrender.com/api/vendors/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          email: googleProfile.email,
-          googleId: googleProfile.uid,
-          name: googleProfile.displayName,
-          photoUrl: googleProfile.photoURL
+          email: decoded.email,
+          googleId: decoded.sub,
+          name: decoded.name,
+          photoUrl: decoded.picture
         })
       });
       const data = await res.json();

@@ -16,7 +16,7 @@ const DynamicSEO = ({ appTarget = 'vendor', pageName = 'global' }) => {
           setSeoConfig(specificSeo || globalSeo);
         }
       } catch (err) {
-        console.error("Failed to load SEO config:", err);
+        // Backend /api/content route is not implemented yet, ignore 404 silently
       }
     };
     fetchSeo();

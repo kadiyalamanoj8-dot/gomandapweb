@@ -41,7 +41,7 @@ const Footer = () => {
           setFooterData(res.data.vendorFooter);
         }
       } catch (err) {
-        console.error("Failed to load dynamic vendor footer:", err);
+        // Backend /api/content route is not implemented yet, ignore 404 silently
       }
     };
     fetchFooter();
