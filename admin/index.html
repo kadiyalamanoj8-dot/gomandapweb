@@ -9,5 +9,17 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // EMERGENCY CACHE BUSTER: Unregister orphaned Service Workers from removed VitePWA
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister().then(function() {
+              console.log('Service Worker unregistered successfully.');
+            });
+          }
+        });
+      }
+    </script>
   </body>
 </html>
