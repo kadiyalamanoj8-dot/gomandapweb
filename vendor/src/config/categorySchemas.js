@@ -91,6 +91,11 @@ export const getCategorySchema = (category) => {
         { id: 'date', label: 'Event Date', type: 'date', icon: 'Calendar' },
         { id: 'serviceType', label: 'Service Type', type: 'select', icon: 'Sparkles', options: ['Bridal Makeup', 'Party/Guest Makeup', 'Pre-Wedding Shoot'] },
         { id: 'makeupTech', label: 'Technique', type: 'select', icon: 'Wand2', options: ['Standard HD', 'Premium Airbrush', 'Signature Look'] }
+      ],
+      vendorFormFields: [
+        { id: 'travels', label: 'Travels to Venue?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'trialAvailable', label: 'Trial Available?', type: 'select', options: ['Yes (Paid)', 'Yes (Free)', 'No Trial'] },
+        { id: 'brandsUsed', label: 'Top Brands Used (e.g. MAC, Huda)', type: 'text', placeholder: 'Enter top brands...' }
       ]
     };
   }
@@ -109,6 +114,11 @@ export const getCategorySchema = (category) => {
         { id: 'date', label: 'Event Date', type: 'date', icon: 'Calendar' },
         { id: 'designType', label: 'Design Type', type: 'select', icon: 'Flower2', options: ['Bridal Mehndi (Full Hands & Legs)', 'Guest Mehndi (Hourly Rate)', 'Minimalist/Arabic Design'] },
         { id: 'guestsCount', label: 'Number of Guests', type: 'select', icon: 'Users', options: ['Just the Bride', 'Bride + Up to 10 Guests', 'Bride + 20+ Guests'] }
+      ],
+      vendorFormFields: [
+        { id: 'organicHenna', label: 'Use Organic Henna?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'teamSize', label: 'Team Size', type: 'number', placeholder: 'e.g. 3' },
+        { id: 'hourlyRate', label: 'Hourly Rate for Guests (₹)', type: 'number', placeholder: 'e.g. 1000' }
       ]
     };
   }
@@ -127,6 +137,11 @@ export const getCategorySchema = (category) => {
         { id: 'date', label: 'Delivery Date Required', type: 'date', icon: 'Calendar' },
         { id: 'clothingType', label: 'Looking For', type: 'select', icon: 'Shirt', options: ['Bridal Lehenga', 'Groom Sherwani', 'Pattu Sarees', 'Matching Family Sets'] },
         { id: 'service', label: 'Service', type: 'select', icon: 'Scissors', options: ['Purchase (Readymade)', 'Purchase (Custom Tailored)', 'Rental'] }
+      ],
+      vendorFormFields: [
+        { id: 'customTailoring', label: 'Custom Tailoring Available?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'rentalAvailable', label: 'Rental Option Available?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'deliveryTime', label: 'Average Delivery Time (Days)', type: 'number', placeholder: 'e.g. 15' }
       ]
     };
   }
@@ -145,6 +160,11 @@ export const getCategorySchema = (category) => {
         { id: 'date', label: 'Required By Date', type: 'date', icon: 'Calendar' },
         { id: 'jewelryType', label: 'Looking For', type: 'select', icon: 'Gem', options: ['Bridal Set Purchase', 'Bridal Set Rental', 'Engagement Rings', 'Gifting Items'] },
         { id: 'material', label: 'Preferred Material', type: 'select', icon: 'Sparkles', options: ['Gold 22k', 'Diamond / Platinum', 'Imitation / Rental'] }
+      ],
+      vendorFormFields: [
+        { id: 'hallmarkCertified', label: 'Hallmark Certified?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'customDesigns', label: 'Custom Designs Available?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'buybackPolicy', label: 'Buyback Policy Available?', type: 'select', options: ['Yes', 'No'] }
       ]
     };
   }
@@ -163,6 +183,11 @@ export const getCategorySchema = (category) => {
         { id: 'date', label: 'Event Date', type: 'date', icon: 'Calendar' },
         { id: 'duration', label: 'Duration', type: 'select', icon: 'Clock', options: ['3-4 Hours', 'Half Day (5-8 Hours)', 'Full Day'] },
         { id: 'setupRequired', label: 'Sound Setup', type: 'select', icon: 'Speaker', options: ['Performance Only (Venue has sound)', 'Full Setup (Sound + Lights + Artist)'] }
+      ],
+      vendorFormFields: [
+        { id: 'ownSoundEquipment', label: 'Own Sound Equipment?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'genreSpecialties', label: 'Genre Specialties (e.g. Bollywood, EDM)', type: 'text', placeholder: 'Enter genres...' },
+        { id: 'languages', label: 'Languages/Regions', type: 'text', placeholder: 'e.g. Hindi, Telugu, English' }
       ]
     };
   }
@@ -181,6 +206,11 @@ export const getCategorySchema = (category) => {
         { id: 'date', label: 'Wedding Date', type: 'date', icon: 'Calendar' },
         { id: 'planningType', label: 'Service Scope', type: 'select', icon: 'ClipboardCheck', options: ['Full Wedding Planning', 'Partial Planning', 'Day-Of Coordination'] },
         { id: 'guestSize', label: 'Expected Guests', type: 'select', icon: 'Users', options: ['Intimate (< 150)', 'Standard (150 - 500)', 'Grand (500+)'] }
+      ],
+      vendorFormFields: [
+        { id: 'destinationWeddings', label: 'Handle Destination Weddings?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'inhouseProduction', label: 'In-house Decor Production?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'minimumBudget', label: 'Minimum Budget Requirement (₹)', type: 'number', placeholder: 'e.g. 500000' }
       ]
     };
   }
@@ -199,6 +229,11 @@ export const getCategorySchema = (category) => {
         { id: 'date', label: 'Consultation Date', type: 'date', icon: 'Calendar' },
         { id: 'serviceRequired', label: 'Service Required', type: 'select', icon: 'MoonStar', options: ['Wedding Muhurtham & Kundali', 'Marriage Ceremony Officiation', 'General Consultation / Pooja'] },
         { id: 'mode', label: 'Mode of Service', type: 'select', icon: 'MonitorSmartphone', options: ['Online / Video Call', 'In-Person (at Home/Venue)'] }
+      ],
+      vendorFormFields: [
+        { id: 'languagesSpoken', label: 'Languages Spoken', type: 'text', placeholder: 'e.g. Hindi, Sanskrit, Telugu' },
+        { id: 'onlineConsultations', label: 'Provide Online Consultations?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'poojaSamagri', label: 'Provide Pooja Samagri?', type: 'select', options: ['Yes', 'No'] }
       ]
     };
   }
@@ -217,6 +252,11 @@ export const getCategorySchema = (category) => {
         { id: 'date', label: 'Travel Date', type: 'date', icon: 'Calendar' },
         { id: 'vehicleType', label: 'Vehicle Type', type: 'select', icon: 'Car', options: ['Luxury Bridal Car (Audi/BMW/Jaguar)', 'AC Bus (40-50 Seater)', 'Mini Bus/Tempo Traveller (15-20 Seater)'] },
         { id: 'duration', label: 'Rental Duration', type: 'select', icon: 'Clock', options: ['Half Day (4 hrs / 40 km)', 'Full Day (8 hrs / 80 km)', 'Outstation Trip'] }
+      ],
+      vendorFormFields: [
+        { id: 'driverIncluded', label: 'Driver Included?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'minimumHours', label: 'Minimum Rental Hours', type: 'number', placeholder: 'e.g. 4' },
+        { id: 'outstationTravel', label: 'Available for Outstation?', type: 'select', options: ['Yes', 'No'] }
       ]
     };
   }
@@ -235,6 +275,11 @@ export const getCategorySchema = (category) => {
         { id: 'date', label: 'Preferred Travel Date', type: 'date', icon: 'Calendar' },
         { id: 'destination', label: 'Destination Type', type: 'select', icon: 'Plane', options: ['Domestic (Kerala, Goa, Kashmir)', 'International (Maldives, Bali, Dubai)', 'Europe / Premium International'] },
         { id: 'duration', label: 'Duration', type: 'select', icon: 'Clock', options: ['3-4 Nights', '5-7 Nights', '8+ Nights'] }
+      ],
+      vendorFormFields: [
+        { id: 'visaAssistance', label: 'Provide Visa Assistance?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'emiOptions', label: 'EMI Options Available?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'customItineraries', label: 'Custom Itineraries Available?', type: 'select', options: ['Yes', 'No'] }
       ]
     };
   }
@@ -260,6 +305,11 @@ export const getCategorySchema = (category) => {
         { id: 'date', label: 'Event Date', type: 'date', icon: 'Calendar' },
         { id: 'guests', label: 'Guest Count', type: 'select', icon: 'Users', options: ['100 - 300 Guests', '300 - 500 Guests', '500+ Guests'] },
         { id: 'menuType', label: 'Menu Selection', type: 'select', icon: 'Utensils', options: ['Standard Veg', 'Premium Veg', 'Standard Non-Veg', 'Premium Non-Veg'] }
+      ],
+      vendorFormFields: [
+        { id: 'pureVegAvailable', label: 'Pure Veg Kitchen Available?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'liveCounters', label: 'Live Counters Setup Available?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'tastingAvailable', label: 'Food Tasting Available?', type: 'select', options: ['Yes (Paid)', 'Yes (Free)', 'No'] }
       ]
     };
   }
@@ -285,6 +335,11 @@ export const getCategorySchema = (category) => {
         { id: 'date', label: 'Event Date', type: 'date', icon: 'Calendar' },
         { id: 'eventType', label: 'Event Type', type: 'select', icon: 'Tent', options: ['Wedding', 'Reception', 'Haldi/Mehendi', 'Corporate Event'] },
         { id: 'budget', label: 'Decor Budget', type: 'select', icon: 'Wallet', options: ['Standard (₹50k - ₹1L)', 'Premium (₹1L - ₹3L)', 'Luxury (₹3L+)'] }
+      ],
+      vendorFormFields: [
+        { id: 'mockupsProvided', label: '3D Mockups Provided?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'inhouseFlorist', label: 'In-house Florist?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'setupTime', label: 'Average Setup Time (Hours)', type: 'number', placeholder: 'e.g. 12' }
       ]
     };
   }
@@ -303,6 +358,11 @@ export const getCategorySchema = (category) => {
         { id: 'date', label: 'Delivery Date Required', type: 'date', icon: 'Calendar' },
         { id: 'inviteType', label: 'Type of Invite', type: 'select', icon: 'MailOpen', options: ['Printed Cards', 'Digital Video/PDF', 'Premium Boxed Invites'] },
         { id: 'quantity', label: 'Quantity (if physical)', type: 'select', icon: 'Layers', options: ['Digital Only (0)', '100 - 300 Copies', '300 - 500 Copies', '500+ Copies'] }
+      ],
+      vendorFormFields: [
+        { id: 'digitalInvites', label: 'Digital E-Invites Available?', type: 'select', options: ['Yes', 'No'] },
+        { id: 'minimumOrder', label: 'Minimum Order Quantity', type: 'number', placeholder: 'e.g. 100' },
+        { id: 'customCaricatures', label: 'Custom Caricatures Available?', type: 'select', options: ['Yes', 'No'] }
       ]
     };
   }
