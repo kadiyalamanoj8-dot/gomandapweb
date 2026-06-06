@@ -59,7 +59,7 @@ const VendorLandingPage = () => {
       const res = await loginWithGoogle(credential);
       if (res.success) {
         if (res.action === 'dashboard') navigate('/dashboard');
-        else navigate('/onboarding', { state: { email: res.email } });
+        else navigate('/onboarding', { state: { email: res.email, googleId: res.googleId, name: res.name, photoUrl: res.photoUrl } });
       } else {
         alert("Backend sync failed.");
       }

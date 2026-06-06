@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, CheckCircle2, XCircle, Landmark, MapPin, Phone, Building2, Store, Star, Send } from 'lucide-react';
+import { X, CheckCircle2, XCircle, Landmark, MapPin, Phone, Building2, Store, Star, Send, UserCircle2 } from 'lucide-react';
 import { getCategorySchema } from '../config/categorySchemas';
 import LocationMapAdmin from './LocationMapAdmin';
 
@@ -102,6 +102,22 @@ const VendorDetailsModal = ({ vendor, onClose, onUpdateStatus }) => {
                   <div className="flex items-center gap-2 font-black text-gray-900"><Phone size={14} className="text-green-500" /> {vendor.contact?.whatsapp || 'N/A'}</div>
                 </div>
               </div>
+
+              {(vendor.email || vendor.googleId) && (
+                <div className="mt-4 bg-gray-50 border border-gray-200 rounded-2xl p-4 flex items-center gap-4">
+                  {vendor.photoUrl ? (
+                    <img src={vendor.photoUrl} alt="Google" className="w-10 h-10 rounded-full border border-gray-200 shadow-sm" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center">
+                      <UserCircle2 size={20} className="text-gray-400" />
+                    </div>
+                  )}
+                  <div>
+                    <span className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest">Linked Google Account</span>
+                    <div className="font-bold text-gray-900">{vendor.email || 'Google Account Connected'}</div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

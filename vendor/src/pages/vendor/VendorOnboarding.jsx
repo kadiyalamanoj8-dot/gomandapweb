@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useVendor } from '../../context/VendorContext';
 import { useSettings } from '../../context/SettingsContext';
 import { VENUE_CATEGORIES, VENDOR_CATEGORIES } from '../../data/mockData';
@@ -47,6 +47,8 @@ const VendorOnboarding = () => {
   const { submitOnboarding, saveDraft, vendorProfile } = useVendor();
   const { isCategoryEnabled } = useSettings();
   const navigate = useNavigate();
+  const location = useLocation();
+  const googleData = location.state || {};
   const [step, setStep] = useState(vendorProfile?.currentStep || 1);
 
   const activeVenueCategories = VENUE_CATEGORIES.filter(cat => isCategoryEnabled(cat.label));
@@ -55,11 +57,13 @@ const VendorOnboarding = () => {
   // Form State initialized from Draft
   const [basicInfo, setBasicInfo] = useState({
     category: vendorProfile?.category || '',
-    name: vendorProfile?.name || '',
-    ownerName: vendorProfile?.ownerName || '',
+    name: vendorProfile?.name || googleData.name || '',
+    ownerName: vendorProfile?.ownerName || googleData.name || '',
     phone: vendorProfile?.contact?.phone || '',
     whatsapp: vendorProfile?.contact?.whatsapp || '',
-    email: vendorProfile?.contact?.email || '',
+    email: vendorProfile?.email || vendorProfile?.contact?.email || googleData.email || '',
+    googleId: vendorProfile?.googleId || googleData.googleId || '',
+    photoUrl: vendorProfile?.photoUrl || googleData.photoUrl || '',
     streetAddress: vendorProfile?.address?.street || '',
     village: vendorProfile?.address?.village || '',
     mandal: vendorProfile?.address?.mandal || '',
@@ -131,6 +135,9 @@ const VendorOnboarding = () => {
     formData.append('category', customCategory || basicInfo.category);
     formData.append('name', basicInfo.name);
     formData.append('ownerName', basicInfo.ownerName);
+    formData.append('email', basicInfo.email);
+    formData.append('googleId', basicInfo.googleId);
+    formData.append('photoUrl', basicInfo.photoUrl);
     formData.append('gstin', basicInfo.gstin);
     formData.append('experience', basicInfo.experience);
     formData.append('currentStep', nextStep);
