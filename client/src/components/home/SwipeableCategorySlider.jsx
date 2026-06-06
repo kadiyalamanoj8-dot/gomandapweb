@@ -103,4 +103,4 @@ const SwipeableCategorySlider = () => {
   );
 };
 
-export default SwipeableCategorySlider;
+export default React.memo(SwipeableCategorySlider);

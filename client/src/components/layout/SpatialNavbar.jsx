@@ -18,8 +18,9 @@ const SpatialNavbar = () => {
       transition={{ type: "spring", stiffness: 200, damping: 20 }}
       className="fixed top-4 left-1/2 w-[95%] max-w-7xl z-50 rounded-full glass-panel px-6 py-3 flex justify-between items-center"
     >
-      <Link to="/" className="text-2xl font-black text-brand-primary tracking-tight">
-        Gomandap
+      <Link to="/" className="flex items-center gap-2">
+        <img src="/favicon.svg" alt="Gomandap Logo" className="w-8 h-8 object-contain" />
+        <span className="text-2xl font-black text-brand-primary tracking-tight">Gomandap</span>
       </Link>
 
       {/* Desktop Links */}
@@ -28,7 +29,7 @@ const SpatialNavbar = () => {
         <Link to="/vendors" className="text-sm font-semibold text-gray-700 hover:text-brand-primary transition-colors">Vendors</Link>
         <Link to="/deals" className="text-sm font-semibold text-gray-700 hover:text-brand-primary transition-colors">Offers</Link>
         
-        <a href="http://localhost:5174/" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-gray-600 hover:text-brand-primary transition-colors">
+        <a href="https://vendor.gomandap.com" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-gray-600 hover:text-brand-primary transition-colors">
           Partner with us
         </a>
         

@@ -68,11 +68,11 @@ const IntroScreen = ({ onComplete }) => {
 
     setTimeout(() => {
       setShowCouple(true);
-    }, 1500);
+    }, 200);
 
     setTimeout(() => {
       onComplete();
-    }, 5000); 
+    }, 600); 
   };
 
   return (
@@ -80,13 +80,13 @@ const IntroScreen = ({ onComplete }) => {
       ref={containerRef}
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 1.1, filter: "blur(20px)" }}
-      transition={{ duration: 1 }}
+      transition={{ duration: 0.3 }}
       className="fixed inset-0 z-[9999] overflow-hidden bg-black font-sans select-none"
       style={{ perspective: '1200px' }}
     >
       <motion.div 
         animate={{ translateZ: sequence === 'CLOSED' ? 0 : 400 }}
-        transition={{ duration: 4.5, ease: [0.25, 1, 0.5, 1] }} 
+        transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] }} 
         style={{ 
           rotateX: sequence === 'CLOSED' ? 0 : rotateX, 
           rotateY: sequence === 'CLOSED' ? 0 : rotateY, 
@@ -111,7 +111,7 @@ const IntroScreen = ({ onComplete }) => {
               <motion.img 
                 initial={{ opacity: 0, scale: 0.8, filter: "blur(10px) drop-shadow(0 0 0px transparent)" }}
                 animate={{ opacity: 1, scale: 1, filter: "blur(0px) drop-shadow(0 0 50px rgba(255,193,7,0.6))" }}
-                transition={{ duration: 3, ease: "easeOut", delay: 0.5 }}
+                transition={{ duration: 0.4, ease: "easeOut", delay: 0.1 }}
                 src="/images/couple_transparent.webp" 
                 alt="Couple" 
                 className="w-[90vw] md:w-[60vw] max-h-[50vh] md:max-h-[60vh] object-contain object-bottom"
@@ -140,10 +140,10 @@ const IntroScreen = ({ onComplete }) => {
         <AnimatePresence>
           {sequence === 'CLOSED' && (
             <motion.div className="absolute inset-[-5%] z-[100] flex pointer-events-none" style={{ transform: "translateZ(300px)" }}>
-              <motion.div exit={{ rotateY: 105, opacity: 0 }} transition={{ duration: 3, ease: [0.25, 1, 0.5, 1] }} className="w-1/2 h-full pointer-events-auto" style={{ backgroundImage: "url('/images/real_temple_doors.webp')", backgroundSize: "200% 100%", backgroundPosition: "left", transformOrigin: "left", boxShadow: "50px 0 100px rgba(0,0,0,1)" }} />
-              <motion.div exit={{ rotateY: -105, opacity: 0 }} transition={{ duration: 3, ease: [0.25, 1, 0.5, 1] }} className="w-1/2 h-full pointer-events-auto" style={{ backgroundImage: "url('/images/real_temple_doors.webp')", backgroundSize: "200% 100%", backgroundPosition: "right", transformOrigin: "right", boxShadow: "-50px 0 100px rgba(0,0,0,1)" }} />
+              <motion.div exit={{ rotateY: 105, opacity: 0 }} transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }} className="w-1/2 h-full pointer-events-auto" style={{ backgroundImage: "url('/images/real_temple_doors.webp')", backgroundSize: "200% 100%", backgroundPosition: "left", transformOrigin: "left", boxShadow: "50px 0 100px rgba(0,0,0,1)" }} />
+              <motion.div exit={{ rotateY: -105, opacity: 0 }} transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }} className="w-1/2 h-full pointer-events-auto" style={{ backgroundImage: "url('/images/real_temple_doors.webp')", backgroundSize: "200% 100%", backgroundPosition: "right", transformOrigin: "right", boxShadow: "-50px 0 100px rgba(0,0,0,1)" }} />
               
-              <motion.div exit={{ opacity: 0, scale: 0.5 }} transition={{ duration: 1 }} className="absolute inset-0 flex items-center justify-center z-30 pointer-events-auto">
+              <motion.div exit={{ opacity: 0, scale: 0.5 }} transition={{ duration: 0.3 }} className="absolute inset-0 flex items-center justify-center z-30 pointer-events-auto">
                 <button onClick={handleOpen} className="relative w-40 h-40 md:w-56 md:h-56 rounded-full flex items-center justify-center cursor-pointer group">
                   <div className="absolute inset-0 bg-black/80 backdrop-blur-md rounded-full border border-[#FFC107]/50 transition-all duration-700 shadow-[0_0_40px_rgba(255,193,7,0.3)] group-hover:shadow-[0_0_80px_rgba(255,193,7,0.8)]"></div>
                   <div className="absolute inset-2 border-2 border-dashed border-[#FFC107]/60 rounded-full animate-[spin_12s_linear_infinite]"></div>

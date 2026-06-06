@@ -11,6 +11,7 @@ import {
 import { motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import LocationPicker from '../../../../client/src/components/vendor/LocationPicker';
+import LazyInput from '../../components/common/LazyInput';
 
 const IconComponent = ({ name, ...props }) => {
   const Icon = Icons[name] || Icons.HelpCircle;
@@ -425,23 +426,23 @@ const VendorOnboarding = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Business/Brand Name <span className="text-red-500">*</span></label>
-                  <input type="text" value={basicInfo.name} onChange={(e) => setBasicInfo({...basicInfo, name: e.target.value})} placeholder="e.g. Capture Infinity Studio" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                  <LazyInput type="text" value={basicInfo.name} onChange={(e) => setBasicInfo({...basicInfo, name: e.target.value})} placeholder="e.g. Capture Infinity Studio" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Owner Full Name <span className="text-red-500">*</span></label>
-                  <input type="text" value={basicInfo.ownerName} onChange={(e) => setBasicInfo({...basicInfo, ownerName: e.target.value})} placeholder="e.g. Rahul Sharma" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                  <LazyInput type="text" value={basicInfo.ownerName} onChange={(e) => setBasicInfo({...basicInfo, ownerName: e.target.value})} placeholder="e.g. Rahul Sharma" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Phone Number <span className="text-red-500">*</span></label>
-                  <input type="tel" value={basicInfo.phone} onChange={(e) => setBasicInfo({...basicInfo, phone: e.target.value})} placeholder="+91 98765 43210" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                  <LazyInput type="tel" value={basicInfo.phone} onChange={(e) => setBasicInfo({...basicInfo, phone: e.target.value})} placeholder="+91 98765 43210" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">WhatsApp Number</label>
-                  <input type="tel" value={basicInfo.whatsapp} onChange={(e) => setBasicInfo({...basicInfo, whatsapp: e.target.value})} placeholder="Same as phone" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                  <LazyInput type="tel" value={basicInfo.whatsapp} onChange={(e) => setBasicInfo({...basicInfo, whatsapp: e.target.value})} placeholder="Same as phone" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Street Address</label>
-                  <input type="text" value={basicInfo.streetAddress} onChange={(e) => setBasicInfo({...basicInfo, streetAddress: e.target.value})} placeholder="Shop number, building, street" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                  <LazyInput type="text" value={basicInfo.streetAddress} onChange={(e) => setBasicInfo({...basicInfo, streetAddress: e.target.value})} placeholder="Shop number, building, street" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
                 </div>
                 
                 <div className="md:col-span-2 pt-4 border-t border-gray-100 mt-4">
@@ -454,38 +455,38 @@ const VendorOnboarding = () => {
                 <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
                   <div>
                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Village / Suburb</label>
-                    <input type="text" value={basicInfo.village} onChange={(e) => setBasicInfo({...basicInfo, village: e.target.value})} placeholder="e.g. Kondapur" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                    <LazyInput type="text" value={basicInfo.village} onChange={(e) => setBasicInfo({...basicInfo, village: e.target.value})} placeholder="e.g. Kondapur" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Mandal / Tehsil</label>
-                    <input type="text" value={basicInfo.mandal} onChange={(e) => setBasicInfo({...basicInfo, mandal: e.target.value})} placeholder="e.g. Serilingampally" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                    <LazyInput type="text" value={basicInfo.mandal} onChange={(e) => setBasicInfo({...basicInfo, mandal: e.target.value})} placeholder="e.g. Serilingampally" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">District</label>
-                    <input type="text" value={basicInfo.district} onChange={(e) => setBasicInfo({...basicInfo, district: e.target.value})} placeholder="e.g. Rangareddy" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                    <LazyInput type="text" value={basicInfo.district} onChange={(e) => setBasicInfo({...basicInfo, district: e.target.value})} placeholder="e.g. Rangareddy" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">State</label>
-                    <input type="text" value={basicInfo.state} onChange={(e) => setBasicInfo({...basicInfo, state: e.target.value})} placeholder="e.g. Telangana" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                    <LazyInput type="text" value={basicInfo.state} onChange={(e) => setBasicInfo({...basicInfo, state: e.target.value})} placeholder="e.g. Telangana" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">City (Display)</label>
-                  <input type="text" value={basicInfo.city} onChange={(e) => setBasicInfo({...basicInfo, city: e.target.value})} placeholder="e.g. Hyderabad" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                  <LazyInput type="text" value={basicInfo.city} onChange={(e) => setBasicInfo({...basicInfo, city: e.target.value})} placeholder="e.g. Hyderabad" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Pincode</label>
-                  <input type="text" value={basicInfo.pincode} onChange={(e) => setBasicInfo({...basicInfo, pincode: e.target.value})} placeholder="e.g. 400001" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                  <LazyInput type="text" value={basicInfo.pincode} onChange={(e) => setBasicInfo({...basicInfo, pincode: e.target.value})} placeholder="e.g. 400001" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
                 </div>
                 
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Business Email</label>
-                  <input type="email" value={basicInfo.email} onChange={(e) => setBasicInfo({...basicInfo, email: e.target.value})} placeholder="contact@business.com" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                  <LazyInput type="email" value={basicInfo.email} onChange={(e) => setBasicInfo({...basicInfo, email: e.target.value})} placeholder="contact@business.com" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">GSTIN (Optional)</label>
-                  <input type="text" value={basicInfo.gstin} onChange={(e) => setBasicInfo({...basicInfo, gstin: e.target.value})} placeholder="22AAAAA0000A1Z5" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white uppercase" />
+                  <LazyInput type="text" value={basicInfo.gstin} onChange={(e) => setBasicInfo({...basicInfo, gstin: e.target.value})} placeholder="22AAAAA0000A1Z5" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white uppercase" />
                 </div>
               </div>
 
@@ -530,7 +531,7 @@ const VendorOnboarding = () => {
                             {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                           </select>
                         ) : (
-                          <input 
+                          <LazyInput 
                             type={field.type}
                             placeholder={field.placeholder}
                             value={formResponses[field.id] || ''} 
@@ -555,7 +556,7 @@ const VendorOnboarding = () => {
                           <label className="block text-sm font-black text-gray-900">{pkg.title}</label>
                           <span className="text-xs font-bold text-gray-500">{pkg.desc}</span>
                         </div>
-                        <input 
+                        <LazyInput 
                           type="text" 
                           placeholder="e.g. ₹50,000"
                           value={pkg.price}
@@ -597,23 +598,23 @@ const VendorOnboarding = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Account Holder Name <span className="text-red-500">*</span></label>
-                  <input type="text" value={bankingInfo.accountName} onChange={(e) => setBankingInfo({...bankingInfo, accountName: e.target.value})} placeholder="As per bank records" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-blue-500 focus:bg-white" />
+                  <LazyInput type="text" value={bankingInfo.accountName} onChange={(e) => setBankingInfo({...bankingInfo, accountName: e.target.value})} placeholder="As per bank records" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-blue-500 focus:bg-white" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Bank Name <span className="text-red-500">*</span></label>
-                  <input type="text" value={bankingInfo.bankName} onChange={(e) => setBankingInfo({...bankingInfo, bankName: e.target.value})} placeholder="e.g. HDFC Bank" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-blue-500 focus:bg-white" />
+                  <LazyInput type="text" value={bankingInfo.bankName} onChange={(e) => setBankingInfo({...bankingInfo, bankName: e.target.value})} placeholder="e.g. HDFC Bank" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-blue-500 focus:bg-white" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Account Number <span className="text-red-500">*</span></label>
-                  <input type="password" value={bankingInfo.accountNumber} onChange={(e) => setBankingInfo({...bankingInfo, accountNumber: e.target.value})} placeholder="Enter Account Number" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-blue-500 focus:bg-white font-mono" />
+                  <LazyInput type="password" value={bankingInfo.accountNumber} onChange={(e) => setBankingInfo({...bankingInfo, accountNumber: e.target.value})} placeholder="Enter Account Number" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-blue-500 focus:bg-white font-mono" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">IFSC Code <span className="text-red-500">*</span></label>
-                  <input type="text" value={bankingInfo.ifscCode} onChange={(e) => setBankingInfo({...bankingInfo, ifscCode: e.target.value})} placeholder="e.g. HDFC0001234" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-blue-500 focus:bg-white uppercase font-mono" />
+                  <LazyInput type="text" value={bankingInfo.ifscCode} onChange={(e) => setBankingInfo({...bankingInfo, ifscCode: e.target.value})} placeholder="e.g. HDFC0001234" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-blue-500 focus:bg-white uppercase font-mono" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Business UPI ID</label>
-                  <input type="text" value={bankingInfo.upiId} onChange={(e) => setBankingInfo({...bankingInfo, upiId: e.target.value})} placeholder="business@upi" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-blue-500 focus:bg-white" />
+                  <LazyInput type="text" value={bankingInfo.upiId} onChange={(e) => setBankingInfo({...bankingInfo, upiId: e.target.value})} placeholder="business@upi" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-blue-500 focus:bg-white" />
                 </div>
               </div>
 

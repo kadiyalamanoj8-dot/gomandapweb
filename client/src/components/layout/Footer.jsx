@@ -4,8 +4,33 @@ import { Share2, MessageCircle, AtSign, Globe, Link as LinkIcon } from 'lucide-r
 import axios from 'axios';
 
 const Footer = () => {
-  const [footerData, setFooterData] = useState(null);
+  const defaultFooterData = {
+    aboutText: "Your ultimate marketplace for discovering the finest wedding venues, top-tier caterers, and premium event services across India.",
+    socialLinks: [
+      { platform: "facebook", url: "#" },
+      { platform: "instagram", url: "#" },
+      { platform: "twitter", url: "#" }
+    ],
+    columns: [
+      {
+        title: "Explore",
+        links: [
+          { label: "Venues", url: "/search?category=Venues" },
+          { label: "Vendors", url: "/search" }
+        ]
+      },
+      {
+        title: "Company",
+        links: [
+          { label: "About Us", url: "#" },
+          { label: "Contact", url: "#" }
+        ]
+      }
+    ],
+    copyrightText: `© ${new Date().getFullYear()} Gomandap. All rights reserved.`
+  };
 
+  const [footerData, setFooterData] = useState(defaultFooterData);
   useEffect(() => {
     const fetchFooter = async () => {
       try {
@@ -30,10 +55,7 @@ const Footer = () => {
     return <Globe size={18} />;
   };
 
-  if (!footerData) {
-    // Fallback while loading
-    return <footer className="bg-gray-50 border-t border-gray-200 pt-16 pb-24 md:pb-12"><div className="w-full max-w-7xl mx-auto px-4 text-center text-gray-500">Loading footer...</div></footer>;
-  }
+  // No more blocking loading state!
 
   return (
     <footer className="bg-gray-50 border-t border-gray-200 pt-16 pb-24 md:pb-12">

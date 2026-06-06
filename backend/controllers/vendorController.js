@@ -1,6 +1,10 @@
 const Vendor = require('../models/Vendor');
 const Settings = require('../models/Settings');
 const jwt = require('jsonwebtoken');
+const NodeCache = require('node-cache');
+
+// 60 seconds TTL
+const vendorCache = new NodeCache({ stdTTL: 60 });
 
 const generateToken = (id) => {
   return jwt.sign({ id, role: 'vendor' }, process.env.JWT_SECRET || 'fallback_secret', {
@@ -100,6 +104,7 @@ const updateDraft = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Vendor not found' });
     }
 
+    vendorCache.flushAll(); // Clear cache on update
     res.status(200).json({ success: true, data: updatedVendor });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server Error' });
@@ -111,6 +116,11 @@ const updateDraft = async (req, res) => {
 // @access  Public
 const getApprovedVendors = async (req, res) => {
   try {
+    const cacheKey = 'approved_' + JSON.stringify(req.query);
+    if (vendorCache.has(cacheKey)) {
+      return res.status(200).json(vendorCache.get(cacheKey));
+    }
+
     const { category, categories, inHouseCatering, inHousePhotography, inHouseDecorations, lat, lng, radiusInKm, locName } = req.query;
     
     // Fetch disabled categories from Settings to exclude them
@@ -160,8 +170,19 @@ const getApprovedVendors = async (req, res) => {
       query['deepFeatures.inHouseDecorations'] = 'Yes';
     }
 
-    const vendors = await Vendor.find(query);
-    res.status(200).json({ success: true, count: vendors.length, data: vendors });
+    // Dynamic deepFeatures filtering from custom schemas
+    Object.keys(req.query).forEach(key => {
+      if (key.startsWith('dynamic_')) {
+        const featureKey = key.replace('dynamic_', '');
+        query[`deepFeatures.${featureKey}`] = req.query[key];
+      }
+    });
+
+    const vendors = await Vendor.find(query).lean();
+    const responseData = { success: true, count: vendors.length, data: vendors };
+    vendorCache.set(cacheKey, responseData);
+    
+    res.status(200).json(responseData);
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
@@ -172,7 +193,7 @@ const getApprovedVendors = async (req, res) => {
 // @access  Public
 const getVendorById = async (req, res) => {
   try {
-    const vendor = await Vendor.findById(req.params.id);
+    const vendor = await Vendor.findById(req.params.id).lean();
     if (!vendor) {
       return res.status(404).json({ success: false, message: 'Vendor not found' });
     }
@@ -187,8 +208,15 @@ const getVendorById = async (req, res) => {
 // @access  Public (Should be protected in prod)
 const getAllVendors = async (req, res) => {
   try {
-    const vendors = await Vendor.find().sort({ createdAt: -1 });
-    res.status(200).json({ success: true, count: vendors.length, data: vendors });
+    if (vendorCache.has('all_admin')) {
+      return res.status(200).json(vendorCache.get('all_admin'));
+    }
+
+    const vendors = await Vendor.find().sort({ createdAt: -1 }).lean();
+    const responseData = { success: true, count: vendors.length, data: vendors };
+    vendorCache.set('all_admin', responseData);
+
+    res.status(200).json(responseData);
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
@@ -219,6 +247,7 @@ const updateVendorStatus = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Vendor not found' });
     }
 
+    vendorCache.flushAll(); // Clear cache
     res.status(200).json({ success: true, data: vendor });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server Error' });
@@ -242,6 +271,7 @@ const updateLocationLock = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Vendor not found' });
     }
 
+    vendorCache.flushAll(); // Clear cache
     res.status(200).json({ success: true, data: vendor });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server Error' });

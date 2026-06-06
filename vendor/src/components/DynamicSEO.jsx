@@ -31,6 +31,7 @@ const DynamicSEO = ({ appTarget = 'vendor', pageName = 'global' }) => {
       {seoConfig.keywords && <meta name="keywords" content={seoConfig.keywords} />}
       {seoConfig.title && <meta property="og:title" content={seoConfig.title} />}
       {seoConfig.description && <meta property="og:description" content={seoConfig.description} />}
+      <link rel="canonical" href={`https://vendor.gomandap.com${window.location.pathname}${window.location.search}`} />
     </Helmet>
   );
 };

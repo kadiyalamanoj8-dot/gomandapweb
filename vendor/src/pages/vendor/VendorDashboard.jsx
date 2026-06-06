@@ -743,4 +743,4 @@ const VendorDashboard = () => {
   );
 };
 
-export default VendorDashboard;
+export default React.memo(VendorDashboard);

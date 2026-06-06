@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ArrowRight, X, Phone, Lock, CheckCircle2, ShieldCheck, 
-  MapPin, TrendingUp, Sparkles, Building2, UserCircle2 
+  X, Phone, Lock, CheckCircle2, ShieldCheck, 
+  TrendingUp, Sparkles, Building2, UserCircle2, ArrowRight
 } from 'lucide-react';
 import { CATEGORIES } from '../../data/mockData';
 import { useVendor } from '../../context/VendorContext';
@@ -105,162 +105,169 @@ const VendorLandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFBFD] text-[#1D1D1F] font-sans selection:bg-brand-primary/20">
+    <div className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F] font-sans selection:bg-brand-primary/20">
       
       {/* Apple-style sticky transparent/blur header */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#FBFBFD]/80 backdrop-blur-xl border-b border-gray-200/50 transition-all duration-300">
-        <div className="container mx-auto max-w-[1400px] px-6 h-[60px] flex items-center justify-between">
-          <div className="text-xl font-black text-brand-primary tracking-tight">
-            Gomandap <span className="text-gray-500 font-medium ml-1 text-lg">Business</span>
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F5F5F7]/80 backdrop-blur-xl border-b border-[#1D1D1F]/5 transition-all duration-300">
+        <div className="container mx-auto max-w-[1400px] px-6 h-[54px] flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <img src="/favicon.svg" alt="Gomandap Logo" className="w-6 h-6 object-contain" />
+            <div className="text-[19px] font-semibold tracking-tight text-[#1D1D1F] flex items-center gap-1.5">
+              Gomandap <span className="font-normal text-[#86868B]">Business</span>
+            </div>
           </div>
-          <button 
-            onClick={() => setShowAuthModal(true)}
-            className="text-[13px] font-semibold tracking-wide flex items-center gap-2 hover:text-brand-primary transition-colors"
-          >
-            Vendor Login <UserCircle2 size={16} />
-          </button>
+          
+          <div className="flex items-center gap-6">
+            <a href="https://gomandap.com" target="_blank" rel="noopener noreferrer" className="hidden md:block text-[13px] font-medium tracking-wide text-gray-500 hover:text-black transition-colors">
+              Client Portal
+            </a>
+            <button 
+              onClick={() => setShowAuthModal(true)}
+              className="text-[13px] font-medium tracking-wide flex items-center gap-1.5 text-[#1D1D1F] hover:text-brand-primary transition-colors"
+            >
+              Vendor Login <UserCircle2 size={16} className="opacity-80" />
+            </button>
+          </div>
         </div>
       </nav>
 
-      {/* Hero Section - Full bleed majestic event photo */}
-      <section className="relative pt-[60px] h-[95vh] w-full bg-black overflow-hidden flex flex-col justify-between">
+      {/* Hero Section - Apple Pro Style */}
+      <section className="relative pt-[120px] pb-24 w-full bg-black overflow-hidden flex flex-col justify-center items-center min-h-[90vh]">
         <img 
           src="/images/temple_mandap copy.webp" 
           alt="Premium Event" 
-          className="absolute inset-0 w-full h-full object-cover object-center opacity-60 scale-105 transform origin-center animate-image-drift"
+          className="absolute inset-0 w-full h-full object-cover object-center opacity-40 scale-105 transform origin-center animate-image-drift"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#FBFBFD] z-10"></div>
+        {/* Radical Vignette Gradient */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/60 to-black z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#F5F5F7] via-transparent to-transparent z-10"></div>
         
-        <div className="relative z-20 flex-1 flex flex-col items-center justify-center text-center px-4">
-          <motion.h1 
-            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: "easeOut" }}
-            className="text-5xl md:text-8xl font-black text-white tracking-tighter mb-6 leading-tight max-w-5xl"
+        <div className="relative z-20 w-full max-w-6xl mx-auto px-6 text-center mt-[-10vh]">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           >
-            Gomandap for Business.
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.3 }}
-            className="text-xl md:text-3xl font-semibold text-gray-200 tracking-tight max-w-3xl mb-12"
+            <h1 className="text-[60px] sm:text-[90px] md:text-[120px] font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-white/90 to-white/40 tracking-tighter leading-[0.9] mb-4 drop-shadow-2xl">
+              Event Pro.
+            </h1>
+          </motion.div>
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="text-3xl md:text-5xl font-semibold text-white tracking-tight leading-tight max-w-4xl mx-auto mb-6"
           >
-            The premium platform for India’s elite event creators.
+            The ultimate command center for <br className="hidden md:block" /> Indian event professionals.
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="text-lg md:text-2xl font-medium text-white/70 tracking-wide max-w-3xl mx-auto mb-10 leading-relaxed"
+          >
+            From grand Kalyana Mandapams to intricate Sangeet decor and elite Photography. <br className="hidden md:block" />
+            Connect directly with verified families ready to book your craft.
           </motion.p>
           <motion.button 
-            initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.6 }}
+            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
             onClick={() => setShowAuthModal(true)}
-            className="px-8 py-4 bg-white text-black rounded-full font-bold text-lg hover:scale-105 transition-transform shadow-2xl"
+            className="px-8 py-4 bg-white text-black rounded-full font-semibold text-[17px] hover:scale-105 transition-transform shadow-[0_0_40px_rgba(255,255,255,0.3)]"
           >
-            Start your journey
+            Join Gomandap Business
           </motion.button>
         </div>
       </section>
 
       {/* Brand Explanation Section */}
-      <section className="py-32 px-6 bg-[#FBFBFD] text-center max-w-5xl mx-auto">
-        <h2 className="text-4xl md:text-6xl font-black tracking-tight text-[#1D1D1F] mb-8 leading-[1.1]">
-          Grow your Indian Event Business <br /> with Gomandap.
+      <section className="py-24 px-6 bg-[#F5F5F7] text-center max-w-4xl mx-auto">
+        <h2 className="text-4xl md:text-[56px] font-bold tracking-tighter text-[#1D1D1F] mb-6 leading-[1.05]">
+          Your craft. <br /> Our connections.
         </h2>
-        <p className="text-xl md:text-2xl font-medium text-[#86868B] leading-relaxed max-w-4xl mx-auto">
-          We built Gomandap because the Indian wedding and event industry needed a simple, honest platform. No hidden fees. No stolen leads. Whether you run a Kalyana Mandapam, a Catering Service, or offer Photography, we give you direct phone calls from families and clients who are ready to book.
+        <p className="text-[21px] md:text-[24px] font-medium text-[#86868B] leading-[1.4] max-w-3xl mx-auto">
+          Whether you run a Kalyana Mandapam, offer Bridal Makeup, or design Sangeet Decor, Gomandap connects you directly with families ready to book. No hidden fees. No stolen leads. Just honest business.
         </p>
       </section>
 
-      {/* Apple-Style Bento Grid for Marketing -> REPLACED WITH PROFESSIONAL ZIG-ZAG 3D ICON EXPLANATIONS */}
-      <section className="max-w-6xl mx-auto px-6 pb-32">
-        <div className="space-y-32">
+      {/* APPLE BENTO GRID SECTION */}
+      <section className="max-w-[1200px] mx-auto px-6 pb-32">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 auto-rows-[400px]">
           
-          {/* Feature 1: Zero Commission */}
+          {/* Card 1: Wide (Span 2) - 0% Commission */}
           <motion.div 
-            initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex flex-col md:flex-row items-center gap-12 md:gap-20"
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }}
+            className="md:col-span-2 relative bg-white rounded-[2.5rem] p-10 md:p-16 overflow-hidden group shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_40px_rgb(0,0,0,0.08)] transition-shadow"
           >
-            <div className="md:w-1/2 flex justify-center">
-              <div className="relative w-64 h-64 md:w-80 md:h-80">
-                <div className="absolute inset-0 bg-brand-gold/20 rounded-full blur-[80px]"></div>
-                <img 
-                  src="/images/3d_planner copy.webp" 
-                  alt="Zero Commission" 
-                  className="w-full h-full object-contain relative z-10 filter drop-shadow-2xl animate-[float_6s_ease-in-out_infinite]" 
-                />
+            <div className="relative z-20 md:w-1/2">
+              <div className="inline-flex items-center gap-1.5 mb-4 text-[#86868B] font-semibold tracking-wide text-sm uppercase">
+                <TrendingUp size={16} /> 100% Yours
               </div>
-            </div>
-            <div className="md:w-1/2 text-center md:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-gold/10 text-brand-gold font-bold text-xs uppercase tracking-wider mb-6">
-                <TrendingUp size={16} /> 0% Commission
-              </div>
-              <h3 className="text-4xl md:text-5xl font-black text-[#1D1D1F] tracking-tight mb-6 leading-tight">Keep 100% of<br/>your hard work.</h3>
-              <p className="text-xl text-[#86868B] font-medium leading-relaxed">
-                Most platforms take a huge cut of your bookings. We don't! With Gomandap, you talk to the client directly, negotiate your own prices, and keep 100% of the money you make. We simply help clients find your beautiful business.
+              <h3 className="text-[40px] md:text-[56px] font-bold text-[#1D1D1F] tracking-tighter leading-[1.05] mb-6">
+                Zero <br /> commission.
+              </h3>
+              <p className="text-[19px] text-[#86868B] font-medium leading-snug">
+                You negotiate. You set the price. You keep every single rupee. We just bring the clients to your door.
               </p>
+            </div>
+            {/* Dynamic abstract art for the right side */}
+            <div className="absolute top-0 right-0 bottom-0 w-full md:w-1/2 flex justify-end items-center opacity-20 md:opacity-100 p-8 pointer-events-none">
+                <div className="relative w-full h-full max-w-[400px]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/40 to-orange-500/40 rounded-full blur-[80px] animate-pulse"></div>
+                    <img src="/images/3d_planner copy.webp" alt="Planner" className="w-full h-full object-contain relative z-10 drop-shadow-2xl scale-125 translate-x-12" />
+                </div>
             </div>
           </motion.div>
 
-          {/* Feature 2: Verified Leads */}
+          {/* Card 2: Square - Verified Leads */}
           <motion.div 
-            initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex flex-col md:flex-row-reverse items-center gap-12 md:gap-20"
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
+            className="relative bg-white rounded-[2.5rem] p-10 overflow-hidden group shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_40px_rgb(0,0,0,0.08)] transition-shadow flex flex-col justify-between"
           >
-            <div className="md:w-1/2 flex justify-center">
-              <div className="relative w-64 h-64 md:w-80 md:h-80">
-                <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-[80px]"></div>
-                <img 
-                  src="/images/3d_invitation copy.webp" 
-                  alt="Verified Leads" 
-                  className="w-full h-full object-contain relative z-10 filter drop-shadow-2xl animate-[float_5s_ease-in-out_infinite_reverse]" 
-                />
+            <div className="relative z-20">
+              <div className="inline-flex items-center gap-1.5 mb-4 text-[#86868B] font-semibold tracking-wide text-sm uppercase">
+                <ShieldCheck size={16} /> Verified Contacts
               </div>
-            </div>
-            <div className="md:w-1/2 text-center md:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 font-bold text-xs uppercase tracking-wider mb-6">
-                <ShieldCheck size={16} /> Verified Leads
-              </div>
-              <h3 className="text-4xl md:text-5xl font-black text-[#1D1D1F] tracking-tight mb-6 leading-tight">Real clients.<br/>Zero spam calls.</h3>
-              <p className="text-xl text-[#86868B] font-medium leading-relaxed">
-                Tired of fake inquiries and time-wasters? Every single client phone number on Gomandap is OTP-verified before they can see your contact details. Spend your time talking to real families planning real weddings and events.
+              <h3 className="text-[32px] md:text-[40px] font-bold text-[#1D1D1F] tracking-tighter leading-[1.1] mb-4">
+                Real families. <br /> Zero spam.
+              </h3>
+              <p className="text-[17px] text-[#86868B] font-medium leading-snug">
+                Every phone number is OTP-verified before they can view your contact details.
               </p>
+            </div>
+            <div className="relative h-40 mt-8">
+                <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/20 to-transparent rounded-full blur-[40px]"></div>
+                <img src="/images/3d_invitation copy.webp" alt="Verified" className="w-full h-full object-contain object-bottom relative z-10 drop-shadow-xl" />
             </div>
           </motion.div>
 
-          {/* Feature 3: Powerful Dashboard */}
+          {/* Card 3: Square - Elite Dashboard */}
           <motion.div 
-            initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex flex-col md:flex-row items-center gap-12 md:gap-20"
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            className="relative bg-[#1D1D1F] rounded-[2.5rem] p-10 overflow-hidden group shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-shadow flex flex-col justify-between"
           >
-            <div className="md:w-1/2 flex justify-center">
-              <div className="relative w-64 h-64 md:w-80 md:h-80">
-                <div className="absolute inset-0 bg-brand-primary/20 rounded-full blur-[80px]"></div>
-                <img 
-                  src="/images/3d_venue copy.webp" 
-                  alt="Professional Dashboard" 
-                  className="w-full h-full object-contain relative z-10 filter drop-shadow-2xl animate-[float_7s_ease-in-out_infinite]" 
-                />
+            <div className="relative z-20">
+              <div className="inline-flex items-center gap-1.5 mb-4 text-[#F5F5F7]/60 font-semibold tracking-wide text-sm uppercase">
+                <Building2 size={16} /> Premium Storefront
               </div>
-            </div>
-            <div className="md:w-1/2 text-center md:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 text-brand-primary font-bold text-xs uppercase tracking-wider mb-6">
-                <Building2 size={16} /> Elite Dashboard
-              </div>
-              <h3 className="text-4xl md:text-5xl font-black text-[#1D1D1F] tracking-tight mb-6 leading-tight">Your premium<br/>digital storefront.</h3>
-              <p className="text-xl text-[#86868B] font-medium leading-relaxed mb-8">
-                Upload your best photos, showcase your pricing, and build a brand that stands out. Our easy-to-use Vendor Dashboard lets you manage all your leads and profile views right from your phone.
+              <h3 className="text-[32px] md:text-[40px] font-bold text-white tracking-tighter leading-[1.1] mb-4">
+                Your brand, <br /> elevated.
+              </h3>
+              <p className="text-[17px] text-[#F5F5F7]/80 font-medium leading-snug">
+                Showcase your portfolio, define custom packages, and track analytics on our stunning dashboard.
               </p>
-              <button onClick={() => setShowAuthModal(true)} className="px-8 py-4 bg-[#1D1D1F] text-white font-bold rounded-2xl hover:bg-black transition-colors shadow-lg shadow-black/20">
-                Create Your Storefront
-              </button>
+            </div>
+            <div className="relative h-40 mt-8">
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-primary/30 to-transparent rounded-full blur-[40px]"></div>
+                <img src="/images/3d_venue copy.webp" alt="Venue" className="w-full h-full object-contain object-bottom relative z-10 drop-shadow-2xl" />
             </div>
           </motion.div>
 
         </div>
       </section>
 
-      {/* 21 Categories Matrix Grid - Refined Apple Style */}
-      <section className="bg-white py-32 border-t border-gray-100">
-        <div className="max-w-[1400px] mx-auto px-6">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-6xl font-black tracking-tight text-[#1D1D1F] mb-6">Find your perfect fit.</h2>
-            <p className="text-xl font-medium text-[#86868B]">Gomandap supports 21 distinct event categories.</p>
+      {/* 21 Categories Matrix Grid - Apple App Store Style */}
+      <section className="bg-white py-32 rounded-t-[3rem] border-t border-gray-200/50 shadow-[0_-20px_50px_rgba(0,0,0,0.02)]">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-[56px] font-bold tracking-tighter text-[#1D1D1F] mb-4">A place for every professional.</h2>
+            <p className="text-[21px] font-medium text-[#86868B]">Supporting 21 distinct event categories.</p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6">
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 md:gap-6">
             {CATEGORIES.map((cat, idx) => {
               const imageSrc = ICON_MAP[cat.label] || '/images/3d_venue copy.webp';
               return (
@@ -269,14 +276,14 @@ const VendorLandingPage = () => {
                   onClick={() => setShowAuthModal(true)}
                   className="flex flex-col items-center cursor-pointer group"
                 >
-                  <div className="w-full aspect-square rounded-[1.5rem] bg-[#F5F5F7] p-6 mb-4 flex items-center justify-center transition-all duration-300 group-hover:bg-[#EAEAEA] group-hover:scale-105 group-hover:shadow-xl">
+                  <div className="w-full aspect-square rounded-[1.2rem] bg-white border border-gray-100 shadow-[0_4px_12px_rgba(0,0,0,0.03)] p-4 md:p-6 mb-3 flex items-center justify-center transition-all duration-300 group-hover:shadow-[0_12px_24px_rgba(0,0,0,0.08)] group-hover:-translate-y-1">
                     <img 
                       src={imageSrc} 
                       alt={cat.label} 
                       className="w-full h-full object-contain filter drop-shadow-sm transition-transform duration-500 group-hover:scale-110" 
                     />
                   </div>
-                  <h4 className="text-[13px] font-bold text-[#1D1D1F] text-center leading-snug px-2">{cat.label}</h4>
+                  <h4 className="text-[11px] md:text-[13px] font-semibold text-[#1D1D1F] text-center leading-snug px-1 line-clamp-2">{cat.label}</h4>
                 </div>
               );
             })}
@@ -287,30 +294,32 @@ const VendorLandingPage = () => {
       {/* Dynamic Footer */}
       <Footer />
 
-      {/* Auth Modal (Apple Login Style) */}
+      {/* Auth Modal (Apple ID Style) */}
       <AnimatePresence>
         {showAuthModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/30 backdrop-blur-xl">
             <motion.div 
-              initial={{ y: 50, opacity: 0, scale: 0.95 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 20, opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }}
-              className="relative w-full max-w-[400px] bg-white shadow-2xl rounded-[2rem] overflow-hidden"
+              initial={{ y: 20, opacity: 0, scale: 0.98 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 10, opacity: 0, scale: 0.98 }} transition={{ duration: 0.2, ease: "easeOut" }}
+              className="relative w-full max-w-[420px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.2)] rounded-[2rem] overflow-hidden"
             >
               <button 
                 onClick={() => setShowAuthModal(false)}
-                className="absolute top-5 right-5 p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors z-10"
+                className="absolute top-5 right-5 p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors z-10"
               >
-                <X size={16} />
+                <X size={20} />
               </button>
 
               <div className="p-10 flex flex-col items-center text-center">
-                <div className="w-16 h-16 bg-brand-primary/10 rounded-2xl flex items-center justify-center mb-6">
-                  <Building2 size={32} className="text-brand-primary" />
+                <div className="mb-6">
+                   <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center shadow-lg mx-auto">
+                     <span className="text-white font-bold text-xl tracking-tighter">G.</span>
+                   </div>
                 </div>
-                <h2 className="text-2xl font-black text-[#1D1D1F] mb-2 tracking-tight">
-                  {step === 'phone' ? 'Vendor Portal' : 'Verification'}
+                <h2 className="text-[26px] font-semibold text-[#1D1D1F] mb-2 tracking-tight">
+                  {step === 'phone' ? 'Sign in to Business' : 'Verification'}
                 </h2>
                 <p className="text-[15px] text-[#86868B] font-medium mb-8">
-                  {step === 'phone' ? 'Sign in or register your business securely.' : `Enter the OTP sent to ${phone}`}
+                  {step === 'phone' ? 'Enter your mobile number to continue.' : `Enter the OTP sent to ${phone}`}
                 </p>
 
                 <div id="vendor-recaptcha-container"></div>
@@ -319,22 +328,19 @@ const VendorLandingPage = () => {
                   {step === 'phone' ? (
                     <form onSubmit={handleSendOtp} className="space-y-4">
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                          <Phone size={18} className="text-gray-400" />
-                        </div>
                         <input
                           type="tel"
                           required
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
                           placeholder="Mobile Number"
-                          className="w-full pl-12 pr-4 py-4 bg-[#F5F5F7] border-none text-[#1D1D1F] rounded-2xl outline-none focus:ring-2 focus:ring-brand-primary font-bold text-lg transition-shadow"
+                          className="w-full px-4 py-4 bg-white border border-gray-300 text-[#1D1D1F] rounded-xl outline-none focus:border-black focus:ring-1 focus:ring-black font-semibold text-[17px] transition-shadow placeholder-gray-400 text-center"
                         />
                       </div>
                       <button 
                         type="submit"
                         disabled={isLoading || phone.length < 10}
-                        className="w-full py-4 font-bold text-white bg-brand-primary hover:bg-brand-primary-hover rounded-2xl disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                        className="w-full py-4 font-semibold text-white bg-black hover:bg-gray-800 rounded-xl disabled:opacity-50 transition-colors flex items-center justify-center gap-2 text-[17px]"
                       >
                         {isLoading ? 'Sending...' : 'Continue'}
                       </button>
@@ -342,23 +348,20 @@ const VendorLandingPage = () => {
                   ) : (
                     <form onSubmit={handleVerifyOtp} className="space-y-4">
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                          <Lock size={18} className="text-gray-400" />
-                        </div>
                         <input
                           type="text"
                           required
                           maxLength={6}
                           value={otp}
                           onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                          placeholder="6-digit OTP"
-                          className="w-full pl-12 pr-4 py-4 bg-[#F5F5F7] border-none text-[#1D1D1F] rounded-2xl outline-none focus:ring-2 focus:ring-brand-primary tracking-[0.5em] text-xl font-bold transition-shadow text-center"
+                          placeholder="Code"
+                          className="w-full px-4 py-4 bg-white border border-gray-300 text-[#1D1D1F] rounded-xl outline-none focus:border-black focus:ring-1 focus:ring-black tracking-[0.5em] text-xl font-bold transition-shadow text-center placeholder-gray-300"
                         />
                       </div>
                       <button 
                         type="submit"
                         disabled={isLoading || otp.length < 6}
-                        className="w-full py-4 font-bold text-white bg-brand-primary hover:bg-brand-primary-hover rounded-2xl disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                        className="w-full py-4 font-semibold text-white bg-black hover:bg-gray-800 rounded-xl disabled:opacity-50 transition-colors flex items-center justify-center gap-2 text-[17px]"
                       >
                         {isLoading ? 'Verifying...' : 'Sign In'}
                       </button>
@@ -376,14 +379,6 @@ const VendorLandingPage = () => {
           0% { transform: scale(1.05) translate(0, 0); }
           50% { transform: scale(1.1) translate(-1%, -1%); }
           100% { transform: scale(1.05) translate(0, 0); }
-        }
-        @keyframes float {
-          0% { transform: translateY(0px); }
-          50% { transform: translateY(-15px); }
-          100% { transform: translateY(0px); }
-        }
-        .animate-image-drift {
-          animation: image-drift 30s ease-in-out infinite;
         }
       `}</style>
     </div>

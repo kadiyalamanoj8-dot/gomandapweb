@@ -162,8 +162,9 @@ const HeroParallax = () => {
         }
 
         // Clamp values and normalize to [-1, 1]
-        const normalizedX = Math.max(-1, Math.min(1, x / 60));
-        const normalizedY = Math.max(-1, Math.min(1, y / 60));
+        // Lock horizontal almost entirely (divide by 240) and enhance vertical (divide by 30)
+        const normalizedX = Math.max(-1, Math.min(1, x / 240));
+        const normalizedY = Math.max(-1, Math.min(1, y / 30));
         
         mouseX.set(normalizedX);
         mouseY.set(normalizedY);

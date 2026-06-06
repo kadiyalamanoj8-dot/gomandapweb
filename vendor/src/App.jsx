@@ -1,34 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { VendorProvider } from './context/VendorContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { AnimatePresence } from 'framer-motion';
 
 // Pages
-import VendorLandingPage from './pages/vendor/VendorLandingPage';
-import VendorOnboarding from './pages/vendor/VendorOnboarding';
-import VendorPending from './pages/vendor/VendorPending';
-import VendorDashboard from './pages/vendor/VendorDashboard';
-import IntroScreen from './components/IntroScreen';
+const VendorLandingPage = lazy(() => import('./pages/vendor/VendorLandingPage'));
+const VendorOnboarding = lazy(() => import('./pages/vendor/VendorOnboarding'));
+const VendorPending = lazy(() => import('./pages/vendor/VendorPending'));
+const VendorDashboard = lazy(() => import('./pages/vendor/VendorDashboard'));
 import Preloader from './components/Preloader';
 import { HelmetProvider } from 'react-helmet-async';
 import DynamicSEO from './components/DynamicSEO';
 
 function AppContent() {
-  const [hasEntered, setHasEntered] = useState(false);
   const [isPreloading, setIsPreloading] = useState(true);
   const [preloadProgress, setPreloadProgress] = useState(0);
 
   React.useEffect(() => {
     const startTime = Date.now();
-    const MINIMUM_LOAD_TIME = 3500; // Force loader for 3.5 seconds minimum
+    const MINIMUM_LOAD_TIME = 500; // Small delay for smooth fade out
 
     // Heavy assets that cause layout pop-in on first load
     const imagesToPreload = [
       '/images/temple_background.webp',
       '/images/temple_mandap.webp',
-      '/images/couple_transparent.webp',
-      '/images/real_temple_doors.webp'
+      '/images/couple_transparent.webp'
     ];
 
     let loadedCount = 0;
@@ -74,20 +71,19 @@ function AppContent() {
       <AnimatePresence>
         {isPreloading && <Preloader progress={preloadProgress} />}
       </AnimatePresence>
-      <AnimatePresence>
-        {!isPreloading && !hasEntered && <IntroScreen onComplete={() => setHasEntered(true)} />}
-      </AnimatePresence>
-      {!isPreloading && hasEntered && (
+      {!isPreloading && (
         <div className="font-sans antialiased text-gray-900 bg-white min-h-screen">
           <DynamicSEO appTarget="vendor" pageName="global" />
           <AnimatePresence mode="wait">
-            <Routes>
-              <Route path="/" element={<VendorLandingPage />} />
-              <Route path="/onboarding" element={<VendorOnboarding />} />
-              <Route path="/pending" element={<VendorPending />} />
-              <Route path="/dashboard" element={<VendorDashboard />} />
-              <Route path="*" element={<Navigate to="/" replace />} /> 
-            </Routes>
+            <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div></div>}>
+              <Routes>
+                <Route path="/" element={<VendorLandingPage />} />
+                <Route path="/onboarding" element={<VendorOnboarding />} />
+                <Route path="/pending" element={<VendorPending />} />
+                <Route path="/dashboard" element={<VendorDashboard />} />
+                <Route path="*" element={<Navigate to="/" replace />} /> 
+              </Routes>
+            </Suspense>
           </AnimatePresence>
         </div>
       )}

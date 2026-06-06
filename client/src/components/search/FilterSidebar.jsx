@@ -59,6 +59,23 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [],
     setSearchParams(newParams);
   };
 
+  const handleDynamicFilterChange = (field, value, type, checked) => {
+    const newParams = new URLSearchParams(searchParams);
+    const paramKey = `dynamic_${field}`;
+    
+    if (type === 'RADIO') {
+      newParams.set(paramKey, value);
+    } else if (type === 'CHECKBOX') {
+      const currentVals = newParams.getAll(paramKey);
+      newParams.delete(paramKey);
+      let newVals = [...currentVals];
+      if (checked) newVals.push(value);
+      else newVals = newVals.filter(v => v !== value);
+      newVals.forEach(v => newParams.append(paramKey, v));
+    }
+    setSearchParams(newParams);
+  };
+
   const mobileClasses = isMobileOpen 
     ? 'fixed inset-0 z-[100] bg-white overflow-y-auto flex flex-col' 
     : 'hidden md:block';
@@ -116,19 +133,22 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [],
         <div key={block.name} className="mb-6">
           <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">{block.title}</h3>
           <div className="flex flex-col gap-3">
-            {block.options.map((opt, idx) => (
+            {block.options.map((opt, idx) => {
+              const paramKey = `dynamic_${block.name}`;
+              const isChecked = searchParams.get(paramKey) === opt.value || (!searchParams.has(paramKey) && idx === 0);
+              return (
               <label key={opt.value} className="flex items-center gap-3 cursor-pointer group">
                 <input 
                   type="radio" 
                   name={block.name} 
                   value={opt.value}
-                  defaultChecked={idx === 0} 
+                  checked={isChecked} 
                   className="w-4 h-4 accent-brand-primary cursor-pointer" 
-                  onChange={(e) => handleInHouseChange(block.name, e.target.value)}
+                  onChange={(e) => handleDynamicFilterChange(block.name, e.target.value, 'RADIO')}
                 />
                 <span className="text-sm font-bold text-gray-600 group-hover:text-brand-primary transition-colors">{opt.label}</span>
               </label>
-            ))}
+            )})}
           </div>
         </div>
       );
@@ -139,17 +159,21 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [],
         <div key={block.name} className="mb-6">
           <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">{block.title}</h3>
           <div className="flex flex-col gap-3">
-            {block.options.map((opt) => (
+            {block.options.map((opt) => {
+              const paramKey = `dynamic_${block.name}`;
+              const isChecked = searchParams.getAll(paramKey).includes(opt.value);
+              return (
               <label key={opt.value} className="flex items-center gap-3 cursor-pointer group">
                 <input 
                   type="checkbox" 
                   value={opt.value}
+                  checked={isChecked}
                   className="w-4 h-4 accent-brand-primary rounded cursor-pointer border-gray-300" 
-                  onChange={(e) => {}}
+                  onChange={(e) => handleDynamicFilterChange(block.name, e.target.value, 'CHECKBOX', e.target.checked)}
                 />
                 <span className="text-sm font-bold text-gray-600 group-hover:text-brand-primary transition-colors">{opt.label}</span>
               </label>
-            ))}
+            )})}
           </div>
         </div>
       );

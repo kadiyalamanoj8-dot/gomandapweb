@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { CATEGORIES } from '../data/mockData';
 import LiquidVendorCard from '../components/common/LiquidVendorCard';
 import FilterSidebar from '../components/search/FilterSidebar';
@@ -89,6 +89,12 @@ const SearchPage = () => {
         if (lat && lng)  url += `&lat=${lat}&lng=${lng}&radiusInKm=50`;
         else if (locName) url += `&locName=${encodeURIComponent(locName)}`;
 
+        searchParams.forEach((val, key) => {
+          if (key.startsWith('dynamic_')) {
+            url += `&${key}=${encodeURIComponent(val)}`;
+          }
+        });
+
         const res  = await fetch(url);
         const data = await res.json();
         if (data.success) {
@@ -119,6 +125,14 @@ const SearchPage = () => {
     };
     fetchVendors();
   }, [searchParams]);
+
+  const memoizedRecommended = useMemo(() => recommendedResults.map(vendor => (
+    <LiquidVendorCard key={vendor.id} vendor={vendor} layout="carousel" />
+  )), [recommendedResults]);
+
+  const memoizedSearch = useMemo(() => searchResults.map(vendor => (
+    <LiquidVendorCard key={vendor.id} vendor={vendor} layout="list" />
+  )), [searchResults]);
 
   return (
     <div className="min-h-screen bg-gray-50/50 pt-28 pb-24 md:pb-16">
@@ -192,9 +206,7 @@ const SearchPage = () => {
                   <h2 className="text-lg font-black text-gray-900">Recommended for You</h2>
                 </div>
                 <div className="flex overflow-x-auto gap-4 no-scrollbar pb-4 -mx-4 px-4 md:mx-0 md:px-0 snap-x">
-                  {recommendedResults.map(vendor => (
-                    <LiquidVendorCard key={vendor.id} vendor={vendor} layout="carousel" />
-                  ))}
+                  {memoizedRecommended}
                 </div>
               </div>
             )}
@@ -231,9 +243,7 @@ const SearchPage = () => {
                   </div>
                 </div>
               ) : (
-                searchResults.map(vendor => (
-                  <LiquidVendorCard key={vendor.id} vendor={vendor} layout="list" />
-                ))
+                memoizedSearch
               )}
             </div>
 

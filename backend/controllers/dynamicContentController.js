@@ -1,4 +1,7 @@
 const DynamicContent = require('../models/DynamicContent');
+const NodeCache = require('node-cache');
+
+const cache = new NodeCache({ stdTTL: 300 }); // 5 minutes TTL
 
 // Default initial data if none exists
 const defaultData = {
@@ -44,11 +47,19 @@ const defaultData = {
 // @access  Public
 exports.getDynamicContent = async (req, res) => {
   try {
-    let content = await DynamicContent.findOne();
+    let content = cache.get("dynamicContent");
+    if (content) {
+      return res.status(200).json(content);
+    }
+
+    content = await DynamicContent.findOne().lean();
     if (!content) {
       // Create default if not exists
-      content = await DynamicContent.create(defaultData);
+      const created = await DynamicContent.create(defaultData);
+      content = created.toObject();
     }
+    
+    cache.set("dynamicContent", content);
     res.status(200).json(content);
   } catch (err) {
     res.status(500).json({ message: 'Server error fetching dynamic content', error: err.message });
@@ -72,6 +83,7 @@ exports.updateDynamicContent = async (req, res) => {
     }
     
     await content.save();
+    cache.set("dynamicContent", content.toObject ? content.toObject() : content);
     res.status(200).json(content);
   } catch (err) {
     res.status(500).json({ message: 'Server error updating dynamic content', error: err.message });
