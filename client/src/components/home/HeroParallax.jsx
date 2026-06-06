@@ -198,13 +198,13 @@ const HeroParallax = () => {
         className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none"
       >
         {/* Layer 1: Background Temple (Z: -600) */}
-        <m.div style={{ x: bgX, y: bgY, translateZ: -600, scale: 1.5, willChange: 'transform' }} className="absolute inset-[-30%] z-0">
+        <m.div style={{ x: bgX, y: bgY, translateZ: -600, scale: 1.8, willChange: 'transform' }} className="absolute inset-[-50%] z-0">
           <img src="/images/temple_background.webp" fetchPriority="high" decoding="async" alt="Background" className="w-full h-full object-cover opacity-80" style={{ willChange: 'transform' }} />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60 z-10" />
         </m.div>
 
         {/* Layer 2: Dynamic Mandap Frame (Z: -100) */}
-        <m.div style={{ x: midX, y: midY, translateZ: -100, scale: 1.3, willChange: 'transform' }} className="absolute inset-0 z-20 flex items-center justify-center">
+        <m.div style={{ x: midX, y: midY, translateZ: -100, scale: 1.5, willChange: 'transform' }} className="absolute inset-[-20%] z-20 flex items-center justify-center">
           <AnimatePresence mode="wait">
             <m.img 
               key={currentMandap}
@@ -245,7 +245,7 @@ const HeroParallax = () => {
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="relative w-full h-[100dvh] min-h-[600px] z-40 select-none">
+      <div className="relative w-full h-screen h-[100dvh] min-h-[600px] z-40 select-none overflow-hidden">
       
       {background3D}
 
