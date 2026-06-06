@@ -84,7 +84,7 @@ function AppContent() {
         {isPreloading && <Preloader progress={preloadProgress} />}
       </AnimatePresence>
       {!isPreloading && (
-        <div className="flex flex-col min-h-screen bg-black overflow-x-hidden">
+        <div className="flex flex-col min-h-screen bg-white overflow-x-hidden">
           <DynamicSEO appTarget="client" pageName="global" />
           <SpatialNavbar />
           <main className="flex-grow w-full">
