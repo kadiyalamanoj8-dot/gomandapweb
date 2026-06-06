@@ -19,11 +19,13 @@
     "jimp": "^1.6.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.17.0",
+    "maplibre-gl": "^5.24.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-helmet-async": "^3.0.0",
     "react-i18next": "^17.0.8",
     "react-leaflet": "^5.0.0",
+    "react-map-gl": "^8.1.1",
     "react-router-dom": "^7.17.0"
   },
   "devDependencies": {
