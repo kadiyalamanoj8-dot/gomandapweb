@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { LazyMotion, domAnimation, m as motion, AnimatePresence } from 'framer-motion';
 import { 
   X, Phone, Lock, CheckCircle2, ShieldCheck, CalendarDays,
   TrendingUp, Sparkles, Building2, UserCircle2, ArrowRight, Camera,
   Globe, Wallet, Crosshair, Activity, AlertCircle, BarChart3, Zap
 } from 'lucide-react';
+import GlassLanguageSelector from '../../components/ui/GlassLanguageSelector';
 import { CATEGORIES } from '../../data/mockData';
 import { useVendor } from '../../context/VendorContext';
 import { auth } from '../../config/firebase';
@@ -37,7 +39,9 @@ const ICON_MAP = {
 };
 
 const VendorLandingPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { vendorStatus, loginWithPhone } = useVendor();
 
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -118,15 +122,16 @@ const VendorLandingPage = () => {
              </div>
           </div>
           
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 md:gap-6">
+            <GlassLanguageSelector />
             <a href="https://gomandap.com" target="_blank" rel="noopener noreferrer" className="hidden md:block text-[13px] font-bold tracking-wide text-white/50 hover:text-white transition-colors">
-              Client Portal
+              {t('nav_client_portal')}
             </a>
             <button 
               onClick={() => setShowAuthModal(true)}
               className="text-[13px] font-bold tracking-wide flex items-center gap-1.5 text-white hover:text-brand-gold transition-colors"
             >
-              Vendor Login <UserCircle2 size={16} className="opacity-80" />
+              {t('nav_vendor_login')} <UserCircle2 size={16} className="opacity-80" />
             </button>
           </div>
         </div>
@@ -143,23 +148,28 @@ const VendorLandingPage = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10"></div>
         
         <div className="relative z-20 w-full max-w-6xl mx-auto px-6 text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }} className="mb-6 flex justify-center">
+            <span className="px-5 py-1.5 rounded-full bg-brand-gold/10 border border-brand-gold/30 text-brand-gold text-sm font-black tracking-widest uppercase shadow-[0_0_30px_rgba(212,175,55,0.3)]">
+              {t('hero_badge')}
+            </span>
+          </motion.div>
+
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}>
             <h1 className="text-[50px] sm:text-[80px] md:text-[110px] font-black text-transparent bg-clip-text bg-gradient-to-b from-[#FACC15] via-[#D4AF37] to-[#8C7323] tracking-tighter leading-[0.9] mb-4 drop-shadow-2xl">
-              Event Pro.
+              {t('hero_title')}
             </h1>
           </motion.div>
           <motion.h2 
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="text-2xl md:text-5xl font-bold text-white tracking-tight leading-tight max-w-4xl mx-auto mb-6"
           >
-            The elite network for <br className="hidden md:block" /> Indian event professionals.
+            {t('hero_subtitle')}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="text-lg md:text-xl font-medium text-white/60 tracking-wide max-w-3xl mx-auto mb-10 leading-relaxed"
+            className="text-lg md:text-xl font-medium text-white/70 tracking-wide max-w-3xl mx-auto mb-10 leading-relaxed"
           >
-            From grand Kalyana Mandapams to intricate Sangeet decor and elite Photography. <br className="hidden md:block" />
-            Connect directly with verified families ready to book your craft.
+            {t('hero_desc')}
           </motion.p>
           
           <motion.div 
@@ -178,7 +188,7 @@ const VendorLandingPage = () => {
                 animate={{ x: ['-100%', '100%'] }}
                 transition={{ repeat: Infinity, duration: 2.5, ease: "linear", repeatDelay: 2 }}
               />
-              <span className="relative z-10 drop-shadow-md whitespace-nowrap font-black">Join</span>
+              <span className="relative z-10 drop-shadow-md whitespace-nowrap font-black">{t('hero_btn_join')}</span>
               <div className="relative z-10 flex items-center justify-center">
                 <img src="/logo.svg?v=2" alt="Gomandap Logo" className="h-5 md:h-6 w-auto object-contain" />
               </div>
@@ -209,15 +219,15 @@ const VendorLandingPage = () => {
               <ul className="space-y-6">
                 <li className="flex items-start gap-4">
                   <X className="text-red-500 shrink-0 mt-1" size={20} />
-                  <p className="text-white/60 font-medium">Aggregators charge massive 15-30% commissions on every booking.</p>
+                  <p className="text-white/60 font-medium">Legacy aggregators trap you with massive 15-30% commissions on every booking.</p>
                 </li>
                 <li className="flex items-start gap-4">
                   <X className="text-red-500 shrink-0 mt-1" size={20} />
-                  <p className="text-white/60 font-medium">Your funds are held in escrow for weeks after the event is over.</p>
+                  <p className="text-white/60 font-medium">You are forced into expensive, non-refundable monthly subscriptions just to be seen.</p>
                 </li>
                 <li className="flex items-start gap-4">
                   <X className="text-red-500 shrink-0 mt-1" size={20} />
-                  <p className="text-white/60 font-medium">You compete on price, forced to offer discounts to win low-budget leads.</p>
+                  <p className="text-white/60 font-medium">Your hard-earned funds are held in escrow for weeks after the event is over.</p>
                 </li>
               </ul>
             </motion.div>
@@ -233,15 +243,15 @@ const VendorLandingPage = () => {
                 <ul className="space-y-6">
                   <li className="flex items-start gap-4">
                     <CheckCircle2 className="text-brand-gold shrink-0 mt-1" size={20} />
-                    <p className="text-white font-medium text-lg">0% Commission. You negotiate your price and keep every single Rupee.</p>
+                    <p className="text-white font-medium text-lg">Unbeatable value. We take incredibly low, transparent commissions and absolutely zero subscription fees—unlike legacy platforms.</p>
                   </li>
                   <li className="flex items-start gap-4">
                     <CheckCircle2 className="text-brand-gold shrink-0 mt-1" size={20} />
-                    <p className="text-white font-medium text-lg">Instant direct payouts. You sign the contract directly with the client.</p>
+                    <p className="text-white font-medium text-lg">Instant, direct bookings for all vendors. You sign the contract and secure your dates immediately.</p>
                   </li>
                   <li className="flex items-start gap-4">
                     <CheckCircle2 className="text-brand-gold shrink-0 mt-1" size={20} />
-                    <p className="text-white font-medium text-lg">We bring you high-intent, verified families actively planning high-budget weddings.</p>
+                    <p className="text-white font-medium text-lg">We elevate your brand. Gain exclusive access to verified, high-intent families actively planning premium luxury weddings.</p>
                   </li>
                 </ul>
               </div>
@@ -339,7 +349,7 @@ const VendorLandingPage = () => {
         </div>
       </section>
 
-      {/* SECTION 4: Zero Commission & Instant Payouts */}
+      {/* SECTION 4: Transparent Pricing & Instant Bookings */}
       <section className="py-32 px-6 bg-gradient-to-br from-[#111111] to-black relative overflow-hidden">
         <div className="absolute right-0 bottom-0 w-[600px] h-[600px] bg-brand-gold/10 rounded-full blur-[150px] pointer-events-none translate-x-1/3 translate-y-1/3"></div>
         <div className="max-w-[1000px] mx-auto text-center relative z-10">
@@ -347,19 +357,22 @@ const VendorLandingPage = () => {
             <Wallet size={40} className="text-brand-gold" />
           </div>
           <h2 className="text-5xl md:text-[80px] font-black tracking-tighter text-white mb-8 leading-[1.05]">
-            0% Commission.<br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold to-yellow-300">100% Yours.</span>
+            Transparent Pricing.<br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold to-yellow-300">Maximum Profit.</span>
           </h2>
-          <p className="text-xl md:text-2xl font-medium text-white/60 leading-relaxed max-w-3xl mx-auto mb-12">
-            Why should a platform take 20% of your hard-earned booking? Gomandap exists to connect you. Once the connection is made, the negotiation, the contract, and the payouts happen entirely on your terms, directly with the client.
+          <p className="text-xl md:text-2xl font-medium text-white/60 leading-relaxed max-w-3xl mx-auto mb-4">
+            Stop giving away massive cuts of your hard-earned bookings. Gomandap operates on a radically transparent, ultra-low commission model. You connect instantly with clients, secure your dates, and scale your business without hidden fees.
+          </p>
+          <p className="text-sm text-white/40 mb-12 italic">
+            *Terms and conditions apply.
           </p>
           <div className="flex flex-wrap justify-center gap-6">
             <div className="bg-black/50 backdrop-blur-md border border-white/10 rounded-2xl px-6 py-4 flex items-center gap-3">
               <Zap className="text-brand-gold" size={24} />
-              <span className="text-white font-bold text-lg">Instant Liquidity</span>
+              <span className="text-white font-bold text-lg">Instant Bookings</span>
             </div>
             <div className="bg-black/50 backdrop-blur-md border border-white/10 rounded-2xl px-6 py-4 flex items-center gap-3">
               <Lock className="text-brand-gold" size={24} />
-              <span className="text-white font-bold text-lg">Your Contracts</span>
+              <span className="text-white font-bold text-lg">Direct Connections</span>
             </div>
           </div>
         </div>
@@ -502,42 +515,36 @@ const VendorLandingPage = () => {
           {/* Card 2: Photographers / Artists */}
           <motion.div 
             initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-            className="relative bg-[#111111] rounded-[2.5rem] p-10 overflow-hidden border border-white/10 group shadow-[0_8px_30px_rgb(0,0,0,0.4)] flex flex-col"
+            className="relative bg-[#0A0A0A] rounded-[2.5rem] p-8 md:p-10 overflow-hidden border border-white/5 group shadow-[0_8px_30px_rgb(0,0,0,0.6)] flex flex-col justify-center"
           >
-            <div className="relative z-20 mb-8">
+            <div className="relative z-20">
               <div className="inline-flex items-center gap-1.5 mb-4 text-brand-gold font-bold tracking-wide text-sm uppercase">
                 <Camera size={16} /> Creative Artists
               </div>
               <h3 className="text-[32px] md:text-[40px] font-black text-white tracking-tighter leading-tight mb-4">
                 Showcase your craft in 4K.
               </h3>
-              <p className="text-[17px] text-white/60 font-medium leading-snug">
+              <p className="text-[17px] text-white/60 font-medium leading-relaxed max-w-sm">
                 Upload your finest portfolios. Let brides fall in love with your photography, makeup skills, or decor setups instantly.
               </p>
-            </div>
-            <div className="relative z-10 flex-1 flex items-end justify-center bg-black/20 rounded-2xl -mx-4 -mb-4 pt-8 overflow-hidden">
-               <img src="/images/3d_camera copy.webp" alt="Photography Portfolio" className="w-[80%] h-auto object-contain filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.9)] transform translate-y-6 group-hover:translate-y-2 group-hover:scale-105 transition-transform duration-700 ease-out" />
             </div>
           </motion.div>
 
           {/* Card 3: Decor & Event Planners */}
           <motion.div 
             initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            className="relative bg-[#111111] rounded-[2.5rem] p-10 overflow-hidden border border-white/10 group shadow-[0_8px_30px_rgb(0,0,0,0.4)] flex flex-col"
+            className="relative bg-[#0A0A0A] rounded-[2.5rem] p-8 md:p-10 overflow-hidden border border-white/5 group shadow-[0_8px_30px_rgb(0,0,0,0.6)] flex flex-col justify-center"
           >
-            <div className="relative z-20 mb-8">
+            <div className="relative z-20">
               <div className="inline-flex items-center gap-1.5 mb-4 text-brand-gold font-bold tracking-wide text-sm uppercase">
                 <Sparkles size={16} /> Decorators & Planners
               </div>
               <h3 className="text-[32px] md:text-[40px] font-black text-white tracking-tighter leading-tight mb-4">
                 Design the <br/> unforgettable.
               </h3>
-              <p className="text-[17px] text-white/60 font-medium leading-snug">
+              <p className="text-[17px] text-white/60 font-medium leading-relaxed max-w-sm">
                 From floral arches to neon Sangeet stages, position your event planning and decor business as the premium choice in your city.
               </p>
-            </div>
-            <div className="relative z-10 flex-1 flex items-end justify-center bg-black/20 rounded-2xl -mx-4 -mb-4 pt-8 overflow-hidden">
-               <img src="/images/3d_decor copy.webp" alt="Wedding Decor" className="w-[80%] h-auto object-contain filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.9)] transform translate-y-6 group-hover:translate-y-2 group-hover:scale-105 transition-transform duration-700 ease-out" />
             </div>
           </motion.div>
         </div>

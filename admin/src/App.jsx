@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { AnimatePresence, motion } from 'framer-motion';
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const CategorySettings = lazy(() => import('./pages/CategorySettings'));
+const LanguageSettings = lazy(() => import('./pages/LanguageSettings'));
 const ContentManager = lazy(() => import('./pages/ContentManager'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 import Sidebar from './components/Sidebar';
@@ -66,6 +67,7 @@ function AppLayout() {
                   <Route path="/vendors" element={<AuthGuard><AdminDashboard /></AuthGuard>} />
                   <Route path="/dashboard" element={<AuthGuard><AdminDashboard /></AuthGuard>} />
                   <Route path="/category-settings" element={<AuthGuard><CategorySettings /></AuthGuard>} />
+                  <Route path="/language-settings" element={<AuthGuard><LanguageSettings /></AuthGuard>} />
                   <Route path="/content-manager" element={<AuthGuard><ContentManager /></AuthGuard>} />
                 </Routes>
               </Suspense>

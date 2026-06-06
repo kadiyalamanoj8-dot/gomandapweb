@@ -56,4 +56,46 @@ const toggleCategory = async (req, res) => {
   }
 };
 
-module.exports = { getSettings, toggleCategory };
+// @desc    Toggle a single language on or off
+// @route   PATCH /api/settings/languages/toggle
+// @access  Admin
+const toggleLanguage = async (req, res) => {
+  try {
+    const { language, enabled } = req.body;
+
+    if (!language) {
+      return res.status(400).json({ success: false, message: 'Language code is required.' });
+    }
+
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = await Settings.create({ disabledCategories: [], activeLanguages: ['en', 'hi', 'te', 'ta', 'mr'] });
+    }
+
+    if (enabled) {
+      if (!settings.activeLanguages.includes(language)) {
+        settings.activeLanguages.push(language);
+      }
+    } else {
+      settings.activeLanguages = settings.activeLanguages.filter(l => l !== language);
+    }
+
+    // Ensure 'en' is never disabled completely as a fallback
+    if (!settings.activeLanguages.includes('en')) {
+      settings.activeLanguages.push('en');
+    }
+
+    await settings.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Language "${language}" has been ${enabled ? 'enabled' : 'disabled'}.`,
+      data: settings
+    });
+  } catch (error) {
+    console.error('toggleLanguage Error:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+module.exports = { getSettings, toggleCategory, toggleLanguage };

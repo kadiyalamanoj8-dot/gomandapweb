@@ -73,6 +73,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           >
             <Globe size={18} /> Content Manager
           </NavLink>
+          <NavLink
+            to="/language-settings"
+            onClick={() => setIsOpen(false)}
+            className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          >
+            <Globe size={18} /> Language Settings
+          </NavLink>
         </nav>
 
         <div className="p-4 mt-auto border-t border-white/5">

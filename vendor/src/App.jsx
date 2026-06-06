@@ -9,6 +9,8 @@ const VendorLandingPage = lazy(() => import('./pages/vendor/VendorLandingPage'))
 const VendorOnboarding = lazy(() => import('./pages/vendor/VendorOnboarding'));
 const VendorPending = lazy(() => import('./pages/vendor/VendorPending'));
 const VendorDashboard = lazy(() => import('./pages/vendor/VendorDashboard'));
+const VendorTerms = lazy(() => import('./pages/vendor/VendorTerms'));
+const VendorPrivacy = lazy(() => import('./pages/vendor/VendorPrivacy'));
 import Preloader from './components/Preloader';
 import { HelmetProvider } from 'react-helmet-async';
 import DynamicSEO from './components/DynamicSEO';
@@ -72,15 +74,17 @@ function AppContent() {
         {isPreloading && <Preloader progress={preloadProgress} />}
       </AnimatePresence>
       {!isPreloading && (
-        <div className="font-sans antialiased text-gray-900 bg-white min-h-screen">
+        <div className="flex flex-col min-h-screen bg-[#0A0A0A] overflow-x-hidden">
           <DynamicSEO appTarget="vendor" pageName="global" />
           <AnimatePresence mode="wait">
-            <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div></div>}>
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-[#0A0A0A]"><div className="w-10 h-10 border-4 border-brand-gold border-t-transparent rounded-full animate-spin"></div></div>}>
               <Routes>
                 <Route path="/" element={<VendorLandingPage />} />
                 <Route path="/onboarding" element={<VendorOnboarding />} />
                 <Route path="/pending" element={<VendorPending />} />
                 <Route path="/dashboard" element={<VendorDashboard />} />
+                <Route path="/terms" element={<VendorTerms />} />
+                <Route path="/privacy" element={<VendorPrivacy />} />
                 <Route path="*" element={<Navigate to="/" replace />} /> 
               </Routes>
             </Suspense>

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence, m, LazyMotion, domAnimation, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Search, MapPin, Calendar, PartyPopper } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { EVENT_TYPES } from '../../data/mockData';
 import CustomDropdown from '../ui/CustomDropdown';
 import GlassDatePicker from '../ui/GlassDatePicker';
@@ -29,6 +30,7 @@ const EVENT_MANDAP_MAP = {
 
 
 const HeroParallax = () => {
+  const { t } = useTranslation();
   const containerRef = useRef(null);
   const navigate = useNavigate();
   const [eventType, setEventType] = useState('');
@@ -256,12 +258,13 @@ const HeroParallax = () => {
       >
         <div className="w-full max-w-5xl pointer-events-auto">
           
-          <h1 className="text-4xl md:text-[64px] font-black text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] mb-4 tracking-tight leading-[1.1]">
-            Your Dream Event, <br className="hidden md:block" />Perfectly Orchestrated
-          </h1>
+          <h1 
+            className="text-4xl md:text-[64px] font-black text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] mb-4 tracking-tight leading-[1.1]"
+            dangerouslySetInnerHTML={{ __html: t('hero_title') }}
+          />
           
           <p className="text-lg md:text-xl text-white/90 mb-12 max-w-2xl mx-auto drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] font-medium">
-            Discover India's finest banquet halls, lawns, and top-tier wedding professionals.
+            {t('hero_desc')}
           </p>
 
           {/* Liquid Glass Pill Search Bar */}
@@ -269,13 +272,13 @@ const HeroParallax = () => {
                         {/* iOS Segment: Event Type */}
               <div className="flex-1 w-full md:w-auto relative group rounded-[32px] md:rounded-full hover:bg-white/5 transition-colors cursor-pointer pt-2 md:pt-3 pb-1">
                 <div className="px-6 flex flex-col items-start w-full">
-                  <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.18em] mb-0 ml-1">Event Type</span>
+                  <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.18em] mb-0 ml-1">{t('search_event_type')}</span>
                   <div className="w-full -ml-3">
                     <CustomDropdown
-                      options={EVENT_TYPES.map(t => ({label: t, value: t}))}
+                      options={EVENT_TYPES.map(tOption => ({label: tOption, value: tOption}))}
                       value={eventType}
                       onChange={setEventType}
-                      placeholder="What are you planning?"
+                      placeholder={t('search_event_placeholder')}
                       variant="glass"
                       className="!bg-transparent !border-none !shadow-none !px-4 !py-1 w-full text-[17px] font-semibold text-white tracking-tight"
                     />
@@ -288,7 +291,7 @@ const HeroParallax = () => {
             {/* iOS Segment: Location */}
             <div className="flex-1 w-full md:w-auto relative group rounded-full hover:bg-white/5 transition-colors cursor-text">
               <div className="px-6 py-2 md:py-3 flex flex-col items-start w-full">
-                <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.18em] mb-0.5 ml-1">Location</span>
+                <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.18em] mb-0.5 ml-1">{t('search_location')}</span>
                 <div className="flex items-center gap-2 px-1 py-1 w-full relative">
                   <MapPin size={18} strokeWidth={2} className="text-white/60 shrink-0" />
                   <input 
@@ -298,7 +301,7 @@ const HeroParallax = () => {
                       setLocationQuery(e.target.value);
                       if (selectedLocation) setSelectedLocation(null);
                     }}
-                    placeholder="Where is it?" 
+                    placeholder={t('search_location_placeholder')} 
                     className="w-full bg-transparent text-white font-semibold text-[17px] tracking-tight focus:outline-none placeholder-white/40" 
                   />
                   
@@ -337,7 +340,7 @@ const HeroParallax = () => {
             {/* iOS Segment: Dates & Button */}
             <div className="flex-1 w-full md:w-auto relative group rounded-[28px] md:rounded-full hover:bg-white/5 transition-colors cursor-text flex items-center justify-between pr-2">
               <div className="px-6 py-2 md:py-3 flex flex-col items-start w-full">
-                <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.18em] mb-0.5 ml-1">Dates</span>
+                <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.18em] mb-0.5 ml-1">{t('search_dates')}</span>
                 <div className="px-1 py-1 w-full">
                   <GlassDatePicker
                     value={selectedDate}
@@ -349,10 +352,10 @@ const HeroParallax = () => {
               </div>
               
               {/* Search Button — sole brand red accent */}
-              <button onClick={handleSearch} className="text-white rounded-full h-14 w-14 md:w-auto md:px-7 flex items-center justify-center gap-2 font-bold text-[16px] hover:opacity-90 hover:scale-[1.03] active:scale-95 transition-all shrink-0 shadow-[0_6px_24px_rgba(220,38,38,0.35)]" style={{background: 'linear-gradient(135deg, #DC2626 0%, #EF4444 100%)'}}>
-                <Search size={22} strokeWidth={3} />
-                <span className="hidden md:block">Search</span>
-              </button>
+                <button onClick={handleSearch} className="text-white rounded-full h-14 w-14 md:w-auto md:px-7 flex items-center justify-center gap-2 font-bold text-[16px] hover:opacity-90 hover:scale-[1.03] active:scale-95 transition-all shrink-0 shadow-[0_6px_24px_rgba(220,38,38,0.35)]" style={{background: 'linear-gradient(135deg, #DC2626 0%, #EF4444 100%)'}}>
+                  <Search size={22} strokeWidth={3} />
+                  <span className="hidden md:block">{t('search_btn')}</span>
+                </button>
             </div>
 
           </div>

@@ -1,0 +1,18 @@
+{
+  "nav_venues": "Venues",
+  "nav_vendors": "Vendors",
+  "nav_real_weddings": "Real Weddings",
+  "nav_blog": "Blog",
+  "nav_signin": "Sign In",
+  "hero_title": "Your Dream Event, <br />Perfectly Orchestrated",
+  "hero_desc": "Discover India's finest banquet halls, lawns, and top-tier wedding professionals.",
+  "search_event_type": "Event Type",
+  "search_event_placeholder": "What are you planning?",
+  "search_location": "Location",
+  "search_location_placeholder": "Where is it?",
+  "search_dates": "Dates",
+  "search_btn": "Search",
+  "footer_rights": "All rights reserved. Powered by the Gomandap Network.",
+  "footer_terms": "Terms of Service",
+  "footer_privacy": "Privacy Policy"
+}

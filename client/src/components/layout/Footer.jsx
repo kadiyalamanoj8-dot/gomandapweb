@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Share2, MessageCircle, AtSign, Globe, Link as LinkIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
 const Footer = () => {
+  const { t } = useTranslation();
   const defaultFooterData = {
     aboutText: "Your ultimate marketplace for discovering the finest wedding venues, top-tier caterers, and premium event services across India.",
     socialLinks: [
@@ -106,13 +108,19 @@ const Footer = () => {
 
         <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-gray-400 font-medium">
-            {footerData.copyrightText || `© ${new Date().getFullYear()} Gomandap. All rights reserved.`}
+            {footerData.copyrightText || `© ${new Date().getFullYear()} ${t('footer_rights', 'Gomandap. All rights reserved.')}`}
           </p>
           <div className="flex items-center gap-6">
             <a href="https://vendor.gomandap.com" className="text-sm text-brand-primary hover:text-brand-primary-hover font-bold transition-colors">Vendor Registration</a>
-            <Link to="/privacy" className="text-sm text-gray-400 hover:text-gray-900 transition-colors font-medium">Privacy Policy</Link>
-            <Link to="/terms" className="text-sm text-gray-400 hover:text-gray-900 transition-colors font-medium">Terms of Service</Link>
+            <Link to="/privacy" className="text-sm text-gray-400 hover:text-gray-900 transition-colors font-medium">{t('footer_privacy')}</Link>
+            <Link to="/terms" className="text-sm text-gray-400 hover:text-gray-900 transition-colors font-medium">{t('footer_terms')}</Link>
           </div>
+        </div>
+
+        <div className="mt-8 pt-8 border-t border-gray-100 flex flex-col items-center justify-center text-center">
+          <p className="text-xs text-gray-400 font-medium max-w-4xl leading-relaxed">
+            All images, videos, and graphical assets are the exclusive intellectual property of Gomandap. They are generated for the sole purpose of Gomandap and are strictly owned by us. Made with ❤️ for the Gomandap community.
+          </p>
         </div>
       </div>
     </footer>

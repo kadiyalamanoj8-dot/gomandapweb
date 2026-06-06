@@ -19,6 +19,8 @@ const HomePage = lazy(() => import('./pages/HomePage'));
 const SearchPage = lazy(() => import('./pages/SearchPage'));
 const VendorDetailsPage = lazy(() => import('./pages/VendorDetailsPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const TermsPage = lazy(() => import('./pages/TermsPage'));
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 
 function AppContent() {
   const location = useLocation();
@@ -96,6 +98,8 @@ function AppContent() {
                   <Route path="/search" element={<SearchPage />} />
                   <Route path="/vendor/:id" element={<VendorDetailsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/terms" element={<TermsPage />} />
+                  <Route path="/privacy" element={<PrivacyPage />} />
                   
                   <Route path="*" element={<HomePage />} /> 
                 </Routes>

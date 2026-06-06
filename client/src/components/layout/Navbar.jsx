@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, User } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import GlassLanguageSelector from '../ui/GlassLanguageSelector';
 
 const Navbar = () => {
+  const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMenu = () => {
@@ -19,13 +22,14 @@ const Navbar = () => {
 
           {/* Desktop Nav */}
           <div className="navbar-links">
-            <Link to="/venues" className="nav-item">Venues</Link>
-            <Link to="/vendors" className="nav-item">Vendors</Link>
-            <Link to="/real-weddings" className="nav-item">Real Weddings</Link>
-            <Link to="/blog" className="nav-item">Blog</Link>
+            <Link to="/venues" className="nav-item">{t('nav_venues')}</Link>
+            <Link to="/vendors" className="nav-item">{t('nav_vendors')}</Link>
+            <Link to="/real-weddings" className="nav-item">{t('nav_real_weddings')}</Link>
+            <Link to="/blog" className="nav-item">{t('nav_blog')}</Link>
+            <GlassLanguageSelector />
             <button className="btn btn-primary">
               <User size={18} />
-              Sign In
+              {t('nav_signin')}
             </button>
           </div>
 
@@ -38,13 +42,16 @@ const Navbar = () => {
 
       {/* Mobile Drawer */}
       <div className={`mobile-drawer ${isMobileMenuOpen ? 'open' : ''}`}>
-        <Link to="/venues" className="nav-item" onClick={toggleMenu}>Venues</Link>
-        <Link to="/vendors" className="nav-item" onClick={toggleMenu}>Vendors</Link>
-        <Link to="/real-weddings" className="nav-item" onClick={toggleMenu}>Real Weddings</Link>
-        <Link to="/blog" className="nav-item" onClick={toggleMenu}>Blog</Link>
+        <div className="flex justify-between items-center px-4 pt-4 mb-4">
+          <GlassLanguageSelector />
+        </div>
+        <Link to="/venues" className="nav-item" onClick={toggleMenu}>{t('nav_venues')}</Link>
+        <Link to="/vendors" className="nav-item" onClick={toggleMenu}>{t('nav_vendors')}</Link>
+        <Link to="/real-weddings" className="nav-item" onClick={toggleMenu}>{t('nav_real_weddings')}</Link>
+        <Link to="/blog" className="nav-item" onClick={toggleMenu}>{t('nav_blog')}</Link>
         <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
           <User size={18} />
-          Sign In
+          {t('nav_signin')}
         </button>
       </div>
     </>

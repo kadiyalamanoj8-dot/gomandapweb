@@ -7,6 +7,10 @@ const SettingsSchema = new mongoose.Schema(
     disabledCategories: {
       type: [String],
       default: []
+    },
+    activeLanguages: {
+      type: [String],
+      default: ['en', 'hi', 'te', 'ta', 'mr']
     }
   },
   {
