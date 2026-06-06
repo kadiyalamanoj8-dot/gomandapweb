@@ -226,15 +226,15 @@ const HeroParallax = () => {
                 animate={{ opacity: 1, filter: 'blur(0px)' }}
                 exit={{ opacity: 0, filter: 'blur(10px)' }}
                 transition={{ duration: 1.2, ease: "easeInOut" }}
-                className="absolute w-[100vw] md:w-[90vw] h-[80vh] md:h-[90vh] object-contain mix-blend-screen opacity-100" 
+                className="absolute w-[110vw] md:w-[100vw] h-[90vh] md:h-[100vh] object-contain mix-blend-screen opacity-100" 
                 style={{ willChange: 'transform, opacity, filter' }}
               />
             </AnimatePresence>
           </m.div>
 
           {/* Layer 3: The Couple */}
-          <m.div style={{ x: frontX, y: frontY, translateZ: 80, scale: 1.05, willChange: 'transform' }} className="absolute inset-0 z-30 flex items-center justify-center pt-[15vh] md:pt-[10vh]">
-            <img src="/images/couple_transparent.webp" fetchPriority="high" alt="Couple" className="w-[90vw] md:w-[60vw] max-h-[50vh] md:max-h-[60vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)]" style={{ willChange: 'transform' }} />
+          <m.div style={{ x: frontX, y: frontY, translateZ: 80, scale: 1.05, willChange: 'transform' }} className="absolute inset-0 z-30 flex items-center justify-center pt-[10vh] md:pt-[5vh]">
+            <img src="/images/couple_transparent.webp" fetchPriority="high" alt="Couple" className="w-[100vw] md:w-[70vw] max-h-[65vh] md:max-h-[70vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)]" style={{ willChange: 'transform' }} />
           </m.div>
 
           {/* Floating Particles */}
@@ -260,7 +260,7 @@ const HeroParallax = () => {
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="relative w-full h-screen h-[100dvh] min-h-[600px] z-40 select-none">
+      <div className="relative w-full h-screen h-[100dvh] min-h-[600px] z-40 select-none overflow-hidden">
       
       {background3D}
 

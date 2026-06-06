@@ -9,7 +9,7 @@ const HomePage = () => {
   return (
     <main className="w-full overflow-x-hidden">
       <HeroParallax />
-      <div className="relative z-30 -mt-4 md:-mt-10 bg-white rounded-t-3xl md:rounded-none">
+      <div className="relative z-[50] bg-white rounded-t-3xl mt-0">
         <Suspense fallback={<div className="h-64 flex items-center justify-center">Loading Categories...</div>}>
           <VisualCategoryGrid />
         </Suspense>
