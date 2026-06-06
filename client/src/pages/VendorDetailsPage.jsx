@@ -368,7 +368,7 @@ const VendorDetailsPage = () => {
               <div className="hidden lg:flex flex-col gap-3">
                 <button 
                   onClick={() => setIsQuoteModalOpen(true)}
-                  className="w-full bg-brand-primary text-white py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 shadow-3d hover:shadow-3d-hover hover:-translate-y-1 transition-all active:scale-95"
+                  className="w-full btn-liquid text-white py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 shadow-3d hover:shadow-3d-hover hover:-translate-y-1 transition-all active:scale-95"
                 >
                   <Icons.MessageSquare size={20} /> Request Quote
                 </button>
@@ -400,7 +400,7 @@ const VendorDetailsPage = () => {
             
             <button 
               onClick={() => setIsQuoteModalOpen(true)}
-              className="flex-[1.5] bg-brand-primary text-white py-3.5 rounded-xl font-black text-sm md:text-base shadow-lg active:scale-95 transition-transform text-center flex items-center justify-center gap-2"
+              className="flex-[1.5] btn-liquid text-white py-3.5 rounded-xl font-black text-sm md:text-base shadow-lg active:scale-95 transition-transform text-center flex items-center justify-center gap-2"
             >
               <Icons.MessageSquare size={18} /> Get Quote
             </button>
@@ -457,7 +457,7 @@ const VendorDetailsPage = () => {
               <button 
                 onClick={handleSendQuote}
                 disabled={isSendingQuote}
-                className="w-full mt-4 bg-brand-primary text-white py-4 rounded-xl font-black text-lg flex items-center justify-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform active:scale-95 disabled:opacity-50"
+                className="w-full mt-4 btn-liquid text-white py-4 rounded-xl font-black text-lg flex items-center justify-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform active:scale-95 disabled:opacity-50"
               >
                 {isSendingQuote ? 'Sending...' : (
                   <>

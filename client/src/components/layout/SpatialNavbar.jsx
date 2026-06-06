@@ -54,7 +54,7 @@ const SpatialNavbar = () => {
 
         <button 
           onClick={() => requireAuth(() => navigate('/profile'))}
-          className="bg-brand-primary text-white px-5 py-2 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-brand-primary-hover shadow-3d hover:shadow-3d-hover transition-all transform hover:-translate-y-0.5"
+          className="btn-liquid text-white px-5 py-2 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-brand-primary-hover shadow-3d hover:shadow-3d-hover transition-all transform hover:-translate-y-0.5"
         >
           <User size={16} />
           Profile

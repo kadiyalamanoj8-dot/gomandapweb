@@ -48,7 +48,7 @@ const VendorDashboard = () => {
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-colors ${activeTab === 'bookings' ? 'bg-brand-primary/10 text-brand-primary' : 'text-gray-600 hover:bg-gray-50'}`}
           >
             <CalendarCheck size={18} /> Bookings
-            <span className="ml-auto bg-brand-primary text-white text-[10px] px-2 py-0.5 rounded-full">1 New</span>
+            <span className="ml-auto btn-liquid text-white text-[10px] px-2 py-0.5 rounded-full">1 New</span>
           </button>
           <button 
             onClick={() => setActiveTab('profile')}

@@ -73,7 +73,9 @@ const Footer = () => {
           
           {/* Brand & About */}
           <div className="flex flex-col gap-4 lg:col-span-1">
-            <div className="text-2xl font-black text-brand-primary tracking-tight">Gomandap</div>
+            <div className="flex items-center">
+              <img src="/logo.svg" alt="Gomandap Logo" className="h-8 w-auto object-contain" />
+            </div>
             <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
               {footerData.aboutText || "Your ultimate marketplace for discovering the finest wedding venues, top-tier caterers, and premium event services across India."}
             </p>

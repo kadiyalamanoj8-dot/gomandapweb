@@ -141,7 +141,7 @@ const VendorOnboarding = () => {
                 <button 
                   onClick={handleNext} 
                   disabled={!basicInfo.name || !basicInfo.category || !basicInfo.location}
-                  className="bg-brand-primary text-white px-8 py-3 rounded-xl font-black shadow-md hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
+                  className="btn-liquid text-white px-8 py-3 rounded-xl font-black shadow-md hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
                 >
                   Continue to Details
                 </button>
@@ -208,7 +208,7 @@ const VendorOnboarding = () => {
 
               <div className="mt-8 flex justify-between">
                 <button onClick={handlePrev} className="text-gray-500 font-bold hover:text-gray-900">Back</button>
-                <button onClick={handleNext} className="bg-brand-primary text-white px-8 py-3 rounded-xl font-black shadow-md hover:-translate-y-0.5 transition-all">
+                <button onClick={handleNext} className="btn-liquid text-white px-8 py-3 rounded-xl font-black shadow-md hover:-translate-y-0.5 transition-all">
                   Continue to Gallery
                 </button>
               </div>
@@ -232,7 +232,7 @@ const VendorOnboarding = () => {
 
               <div className="mt-8 flex justify-between">
                 <button onClick={handlePrev} className="text-gray-500 font-bold hover:text-gray-900">Back</button>
-                <button onClick={handleSubmit} className="bg-brand-primary text-white px-8 py-3 rounded-xl font-black shadow-md hover:-translate-y-0.5 transition-all">
+                <button onClick={handleSubmit} className="btn-liquid text-white px-8 py-3 rounded-xl font-black shadow-md hover:-translate-y-0.5 transition-all">
                   Submit Profile
                 </button>
               </div>

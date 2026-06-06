@@ -236,7 +236,7 @@ const SearchPage = () => {
                     </button>
                     <button
                       onClick={() => { const p = new URLSearchParams(); p.set('category','Banquet Halls'); window.location.search = p.toString(); }}
-                      className="px-5 py-2.5 bg-brand-primary text-white rounded-xl text-sm font-black hover:bg-brand-primary/90 transition-all shadow-sm"
+                      className="px-5 py-2.5 btn-liquid text-white rounded-xl text-sm font-black hover:bg-brand-primary/90 transition-all shadow-sm"
                     >
                       Browse All Venues
                     </button>

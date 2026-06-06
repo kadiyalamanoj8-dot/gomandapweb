@@ -215,7 +215,7 @@ const AdminDashboard = () => {
                 onClick={() => setStatusFilter(f)}
                 className={`px-4 py-2.5 rounded-xl text-sm font-bold capitalize transition-all border ${
                   statusFilter === f
-                    ? 'bg-brand-primary text-white border-brand-primary shadow-sm shadow-brand-primary/30'
+                    ? 'btn-liquid text-white border-brand-primary shadow-sm shadow-brand-primary/30'
                     : 'bg-white text-gray-500 border-gray-200 hover:border-brand-primary hover:text-brand-primary'
                 }`}
               >

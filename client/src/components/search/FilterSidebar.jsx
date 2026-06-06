@@ -291,7 +291,7 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [],
       {isMobileOpen && (
         <div className="sticky bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 mt-auto">
           <button 
-            className="w-full bg-brand-primary text-white py-4 rounded-xl font-black shadow-3d hover:shadow-3d-hover active:scale-95 transition-all text-lg"
+            className="w-full btn-liquid text-white py-4 rounded-xl font-black shadow-3d hover:shadow-3d-hover active:scale-95 transition-all text-lg"
             onClick={() => setIsMobileOpen(false)}
           >
             Apply Filters

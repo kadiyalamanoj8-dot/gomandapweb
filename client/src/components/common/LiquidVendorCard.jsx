@@ -140,7 +140,7 @@ const LiquidVendorCard = ({ vendor, layout = 'carousel' }) => {
                   e.stopPropagation();
                   navigate(`/vendor/${vendor.id}`, { state: { vendor } });
                 }}
-                className="flex-1 md:flex-none bg-brand-primary text-white px-8 py-3 rounded-xl font-black text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                className="flex-1 md:flex-none btn-liquid text-white px-8 py-3 rounded-xl font-black text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
               >
                 View Details
               </button>

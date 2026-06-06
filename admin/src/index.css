@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-primary: #EF4444;
-  --color-brand-secondary: #F59E0B;
-  --color-brand-gold: #B8860B;
+  --color-brand-primary: #D4AF37;
+  --color-brand-secondary: #FACC15;
+  --color-brand-gold: #D4AF37;
   --color-brand-black: #111111;
 }
 
@@ -79,4 +79,41 @@ select {
 }
 .animate-skeleton {
   animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* === LIQUID GLASS BUTTON === */
+.btn-liquid {
+  position: relative;
+  overflow: hidden;
+  font-weight: 700;
+  color: white;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #FACC15 0%, #D4AF37 50%, #C9A227 100%);
+  box-shadow: 
+    inset 0 2px 0 rgba(255,255,255,0.4),
+    inset 0 -2px 0 rgba(0,0,0,0.15),
+    0 4px 15px rgba(212,175,55,0.3);
+  border: 1px solid rgba(255,255,255,0.3);
+}
+.btn-liquid:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    inset 0 2px 0 rgba(255,255,255,0.5),
+    inset 0 -2px 0 rgba(0,0,0,0.15),
+    0 8px 25px rgba(212,175,55,0.4);
+  background: linear-gradient(135deg, #FDE047 0%, #EAB308 50%, #CA8A04 100%);
+}
+.btn-liquid::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+.btn-liquid:hover::after {
+  transform: translateX(100%);
 }

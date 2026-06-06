@@ -92,7 +92,7 @@ const CartDrawer = () => {
               <span className="text-sm font-bold text-gray-500 uppercase">Selected Services</span>
               <span className="text-xl font-black text-gray-900">{cartItems.length}</span>
             </div>
-            <button className="w-full bg-brand-primary text-white py-4 rounded-xl font-black text-lg shadow-3d hover:shadow-3d-hover hover:-translate-y-1 transition-all active:scale-95">
+            <button className="w-full btn-liquid text-white py-4 rounded-xl font-black text-lg shadow-3d hover:shadow-3d-hover hover:-translate-y-1 transition-all active:scale-95">
               Confirm Bookings
             </button>
           </div>
