@@ -90,7 +90,11 @@ function AppContent() {
           <main className="flex-grow w-full">
             <CartDrawer />
             <AnimatePresence mode="wait">
-              <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div></div>}>
+              <Suspense fallback={
+                <div className="min-h-screen w-full bg-black flex items-center justify-center">
+                  <div className="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              }>
                 <Routes location={location} key={location.pathname}>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/venues" element={<SearchPage />} />
