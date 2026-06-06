@@ -113,11 +113,8 @@ const VendorLandingPage = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-3xl border-b border-white/10 transition-all duration-300">
         <div className="container mx-auto max-w-[1400px] px-6 h-[60px] flex items-center justify-between">
           <div className="flex items-center">
-             <div className="text-xl font-black text-brand-gold tracking-tight flex items-center gap-2">
-                <div className="w-8 h-8 bg-brand-gold rounded-full flex items-center justify-center">
-                  <span className="text-black font-black text-sm">G.</span>
-                </div>
-                Gomandap <span className="text-white/70 font-medium text-lg">Business</span>
+             <div className="flex items-center">
+                <img src="/logo.svg?v=2" alt="Gomandap Business Logo" className="h-8 md:h-10 w-auto object-contain" />
              </div>
           </div>
           
@@ -181,11 +178,10 @@ const VendorLandingPage = () => {
                 animate={{ x: ['-100%', '100%'] }}
                 transition={{ repeat: Infinity, duration: 2.5, ease: "linear", repeatDelay: 2 }}
               />
-              <div className="relative z-10 flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-black rounded-full shadow-inner border border-white/10">
-                <span className="text-white font-bold text-sm md:text-lg tracking-tighter">G.</span>
+              <span className="relative z-10 drop-shadow-md whitespace-nowrap font-black">Join</span>
+              <div className="relative z-10 flex items-center justify-center">
+                <img src="/logo.svg?v=2" alt="Gomandap Logo" className="h-5 md:h-6 w-auto object-contain" />
               </div>
-              <span className="relative z-10 drop-shadow-md whitespace-nowrap">Join Business</span>
-              <Sparkles size={20} className="relative z-10 text-black/80 drop-shadow-sm hidden sm:block" />
             </motion.button>
           </motion.div>
         </div>
@@ -403,42 +399,74 @@ const VendorLandingPage = () => {
           
           <motion.div 
             initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, type: "spring" }}
-            className="relative mx-auto max-w-5xl bg-[#0A0A0A] rounded-[2.5rem] border border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.8)] p-4 md:p-8 overflow-hidden group cursor-pointer"
-            onClick={() => setShowAuthModal(true)}
+            className="relative mx-auto max-w-5xl bg-[#0A0A0A] rounded-[2.5rem] border border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.8)] p-4 md:p-8 overflow-hidden group"
           >
             <div className="absolute inset-0 bg-gradient-to-t from-brand-gold/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             {/* Dashboard Mockup Representation */}
-            <div className="w-full aspect-video bg-[#111] rounded-3xl overflow-hidden relative border border-white/5 flex flex-col">
+            <div className="w-full aspect-video bg-[#0A0A0A] rounded-3xl overflow-hidden relative border border-white/5 flex flex-col">
                {/* Mock Header */}
-               <div className="h-16 border-b border-white/10 flex items-center px-8 justify-between bg-[#000]">
-                 <div className="w-32 h-4 bg-white/20 rounded-full"></div>
-                 <div className="w-10 h-10 bg-brand-gold/20 rounded-full"></div>
-               </div>
-               {/* Mock Content */}
-               <div className="flex-1 p-8 grid grid-cols-3 gap-6">
-                 <div className="col-span-2 space-y-6">
-                   <div className="h-48 bg-gradient-to-br from-brand-gold/20 to-black border border-brand-gold/30 rounded-2xl relative overflow-hidden">
-                      <div className="absolute bottom-6 left-6 w-32 h-10 bg-brand-gold rounded-lg"></div>
-                   </div>
-                   <div className="grid grid-cols-2 gap-6">
-                     <div className="h-32 bg-white/5 rounded-2xl"></div>
-                     <div className="h-32 bg-white/5 rounded-2xl"></div>
-                   </div>
+               <div className="h-16 border-b border-white/5 flex items-center px-8 justify-between bg-black">
+                 <div className="flex items-center gap-3">
+                   <img src="/logo.svg?v=2" className="h-6 w-auto opacity-50" alt="logo" />
+                   <div className="w-32 h-4 bg-white/10 rounded-full"></div>
                  </div>
-                 <div className="col-span-1 bg-white/5 rounded-2xl p-6 space-y-4">
-                    <div className="h-6 w-1/2 bg-white/20 rounded-full mb-8"></div>
-                    <div className="h-16 bg-black rounded-xl"></div>
-                    <div className="h-16 bg-black rounded-xl"></div>
-                    <div className="h-16 bg-black rounded-xl"></div>
+                 <div className="flex items-center gap-4">
+                   <div className="w-24 h-8 bg-brand-gold/20 border border-brand-gold/30 rounded-full flex items-center justify-center">
+                     <span className="w-16 h-2 bg-brand-gold/50 rounded-full"></span>
+                   </div>
+                   <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-full"></div>
                  </div>
                </div>
-            </div>
-            
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-500">
-              <div className="w-20 h-20 bg-brand-gold rounded-full flex items-center justify-center border border-brand-gold text-black shadow-[0_0_30px_rgba(212,175,55,0.6)] scale-90 group-hover:scale-110 transition-transform">
-                <ArrowRight size={32} />
-              </div>
-              <span className="mt-4 font-black text-white tracking-widest uppercase text-lg drop-shadow-md">Access Dashboard</span>
+               
+               {/* Mock Content Layout */}
+               <div className="flex-1 p-6 md:p-8 flex gap-6 overflow-hidden">
+                 {/* Sidebar Navigation */}
+                 <div className="hidden md:flex w-48 flex-col gap-4">
+                   <div className="h-10 bg-brand-gold/10 border border-brand-gold/20 rounded-xl"></div>
+                   <div className="h-10 bg-white/5 rounded-xl"></div>
+                   <div className="h-10 bg-white/5 rounded-xl"></div>
+                   <div className="h-10 bg-white/5 rounded-xl"></div>
+                 </div>
+
+                 {/* Main Content Area */}
+                 <div className="flex-1 flex flex-col gap-6">
+                   {/* Top Stats Cards */}
+                   <div className="grid grid-cols-3 gap-4">
+                     <div className="h-24 bg-gradient-to-br from-[#1A1A1A] to-black border border-white/10 rounded-2xl p-4 flex flex-col justify-between">
+                       <div className="w-8 h-8 bg-brand-gold/20 rounded-full"></div>
+                       <div className="w-20 h-4 bg-white/20 rounded-full"></div>
+                     </div>
+                     <div className="h-24 bg-gradient-to-br from-[#1A1A1A] to-black border border-white/10 rounded-2xl p-4 flex flex-col justify-between">
+                       <div className="w-8 h-8 bg-blue-500/20 rounded-full"></div>
+                       <div className="w-16 h-4 bg-white/20 rounded-full"></div>
+                     </div>
+                     <div className="h-24 bg-gradient-to-br from-[#1A1A1A] to-black border border-white/10 rounded-2xl p-4 flex flex-col justify-between">
+                       <div className="w-8 h-8 bg-purple-500/20 rounded-full"></div>
+                       <div className="w-24 h-4 bg-white/20 rounded-full"></div>
+                     </div>
+                   </div>
+                   
+                   {/* Main Data View */}
+                   <div className="flex-1 grid grid-cols-3 gap-6">
+                     <div className="col-span-2 bg-[#111111] border border-white/5 rounded-2xl p-6 flex flex-col gap-4">
+                       <div className="w-32 h-5 bg-white/20 rounded-full mb-2"></div>
+                       <div className="flex-1 border border-white/5 rounded-xl bg-black flex items-center justify-center relative overflow-hidden">
+                         {/* Faux graph lines */}
+                         <div className="absolute bottom-0 w-full h-1/2 bg-gradient-to-t from-brand-gold/20 to-transparent"></div>
+                         <svg className="absolute w-full h-full text-brand-gold/40" preserveAspectRatio="none" viewBox="0 0 100 100">
+                           <path d="M0,100 Q10,50 30,60 T60,30 T100,20" fill="none" stroke="currentColor" strokeWidth="2" />
+                         </svg>
+                       </div>
+                     </div>
+                     <div className="col-span-1 bg-[#111111] border border-white/5 rounded-2xl p-6 flex flex-col gap-4">
+                        <div className="w-24 h-5 bg-white/20 rounded-full mb-2"></div>
+                        <div className="h-12 bg-black border border-white/5 rounded-xl"></div>
+                        <div className="h-12 bg-black border border-white/5 rounded-xl"></div>
+                        <div className="h-12 bg-black border border-white/5 rounded-xl"></div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
             </div>
           </motion.div>
         </div>
@@ -453,9 +481,9 @@ const VendorLandingPage = () => {
           {/* Card 1: Venues */}
           <motion.div 
             initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }}
-            className="md:col-span-2 relative bg-white/5 backdrop-blur-3xl rounded-[2.5rem] p-10 md:p-16 overflow-hidden border border-white/10 group shadow-[0_8px_30px_rgb(0,0,0,0.4)]"
+            className="md:col-span-2 relative bg-[#111111] rounded-[2.5rem] overflow-hidden border border-white/10 group shadow-[0_8px_30px_rgb(0,0,0,0.4)] flex flex-col md:flex-row"
           >
-            <div className="relative z-20 md:w-1/2">
+            <div className="relative z-20 md:w-1/2 p-10 md:p-16 flex flex-col justify-center bg-gradient-to-r from-[#111111] via-[#111111] to-transparent">
               <div className="inline-flex items-center gap-1.5 mb-4 text-brand-gold font-bold tracking-wide text-sm uppercase">
                 <Building2 size={16} /> Venue Owners
               </div>
@@ -466,38 +494,38 @@ const VendorLandingPage = () => {
                 Whether you own a massive Kalyana Mandapam or a luxury destination resort, Gomandap puts your property in front of thousands of couples searching for their dream venue.
               </p>
             </div>
-            <div className="absolute right-0 bottom-0 w-[80%] md:w-[60%] h-[90%] transform translate-x-[10%] translate-y-[10%] group-hover:scale-105 group-hover:-translate-x-[5%] transition-transform duration-700 ease-out">
-               <img src="/images/temple_mandap copy.webp" alt="Premium Mandapam" className="w-full h-full object-contain filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)]" />
+            <div className="relative z-10 w-full md:w-1/2 min-h-[250px] md:min-h-full flex items-center justify-center p-8 bg-black/20">
+               <img src="/images/temple_mandap copy.webp" alt="Premium Mandapam" className="w-full max-w-[300px] h-auto object-contain filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.9)] group-hover:scale-110 transition-transform duration-700 ease-out" />
             </div>
           </motion.div>
 
           {/* Card 2: Photographers / Artists */}
           <motion.div 
             initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-            className="relative bg-white/5 backdrop-blur-3xl rounded-[2.5rem] p-10 overflow-hidden border border-white/10 group shadow-[0_8px_30px_rgb(0,0,0,0.4)]"
+            className="relative bg-[#111111] rounded-[2.5rem] p-10 overflow-hidden border border-white/10 group shadow-[0_8px_30px_rgb(0,0,0,0.4)] flex flex-col"
           >
-            <div className="relative z-20 h-full flex flex-col">
+            <div className="relative z-20 mb-8">
               <div className="inline-flex items-center gap-1.5 mb-4 text-brand-gold font-bold tracking-wide text-sm uppercase">
                 <Camera size={16} /> Creative Artists
               </div>
               <h3 className="text-[32px] md:text-[40px] font-black text-white tracking-tighter leading-tight mb-4">
                 Showcase your craft in 4K.
               </h3>
-              <p className="text-[17px] text-white/60 font-medium leading-snug mb-8">
+              <p className="text-[17px] text-white/60 font-medium leading-snug">
                 Upload your finest portfolios. Let brides fall in love with your photography, makeup skills, or decor setups instantly.
               </p>
             </div>
-            <div className="absolute bottom-0 right-0 w-[70%] h-[60%] translate-x-10 translate-y-10 group-hover:scale-105 transition-transform duration-700">
-               <img src="/images/3d_camera copy.webp" alt="Photography Portfolio" className="w-full h-full object-contain filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)]" />
+            <div className="relative z-10 flex-1 flex items-end justify-center bg-black/20 rounded-2xl -mx-4 -mb-4 pt-8 overflow-hidden">
+               <img src="/images/3d_camera copy.webp" alt="Photography Portfolio" className="w-[80%] h-auto object-contain filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.9)] transform translate-y-6 group-hover:translate-y-2 group-hover:scale-105 transition-transform duration-700 ease-out" />
             </div>
           </motion.div>
 
           {/* Card 3: Decor & Event Planners */}
           <motion.div 
             initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            className="relative bg-white/5 backdrop-blur-3xl rounded-[2.5rem] p-10 overflow-hidden border border-white/10 group shadow-[0_8px_30px_rgb(0,0,0,0.4)]"
+            className="relative bg-[#111111] rounded-[2.5rem] p-10 overflow-hidden border border-white/10 group shadow-[0_8px_30px_rgb(0,0,0,0.4)] flex flex-col"
           >
-            <div className="relative z-20 h-full flex flex-col">
+            <div className="relative z-20 mb-8">
               <div className="inline-flex items-center gap-1.5 mb-4 text-brand-gold font-bold tracking-wide text-sm uppercase">
                 <Sparkles size={16} /> Decorators & Planners
               </div>
@@ -508,8 +536,8 @@ const VendorLandingPage = () => {
                 From floral arches to neon Sangeet stages, position your event planning and decor business as the premium choice in your city.
               </p>
             </div>
-            <div className="absolute bottom-0 right-0 w-[80%] h-[70%] translate-x-10 translate-y-10 group-hover:scale-105 transition-transform duration-700">
-               <img src="/images/3d_decor copy.webp" alt="Wedding Decor" className="w-full h-full object-contain filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)]" />
+            <div className="relative z-10 flex-1 flex items-end justify-center bg-black/20 rounded-2xl -mx-4 -mb-4 pt-8 overflow-hidden">
+               <img src="/images/3d_decor copy.webp" alt="Wedding Decor" className="w-[80%] h-auto object-contain filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.9)] transform translate-y-6 group-hover:translate-y-2 group-hover:scale-105 transition-transform duration-700 ease-out" />
             </div>
           </motion.div>
         </div>
@@ -583,8 +611,8 @@ const VendorLandingPage = () => {
 
               <div className="p-8 md:p-10 flex flex-col items-center text-center">
                 <div className="mb-6">
-                   <div className="w-16 h-16 bg-brand-gold/10 border border-brand-gold/20 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(212,175,55,0.2)] mx-auto">
-                     <span className="text-brand-gold font-black text-2xl tracking-tighter">G.</span>
+                   <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.05)] mx-auto p-4">
+                     <img src="/logo.svg?v=2" alt="Gomandap Logo" className="w-full h-full object-contain" />
                    </div>
                 </div>
                 <h2 className="text-[26px] font-black text-white mb-2 tracking-tight">
