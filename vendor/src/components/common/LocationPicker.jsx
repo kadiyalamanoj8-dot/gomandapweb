@@ -50,7 +50,7 @@ const LocationPicker = ({ locationData, onChange }) => {
       try {
         const apiKey = import.meta.env.VITE_OLA_MAPS_API_KEY;
         if (!apiKey) throw new Error("API Key missing");
-        const res = await fetch(`https://api.olamaps.io/places/v1/reverse-geocode?lat=${lat}&lng=${lng}&api_key=${apiKey}`);
+        const res = await fetch(`https://api.olamaps.io/places/v1/reverse-geocode?latlng=${lat},${lng}&api_key=${apiKey}`);
         const data = await res.json();
         
         if (data.results && data.results.length > 0) {
