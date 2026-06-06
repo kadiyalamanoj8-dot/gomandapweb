@@ -110,7 +110,6 @@ const VendorOnboarding = () => {
     }
   }, [basicInfo.category]);
 
-  // Auto-fill address from map pin reverse geocoding
   useEffect(() => {
     if (basicInfo.locationData?.parsedAddress) {
       const pa = basicInfo.locationData.parsedAddress;
@@ -129,7 +128,6 @@ const VendorOnboarding = () => {
     setIsSubmitting(true);
     const formData = new FormData();
     
-    // Append standard fields
     formData.append('category', customCategory || basicInfo.category);
     formData.append('name', basicInfo.name);
     formData.append('ownerName', basicInfo.ownerName);
@@ -154,13 +152,10 @@ const VendorOnboarding = () => {
     }));
 
     formData.append('locationData', JSON.stringify(basicInfo.locationData));
-    
     formData.append('deepFeatures', JSON.stringify(formResponses));
-    
     formData.append('customBlocks', JSON.stringify({
       pricingPackages: schemaFields.pricingPackages.filter(p => p.price)
     }));
-    
     formData.append('banking', JSON.stringify(bankingInfo));
 
     const result = await saveDraft(formData, vendorProfile?._id);
@@ -174,13 +169,8 @@ const VendorOnboarding = () => {
     }
   };
 
-  const handleNext = () => {
-    performSaveDraft(step + 1);
-  };
-  
-  const handlePrev = () => {
-    performSaveDraft(step - 1);
-  };
+  const handleNext = () => performSaveDraft(step + 1);
+  const handlePrev = () => performSaveDraft(step - 1);
 
   const handleCategorySelect = (categoryLabel) => {
     setBasicInfo({...basicInfo, category: categoryLabel});
@@ -189,7 +179,6 @@ const VendorOnboarding = () => {
 
   const handlePortfolioUpload = (e) => {
     const files = Array.from(e.target.files);
-    // Keep actual File objects instead of fake ones
     setPortfolio([...portfolio, ...files]);
   };
 
@@ -199,7 +188,6 @@ const VendorOnboarding = () => {
 
     const formData = new FormData();
     
-    // Append standard fields
     formData.append('name', basicInfo.name);
     formData.append('category', basicInfo.category);
     formData.append('ownerName', basicInfo.ownerName);
@@ -225,13 +213,10 @@ const VendorOnboarding = () => {
     }));
 
     formData.append('locationData', JSON.stringify(basicInfo.locationData));
-    
     formData.append('deepFeatures', JSON.stringify(formResponses));
-    
     formData.append('customBlocks', JSON.stringify({
       pricingPackages: schemaFields.pricingPackages.filter(p => p.price)
     }));
-    
     formData.append('banking', JSON.stringify(bankingInfo));
 
     portfolio.forEach(file => {
@@ -248,43 +233,43 @@ const VendorOnboarding = () => {
     }
   };
 
-  const getFeedbackForField = (fieldName) => {
-    if (!vendorProfile?.adminFeedback) return null;
-    const fb = vendorProfile.adminFeedback.find(f => f.field === fieldName);
-    return fb ? fb.message : null;
-  };
-
-  const FeedbackAlert = ({ field }) => {
-    const msg = getFeedbackForField(field);
-    if (!msg) return null;
-    return <div className="text-xs font-bold text-red-500 mt-1 bg-red-50 p-2 rounded border border-red-100">{msg}</div>;
-  };
-
-  // Validation
   const isStep2Valid = basicInfo.name && basicInfo.ownerName && basicInfo.phone && basicInfo.city && basicInfo.streetAddress;
   const isStep4Valid = bankingInfo.accountNumber && bankingInfo.ifscCode && bankingInfo.bankName && bankingInfo.accountName;
 
+  // Dark Pro Theme Input Classes
+  const inputClassName = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 font-medium text-white focus:outline-none focus:border-brand-gold focus:bg-white/10 focus:ring-1 focus:ring-brand-gold/50 transition-all placeholder:text-white/30";
+  const labelClassName = "block text-[11px] font-bold text-white/50 uppercase tracking-widest mb-2";
+
   return (
-    <div className="min-h-screen bg-[#FBFBFD] pt-24 pb-16 font-sans text-[#1D1D1F]">
+    <div className="min-h-screen bg-black font-sans text-white relative">
+      {/* Immersive Event Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <img 
+          src="/images/temple_background.webp" 
+          alt="Premium Event Background" 
+          className="w-full h-full object-cover opacity-20 scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/80 to-black"></div>
+      </div>
       
       {/* Apple-style sticky transparent/blur header */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#FBFBFD]/80 backdrop-blur-xl border-b border-gray-200/50 transition-all duration-300">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-3xl border-b border-white/10 transition-all duration-300">
         <div className="container mx-auto max-w-[1400px] px-6 h-[60px] flex items-center justify-between">
-          <div className="text-xl font-black text-brand-primary tracking-tight">
-            Gomandap <span className="text-gray-500 font-medium ml-1 text-lg">Business</span>
+          <div className="text-xl font-black text-brand-gold tracking-tight">
+            Gomandap <span className="text-white/70 font-medium ml-1 text-lg">Business</span>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-4 md:px-8 mt-12">
+      <div className="max-w-4xl mx-auto px-4 md:px-8 pt-32 pb-24 relative z-10">
         
         {/* Modern 5-Step Progress Header */}
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight mb-6">Partner Onboarding</h1>
+        <div className="mb-12 text-center">
+          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-8">Partner Onboarding</h1>
           
           <div className="flex justify-between items-center max-w-2xl mx-auto relative">
-            <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2 z-0"></div>
-            <div className="absolute top-1/2 left-0 h-1 bg-brand-primary -translate-y-1/2 z-0 transition-all duration-500" style={{ width: `${((step - 1) / 5) * 100}%` }}></div>
+            <div className="absolute top-1/2 left-0 right-0 h-1 bg-white/10 -translate-y-1/2 z-0 rounded-full"></div>
+            <div className="absolute top-1/2 left-0 h-1 bg-brand-gold -translate-y-1/2 z-0 transition-all duration-500 rounded-full shadow-[0_0_15px_rgba(212,175,55,0.5)]" style={{ width: `${((step - 1) / 5) * 100}%` }}></div>
             
             {[
               { num: 1, icon: Store, label: "Category" },
@@ -295,10 +280,10 @@ const VendorOnboarding = () => {
               { num: 6, icon: CheckCircle2, label: "Review" }
             ].map((s) => (
               <div key={s.num} className="relative z-10 flex flex-col items-center gap-2">
-                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${step >= s.num ? 'bg-brand-primary border-brand-primary text-white shadow-md' : 'bg-white border-gray-300 text-gray-400'}`}>
+                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 backdrop-blur-md ${step >= s.num ? 'bg-brand-gold border-brand-gold text-white shadow-[0_0_20px_rgba(212,175,55,0.4)]' : 'bg-black/50 border-white/20 text-white/40'}`}>
                   <s.icon size={16} className="md:w-5 md:h-5" />
                 </div>
-                <span className={`text-[9px] md:text-xs font-bold absolute -bottom-6 whitespace-nowrap ${step >= s.num ? 'text-gray-900' : 'text-gray-400'}`}>{s.label}</span>
+                <span className={`text-[9px] md:text-[11px] font-bold absolute -bottom-6 whitespace-nowrap tracking-wide ${step >= s.num ? 'text-white' : 'text-white/40'}`}>{s.label}</span>
               </div>
             ))}
           </div>
@@ -306,22 +291,22 @@ const VendorOnboarding = () => {
 
         <motion.div 
           key={step}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3 }}
-          className="bg-white rounded-3xl p-6 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 mt-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, type: "spring", stiffness: 100 }}
+          className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 md:p-10 shadow-[0_8px_40px_rgba(0,0,0,0.5)] border border-white/10 mt-16"
         >
           {/* STEP 1: CATEGORY SELECTION */}
           {step === 1 && (
             <div className="space-y-8">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-black text-gray-900 mb-2">What is your business type?</h2>
-                <p className="text-gray-500 font-medium">Select your primary category to configure your custom dashboard.</p>
+              <div className="text-center mb-10">
+                <h2 className="text-2xl font-black text-white mb-2">What is your business type?</h2>
+                <p className="text-white/60 font-medium">Select your primary category to configure your custom dashboard.</p>
               </div>
               
               <div>
-                <h4 className="text-sm font-bold text-brand-primary uppercase tracking-widest mb-4">1. Wedding Venues</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <h4 className="text-[11px] font-bold text-brand-gold uppercase tracking-widest mb-6">1. Wedding Venues</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                   {activeVenueCategories.map((cat, idx) => {
                     const isSelected = basicInfo.category === cat.label;
                     const icon3d = ICON_MAP[cat.label];
@@ -331,35 +316,29 @@ const VendorOnboarding = () => {
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.03 }}
-                        className="flex flex-col items-center gap-2 group"
+                        className="flex flex-col items-center gap-3 group"
                       >
                         <button
                           onClick={() => handleCategorySelect(cat.label)}
-                          className={`lg-card w-[84px] h-[84px] flex items-center justify-center rounded-[24px] transition-all relative overflow-hidden ${
+                          className={`w-24 h-24 flex items-center justify-center rounded-3xl transition-all duration-300 relative overflow-hidden bg-black/40 backdrop-blur-md ${
                             isSelected 
-                              ? 'selected scale-105 shadow-[0_8px_20px_rgba(239,68,68,0.3)] border-2 border-brand-primary' 
-                              : 'hover:scale-105 border border-transparent'
+                              ? 'scale-105 shadow-[0_0_30px_rgba(250,204,21,0.2)] border-2 border-brand-gold' 
+                              : 'hover:scale-105 hover:bg-white/10 border border-white/10 hover:border-white/20'
                           }`}
                         >
-                          <span
-                            className="lg-glow"
-                            style={{ background: isSelected ? 'rgba(239,68,68,0.35)' : 'rgba(239,68,68,0.1)' }}
-                          />
-                          <div className="w-12 h-12 flex items-center justify-center relative z-10 pointer-events-none">
+                          <div className="w-14 h-14 flex items-center justify-center relative z-10 pointer-events-none">
                             {icon3d ? (
                               <img
                                 src={icon3d}
                                 alt={cat.label}
-                                className="icon-float w-12 h-12 object-contain drop-shadow-md"
+                                className={`w-full h-full object-contain transition-transform duration-300 ${isSelected ? 'scale-110 drop-shadow-[0_10px_20px_rgba(250,204,21,0.3)]' : 'drop-shadow-md group-hover:scale-110'}`}
                               />
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-brand-primary/10 flex items-center justify-center">
-                                <IconComponent name={cat.iconName} size={22} className={isSelected ? 'text-brand-primary' : 'text-gray-500'} />
-                              </div>
+                              <IconComponent name={cat.iconName} size={28} className={isSelected ? 'text-brand-gold' : 'text-white/50 group-hover:text-white'} />
                             )}
                           </div>
                         </button>
-                        <p className={`text-[11px] font-bold text-center leading-tight px-1 h-8 flex items-start justify-center transition-colors ${isSelected ? 'text-brand-primary' : 'text-gray-600 group-hover:text-gray-900'}`}>
+                        <p className={`text-[11px] font-bold text-center leading-tight px-1 h-8 flex items-start justify-center transition-colors ${isSelected ? 'text-brand-gold' : 'text-white/50 group-hover:text-white/90'}`}>
                           {cat.label}
                         </p>
                       </motion.div>
@@ -368,9 +347,9 @@ const VendorOnboarding = () => {
                 </div>
               </div>
 
-              <div className="mt-8">
-                <h4 className="text-sm font-bold text-brand-secondary uppercase tracking-widest mb-4">2. Wedding Vendors</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="mt-12">
+                <h4 className="text-[11px] font-bold text-brand-gold uppercase tracking-widest mb-6">2. Wedding Vendors</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                   {activeVendorCategories.map((cat, idx) => {
                     const isSelected = basicInfo.category === cat.label;
                     const icon3d = ICON_MAP[cat.label];
@@ -380,35 +359,29 @@ const VendorOnboarding = () => {
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.03 }}
-                        className="flex flex-col items-center gap-2 group"
+                        className="flex flex-col items-center gap-3 group"
                       >
                         <button
                           onClick={() => handleCategorySelect(cat.label)}
-                          className={`lg-card w-[84px] h-[84px] flex items-center justify-center rounded-[24px] transition-all relative overflow-hidden ${
+                          className={`w-24 h-24 flex items-center justify-center rounded-3xl transition-all duration-300 relative overflow-hidden bg-black/40 backdrop-blur-md ${
                             isSelected 
-                              ? 'selected scale-105 shadow-[0_8px_20px_rgba(251,146,60,0.3)] border-2 border-brand-secondary' 
-                              : 'hover:scale-105 border border-transparent'
+                              ? 'scale-105 shadow-[0_0_30px_rgba(212,175,55,0.2)] border-2 border-brand-gold' 
+                              : 'hover:scale-105 hover:bg-white/10 border border-white/10 hover:border-white/20'
                           }`}
                         >
-                          <span
-                            className="lg-glow"
-                            style={{ background: isSelected ? 'rgba(251,146,60,0.35)' : 'rgba(251,146,60,0.1)' }}
-                          />
-                          <div className="w-12 h-12 flex items-center justify-center relative z-10 pointer-events-none">
+                          <div className="w-14 h-14 flex items-center justify-center relative z-10 pointer-events-none">
                             {icon3d ? (
                               <img
                                 src={icon3d}
                                 alt={cat.label}
-                                className="icon-float w-12 h-12 object-contain drop-shadow-md"
+                                className={`w-full h-full object-contain transition-transform duration-300 ${isSelected ? 'scale-110 drop-shadow-[0_10px_20px_rgba(212,175,55,0.3)]' : 'drop-shadow-md group-hover:scale-110'}`}
                               />
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-brand-secondary/10 flex items-center justify-center">
-                                <IconComponent name={cat.iconName} size={22} className={isSelected ? 'text-brand-secondary' : 'text-gray-500'} />
-                              </div>
+                              <IconComponent name={cat.iconName} size={28} className={isSelected ? 'text-brand-gold' : 'text-white/50 group-hover:text-white'} />
                             )}
                           </div>
                         </button>
-                        <p className={`text-[11px] font-bold text-center leading-tight px-1 h-8 flex items-start justify-center transition-colors ${isSelected ? 'text-brand-secondary' : 'text-gray-600 group-hover:text-gray-900'}`}>
+                        <p className={`text-[11px] font-bold text-center leading-tight px-1 h-8 flex items-start justify-center transition-colors ${isSelected ? 'text-brand-gold' : 'text-white/50 group-hover:text-white/90'}`}>
                           {cat.label}
                         </p>
                       </motion.div>
@@ -422,83 +395,84 @@ const VendorOnboarding = () => {
           {/* STEP 2: BUSINESS & PERSONAL IDENTITY */}
           {step === 2 && (
             <div className="space-y-8">
-              <h2 className="text-2xl font-black text-gray-900 border-b border-gray-100 pb-4">Business Identity & Contact</h2>
+              <h2 className="text-2xl font-black text-white border-b border-white/10 pb-4">Business Identity & Contact</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Business/Brand Name <span className="text-red-500">*</span></label>
-                  <LazyInput type="text" value={basicInfo.name} onChange={(e) => setBasicInfo({...basicInfo, name: e.target.value})} placeholder="e.g. Capture Infinity Studio" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                  <label className={labelClassName}>Business/Brand Name <span className="text-brand-gold">*</span></label>
+                  <LazyInput type="text" value={basicInfo.name} onChange={(e) => setBasicInfo({...basicInfo, name: e.target.value})} placeholder="e.g. Capture Infinity Studio" className={inputClassName} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Owner Full Name <span className="text-red-500">*</span></label>
-                  <LazyInput type="text" value={basicInfo.ownerName} onChange={(e) => setBasicInfo({...basicInfo, ownerName: e.target.value})} placeholder="e.g. Rahul Sharma" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                  <label className={labelClassName}>Owner Full Name <span className="text-brand-gold">*</span></label>
+                  <LazyInput type="text" value={basicInfo.ownerName} onChange={(e) => setBasicInfo({...basicInfo, ownerName: e.target.value})} placeholder="e.g. Rahul Sharma" className={inputClassName} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Phone Number <span className="text-red-500">*</span></label>
-                  <LazyInput type="tel" value={basicInfo.phone} onChange={(e) => setBasicInfo({...basicInfo, phone: e.target.value})} placeholder="+91 98765 43210" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                  <label className={labelClassName}>Phone Number <span className="text-brand-gold">*</span></label>
+                  <LazyInput type="tel" value={basicInfo.phone} onChange={(e) => setBasicInfo({...basicInfo, phone: e.target.value})} placeholder="+91 98765 43210" className={inputClassName} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">WhatsApp Number</label>
-                  <LazyInput type="tel" value={basicInfo.whatsapp} onChange={(e) => setBasicInfo({...basicInfo, whatsapp: e.target.value})} placeholder="Same as phone" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                  <label className={labelClassName}>WhatsApp Number</label>
+                  <LazyInput type="tel" value={basicInfo.whatsapp} onChange={(e) => setBasicInfo({...basicInfo, whatsapp: e.target.value})} placeholder="Same as phone" className={inputClassName} />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Street Address</label>
-                  <LazyInput type="text" value={basicInfo.streetAddress} onChange={(e) => setBasicInfo({...basicInfo, streetAddress: e.target.value})} placeholder="Shop number, building, street" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                  <label className={labelClassName}>Street Address</label>
+                  <LazyInput type="text" value={basicInfo.streetAddress} onChange={(e) => setBasicInfo({...basicInfo, streetAddress: e.target.value})} placeholder="Shop number, building, street" className={inputClassName} />
                 </div>
                 
-                <div className="md:col-span-2 pt-4 border-t border-gray-100 mt-4">
+                {/* Ensure LocationPicker can handle dark mode classes implicitly or inherits */}
+                <div className="md:col-span-2 pt-4 border-t border-white/10 mt-4 rounded-xl overflow-hidden shadow-lg border border-white/5">
                   <LocationPicker 
                     locationData={basicInfo.locationData} 
                     onChange={(data) => setBasicInfo({...basicInfo, locationData: data})} 
                   />
                 </div>
 
-                <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
+                <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Village / Suburb</label>
-                    <LazyInput type="text" value={basicInfo.village} onChange={(e) => setBasicInfo({...basicInfo, village: e.target.value})} placeholder="e.g. Kondapur" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                    <label className={labelClassName}>Village / Suburb</label>
+                    <LazyInput type="text" value={basicInfo.village} onChange={(e) => setBasicInfo({...basicInfo, village: e.target.value})} placeholder="e.g. Kondapur" className={inputClassName} />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Mandal / Tehsil</label>
-                    <LazyInput type="text" value={basicInfo.mandal} onChange={(e) => setBasicInfo({...basicInfo, mandal: e.target.value})} placeholder="e.g. Serilingampally" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                    <label className={labelClassName}>Mandal / Tehsil</label>
+                    <LazyInput type="text" value={basicInfo.mandal} onChange={(e) => setBasicInfo({...basicInfo, mandal: e.target.value})} placeholder="e.g. Serilingampally" className={inputClassName} />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">District</label>
-                    <LazyInput type="text" value={basicInfo.district} onChange={(e) => setBasicInfo({...basicInfo, district: e.target.value})} placeholder="e.g. Rangareddy" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                    <label className={labelClassName}>District</label>
+                    <LazyInput type="text" value={basicInfo.district} onChange={(e) => setBasicInfo({...basicInfo, district: e.target.value})} placeholder="e.g. Rangareddy" className={inputClassName} />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">State</label>
-                    <LazyInput type="text" value={basicInfo.state} onChange={(e) => setBasicInfo({...basicInfo, state: e.target.value})} placeholder="e.g. Telangana" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                    <label className={labelClassName}>State</label>
+                    <LazyInput type="text" value={basicInfo.state} onChange={(e) => setBasicInfo({...basicInfo, state: e.target.value})} placeholder="e.g. Telangana" className={inputClassName} />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">City (Display)</label>
-                  <LazyInput type="text" value={basicInfo.city} onChange={(e) => setBasicInfo({...basicInfo, city: e.target.value})} placeholder="e.g. Hyderabad" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                  <label className={labelClassName}>City (Display)</label>
+                  <LazyInput type="text" value={basicInfo.city} onChange={(e) => setBasicInfo({...basicInfo, city: e.target.value})} placeholder="e.g. Hyderabad" className={inputClassName} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Pincode</label>
-                  <LazyInput type="text" value={basicInfo.pincode} onChange={(e) => setBasicInfo({...basicInfo, pincode: e.target.value})} placeholder="e.g. 400001" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                  <label className={labelClassName}>Pincode</label>
+                  <LazyInput type="text" value={basicInfo.pincode} onChange={(e) => setBasicInfo({...basicInfo, pincode: e.target.value})} placeholder="e.g. 400001" className={inputClassName} />
                 </div>
                 
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Business Email</label>
-                  <LazyInput type="email" value={basicInfo.email} onChange={(e) => setBasicInfo({...basicInfo, email: e.target.value})} placeholder="contact@business.com" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white" />
+                  <label className={labelClassName}>Business Email</label>
+                  <LazyInput type="email" value={basicInfo.email} onChange={(e) => setBasicInfo({...basicInfo, email: e.target.value})} placeholder="contact@business.com" className={inputClassName} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">GSTIN (Optional)</label>
-                  <LazyInput type="text" value={basicInfo.gstin} onChange={(e) => setBasicInfo({...basicInfo, gstin: e.target.value})} placeholder="22AAAAA0000A1Z5" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary focus:bg-white uppercase" />
+                  <label className={labelClassName}>GSTIN (Optional)</label>
+                  <LazyInput type="text" value={basicInfo.gstin} onChange={(e) => setBasicInfo({...basicInfo, gstin: e.target.value})} placeholder="22AAAAA0000A1Z5" className={`${inputClassName} uppercase`} />
                 </div>
               </div>
 
-              <div className="mt-10 flex justify-between pt-6 border-t border-gray-100">
-                <button onClick={handlePrev} className="flex items-center gap-2 text-gray-500 font-bold hover:text-gray-900 px-4 py-2">
+              <div className="mt-10 flex justify-between pt-6 border-t border-white/10">
+                <button onClick={handlePrev} className="flex items-center gap-2 text-white/50 font-bold hover:text-white px-4 py-2 transition-colors">
                   <ChevronLeft size={18} /> Back
                 </button>
                 <button 
                   onClick={handleNext} 
                   disabled={!isStep2Valid}
-                  className="bg-gray-900 text-white px-8 py-3.5 rounded-xl font-black shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 flex items-center gap-2"
+                  className="bg-brand-gold text-white px-8 py-3.5 rounded-xl font-black shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all disabled:opacity-50 disabled:shadow-none flex items-center gap-2"
                 >
                   Save & Continue <ChevronRight size={18} />
                 </button>
@@ -509,34 +483,36 @@ const VendorOnboarding = () => {
           {/* STEP 3: CATEGORY SERVICES (DEEP SCHEMA) */}
           {step === 3 && (
             <div className="space-y-8">
-              <h2 className="text-2xl font-black text-gray-900 border-b border-gray-100 pb-4 flex items-center gap-3">
-                <Building2 size={24} className="text-brand-primary" /> Core Service Details
+              <h2 className="text-2xl font-black text-white border-b border-white/10 pb-4 flex items-center gap-3">
+                <Building2 size={24} className="text-brand-gold" /> Core Service Details
               </h2>
-              <p className="text-sm font-semibold text-gray-500 mb-6">These details help couples filter and discover your business exactly when they need it.</p>
+              <p className="text-sm font-semibold text-white/50 mb-6">These details help couples filter and discover your business exactly when they need it.</p>
 
               {/* Dynamic Deep Features */}
               {schemaFields.vendorFormFields.length > 0 && (
-                <div className="bg-brand-primary/5 rounded-2xl p-6 border border-brand-primary/20 mb-8">
-                  <h3 className="text-base font-black text-brand-primary mb-4">Key Attributes</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white/5 rounded-2xl p-6 border border-white/10 mb-8 backdrop-blur-sm">
+                  <h3 className="text-base font-black text-brand-gold mb-6 tracking-wide">Key Attributes</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {schemaFields.vendorFormFields.map(field => (
                       <div key={field.id}>
-                        <label className="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">{field.label}</label>
+                        <label className={labelClassName}>{field.label}</label>
                         {field.type === 'select' ? (
-                          <CustomDropdown
-                            value={formResponses[field.id] || ''} 
-                            onChange={(val) => setFormResponses({...formResponses, [field.id]: val})}
-                            options={field.options}
-                            placeholder="Select option"
-                            variant="light"
-                          />
+                          <div className="vendor-dark-dropdown">
+                             <CustomDropdown
+                              value={formResponses[field.id] || ''} 
+                              onChange={(val) => setFormResponses({...formResponses, [field.id]: val})}
+                              options={field.options}
+                              placeholder="Select option"
+                              variant="dark"
+                            />
+                          </div>
                         ) : (
                           <LazyInput 
                             type={field.type}
                             placeholder={field.placeholder}
                             value={formResponses[field.id] || ''} 
                             onChange={(e) => setFormResponses({...formResponses, [field.id]: e.target.value})}
-                            className="w-full bg-white border border-brand-primary/20 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary"
+                            className={inputClassName}
                           />
                         )}
                       </div>
@@ -548,13 +524,13 @@ const VendorOnboarding = () => {
               {/* Pricing Packages */}
               {schemaFields.pricingPackages.length > 0 && (
                 <div>
-                  <h3 className="text-base font-black text-gray-900 mb-4">Pricing Packages</h3>
+                  <h3 className="text-base font-black text-white mb-6">Pricing Packages</h3>
                   <div className="space-y-4">
                     {schemaFields.pricingPackages.map((pkg, idx) => (
-                      <div key={idx} className="bg-gray-50 p-5 rounded-2xl border border-gray-200 flex flex-col md:flex-row md:items-center gap-4">
+                      <div key={idx} className="bg-white/5 p-5 rounded-2xl border border-white/10 flex flex-col md:flex-row md:items-center gap-4">
                         <div className="flex-1">
-                          <label className="block text-sm font-black text-gray-900">{pkg.title}</label>
-                          <span className="text-xs font-bold text-gray-500">{pkg.desc}</span>
+                          <label className="block text-sm font-black text-white">{pkg.title}</label>
+                          <span className="text-xs font-bold text-white/50">{pkg.desc}</span>
                         </div>
                         <LazyInput 
                           type="text" 
@@ -565,7 +541,7 @@ const VendorOnboarding = () => {
                             updated[idx].price = e.target.value;
                             setSchemaFields({...schemaFields, pricingPackages: updated});
                           }}
-                          className="w-full md:w-48 bg-white border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 focus:outline-none focus:border-brand-primary"
+                          className={`${inputClassName} md:w-48`}
                         />
                       </div>
                     ))}
@@ -573,11 +549,11 @@ const VendorOnboarding = () => {
                 </div>
               )}
 
-              <div className="mt-10 flex justify-between pt-6 border-t border-gray-100">
-                <button onClick={handlePrev} className="flex items-center gap-2 text-gray-500 font-bold hover:text-gray-900 px-4 py-2">
+              <div className="mt-10 flex justify-between pt-6 border-t border-white/10">
+                <button onClick={handlePrev} className="flex items-center gap-2 text-white/50 font-bold hover:text-white px-4 py-2 transition-colors">
                   <ChevronLeft size={18} /> Back
                 </button>
-                <button onClick={handleNext} className="bg-gray-900 text-white px-8 py-3.5 rounded-xl font-black shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-2">
+                <button onClick={handleNext} className="bg-brand-gold text-white px-8 py-3.5 rounded-xl font-black shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all flex items-center gap-2">
                   Save & Continue <ChevronRight size={18} />
                 </button>
               </div>
@@ -587,45 +563,45 @@ const VendorOnboarding = () => {
           {/* STEP 4: BANKING & UPI */}
           {step === 4 && (
             <div className="space-y-8">
-              <h2 className="text-2xl font-black text-gray-900 border-b border-gray-100 pb-4 flex items-center gap-3">
-                <Landmark size={24} className="text-blue-500" /> Banking & Payout Details
+              <h2 className="text-2xl font-black text-white border-b border-white/10 pb-4 flex items-center gap-3">
+                <Landmark size={24} className="text-brand-gold" /> Banking & Payout Details
               </h2>
-              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3 text-blue-800 text-sm font-medium mb-6">
-                <CheckCircle2 size={20} className="shrink-0 text-blue-500" />
+              <div className="bg-brand-gold/10 border border-brand-gold/20 rounded-2xl p-4 flex gap-3 text-brand-gold text-sm font-medium mb-6 backdrop-blur-md">
+                <CheckCircle2 size={20} className="shrink-0 text-brand-gold" />
                 <p>Gomandap uses secure bank transfers to remit funds for verified bookings. Your details are encrypted.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Account Holder Name <span className="text-red-500">*</span></label>
-                  <LazyInput type="text" value={bankingInfo.accountName} onChange={(e) => setBankingInfo({...bankingInfo, accountName: e.target.value})} placeholder="As per bank records" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-blue-500 focus:bg-white" />
+                  <label className={labelClassName}>Account Holder Name <span className="text-brand-gold">*</span></label>
+                  <LazyInput type="text" value={bankingInfo.accountName} onChange={(e) => setBankingInfo({...bankingInfo, accountName: e.target.value})} placeholder="As per bank records" className={inputClassName} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Bank Name <span className="text-red-500">*</span></label>
-                  <LazyInput type="text" value={bankingInfo.bankName} onChange={(e) => setBankingInfo({...bankingInfo, bankName: e.target.value})} placeholder="e.g. HDFC Bank" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-blue-500 focus:bg-white" />
+                  <label className={labelClassName}>Bank Name <span className="text-brand-gold">*</span></label>
+                  <LazyInput type="text" value={bankingInfo.bankName} onChange={(e) => setBankingInfo({...bankingInfo, bankName: e.target.value})} placeholder="e.g. HDFC Bank" className={inputClassName} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Account Number <span className="text-red-500">*</span></label>
-                  <LazyInput type="password" value={bankingInfo.accountNumber} onChange={(e) => setBankingInfo({...bankingInfo, accountNumber: e.target.value})} placeholder="Enter Account Number" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-blue-500 focus:bg-white font-mono" />
+                  <label className={labelClassName}>Account Number <span className="text-brand-gold">*</span></label>
+                  <LazyInput type="password" value={bankingInfo.accountNumber} onChange={(e) => setBankingInfo({...bankingInfo, accountNumber: e.target.value})} placeholder="Enter Account Number" className={`${inputClassName} font-mono`} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">IFSC Code <span className="text-red-500">*</span></label>
-                  <LazyInput type="text" value={bankingInfo.ifscCode} onChange={(e) => setBankingInfo({...bankingInfo, ifscCode: e.target.value})} placeholder="e.g. HDFC0001234" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-blue-500 focus:bg-white uppercase font-mono" />
+                  <label className={labelClassName}>IFSC Code <span className="text-brand-gold">*</span></label>
+                  <LazyInput type="text" value={bankingInfo.ifscCode} onChange={(e) => setBankingInfo({...bankingInfo, ifscCode: e.target.value})} placeholder="e.g. HDFC0001234" className={`${inputClassName} uppercase font-mono`} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Business UPI ID</label>
-                  <LazyInput type="text" value={bankingInfo.upiId} onChange={(e) => setBankingInfo({...bankingInfo, upiId: e.target.value})} placeholder="business@upi" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-blue-500 focus:bg-white" />
+                  <label className={labelClassName}>Business UPI ID</label>
+                  <LazyInput type="text" value={bankingInfo.upiId} onChange={(e) => setBankingInfo({...bankingInfo, upiId: e.target.value})} placeholder="business@upi" className={inputClassName} />
                 </div>
               </div>
 
-              <div className="mt-10 flex justify-between pt-6 border-t border-gray-100">
-                <button onClick={handlePrev} className="flex items-center gap-2 text-gray-500 font-bold hover:text-gray-900 px-4 py-2">
+              <div className="mt-10 flex justify-between pt-6 border-t border-white/10">
+                <button onClick={handlePrev} className="flex items-center gap-2 text-white/50 font-bold hover:text-white px-4 py-2 transition-colors">
                   <ChevronLeft size={18} /> Back
                 </button>
                 <button 
                   onClick={handleNext} 
                   disabled={!isStep4Valid}
-                  className="bg-gray-900 text-white px-8 py-3.5 rounded-xl font-black shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center gap-2"
+                  className="bg-brand-gold text-white px-8 py-3.5 rounded-xl font-black shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all disabled:opacity-50 disabled:shadow-none flex items-center gap-2"
                 >
                   Save & Continue <ChevronRight size={18} />
                 </button>
@@ -636,13 +612,13 @@ const VendorOnboarding = () => {
           {/* STEP 5: PORTFOLIO UPLOAD */}
           {step === 5 && (
             <div className="space-y-8">
-              <h2 className="text-2xl font-black text-gray-900 border-b border-gray-100 pb-4 flex items-center gap-3">
+              <h2 className="text-2xl font-black text-white border-b border-white/10 pb-4 flex items-center gap-3">
                 <ImageIcon size={24} className="text-brand-gold" /> Upload Portfolio
               </h2>
-              <p className="text-sm font-semibold text-gray-500 mb-6">High-quality photos increase booking rates by over 300%. Add photos of your venue, past work, or setup.</p>
+              <p className="text-sm font-semibold text-white/50 mb-6">High-quality photos increase booking rates by over 300%. Add photos of your venue, past work, or setup.</p>
 
               {/* Upload Zone UI Simulation */}
-              <div className="border-2 border-dashed border-gray-300 rounded-3xl p-10 text-center bg-gray-50 hover:bg-gray-100 hover:border-gray-400 transition-colors relative">
+              <div className="border-2 border-dashed border-white/20 rounded-3xl p-10 text-center bg-black/40 hover:bg-white/5 hover:border-white/40 transition-colors relative backdrop-blur-md">
                 <input 
                   type="file" 
                   multiple 
@@ -650,39 +626,41 @@ const VendorOnboarding = () => {
                   onChange={handlePortfolioUpload}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-brand-gold">
+                <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 text-brand-gold border border-white/10 shadow-[0_0_15px_rgba(250,204,21,0.2)]">
                   <UploadCloud size={32} />
                 </div>
-                <h4 className="text-lg font-black text-gray-900 mb-1">Click to Upload Images</h4>
-                <p className="text-sm font-semibold text-gray-500 mb-4">or drag and drop JPG, PNG (Max 5MB each)</p>
-                <div className="inline-block bg-white px-4 py-2 rounded-lg text-sm font-bold text-gray-700 shadow-sm border border-gray-200">
+                <h4 className="text-lg font-black text-white mb-1">Click to Upload Images</h4>
+                <p className="text-sm font-semibold text-white/40 mb-6">or drag and drop JPG, PNG (Max 5MB each)</p>
+                <div className="inline-block bg-white/10 border border-white/20 px-6 py-2.5 rounded-xl text-sm font-bold text-white hover:bg-white/20 transition-colors shadow-sm">
                   Select Files
                 </div>
               </div>
 
               {/* Uploaded Files Preview */}
               {portfolio.length > 0 && (
-                <div className="mt-6">
-                  <h4 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-widest">Selected Files ({portfolio.length})</h4>
-                  <div className="space-y-2">
+                <div className="mt-8">
+                  <h4 className="text-[11px] font-bold text-white/60 mb-3 uppercase tracking-widest">Selected Files ({portfolio.length})</h4>
+                  <div className="space-y-3">
                     {portfolio.map((file, idx) => (
-                      <div key={idx} className="flex justify-between items-center bg-gray-50 border border-gray-200 rounded-xl p-3">
+                      <div key={idx} className="flex justify-between items-center bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-sm">
                         <div className="flex items-center gap-3">
-                          <ImageIcon size={20} className="text-gray-400" />
-                          <span className="text-sm font-semibold text-gray-700 truncate max-w-[200px] md:max-w-[400px]">{file.name}</span>
+                          <div className="w-10 h-10 rounded-lg bg-black/50 border border-white/10 flex items-center justify-center">
+                            <ImageIcon size={18} className="text-white/40" />
+                          </div>
+                          <span className="text-sm font-semibold text-white/80 truncate max-w-[200px] md:max-w-[400px]">{file.name}</span>
                         </div>
-                        <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-md">Ready</span>
+                        <span className="text-[10px] font-bold text-green-400 bg-green-400/10 border border-green-400/20 px-2 py-1 rounded-md uppercase tracking-wider">Ready</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              <div className="mt-10 flex justify-between pt-6 border-t border-gray-100">
-                <button onClick={handlePrev} className="flex items-center gap-2 text-gray-500 font-bold hover:text-gray-900 px-4 py-2">
+              <div className="mt-10 flex justify-between pt-6 border-t border-white/10">
+                <button onClick={handlePrev} className="flex items-center gap-2 text-white/50 font-bold hover:text-white px-4 py-2 transition-colors">
                   <ChevronLeft size={18} /> Back
                 </button>
-                <button onClick={handleNext} className="bg-gray-900 text-white px-8 py-3.5 rounded-xl font-black shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-2">
+                <button onClick={handleNext} className="bg-brand-gold text-white px-8 py-3.5 rounded-xl font-black shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all flex items-center gap-2">
                   Review Application <ChevronRight size={18} />
                 </button>
               </div>
@@ -691,21 +669,21 @@ const VendorOnboarding = () => {
 
           {/* STEP 6: SUBMIT (REVIEW) */}
           {step === 6 && (
-            <div className="space-y-6 text-center py-10">
-              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-100">
+            <div className="space-y-6 text-center py-12">
+              <div className="w-24 h-24 bg-green-500/10 border border-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(34,197,94,0.2)]">
                 <CheckCircle2 size={48} className="text-green-500" />
               </div>
-              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-2 tracking-tight">Ready for Verification</h2>
-              <p className="text-base text-gray-500 font-medium max-w-md mx-auto mb-8">
-                Your <strong>{basicInfo.category}</strong> profile for <strong>{basicInfo.name}</strong> is completely filled out. Our partner team will review your banking and portfolio details shortly.
+              <h2 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">Ready for Verification</h2>
+              <p className="text-base text-white/60 font-medium max-w-md mx-auto mb-10 leading-relaxed">
+                Your <strong className="text-brand-gold">{basicInfo.category}</strong> profile for <strong className="text-white">{basicInfo.name}</strong> is fully configured. Our partner team will review your banking and portfolio details to activate your dashboard.
               </p>
 
               <div className="flex flex-col md:flex-row justify-center gap-4">
-                <button onClick={handlePrev} className="text-gray-500 font-bold hover:text-gray-900 px-6 py-3 border border-gray-200 rounded-xl">Back to Edit</button>
+                <button onClick={handlePrev} className="text-white/60 font-bold hover:text-white hover:bg-white/5 px-6 py-3.5 border border-white/20 rounded-xl transition-all">Back to Edit</button>
                 <button 
                   onClick={handleSubmit} 
                   disabled={isSubmitting}
-                  className="bg-brand-primary text-white px-10 py-4 rounded-xl font-black text-lg shadow-[0_10px_20px_-10px_rgba(239,68,68,0.5)] hover:shadow-[0_15px_30px_-10px_rgba(239,68,68,0.7)] hover:-translate-y-1 transition-all disabled:opacity-70 disabled:hover:translate-y-0"
+                  className="bg-brand-gold text-white px-10 py-3.5 rounded-xl font-black shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:hover:translate-y-0"
                 >
                   {isSubmitting ? 'Uploading & Submitting...' : 'Submit Profile'}
                 </button>

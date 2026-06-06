@@ -198,7 +198,7 @@ const VendorDashboard = () => {
         <div className="flex-1 p-4 space-y-2 mt-4">
           <button 
             onClick={() => { setActiveTab('overview'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-semibold text-[15px] transition-all duration-300 ${activeTab === 'overview' ? 'bg-white/10 shadow-lg shadow-black/20 text-white border border-white/20' : 'text-white/60 hover:bg-white/5 hover:text-white border border-transparent'}`}
+            className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-semibold text-[15px] transition-all duration-300 ${activeTab === 'overview' ? 'bg-brand-gold/10 shadow-[0_0_20px_rgba(212,175,55,0.2)] text-brand-gold border border-brand-gold/30' : 'text-white/60 hover:bg-white/5 hover:text-white border border-transparent'}`}
           >
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-300 ${activeTab === 'overview' ? 'scale-110 drop-shadow-lg' : 'grayscale-[0.3] opacity-80'}`}>
               <img src="/images/3d_venue copy.webp" alt="Overview" className="w-full h-full object-contain" />
@@ -208,14 +208,14 @@ const VendorDashboard = () => {
           
           <button 
             onClick={() => { setActiveTab('bookings'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-semibold text-[15px] transition-all duration-300 ${activeTab === 'bookings' ? 'bg-white/10 shadow-lg shadow-black/20 text-white border border-white/20' : 'text-white/60 hover:bg-white/5 hover:text-white border border-transparent'}`}
+            className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-semibold text-[15px] transition-all duration-300 ${activeTab === 'bookings' ? 'bg-brand-gold/10 shadow-[0_0_20px_rgba(212,175,55,0.2)] text-brand-gold border border-brand-gold/30' : 'text-white/60 hover:bg-white/5 hover:text-white border border-transparent'}`}
           >
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-300 ${activeTab === 'bookings' ? 'scale-110 drop-shadow-lg' : 'grayscale-[0.3] opacity-80'}`}>
               <img src="/images/3d_invitation copy.webp" alt="Bookings" className="w-full h-full object-contain" />
             </div>
             Leads & Inquiries
             {inquiries.filter(i => i.status === 'new').length > 0 && (
-              <span className="ml-auto bg-rose-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-md">
+              <span className="ml-auto bg-brand-gold text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-md">
                 {inquiries.filter(i => i.status === 'new').length}
               </span>
             )}
@@ -223,7 +223,7 @@ const VendorDashboard = () => {
           
           <button 
             onClick={() => { setActiveTab('profile'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-semibold text-[15px] transition-all duration-300 ${activeTab === 'profile' ? 'bg-white/10 shadow-lg shadow-black/20 text-white border border-white/20' : 'text-white/60 hover:bg-white/5 hover:text-white border border-transparent'}`}
+            className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-semibold text-[15px] transition-all duration-300 ${activeTab === 'profile' ? 'bg-brand-gold/10 shadow-[0_0_20px_rgba(212,175,55,0.2)] text-brand-gold border border-brand-gold/30' : 'text-white/60 hover:bg-white/5 hover:text-white border border-transparent'}`}
           >
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-300 ${activeTab === 'profile' ? 'scale-110 drop-shadow-lg' : 'grayscale-[0.3] opacity-80'}`}>
               <img src="/images/3d_planner copy.webp" alt="Profile" className="w-full h-full object-contain" />
@@ -240,7 +240,7 @@ const VendorDashboard = () => {
               <p className="text-[11px] font-semibold text-brand-gold truncate">{vendorProfile.category}</p>
             </div>
           </div>
-          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors border border-transparent hover:border-rose-500/20">
+          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-brand-gold hover:bg-brand-gold/10 rounded-xl transition-colors border border-transparent hover:border-brand-gold/20">
             <LogOut size={18} /> Sign Out
           </button>
         </div>
@@ -266,7 +266,7 @@ const VendorDashboard = () => {
                   <button className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors">
                     <Bell size={20} />
                   </button>
-                  <button onClick={() => navigate(`/vendor/${vendorProfile.id}`, { state: { vendor: vendorProfile } })} className="flex items-center gap-2 bg-brand-gold px-6 py-3.5 rounded-full text-[15px] font-bold text-[#1D1D1F] hover:bg-yellow-500 transition-colors shadow-lg shadow-brand-gold/20">
+                  <button onClick={() => navigate(`/vendor/${vendorProfile.id}`, { state: { vendor: vendorProfile } })} className="flex items-center gap-2 bg-brand-gold px-6 py-3.5 rounded-full text-[15px] font-bold text-[#1D1D1F] hover:bg-brand-gold transition-colors shadow-lg shadow-brand-gold/20">
                     <Eye size={18} /> View Storefront
                   </button>
                 </div>
@@ -300,12 +300,12 @@ const VendorDashboard = () => {
                   <img src="/images/3d_decor copy.webp" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-110 group-hover:opacity-80 transition-all duration-700" alt="Calendar" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
                   <div className="absolute bottom-0 left-0 p-6 w-full transform group-hover:-translate-y-2 transition-transform duration-500">
-                    <div className="w-12 h-12 rounded-full bg-blue-500/20 backdrop-blur-md flex items-center justify-center mb-4 border border-blue-500/30 shadow-lg">
-                      <CalendarDays className="text-blue-400" size={20} />
+                    <div className="w-12 h-12 rounded-full bg-brand-gold/20 backdrop-blur-md flex items-center justify-center mb-4 border border-brand-gold/30 shadow-lg">
+                      <CalendarDays className="text-white/80" size={20} />
                     </div>
                     <h4 className="text-2xl font-black text-white mb-2 leading-tight">The Smart Booking Calendar</h4>
                     <p className="text-[15px] font-medium text-white/80 leading-relaxed drop-shadow-md">
-                      <strong className="text-blue-400">Never Miss a Peak Muhurtham.</strong> The Indian event season moves fast. Our smart dashboard tracks your upcoming bookings, available dates, and crew schedules in real-time, helping you maximize your calendar during the busiest wedding seasons without double-booking.
+                      <strong className="text-white/80">Never Miss a Peak Muhurtham.</strong> The Indian event season moves fast. Our smart dashboard tracks your upcoming bookings, available dates, and crew schedules in real-time, helping you maximize your calendar during the busiest wedding seasons without double-booking.
                     </p>
                   </div>
                 </div>
@@ -315,12 +315,12 @@ const VendorDashboard = () => {
                   <img src="/images/modern_gazebo copy.webp" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-110 group-hover:opacity-80 transition-all duration-700" alt="Radar" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
                   <div className="absolute bottom-0 left-0 p-6 w-full transform group-hover:-translate-y-2 transition-transform duration-500">
-                    <div className="w-12 h-12 rounded-full bg-emerald-500/20 backdrop-blur-md flex items-center justify-center mb-4 border border-emerald-500/30 shadow-lg">
-                      <MapPin className="text-emerald-400" size={20} />
+                    <div className="w-12 h-12 rounded-full bg-brand-gold/20 backdrop-blur-md flex items-center justify-center mb-4 border border-brand-gold/30 shadow-lg">
+                      <MapPin className="text-white/80" size={20} />
                     </div>
                     <h4 className="text-2xl font-black text-white mb-2 leading-tight">Hyper-Local Lead Radar</h4>
                     <p className="text-[15px] font-medium text-white/80 leading-relaxed drop-shadow-md">
-                      <strong className="text-emerald-400">Real Leads, Right in Your Zone.</strong> No more chasing cold inquiries. Get instant notifications for premium events happening right in your target regions (like grand wedding inquiries, corporate events, or pre-wedding shoots). Your next big booking is just a tap away.
+                      <strong className="text-white/80">Real Leads, Right in Your Zone.</strong> No more chasing cold inquiries. Get instant notifications for premium events happening right in your target regions (like grand wedding inquiries, corporate events, or pre-wedding shoots). Your next big booking is just a tap away.
                     </p>
                   </div>
                 </div>
@@ -330,12 +330,12 @@ const VendorDashboard = () => {
                   <img src="/images/3d_camera copy.webp" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-110 group-hover:opacity-80 transition-all duration-700" alt="Analytics" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
                   <div className="absolute bottom-0 left-0 p-6 w-full transform group-hover:-translate-y-2 transition-transform duration-500">
-                    <div className="w-12 h-12 rounded-full bg-rose-500/20 backdrop-blur-md flex items-center justify-center mb-4 border border-rose-500/30 shadow-lg">
-                      <TrendingUp className="text-rose-400" size={20} />
+                    <div className="w-12 h-12 rounded-full bg-brand-gold/20 backdrop-blur-md flex items-center justify-center mb-4 border border-brand-gold/30 shadow-lg">
+                      <TrendingUp className="text-brand-gold" size={20} />
                     </div>
                     <h4 className="text-2xl font-black text-white mb-2 leading-tight">Elite Vendor Analytics</h4>
                     <p className="text-[15px] font-medium text-white/80 leading-relaxed drop-shadow-md">
-                      <strong className="text-rose-400">Watch Your Brand Soar.</strong> Track your profile views, quote downloads, and lead conversion rates through beautiful, easy-to-read visual widgets. See exactly what clients love about your portfolio so you can fine-tune your packages and dominate the market.
+                      <strong className="text-brand-gold">Watch Your Brand Soar.</strong> Track your profile views, quote downloads, and lead conversion rates through beautiful, easy-to-read visual widgets. See exactly what clients love about your portfolio so you can fine-tune your packages and dominate the market.
                     </p>
                   </div>
                 </div>
@@ -347,8 +347,8 @@ const VendorDashboard = () => {
             <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
               
               {/* Main Large Widget (Revenue) */}
-              <div className="lg:col-span-2 bg-gradient-to-br from-[#1A0B05]/90 to-[#3A0000]/90 backdrop-blur-3xl p-8 md:p-10 rounded-[2.5rem] border border-brand-primary/30 shadow-[0_12px_40px_rgb(239,68,68,0.3)] relative overflow-hidden flex flex-col justify-between min-h-[260px] group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-brand-gold/40 to-brand-primary/40 rounded-full blur-[80px] transform translate-x-1/3 -translate-y-1/3 group-hover:opacity-80 transition-opacity"></div>
+              <div className="lg:col-span-2 bg-gradient-to-br from-[#000000]/90 to-[#111111]/90 backdrop-blur-3xl p-8 md:p-10 rounded-[2.5rem] border border-brand-gold/30 shadow-[0_12px_40px_rgb(239,68,68,0.3)] relative overflow-hidden flex flex-col justify-between min-h-[260px] group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-brand-gold/40 to-brand-gold/40 rounded-full blur-[80px] transform translate-x-1/3 -translate-y-1/3 group-hover:opacity-80 transition-opacity"></div>
                 <div className="relative z-10 flex justify-between items-start">
                   <div>
                     <span className="text-lg font-bold text-brand-gold mb-1 block">Total Estimated Revenue</span>
@@ -360,14 +360,14 @@ const VendorDashboard = () => {
                 </div>
                 <div className="relative z-10 mt-10 flex items-end gap-4">
                   <span className="text-6xl md:text-8xl font-black tracking-tighter text-white drop-shadow-lg">₹3.2L</span>
-                  <span className="text-lg font-bold text-emerald-400 mb-3">+24%</span>
+                  <span className="text-lg font-bold text-white/80 mb-3">+24%</span>
                 </div>
               </div>
 
               {/* Stacked Smaller Widgets */}
               <div className="flex flex-col gap-6">
                 <div className="flex-1 bg-black/40 backdrop-blur-2xl p-6 rounded-[2rem] border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.5)] relative overflow-hidden group flex items-center justify-between">
-                   <div className="absolute -left-10 -top-10 w-32 h-32 bg-blue-500/20 rounded-full blur-[50px] group-hover:bg-blue-500/30 transition-colors"></div>
+                   <div className="absolute -left-10 -top-10 w-32 h-32 bg-brand-gold/20 rounded-full blur-[50px] group-hover:bg-brand-gold/30 transition-colors"></div>
                    <div className="relative z-10">
                      <span className="text-sm font-bold text-white/60 uppercase tracking-wider block mb-1">Profile Views</span>
                      <span className="text-4xl font-black text-white">2,481</span>
@@ -378,7 +378,7 @@ const VendorDashboard = () => {
                 </div>
 
                 <div className="flex-1 bg-black/40 backdrop-blur-2xl p-6 rounded-[2rem] border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.5)] relative overflow-hidden group flex items-center justify-between">
-                   <div className="absolute -left-10 -top-10 w-32 h-32 bg-emerald-500/20 rounded-full blur-[50px] group-hover:bg-emerald-500/30 transition-colors"></div>
+                   <div className="absolute -left-10 -top-10 w-32 h-32 bg-brand-gold/20 rounded-full blur-[50px] group-hover:bg-brand-gold/30 transition-colors"></div>
                    <div className="relative z-10">
                      <span className="text-sm font-bold text-white/60 uppercase tracking-wider block mb-1">Active Leads</span>
                      <span className="text-4xl font-black text-white">{inquiries.length || 0}</span>
@@ -394,9 +394,9 @@ const VendorDashboard = () => {
             <motion.div variants={itemVariants}>
               <div className="flex justify-between items-center mb-6 px-2">
                 <h3 className="text-2xl font-black tracking-tight text-white drop-shadow-sm flex items-center gap-2">
-                  <CalendarDays className="text-brand-primary" /> Live Inquiries
+                  <CalendarDays className="text-brand-gold" /> Live Inquiries
                 </h3>
-                <button className="text-[15px] font-bold text-brand-gold hover:text-yellow-400 flex items-center gap-1 transition-colors">
+                <button className="text-[15px] font-bold text-brand-gold hover:text-brand-gold flex items-center gap-1 transition-colors">
                   View All <ChevronRight size={16} />
                 </button>
               </div>
@@ -404,14 +404,14 @@ const VendorDashboard = () => {
               <div className="space-y-4">
                 {inquiries.slice(0, 3).map((inquiry) => (
                   <div key={inquiry._id} className="relative bg-gradient-to-r from-black/60 to-black/40 backdrop-blur-2xl rounded-3xl p-6 border border-white/10 shadow-xl overflow-hidden group hover:-translate-y-1 hover:shadow-[0_20px_40px_rgb(0,0,0,0.4)] transition-all duration-300">
-                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${inquiry.status === 'new' ? 'bg-rose-500' : 'bg-brand-primary'}`}></div>
+                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${inquiry.status === 'new' ? 'bg-brand-gold' : 'bg-brand-gold'}`}></div>
                     <div className="absolute right-0 top-0 opacity-5 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
                       <CalendarDays size={200} />
                     </div>
                     
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
                       <div className="flex items-center gap-5">
-                        <div className={`w-14 h-14 rounded-2xl ${inquiry.status === 'new' ? 'bg-rose-500/20 text-rose-500 border-rose-500/30' : 'bg-brand-primary/20 text-brand-primary border-brand-primary/30'} flex items-center justify-center font-black text-xl border shadow-inner`}>
+                        <div className={`w-14 h-14 rounded-2xl ${inquiry.status === 'new' ? 'bg-brand-gold/20 text-brand-gold border-brand-gold/30' : 'bg-brand-gold/20 text-brand-gold border-brand-gold/30'} flex items-center justify-center font-black text-xl border shadow-inner`}>
                           {inquiry.clientName.charAt(0)}
                         </div>
                         <div>
@@ -430,12 +430,12 @@ const VendorDashboard = () => {
                         <div className="h-10 w-px bg-white/10 hidden md:block"></div>
                         <div className="text-left md:text-right">
                           {inquiry.status === 'new' ? (
-                            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-rose-500/20 text-rose-400 text-[13px] font-bold rounded-full border border-rose-500/30">
-                              <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
+                            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-brand-gold/20 text-brand-gold text-[13px] font-bold rounded-full border border-brand-gold/30">
+                              <span className="w-2 h-2 rounded-full bg-brand-gold animate-pulse"></span>
                               New Lead
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-brand-primary/20 text-brand-primary text-[13px] font-bold rounded-full border border-brand-primary/30">
+                            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-brand-gold/20 text-brand-gold text-[13px] font-bold rounded-full border border-brand-gold/30">
                               Viewed
                             </span>
                           )}
@@ -477,7 +477,7 @@ const VendorDashboard = () => {
               {!isEditingProfile ? (
                 <button 
                   onClick={() => setIsEditingProfile(true)}
-                  className="px-6 py-3 bg-brand-gold text-black rounded-xl font-bold hover:bg-yellow-500 transition-colors shadow-lg w-full md:w-auto"
+                  className="px-6 py-3 bg-brand-gold text-black rounded-xl font-bold hover:bg-brand-gold transition-colors shadow-lg w-full md:w-auto"
                 >
                   Edit Profile
                 </button>
@@ -500,7 +500,7 @@ const VendorDashboard = () => {
                   <button 
                     onClick={handleSaveProfile}
                     disabled={isSaving}
-                    className="flex-1 md:flex-none px-6 py-3 bg-brand-gold text-black rounded-xl font-bold hover:bg-yellow-500 transition-colors shadow-lg disabled:opacity-50"
+                    className="flex-1 md:flex-none px-6 py-3 bg-brand-gold text-black rounded-xl font-bold hover:bg-brand-gold transition-colors shadow-lg disabled:opacity-50"
                   >
                     {isSaving ? 'Saving...' : 'Save Changes'}
                   </button>
@@ -517,7 +517,7 @@ const VendorDashboard = () => {
                       type="text" 
                       value={editForm.name} 
                       onChange={e => setEditForm({...editForm, name: e.target.value})}
-                      className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold transition-colors"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold focus:bg-white/10 focus:ring-1 focus:ring-brand-gold/50 transition-all"
                     />
                   ) : (
                     <div className="text-lg font-semibold text-white bg-black/20 rounded-xl px-4 py-3 border border-transparent">{vendorProfile.name}</div>
@@ -531,7 +531,7 @@ const VendorDashboard = () => {
                       type="text" 
                       value={editForm.ownerName} 
                       onChange={e => setEditForm({...editForm, ownerName: e.target.value})}
-                      className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold transition-colors"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold focus:bg-white/10 focus:ring-1 focus:ring-brand-gold/50 transition-all"
                     />
                   ) : (
                     <div className="text-lg font-semibold text-white bg-black/20 rounded-xl px-4 py-3 border border-transparent">{vendorProfile.ownerName}</div>
@@ -545,7 +545,7 @@ const VendorDashboard = () => {
                       type="tel" 
                       value={editForm.phone} 
                       onChange={e => setEditForm({...editForm, phone: e.target.value})}
-                      className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold transition-colors"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold focus:bg-white/10 focus:ring-1 focus:ring-brand-gold/50 transition-all"
                     />
                   ) : (
                     <div className="text-lg font-semibold text-white bg-black/20 rounded-xl px-4 py-3 border border-transparent">{vendorProfile.contact?.phone}</div>
@@ -559,7 +559,7 @@ const VendorDashboard = () => {
                       type="text" 
                       value={editForm.city} 
                       onChange={e => setEditForm({...editForm, city: e.target.value})}
-                      className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold transition-colors"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold focus:bg-white/10 focus:ring-1 focus:ring-brand-gold/50 transition-all"
                     />
                   ) : (
                     <div className="text-lg font-semibold text-white bg-black/20 rounded-xl px-4 py-3 border border-transparent">{vendorProfile.address?.city}</div>
@@ -580,7 +580,7 @@ const VendorDashboard = () => {
                           type="checkbox" 
                           checked={editForm.deepFeatures?.[feature] === "Yes"}
                           onChange={() => handleFeatureToggle(feature)}
-                          className="w-5 h-5 accent-brand-gold bg-black/50 border border-white/20 rounded cursor-pointer"
+                          className="w-5 h-5 accent-brand-gold bg-white/5 border border-white/10 rounded cursor-pointer"
                         />
                         <span className="text-sm font-semibold text-white/80">{feature}</span>
                       </label>
@@ -618,22 +618,22 @@ const VendorDashboard = () => {
                 <div className="space-y-4">
                   {editForm.customBlocks?.pricingPackages?.map((pkg, i) => (
                     <div key={i} className="bg-black/40 p-5 rounded-2xl border border-white/10 relative group">
-                      <button onClick={() => handleRemovePackage(i)} className="absolute top-4 right-4 p-2 text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors">
+                      <button onClick={() => handleRemovePackage(i)} className="absolute top-4 right-4 p-2 text-brand-gold/50 hover:text-brand-gold hover:bg-brand-gold/10 rounded-lg transition-colors">
                         <Trash2 size={18} />
                       </button>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                           <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">Package Name</label>
-                          <input type="text" value={pkg.title} onChange={e => handlePackageChange(i, 'title', e.target.value)} placeholder="e.g. Standard Decor" className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-brand-gold" />
+                          <input type="text" value={pkg.title} onChange={e => handlePackageChange(i, 'title', e.target.value)} placeholder="e.g. Standard Decor" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-brand-gold" />
                         </div>
                         <div>
                           <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">Price</label>
-                          <input type="text" value={pkg.price} onChange={e => handlePackageChange(i, 'price', e.target.value)} placeholder="e.g. ₹50,000" className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-brand-gold font-bold text-sm focus:outline-none focus:border-brand-gold" />
+                          <input type="text" value={pkg.price} onChange={e => handlePackageChange(i, 'price', e.target.value)} placeholder="e.g. ₹50,000" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-brand-gold font-bold text-sm focus:outline-none focus:border-brand-gold" />
                         </div>
                       </div>
                       <div>
                         <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">Description / What's Included</label>
-                        <input type="text" value={pkg.desc} onChange={e => handlePackageChange(i, 'desc', e.target.value)} placeholder="e.g. Stage setup, mandap flowers, and entrance arch" className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-white/80 text-sm focus:outline-none focus:border-brand-gold" />
+                        <input type="text" value={pkg.desc} onChange={e => handlePackageChange(i, 'desc', e.target.value)} placeholder="e.g. Stage setup, mandap flowers, and entrance arch" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white/80 text-sm focus:outline-none focus:border-brand-gold" />
                       </div>
                     </div>
                   ))}
@@ -672,7 +672,7 @@ const VendorDashboard = () => {
         {activeTab === 'bookings' && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="bg-black/40 backdrop-blur-2xl rounded-[2.5rem] p-6 md:p-10 border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.5)] min-h-[500px] relative z-10 max-w-7xl mx-auto">
             <h2 className="text-3xl font-black tracking-tight text-white mb-8 flex items-center gap-3">
-              <CalendarDays className="text-brand-primary" size={32} /> Leads & Inquiries
+              <CalendarDays className="text-brand-gold" size={32} /> Leads & Inquiries
             </h2>
             
             <div className="grid grid-cols-1 gap-4">
@@ -680,7 +680,7 @@ const VendorDashboard = () => {
                 <div key={inquiry._id} className="bg-white/5 rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-colors">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex gap-4">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-lg ${inquiry.status === 'new' ? 'bg-rose-500/20 text-rose-500 border border-rose-500/30' : 'bg-gray-500/20 text-gray-400'}`}>
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-lg ${inquiry.status === 'new' ? 'bg-brand-gold/20 text-brand-gold border border-brand-gold/30' : 'bg-gray-500/20 text-gray-400'}`}>
                         {inquiry.clientName.charAt(0)}
                       </div>
                       <div>
@@ -692,7 +692,7 @@ const VendorDashboard = () => {
                       </div>
                     </div>
                     {inquiry.status === 'new' && (
-                      <span className="bg-rose-500/20 text-rose-500 text-xs font-bold px-3 py-1 rounded-full border border-rose-500/30">NEW</span>
+                      <span className="bg-brand-gold/20 text-brand-gold text-xs font-bold px-3 py-1 rounded-full border border-brand-gold/30">NEW</span>
                     )}
                   </div>
                   
