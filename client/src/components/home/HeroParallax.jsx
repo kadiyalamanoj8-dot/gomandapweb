@@ -277,20 +277,19 @@ const HeroParallax = () => {
                 </div>
 
                 {/* Universal Event Picker Grid Popover */}
-                <div className="block">
+                <div className="w-full">
                   <AnimatePresence>
                     {isEventPickerOpen && (
-                      <>
-                        <div className="fixed inset-0 z-[290] cursor-default" onClick={(e) => { e.stopPropagation(); setIsEventPickerOpen(false); }} />
-                        <m.div
-                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                          transition={{ duration: 0.2, ease: "easeOut" }}
-                          className="absolute top-full left-0 right-0 md:left-1/2 md:-translate-x-1/2 mt-4 md:w-[600px] bg-[#1E1E1E]/80 backdrop-blur-3xl border border-white/10 rounded-2xl md:rounded-3xl p-3 md:p-5 shadow-[0_30px_60px_rgba(0,0,0,0.4)] z-[300] cursor-default"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div className="flex flex-wrap justify-center gap-2 md:gap-3 hide-scrollbar">
+                      <m.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="w-full overflow-hidden cursor-default"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="pt-2 pb-4 px-2 md:px-4">
+                          <div className="flex flex-wrap gap-2 hide-scrollbar">
                             {EVENT_TYPES.map(type => (
                               <button
                                 key={type}
@@ -298,14 +297,14 @@ const HeroParallax = () => {
                                   setEventType(type);
                                   setIsEventPickerOpen(false);
                                 }}
-                                className={`text-center px-4 py-2 rounded-full transition-all duration-200 border ${eventType === type ? 'bg-brand-primary/20 border-brand-primary/50 text-brand-primary shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-white/5 border-white/10 text-white hover:bg-white/15 hover:border-white/30'}`}
+                                className={`text-left px-4 py-2 rounded-full transition-all duration-200 border ${eventType === type ? 'bg-brand-primary/20 border-brand-primary/50 text-brand-primary shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-white/5 border-white/10 text-white hover:bg-white/15 hover:border-white/30'}`}
                               >
                                 <span className="font-semibold text-[13px] md:text-[14px] whitespace-nowrap">{type}</span>
                               </button>
                             ))}
                           </div>
-                        </m.div>
-                      </>
+                        </div>
+                      </m.div>
                     )}
                   </AnimatePresence>
                 </div>
