@@ -31,68 +31,81 @@ const CustomDropdown = ({
 
   const selectedOption = normalizedOptions.find(opt => opt.value === value);
 
-  // LOGO GRADIENT: #DC2626 to #EF4444 (Gomandap brand)
-  const logoGradient = 'linear-gradient(135deg, #DC2626 0%, #EF4444 100%)';
-
   const variants = {
     ios: {
+      // Dark clear glass — used in hero / dark backgrounds
       button: "bg-transparent text-white border-none",
-      menu: "bg-black/20 backdrop-blur-xl border border-white/20 border-t-white/40 shadow-[inset_0_1px_4px_rgba(255,255,255,0.25),0_30px_60px_rgba(0,0,0,0.7)] rounded-[24px] overflow-hidden",
-      item: "text-white hover:bg-white/10 transition-colors active:bg-white/20",
-      activeItemBg: "bg-white/10",
-      menuIcon: "text-white/50",
+      menu: "bg-black/25 backdrop-blur-2xl border border-white/15 border-t-white/30 shadow-[inset_0_1px_3px_rgba(255,255,255,0.15),0_24px_48px_rgba(0,0,0,0.6)] rounded-[22px] overflow-hidden",
+      itemBase: "text-white/90 hover:bg-white/8 hover:text-white transition-colors",
+      activeText: "text-white font-semibold",
+      activeBg: "bg-white/10",
+      divider: "border-white/[0.06]",
+      placeholder: "text-white/45",
     },
     glass: {
       button: "bg-transparent text-white border-none",
-      menu: "bg-black/20 backdrop-blur-xl border border-white/20 border-t-white/40 shadow-[inset_0_1px_4px_rgba(255,255,255,0.25),0_30px_60px_rgba(0,0,0,0.7)] rounded-[24px] overflow-hidden",
-      item: "text-white hover:bg-white/10 transition-colors active:bg-white/20",
-      activeItemBg: "bg-white/10",
-      menuIcon: "text-white/50",
+      menu: "bg-black/25 backdrop-blur-2xl border border-white/15 border-t-white/30 shadow-[inset_0_1px_3px_rgba(255,255,255,0.15),0_24px_48px_rgba(0,0,0,0.6)] rounded-[22px] overflow-hidden",
+      itemBase: "text-white/90 hover:bg-white/8 hover:text-white transition-colors",
+      activeText: "text-white font-semibold",
+      activeBg: "bg-white/10",
+      divider: "border-white/[0.06]",
+      placeholder: "text-white/45",
     },
     light: {
-      button: "bg-white/60 text-gray-900 border border-gray-200/60 shadow-sm hover:border-red-400 backdrop-blur-sm px-4 py-3 rounded-2xl",
-      menu: "bg-white/90 backdrop-blur-xl border border-gray-200/60 shadow-[0_20px_60px_rgba(0,0,0,0.12)] rounded-[24px] overflow-hidden",
-      item: "text-gray-800 hover:bg-red-50/60 transition-colors active:bg-red-100/60",
-      activeItemBg: "bg-red-50/60",
-      menuIcon: "text-gray-400",
+      // Light glass — vendor/admin panels on white/gray backgrounds
+      button: "bg-white/70 text-gray-800 border border-gray-200/70 shadow-sm hover:border-gray-300 backdrop-blur-sm px-4 py-3 rounded-2xl",
+      menu: "bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_16px_48px_rgba(0,0,0,0.09)] rounded-[20px] overflow-hidden",
+      itemBase: "text-gray-700 hover:bg-gray-50 transition-colors",
+      activeText: "text-gray-900 font-semibold",
+      activeBg: "bg-gray-50",
+      divider: "border-gray-100",
+      placeholder: "text-gray-400",
     }
   };
 
-  const currentStyle = variants[variant] || variants.ios;
+  const s = variants[variant] || variants.ios;
   const isDark = variant === 'glass' || variant === 'ios';
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
-      {/* Trigger Button */}
+      {/* Trigger */}
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-between w-full rounded-[18px] cursor-pointer transition-all duration-300 outline-none ${currentStyle.button} ${className}`}
+        className={`flex items-center justify-between w-full rounded-[18px] cursor-pointer transition-all duration-200 outline-none ${s.button} ${className}`}
       >
         <div className="flex items-center gap-2 w-full overflow-hidden pointer-events-none">
-          {Icon && <Icon className={isDark ? "text-white/70" : "text-gray-400"} size={20} strokeWidth={2.5} />}
-          <span className={`truncate font-semibold text-[17px] tracking-tight ${!selectedOption ? (isDark ? 'text-white/60' : 'text-gray-400') : (isDark ? 'text-white' : 'text-gray-900')}`}>
+          {Icon && (
+            <Icon 
+              className={isDark ? "text-white/55" : "text-gray-400"} 
+              size={18} strokeWidth={2} 
+            />
+          )}
+          <span className={`truncate font-semibold text-[16px] tracking-tight ${!selectedOption ? s.placeholder : (isDark ? 'text-white' : 'text-gray-800')}`}>
             {selectedOption ? selectedOption.label : placeholder}
           </span>
         </div>
         <ChevronDown 
-          size={18} 
-          strokeWidth={2.5}
-          className={`shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'} ${isDark ? 'text-white/50' : 'text-gray-400'}`} 
+          size={16} 
+          strokeWidth={2}
+          className={`shrink-0 transition-transform duration-250 ${isOpen ? 'rotate-180' : 'rotate-0'} ${isDark ? 'text-white/35' : 'text-gray-350'}`} 
         />
       </div>
 
-      {/* Dropdown Menu */}
+      {/* Menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 12, scale: 0.96 }}
+            initial={{ opacity: 0, y: 10, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.96 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className={`absolute left-0 z-[9999] w-full min-w-[220px] mt-2 ${currentStyle.menu} ${dropdownClassName}`}
+            exit={{ opacity: 0, y: 6, scale: 0.97 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className={`absolute left-0 z-[9999] w-full min-w-[200px] mt-2 ${s.menu} ${dropdownClassName}`}
             style={{ transformOrigin: 'top center' }}
           >
-            <div className="max-h-[320px] overflow-y-auto overscroll-contain" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+            <div 
+              className="max-h-[300px] overflow-y-auto overscroll-contain" 
+              style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}
+            >
               {normalizedOptions.map((option, idx) => {
                 const isActive = option.value === value;
                 return (
@@ -103,27 +116,28 @@ const CustomDropdown = ({
                       onChange(option.value);
                       setIsOpen(false);
                     }}
-                    className={`px-5 py-3.5 cursor-pointer flex items-center justify-between gap-3 border-b last:border-b-0 ${isDark ? 'border-white/[0.07]' : 'border-gray-100'} ${isActive ? currentStyle.activeItemBg : currentStyle.item}`}
+                    className={`
+                      px-5 py-3 cursor-pointer flex items-center justify-between gap-3 
+                      border-b last:border-b-0 ${s.divider}
+                      ${isActive ? s.activeBg : s.itemBase}
+                    `}
                   >
                     <div className="flex items-center gap-3">
                       {option.icon && (
                         <option.icon 
-                          size={18} strokeWidth={2.5} 
-                          className={!isActive ? currentStyle.menuIcon : ''} 
-                          style={isActive ? {color: '#EF4444'} : {}} 
+                          size={17} strokeWidth={2} 
+                          className={isDark ? (isActive ? 'text-white/80' : 'text-white/40') : (isActive ? 'text-gray-600' : 'text-gray-400')} 
                         />
                       )}
-                      <span 
-                        className={`text-[15px] tracking-tight ${isActive ? 'font-bold' : 'font-medium'}`}
-                        style={isActive ? {background: logoGradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'} : {}}
-                      >
+                      <span className={`text-[14.5px] tracking-tight ${isActive ? s.activeText : 'font-normal'}`}>
                         {option.label}
                       </span>
                     </div>
                     {isActive && (
-                      <div className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{background: logoGradient}}>
-                        <Check size={11} strokeWidth={3} className="text-white" />
-                      </div>
+                      <Check 
+                        size={15} strokeWidth={2.5} 
+                        className={isDark ? 'text-white/70' : 'text-gray-500'} 
+                      />
                     )}
                   </div>
                 );
