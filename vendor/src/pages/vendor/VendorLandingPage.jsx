@@ -110,11 +110,8 @@ const VendorLandingPage = () => {
       {/* Apple-style sticky transparent/blur header */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F5F5F7]/80 backdrop-blur-xl border-b border-[#1D1D1F]/5 transition-all duration-300">
         <div className="container mx-auto max-w-[1400px] px-6 h-[54px] flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/favicon.svg" alt="Gomandap Logo" className="w-6 h-6 object-contain" />
-            <div className="text-[19px] font-semibold tracking-tight text-[#1D1D1F] flex items-center gap-1.5">
-              Gomandap <span className="font-normal text-[#86868B]">Business</span>
-            </div>
+          <div className="flex items-center">
+            <img src="/logo.svg" alt="Gomandap Business Logo" className="h-7 md:h-8 w-auto object-contain hover:scale-105 transition-transform" />
           </div>
           
           <div className="flex items-center gap-6">

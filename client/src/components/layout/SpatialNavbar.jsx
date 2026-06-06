@@ -18,9 +18,8 @@ const SpatialNavbar = () => {
       transition={{ type: "spring", stiffness: 200, damping: 20 }}
       className="fixed top-4 left-1/2 w-[95%] max-w-7xl z-50 rounded-full glass-panel px-6 py-3 flex justify-between items-center"
     >
-      <Link to="/" className="flex items-center gap-2">
-        <img src="/favicon.svg" alt="Gomandap Logo" className="w-8 h-8 object-contain" />
-        <span className="text-2xl font-black text-brand-primary tracking-tight">Gomandap</span>
+      <Link to="/" className="flex items-center">
+        <img src="/logo.svg" alt="Gomandap Logo" className="h-8 md:h-10 w-auto object-contain hover:scale-105 transition-transform" />
       </Link>
 
       {/* Desktop Links */}
