@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Check } from 'lucide-react';
 
 const CustomDropdown = ({ 
-  options, 
+  options = [], 
   value, 
   onChange, 
   placeholder = "Select...", 
