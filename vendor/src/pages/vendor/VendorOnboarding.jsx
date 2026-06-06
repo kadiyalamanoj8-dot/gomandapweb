@@ -421,6 +421,23 @@ const VendorOnboarding = () => {
                 
                 {/* Ensure LocationPicker can handle dark mode classes implicitly or inherits */}
                 <div className="md:col-span-2 pt-4 border-t border-white/10 mt-4 rounded-xl overflow-hidden shadow-lg border border-white/5">
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
+                    className="mb-4 px-2"
+                  >
+                    <motion.p 
+                      animate={{ boxShadow: ['0px 0px 0px rgba(212,175,55,0)', '0px 0px 20px rgba(212,175,55,0.3)', '0px 0px 0px rgba(212,175,55,0)'] }}
+                      transition={{ repeat: Infinity, duration: 3 }}
+                      className="text-[13px] text-brand-gold font-medium bg-brand-gold/10 p-4 rounded-xl border border-brand-gold/30 flex items-start gap-3"
+                    >
+                      <MapPin className="shrink-0 mt-0.5 animate-bounce" size={18} />
+                      <span>
+                        <strong className="font-black uppercase tracking-wider">Pro Tip:</strong> Auto-location might snap to the nearest major area. Please <strong>drag the map pin</strong> exactly to your venue, and manually correct the Village/Mandal boxes below if they are slightly off!
+                      </span>
+                    </motion.p>
+                  </motion.div>
                   <LocationPicker 
                     locationData={basicInfo.locationData} 
                     onChange={(data) => setBasicInfo({...basicInfo, locationData: data})} 

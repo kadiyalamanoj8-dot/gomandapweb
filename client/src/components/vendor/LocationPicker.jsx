@@ -157,9 +157,9 @@ const LocationPicker = ({ locationData, onChange }) => {
             <div className="text-xs text-red-500 mb-2 font-bold">Your location has been locked by Admin and cannot be changed.</div>
         )}
         <div className="h-[300px] w-full rounded-2xl overflow-hidden border border-gray-200 z-0 relative">
-          <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }} attributionControl={false}>
+          <MapContainer center={position} zoom={16} style={{ height: '100%', width: '100%' }} attributionControl={false}>
             <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
             />
             <LocationMarker position={position} setPosition={updatePosition} isLocked={locationData?.isLocationLocked} />
             <MapUpdater position={position} />
