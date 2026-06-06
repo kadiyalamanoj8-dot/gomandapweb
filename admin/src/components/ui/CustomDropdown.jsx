@@ -32,28 +32,28 @@ const CustomDropdown = ({
   const selectedOption = normalizedOptions.find(opt => opt.value === value);
 
   const variants = {
-    ios: {
+    ios: { // Dark Clear 3D Glass (for hero sections)
       button: "bg-transparent text-white border-none",
-      menu: "bg-white/70 backdrop-blur-3xl border border-black/5 shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-2xl overflow-hidden divide-y divide-black/5",
-      item: "text-gray-900 hover:bg-black/5 transition-colors active:bg-black/10",
-      activeItem: "text-brand-primary bg-brand-primary/5",
-      menuIcon: "text-gray-500",
-      activeMenuIcon: "text-brand-primary"
-    },
-    glass: {
-      button: "bg-transparent text-white border-none",
-      menu: "bg-[#1E1E1E]/80 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.4)] rounded-2xl overflow-hidden divide-y divide-white/10",
+      menu: "bg-black/10 backdrop-blur-md border border-white/20 border-t-white/40 shadow-[inset_0_1px_4px_rgba(255,255,255,0.3),0_30px_60px_rgba(0,0,0,0.6)] rounded-[24px] overflow-hidden divide-y divide-white/10",
       item: "text-white hover:bg-white/10 transition-colors active:bg-white/20",
-      activeItem: "text-amber-400 bg-white/5",
+      activeItem: "text-white font-bold bg-white/10",
       menuIcon: "text-white/60",
-      activeMenuIcon: "text-amber-400"
+      activeMenuIcon: "text-white"
     },
-    light: {
-      button: "bg-white text-gray-900 border border-gray-200 shadow-sm hover:border-brand-primary focus:border-brand-primary px-4 py-3",
-      menu: "bg-white border border-gray-100 shadow-2xl rounded-[20px] overflow-hidden divide-y divide-gray-100",
-      item: "text-gray-700 hover:bg-gray-50",
-      activeItem: "bg-brand-primary/5 text-brand-primary",
-      menuIcon: "text-gray-400",
+    glass: { // Dark Clear 3D Glass
+      button: "bg-transparent text-white border-none",
+      menu: "bg-black/10 backdrop-blur-md border border-white/20 border-t-white/40 shadow-[inset_0_1px_4px_rgba(255,255,255,0.3),0_30px_60px_rgba(0,0,0,0.6)] rounded-[24px] overflow-hidden divide-y divide-white/10",
+      item: "text-white hover:bg-white/10 transition-colors active:bg-white/20",
+      activeItem: "text-white font-bold bg-white/10",
+      menuIcon: "text-white/60",
+      activeMenuIcon: "text-white"
+    },
+    light: { // Light Clear 3D Glass (for vendor/admin panels)
+      button: "bg-transparent text-gray-900 border border-black/5 shadow-sm hover:border-brand-primary focus:border-brand-primary px-4 py-3 rounded-xl",
+      menu: "bg-white/20 backdrop-blur-md border border-white/50 border-t-white/80 shadow-[inset_0_1px_4px_rgba(255,255,255,0.7),0_20px_50px_rgba(0,0,0,0.1)] rounded-[24px] overflow-hidden divide-y divide-black/5",
+      item: "text-gray-900 hover:bg-white/40 transition-colors active:bg-white/60",
+      activeItem: "text-brand-primary font-bold bg-white/50",
+      menuIcon: "text-gray-500",
       activeMenuIcon: "text-brand-primary"
     }
   };

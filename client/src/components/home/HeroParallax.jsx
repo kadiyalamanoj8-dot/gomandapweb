@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { LazyMotion, domAnimation, m, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, m, LazyMotion, domAnimation } from 'framer-motion';
 import { Search, MapPin, Calendar, PartyPopper } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { EVENT_TYPES } from '../../data/mockData';
+import CustomDropdown from '../ui/CustomDropdown';
 
 const EVENT_CATEGORY_MAP = {
   'Pelli / Shaadi (The Grand Wedding)': ['Banquet Halls', 'Kalyana Mandapams', 'Open Lawns & Farmhouses', 'Photography & Videography', 'Makeup Artists (MUA)'],
@@ -262,51 +263,21 @@ const HeroParallax = () => {
           </p>
 
           {/* Liquid Glass Pill Search Bar */}
-          <div className="w-full bg-white/10 backdrop-blur-md shadow-[inset_0_1px_1px_rgba(255,255,255,0.8),0_8px_32px_rgba(0,0,0,0.4)] border border-white/40 rounded-[32px] md:rounded-full p-2.5 flex flex-col md:flex-row items-center gap-1 md:gap-0 mx-auto">
+          <div className="w-full bg-white/5 backdrop-blur-md shadow-[inset_0_2px_10px_rgba(255,255,255,0.3),0_20px_50px_rgba(0,0,0,0.5)] border border-white/30 border-t-white/50 rounded-[32px] md:rounded-full p-2.5 flex flex-col md:flex-row items-center gap-1 md:gap-0 mx-auto relative z-[200]">
                         {/* iOS Segment: Event Type */}
-              <div 
-                className="flex-1 w-full md:w-auto relative group rounded-full hover:bg-white/10 transition-colors cursor-pointer"
-                onClick={() => setIsEventPickerOpen(!isEventPickerOpen)}
-              >
-                <div className="px-6 py-2 md:py-3 flex flex-col items-start w-full">
-                  <span className="text-[11px] font-bold text-white/50 uppercase tracking-widest mb-0.5 ml-1">Event Type</span>
-                  
-                  <div className="px-1 py-1 w-full bg-transparent text-white font-semibold text-[17px] tracking-tight truncate">
-                    {eventType || "What are you planning?"}
+              <div className="flex-1 w-full md:w-auto relative group rounded-[32px] md:rounded-full hover:bg-white/5 transition-colors cursor-pointer pt-2 md:pt-3 pb-1">
+                <div className="px-6 flex flex-col items-start w-full">
+                  <span className="text-[11px] font-bold text-white/50 uppercase tracking-widest mb-0 ml-1">Event Type</span>
+                  <div className="w-full -ml-3">
+                    <CustomDropdown
+                      options={EVENT_TYPES.map(t => ({label: t, value: t}))}
+                      value={eventType}
+                      onChange={setEventType}
+                      placeholder="What are you planning?"
+                      variant="glass"
+                      className="!bg-transparent !border-none !shadow-none !px-4 !py-1 w-full text-[17px] font-semibold text-white tracking-tight"
+                    />
                   </div>
-                </div>
-
-                {/* Universal Event Picker Grid Popover */}
-                <div className="w-full">
-                  <AnimatePresence>
-                    {isEventPickerOpen && (
-                      <m.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="w-full overflow-hidden cursor-default"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="pt-2 pb-4 px-2 md:px-4">
-                          <div className="flex flex-wrap gap-2 hide-scrollbar">
-                            {EVENT_TYPES.map(type => (
-                              <button
-                                key={type}
-                                onClick={() => {
-                                  setEventType(type);
-                                  setIsEventPickerOpen(false);
-                                }}
-                                className={`text-left px-4 py-2 rounded-full transition-all duration-200 border ${eventType === type ? 'bg-brand-primary/20 border-brand-primary/50 text-brand-primary shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-white/5 border-white/10 text-white hover:bg-white/15 hover:border-white/30'}`}
-                              >
-                                <span className="font-semibold text-[13px] md:text-[14px] whitespace-nowrap">{type}</span>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </m.div>
-                    )}
-                  </AnimatePresence>
                 </div>
               </div>
 
@@ -339,7 +310,7 @@ const HeroParallax = () => {
 
                   {/* Autocomplete Dropdown */}
                   {locationResults.length > 0 && (
-                    <div className="absolute top-full left-0 mt-4 w-full md:left-1/2 md:-translate-x-1/2 md:w-[400px] bg-[#1E1E1E]/80 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.4)] rounded-2xl md:rounded-3xl overflow-hidden divide-y divide-white/10 z-[9999]">
+                    <div className="absolute top-full left-0 mt-4 w-full md:left-1/2 md:-translate-x-1/2 md:w-[400px] bg-black/10 backdrop-blur-md border border-white/20 border-t-white/40 shadow-[inset_0_1px_4px_rgba(255,255,255,0.3),0_30px_60px_rgba(0,0,0,0.6)] rounded-[24px] overflow-hidden divide-y divide-white/10 z-[9999]">
                       {locationResults.map((loc, i) => (
                         <div 
                           key={i} 
