@@ -241,23 +241,6 @@
     overflow: hidden;
   }
 
-  /* Specular glare sweep — top half bright band */
-  .glass-panel::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 8%; right: 8%;
-    height: 55%;
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.7) 0%,
-      rgba(255, 255, 255, 0.1) 40%,
-      rgba(255, 255, 255, 0) 100%
-    );
-    border-radius: 0 0 80% 80%;
-    pointer-events: none;
-    z-index: 1;
-  }
-
   /* Iridescent animated border shimmer */
   .glass-panel::after {
     content: '';
