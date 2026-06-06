@@ -132,9 +132,9 @@ const VendorLandingPage = () => {
       {/* Hero Section - Apple Pro Style */}
       <section className="relative pt-[120px] pb-24 w-full bg-black overflow-hidden flex flex-col justify-center items-center min-h-[90vh]">
         <img 
-          src="/images/temple_mandap copy.webp" 
-          alt="Premium Event" 
-          className="absolute inset-0 w-full h-full object-cover object-center opacity-40 scale-105 transform origin-center animate-image-drift"
+          src="/images/temple_background.webp" 
+          alt="Premium Event Background" 
+          className="absolute inset-0 w-full h-full object-cover object-center opacity-50 scale-105 transform origin-center animate-image-drift"
         />
         {/* Radical Vignette Gradient */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/60 to-black z-10"></div>
@@ -177,7 +177,7 @@ const VendorLandingPage = () => {
           Your craft. <br /> Our connections.
         </h2>
         <p className="text-[21px] md:text-[24px] font-medium text-[#86868B] leading-[1.4] max-w-3xl mx-auto">
-          Whether you run a Kalyana Mandapam, offer Bridal Makeup, or design Sangeet Decor, Gomandap connects you directly with families ready to book. No hidden fees. No stolen leads. Just honest business.
+          Whether you run a Kalyana Mandapam, offer Bridal Makeup, or design Sangeet Decor, Gomandap connects you directly with families ready to book. Elevate your brand and reach the clients who value your expertise.
         </p>
       </section>
 
@@ -185,27 +185,27 @@ const VendorLandingPage = () => {
       <section className="max-w-[1200px] mx-auto px-6 pb-32">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 auto-rows-[400px]">
           
-          {/* Card 1: Wide (Span 2) - 0% Commission */}
+          {/* Card 1: Wide (Span 2) - Elite Networking */}
           <motion.div 
             initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }}
             className="md:col-span-2 relative bg-white rounded-[2.5rem] p-10 md:p-16 overflow-hidden group shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_40px_rgb(0,0,0,0.08)] transition-shadow"
           >
             <div className="relative z-20 md:w-1/2">
               <div className="inline-flex items-center gap-1.5 mb-4 text-[#86868B] font-semibold tracking-wide text-sm uppercase">
-                <TrendingUp size={16} /> 100% Yours
+                <TrendingUp size={16} /> Elite Networking
               </div>
               <h3 className="text-[40px] md:text-[56px] font-bold text-[#1D1D1F] tracking-tighter leading-[1.05] mb-6">
-                Zero <br /> commission.
+                Unmatched <br /> visibility.
               </h3>
               <p className="text-[19px] text-[#86868B] font-medium leading-snug">
-                You negotiate. You set the price. You keep every single rupee. We just bring the clients to your door.
+                Connect directly with serious clients planning high-end Indian weddings and grand events. We bridge the gap between top-tier professionals and the families searching for them.
               </p>
             </div>
-            {/* Dynamic abstract art for the right side */}
-            <div className="absolute top-0 right-0 bottom-0 w-full md:w-1/2 flex justify-end items-center opacity-20 md:opacity-100 p-8 pointer-events-none">
+            {/* Dynamic art for the right side */}
+            <div className="absolute top-0 right-0 bottom-0 w-full md:w-1/2 flex justify-end items-center opacity-40 md:opacity-100 p-8 pointer-events-none">
                 <div className="relative w-full h-full max-w-[400px]">
-                    <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/40 to-orange-500/40 rounded-full blur-[80px] animate-pulse"></div>
-                    <img src="/images/3d_planner copy.webp" alt="Planner" className="w-full h-full object-contain relative z-10 drop-shadow-2xl scale-125 translate-x-12" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/20 to-orange-500/20 rounded-full blur-[60px] animate-pulse"></div>
+                    <img src="/images/3d_planner copy.webp" alt="Event Planner" className="w-full h-full object-contain relative z-10 drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)] scale-125 translate-x-12" />
                 </div>
             </div>
           </motion.div>
@@ -217,18 +217,18 @@ const VendorLandingPage = () => {
           >
             <div className="relative z-20">
               <div className="inline-flex items-center gap-1.5 mb-4 text-[#86868B] font-semibold tracking-wide text-sm uppercase">
-                <ShieldCheck size={16} /> Verified Contacts
+                <ShieldCheck size={16} /> Authentic Leads
               </div>
               <h3 className="text-[32px] md:text-[40px] font-bold text-[#1D1D1F] tracking-tighter leading-[1.1] mb-4">
-                Real families. <br /> Zero spam.
+                Real families. <br /> Verified intent.
               </h3>
               <p className="text-[17px] text-[#86868B] font-medium leading-snug">
-                Every phone number is OTP-verified before they can view your contact details.
+                Every inquiry is OTP-verified. Spend your time closing meaningful deals, not chasing spam.
               </p>
             </div>
             <div className="relative h-40 mt-8">
-                <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/20 to-transparent rounded-full blur-[40px]"></div>
-                <img src="/images/3d_invitation copy.webp" alt="Verified" className="w-full h-full object-contain object-bottom relative z-10 drop-shadow-xl" />
+                <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/10 to-transparent rounded-full blur-[30px]"></div>
+                <img src="/images/3d_invitation copy.webp" alt="Verified Contacts" className="w-full h-full object-contain object-bottom relative z-10 drop-shadow-[0_10px_20px_rgba(0,0,0,0.1)]" />
             </div>
           </motion.div>
 
@@ -249,8 +249,8 @@ const VendorLandingPage = () => {
               </p>
             </div>
             <div className="relative h-40 mt-8">
-                <div className="absolute inset-0 bg-gradient-to-t from-brand-primary/30 to-transparent rounded-full blur-[40px]"></div>
-                <img src="/images/3d_venue copy.webp" alt="Venue" className="w-full h-full object-contain object-bottom relative z-10 drop-shadow-2xl" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#EF4444]/20 to-transparent rounded-full blur-[30px]"></div>
+                <img src="/images/3d_venue copy.webp" alt="Premium Dashboard" className="w-full h-full object-contain object-bottom relative z-10 drop-shadow-[0_15px_30px_rgba(0,0,0,0.3)]" />
             </div>
           </motion.div>
 
