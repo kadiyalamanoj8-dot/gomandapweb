@@ -189,59 +189,74 @@ const HeroParallax = () => {
   const background3D = useMemo(() => (
     <div 
       ref={containerRef}
-      className="absolute inset-0 w-full h-full bg-black z-0"
-      style={{ perspective: '1200px', willChange: 'transform', overflow: 'hidden' }}
+      className="absolute inset-0 w-full h-full z-0"
     >
-      <m.div 
-        animate={{ translateZ: 400 }}
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none"
+      {/* Layer 1: Background Temple — plain absolute fill, NO 3D translateZ (that shrinks it) */}
+      <m.div
+        style={{ x: bgX, y: bgY }}
+        className="absolute inset-[-10%] w-[120%] h-[120%] z-0"
       >
-        {/* Layer 1: Background Temple (Z: -600) */}
-        <m.div style={{ x: bgX, y: bgY, translateZ: -600, willChange: 'transform' }} className="absolute inset-0 w-full h-full z-0">
-          <img src="/images/temple_background.webp" fetchPriority="high" decoding="async" alt="Background" className="w-full h-full object-cover opacity-80" style={{ willChange: 'transform', transform: 'scale(3)' }} />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60 z-10" />
-        </m.div>
-
-        {/* Layer 2: Dynamic Mandap Frame (Z: -100) */}
-        <m.div style={{ x: midX, y: midY, translateZ: -100, scale: 1.5, willChange: 'transform' }} className="absolute inset-[-20%] z-20 flex items-center justify-center">
-          <AnimatePresence mode="wait">
-            <m.img 
-              key={currentMandap}
-              src={currentMandap} 
-              initial={{ opacity: 0, filter: 'blur(10px)' }}
-              animate={{ opacity: 1, filter: 'blur(0px)' }}
-              exit={{ opacity: 0, filter: 'blur(10px)' }}
-              transition={{ duration: 1.2, ease: "easeInOut" }}
-              className="absolute w-[100vw] md:w-[90vw] h-[80vh] md:h-[90vh] object-contain mix-blend-screen opacity-100" 
-              style={{ willChange: 'transform, opacity, filter' }}
-            />
-          </AnimatePresence>
-        </m.div>
-
-        {/* Layer 3: The Couple (Z: 100) */}
-        <m.div style={{ x: frontX, y: frontY, translateZ: 100, scale: 1.1, willChange: 'transform' }} className="absolute inset-[-5%] z-30 flex items-center justify-center pt-[15vh] md:pt-[10vh]">
-          <img src="/images/couple_transparent.webp" fetchPriority="high" alt="Couple" className="w-[90vw] md:w-[60vw] max-h-[50vh] md:max-h-[60vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)]" style={{ willChange: 'transform' }} />
-        </m.div>
-
-        {/* Floating Particles (Z: 150) */}
-        <div className="absolute inset-0 z-40 overflow-hidden pointer-events-none" style={{ transform: "translateZ(150px)" }}>
-          {Array.from({ length: 40 }).map((_, i) => (
-            <m.div
-              key={i}
-              initial={{ y: "120vh", x: Math.random() * window.innerWidth, rotate: 0 }}
-              animate={{ y: "-20vh", x: `calc(${Math.random() * 100}vw)`, rotate: 360 }}
-              transition={{ duration: Math.random() * 8 + 5, repeat: Infinity, ease: "linear", delay: Math.random() * 5 }}
-              className={`absolute w-3 h-3 bg-gradient-to-br ${
-                i % 3 === 0 ? 'from-[#FFC107] to-white shadow-[0_0_15px_#FFC107]' : 
-                'from-[#E91E63] to-[#F48FB1] shadow-[0_0_10px_#E91E63] rounded-tr-full rounded-bl-full' 
-              } blur-[1px] opacity-80`}
-            />
-          ))}
-        </div>
+        <img
+          src="/images/temple_background.webp"
+          fetchPriority="high"
+          decoding="async"
+          alt="Background"
+          className="w-full h-full object-cover opacity-80"
+          style={{ willChange: 'transform' }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60 z-10" />
       </m.div>
+
+      {/* 3D Perspective container for mandap + couple only */}
+      <div
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        style={{ perspective: '1200px' }}
+      >
+        <m.div
+          style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+          className="absolute inset-0 w-full h-full flex items-center justify-center"
+        >
+          {/* Layer 2: Dynamic Mandap Frame */}
+          <m.div style={{ x: midX, y: midY, translateZ: 0, willChange: 'transform' }} className="absolute inset-0 z-20 flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              <m.img 
+                key={currentMandap}
+                src={currentMandap} 
+                initial={{ opacity: 0, filter: 'blur(10px)' }}
+                animate={{ opacity: 1, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, filter: 'blur(10px)' }}
+                transition={{ duration: 1.2, ease: "easeInOut" }}
+                className="absolute w-[100vw] md:w-[90vw] h-[80vh] md:h-[90vh] object-contain mix-blend-screen opacity-100" 
+                style={{ willChange: 'transform, opacity, filter' }}
+              />
+            </AnimatePresence>
+          </m.div>
+
+          {/* Layer 3: The Couple */}
+          <m.div style={{ x: frontX, y: frontY, translateZ: 80, scale: 1.05, willChange: 'transform' }} className="absolute inset-0 z-30 flex items-center justify-center pt-[15vh] md:pt-[10vh]">
+            <img src="/images/couple_transparent.webp" fetchPriority="high" alt="Couple" className="w-[90vw] md:w-[60vw] max-h-[50vh] md:max-h-[60vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)]" style={{ willChange: 'transform' }} />
+          </m.div>
+
+          {/* Floating Particles */}
+          <div className="absolute inset-0 z-40 overflow-hidden pointer-events-none" style={{ transform: "translateZ(150px)" }}>
+            {Array.from({ length: 40 }).map((_, i) => (
+              <m.div
+                key={i}
+                initial={{ y: "120vh", x: Math.random() * window.innerWidth, rotate: 0 }}
+                animate={{ y: "-20vh", x: `calc(${Math.random() * 100}vw)`, rotate: 360 }}
+                transition={{ duration: Math.random() * 8 + 5, repeat: Infinity, ease: "linear", delay: Math.random() * 5 }}
+                className={`absolute w-3 h-3 bg-gradient-to-br ${
+                  i % 3 === 0 ? 'from-[#FFC107] to-white shadow-[0_0_15px_#FFC107]' : 
+                  'from-[#E91E63] to-[#F48FB1] shadow-[0_0_10px_#E91E63] rounded-tr-full rounded-bl-full' 
+                } blur-[1px] opacity-80`}
+              />
+            ))}
+          </div>
+        </m.div>
+      </div>
     </div>
   ), [currentMandap, rotateX, rotateY, bgX, bgY, midX, midY, frontX, frontY]);
+
 
   return (
     <LazyMotion features={domAnimation}>
