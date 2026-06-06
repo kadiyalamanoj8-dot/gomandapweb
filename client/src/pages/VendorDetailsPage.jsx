@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import * as Icons from 'lucide-react';
 import CustomDropdown from '../components/ui/CustomDropdown';
+import DynamicSEO from '../components/DynamicSEO';
 
 const VendorDetailsPage = () => {
   const { id } = useParams();
@@ -141,8 +142,27 @@ const VendorDetailsPage = () => {
         'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&q=80'
       ];
 
+  const vendorSchema = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": vendor.name,
+    "image": gallery,
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": vendor.location.split(',')[0],
+      "addressCountry": "IN"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": vendor.rating,
+      "reviewCount": vendor.reviewsCount || 1
+    },
+    "priceRange": vendor.pricePerPlate
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pt-20 md:pt-28 pb-32 md:pb-20">
+      <DynamicSEO customSchema={vendorSchema} />
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         
         {/* Back Button & Actions */}

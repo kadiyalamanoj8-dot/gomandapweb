@@ -28,7 +28,14 @@ const SpatialNavbar = () => {
         <Link to="/vendors" className="text-sm font-semibold text-gray-700 hover:text-brand-primary transition-colors">Vendors</Link>
         <Link to="/deals" className="text-sm font-semibold text-gray-700 hover:text-brand-primary transition-colors">Offers</Link>
         
-        <a href="https://vendor.gomandap.com" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-gray-600 hover:text-brand-primary transition-colors">
+        <a 
+          href="https://vendor.gomandap.com" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="text-sm font-bold text-gray-600 hover:text-brand-primary transition-colors"
+          title="Register here as an event vendor"
+          aria-label="Register here to become a vendor"
+        >
           Partner with us
         </a>
         

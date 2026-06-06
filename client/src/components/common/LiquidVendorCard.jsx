@@ -4,6 +4,7 @@ import { Star, MapPin, Heart, CheckCircle2, Phone, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getCategorySchema } from '../../config/categorySchemas';
 import { useAuth } from '../../context/AuthContext';
+import ProtectedImage from './ProtectedImage';
 
 const LiquidVendorCard = ({ vendor, layout = 'carousel' }) => {
   const [ripples, setRipples] = useState([]);
@@ -71,11 +72,11 @@ const LiquidVendorCard = ({ vendor, layout = 'carousel' }) => {
 
         {/* Image Section */}
         <div className="relative w-full md:w-[35%] h-56 md:h-auto shrink-0 overflow-hidden">
-          <img 
+          <ProtectedImage 
             src={vendor.imageUrl} 
             alt={vendor.name} 
-            loading="lazy"
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            containerClassName="w-full h-full"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           
@@ -189,11 +190,11 @@ const LiquidVendorCard = ({ vendor, layout = 'carousel' }) => {
 
       {/* Tall Portrait Image */}
       <div className="relative w-full h-48 md:h-52 overflow-hidden shrink-0">
-        <img 
+        <ProtectedImage 
           src={vendor.imageUrl} 
           alt={vendor.name} 
-          loading="lazy"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          containerClassName="w-full h-full"
         />
         {/* Subtle dark gradient overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

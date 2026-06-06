@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 
-const DynamicSEO = ({ appTarget = 'client', pageName = 'global' }) => {
+const DynamicSEO = ({ appTarget = 'client', pageName = 'global', customSchema = null }) => {
   const [seoConfig, setSeoConfig] = useState(null);
 
   useEffect(() => {
@@ -32,6 +32,11 @@ const DynamicSEO = ({ appTarget = 'client', pageName = 'global' }) => {
       {seoConfig.title && <meta property="og:title" content={seoConfig.title} />}
       {seoConfig.description && <meta property="og:description" content={seoConfig.description} />}
       <link rel="canonical" href={`https://gomandap.com${window.location.pathname}${window.location.search}`} />
+      {(customSchema || seoConfig.schema) && (
+        <script type="application/ld+json">
+          {JSON.stringify(customSchema || seoConfig.schema)}
+        </script>
+      )}
     </Helmet>
   );
 };

@@ -25,6 +25,13 @@ const Footer = () => {
           { label: "About Us", url: "#" },
           { label: "Contact", url: "#" }
         ]
+      },
+      {
+        title: "For Vendors",
+        links: [
+          { label: "Register Here", url: "https://vendor.gomandap.com" },
+          { label: "Vendor Portal", url: "https://vendor.gomandap.com" }
+        ]
       }
     ],
     copyrightText: `© ${new Date().getFullYear()} Gomandap. All rights reserved.`
@@ -102,6 +109,7 @@ const Footer = () => {
             {footerData.copyrightText || `© ${new Date().getFullYear()} Gomandap. All rights reserved.`}
           </p>
           <div className="flex items-center gap-6">
+            <a href="https://vendor.gomandap.com" className="text-sm text-brand-primary hover:text-brand-primary-hover font-bold transition-colors">Vendor Registration</a>
             <Link to="/privacy" className="text-sm text-gray-400 hover:text-gray-900 transition-colors font-medium">Privacy Policy</Link>
             <Link to="/terms" className="text-sm text-gray-400 hover:text-gray-900 transition-colors font-medium">Terms of Service</Link>
           </div>
