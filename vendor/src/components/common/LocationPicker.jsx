@@ -75,6 +75,20 @@ const LocationPicker = ({ locationData, onChange }) => {
           updatePosition(lng, lat);
         });
 
+        // Auto-locate on first load if no existing location is set
+        if (!locationData?.coordinates || locationData.coordinates[0] === 0) {
+          if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition((position) => {
+              const { latitude, longitude } = position.coords;
+              marker.setLngLat([longitude, latitude]);
+              map.flyTo({ center: [longitude, latitude], zoom: 15 });
+              updatePosition(longitude, latitude);
+            }, () => {
+              console.log("Auto-location denied or failed on load.");
+            });
+          }
+        }
+
       } catch (error) {
         console.error("Error initializing Ola Maps SDK:", error);
       } finally {
