@@ -15,6 +15,17 @@ const LocationPicker = ({ locationData, onChange }) => {
   const [searchText, setSearchText] = useState('');
   const [predictions, setPredictions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const mapRef = useRef(null);
+
+  useEffect(() => {
+    // Fix for "corrupted" map when rendering inside animated/hidden containers
+    const timer = setTimeout(() => {
+      if (mapRef.current) {
+        mapRef.current.resize();
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (locationData?.coordinates && locationData.coordinates[0] !== 0) {
@@ -231,8 +242,43 @@ const LocationPicker = ({ locationData, onChange }) => {
             }
           `}</style>
           <Map
+            ref={mapRef}
             {...viewState}
             onMove={evt => setViewState(evt.viewState)}
+            onLoad={(e) => {
+              const map = e.target;
+              try {
+                if (!map.getLayer('3d-buildings')) {
+                  const layers = map.getStyle().layers;
+                  let labelLayerId;
+                  for (let i = 0; i < layers.length; i++) {
+                    if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
+                      labelLayerId = layers[i].id;
+                      break;
+                    }
+                  }
+                  map.addLayer(
+                    {
+                      'id': '3d-buildings',
+                      'source': 'openmaptiles',
+                      'source-layer': 'building',
+                      'filter': ['==', 'extrude', 'true'],
+                      'type': 'fill-extrusion',
+                      'minzoom': 15,
+                      'paint': {
+                        'fill-extrusion-color': '#e2e8f0',
+                        'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 15, 0, 15.05, ['get', 'height']],
+                        'fill-extrusion-base': ['interpolate', ['linear'], ['zoom'], 15, 0, 15.05, ['get', 'min_height']],
+                        'fill-extrusion-opacity': 0.8
+                      }
+                    },
+                    labelLayerId
+                  );
+                }
+              } catch(err) {
+                console.warn("Could not add 3D buildings", err);
+              }
+            }}
             onClick={(e) => {
               if (!locationData?.isLocationLocked) {
                 updatePosition(e.lngLat.lng, e.lngLat.lat);
@@ -241,6 +287,7 @@ const LocationPicker = ({ locationData, onChange }) => {
             mapStyle="https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard/style.json"
             transformRequest={transformRequest}
             attributionControl={false}
+            style={{ width: '100%', height: '100%' }}
           >
             <Marker 
               longitude={viewState.longitude} 
