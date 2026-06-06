@@ -34,7 +34,7 @@ const LocationPicker = ({ locationData, onChange }) => {
         const lng = locationData?.coordinates && locationData.coordinates[0] !== 0 ? locationData.coordinates[0] : 78.9629;
         const lat = locationData?.coordinates && locationData.coordinates[0] !== 0 ? locationData.coordinates[1] : 20.5937;
 
-        const map = olaMaps.init({
+        const map = await olaMaps.init({
           style: "https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard/style.json",
           container: mapContainerRef.current,
           center: [lng, lat],
