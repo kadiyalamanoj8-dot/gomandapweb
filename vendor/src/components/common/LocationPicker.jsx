@@ -157,10 +157,9 @@ const LocationPicker = ({ locationData, onChange }) => {
             <div className="text-xs text-red-500 mb-2 font-bold">Your location has been locked by Admin and cannot be changed.</div>
         )}
         <div className="h-[300px] w-full rounded-2xl overflow-hidden border border-gray-200 z-0 relative">
-          <MapContainer center={position} zoom={5} style={{ height: '100%', width: '100%' }}>
+          <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }} attributionControl={false}>
             <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.webp"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             />
             <LocationMarker position={position} setPosition={updatePosition} isLocked={locationData?.isLocationLocked} />
             <MapUpdater position={position} />
