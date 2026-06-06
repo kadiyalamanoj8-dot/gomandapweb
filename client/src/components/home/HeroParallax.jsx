@@ -189,8 +189,8 @@ const HeroParallax = () => {
   const background3D = useMemo(() => (
     <div 
       ref={containerRef}
-      className="absolute inset-0 w-full h-full overflow-hidden bg-black z-0"
-      style={{ perspective: '1200px', willChange: 'transform' }}
+      className="absolute inset-0 w-full h-full bg-black z-0"
+      style={{ perspective: '1200px', willChange: 'transform', overflow: 'hidden' }}
     >
       <m.div 
         animate={{ translateZ: 400 }}
@@ -198,8 +198,8 @@ const HeroParallax = () => {
         className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none"
       >
         {/* Layer 1: Background Temple (Z: -600) */}
-        <m.div style={{ x: bgX, y: bgY, translateZ: -600, scale: 1.8, willChange: 'transform' }} className="absolute inset-[-50%] z-0">
-          <img src="/images/temple_background.webp" fetchPriority="high" decoding="async" alt="Background" className="w-full h-full object-cover opacity-80" style={{ willChange: 'transform' }} />
+        <m.div style={{ x: bgX, y: bgY, translateZ: -600, willChange: 'transform' }} className="absolute inset-0 w-full h-full z-0">
+          <img src="/images/temple_background.webp" fetchPriority="high" decoding="async" alt="Background" className="w-full h-full object-cover opacity-80" style={{ willChange: 'transform', transform: 'scale(3)' }} />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60 z-10" />
         </m.div>
 
@@ -245,7 +245,7 @@ const HeroParallax = () => {
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="relative w-full h-screen h-[100dvh] min-h-[600px] z-40 select-none overflow-hidden">
+      <div className="relative w-full h-screen h-[100dvh] min-h-[600px] z-40 select-none">
       
       {background3D}
 
