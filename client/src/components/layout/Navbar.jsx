@@ -16,8 +16,8 @@ const Navbar = () => {
     <>
       <nav className="navbar">
         <div className="container navbar-content">
-          <Link to="/" className="navbar-logo">
-            Gomandap
+          <Link to="/" className="navbar-logo flex items-center">
+            <img src="/logo.svg?v=2" alt="Gomandap Logo" className="h-8 md:h-10 w-auto object-contain" />
           </Link>
 
           {/* Desktop Nav */}

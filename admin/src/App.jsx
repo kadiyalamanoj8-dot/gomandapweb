@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const CategorySettings = lazy(() => import('./pages/CategorySettings'));
 const LanguageSettings = lazy(() => import('./pages/LanguageSettings'));
-const ContentManager = lazy(() => import('./pages/ContentManager'));
+const ClientManager = lazy(() => import('./pages/ClientManager'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 import Sidebar from './components/Sidebar';
 import { Menu } from 'lucide-react';
@@ -41,8 +41,8 @@ function AppLayout() {
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden h-screen">
         {/* Mobile Header */}
-        <div className="lg:hidden flex items-center justify-between bg-white border-b border-gray-200 p-4 shrink-0">
-          <h1 className="text-xl font-black text-gray-900">Gomandap <span className="text-brand-primary">Admin</span></h1>
+        <div className="lg:hidden flex items-center justify-between bg-[#111111] border-b border-white/5 p-4 shrink-0">
+          <img src="/logo.svg" alt="Gomandap" className="h-7 w-auto object-contain" />
           <button
             onClick={() => setIsSidebarOpen(true)}
             className="p-2 -mr-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -68,7 +68,7 @@ function AppLayout() {
                   <Route path="/dashboard" element={<AuthGuard><AdminDashboard /></AuthGuard>} />
                   <Route path="/category-settings" element={<AuthGuard><CategorySettings /></AuthGuard>} />
                   <Route path="/language-settings" element={<AuthGuard><LanguageSettings /></AuthGuard>} />
-                  <Route path="/content-manager" element={<AuthGuard><ContentManager /></AuthGuard>} />
+                  <Route path="/clients" element={<AuthGuard><ClientManager /></AuthGuard>} />
                 </Routes>
               </Suspense>
             </motion.div>

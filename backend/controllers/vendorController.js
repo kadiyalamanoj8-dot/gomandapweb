@@ -60,6 +60,48 @@ const syncVendorAuth = async (req, res) => {
   }
 };
 
+// @desc    Sync Google Auth (Login or Redirect to Onboard)
+// @route   POST /api/vendors/auth/google
+// @access  Public
+const syncGoogleAuth = async (req, res) => {
+  try {
+    const { email, googleId, name, photoUrl } = req.body;
+    
+    // Find a vendor with this email or googleId
+    let vendor = await Vendor.findOne({ 
+      $or: [ { email: email }, { googleId: googleId } ] 
+    });
+
+    if (vendor && vendor.status !== 'draft') {
+      // Vendor exists and completed onboarding, make sure googleId is updated
+      if (!vendor.googleId) {
+        vendor.googleId = googleId;
+        vendor.photoUrl = photoUrl;
+        await vendor.save();
+      }
+      return res.json({
+        success: true,
+        action: 'dashboard',
+        vendorId: vendor._id,
+        token: generateToken(vendor._id)
+      });
+    } else {
+      // New vendor, or draft vendor (needs onboarding)
+      return res.json({
+        success: true,
+        action: 'onboard',
+        email,
+        googleId,
+        name,
+        photoUrl
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server Error during Google auth sync' });
+  }
+};
+
 // @desc    Update a vendor draft progress
 // @route   PATCH /api/vendors/draft/:id
 // @access  Public
@@ -281,6 +323,7 @@ const updateLocationLock = async (req, res) => {
 module.exports = {
   createDraft,
   syncVendorAuth,
+  syncGoogleAuth,
   updateDraft,
   getApprovedVendors,
   getVendorById,

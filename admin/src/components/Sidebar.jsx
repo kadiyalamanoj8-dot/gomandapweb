@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Store, LayoutDashboard, Settings, LogOut, X, Sliders, Globe } from 'lucide-react';
+import { Store, LayoutDashboard, Settings, LogOut, X, Sliders, Globe, Users, Languages } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -28,10 +28,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className="p-6 flex items-center justify-between border-b border-white/5">
-          <div>
-            <h1 className="text-xl font-black tracking-tight text-white">Gomandap <span className="text-brand-primary">Admin</span></h1>
-            <p className="text-xs text-gray-500 font-semibold mt-0.5">Platform Control Center</p>
+        <div className="p-5 flex items-center justify-between border-b border-white/5">
+          <div className="flex items-center gap-3">
+            <img src="/logo.svg" alt="Gomandap" className="h-7 w-auto object-contain" />
+            <span className="text-[11px] text-gray-500 font-bold uppercase tracking-widest">Admin</span>
           </div>
           <button
             className="lg:hidden p-2 -mr-2 text-gray-400 hover:text-white"
@@ -67,18 +67,18 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <Sliders size={18} /> Category Controls
           </NavLink>
           <NavLink
-            to="/content-manager"
+            to="/clients"
             onClick={() => setIsOpen(false)}
             className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
           >
-            <Globe size={18} /> Content Manager
+            <Users size={18} /> Client Panel
           </NavLink>
           <NavLink
             to="/language-settings"
             onClick={() => setIsOpen(false)}
             className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
           >
-            <Globe size={18} /> Language Settings
+            <Languages size={18} /> Language Settings
           </NavLink>
         </nav>
 

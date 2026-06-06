@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const upload = require('../middleware/upload');
-const { createDraft, syncVendorAuth, updateDraft, getApprovedVendors, getVendorById, getAllVendors, updateVendorStatus, updateLocationLock } = require('../controllers/vendorController');
+const { createDraft, syncVendorAuth, syncGoogleAuth, updateDraft, getApprovedVendors, getVendorById, getAllVendors, updateVendorStatus, updateLocationLock } = require('../controllers/vendorController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 // @route   POST /api/vendors/draft
@@ -13,6 +13,11 @@ router.post('/draft', createDraft);
 // @desc    Sync Vendor Auth
 // @access  Public
 router.post('/auth/sync', syncVendorAuth);
+
+// @route   POST /api/vendors/auth/google
+// @desc    Sync Google Auth
+// @access  Public
+router.post('/auth/google', syncGoogleAuth);
 
 // @route   PATCH /api/vendors/draft/:id
 // @desc    Update a draft vendor application with images

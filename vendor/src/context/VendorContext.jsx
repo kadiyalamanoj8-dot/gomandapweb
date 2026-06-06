@@ -37,12 +37,17 @@ export const VendorProvider = ({ children }) => {
     }
   }, []);
 
-  const loginWithPhone = async (phoneNumber) => {
+  const loginWithGoogle = async (googleProfile) => {
     try {
-      const res = await fetch('https://gomandap-api.onrender.com/api/vendors/auth/sync', {
+      const res = await fetch('https://gomandap-api.onrender.com/api/vendors/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber })
+        body: JSON.stringify({ 
+          email: googleProfile.email,
+          googleId: googleProfile.uid,
+          name: googleProfile.displayName,
+          photoUrl: googleProfile.photoURL
+        })
       });
       const data = await res.json();
       
@@ -59,7 +64,7 @@ export const VendorProvider = ({ children }) => {
             localStorage.setItem('gomandap_vendor_status', profileData.data.status);
           }
         }
-        return { success: true, action: data.action, phoneNumber: data.phoneNumber };
+        return { success: true, action: data.action, email: data.email };
       }
     } catch (error) {
       console.error("Login failed:", error);
@@ -140,7 +145,7 @@ export const VendorProvider = ({ children }) => {
     <VendorContext.Provider value={{
       vendorStatus,
       vendorProfile,
-      loginWithPhone,
+      loginWithGoogle,
       submitOnboarding,
       saveDraft,
       simulateAdminApproval,

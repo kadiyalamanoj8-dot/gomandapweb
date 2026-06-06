@@ -20,7 +20,16 @@ const userSchema = new mongoose.Schema({
     vendorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor' },
     date: { type: Date, default: Date.now },
     status: { type: String, default: 'Pending' }
-  }]
+  }],
+  // Last known geolocation (captured on login with browser GPS)
+  lastKnownLocation: {
+    latitude:  { type: Number },
+    longitude: { type: Number },
+    city:      { type: String },
+    state:     { type: String },
+    country:   { type: String },
+    updatedAt: { type: Date }
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

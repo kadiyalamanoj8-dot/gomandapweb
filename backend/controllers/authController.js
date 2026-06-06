@@ -138,11 +138,31 @@ const authGoogle = async (req, res) => {
 // @route   GET /api/auth/users
 const getUsers = async (req, res) => {
   try {
-    const users = await User.find({}).sort({ createdAt: -1 });
+    const users = await User.find({})
+      .populate('savedVendors', 'name category')
+      .populate('inquiries.vendorId', 'name')
+      .sort({ createdAt: -1 });
     res.json({ success: true, data: users });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-module.exports = { authAdmin, syncUser, authGoogle, getUsers };
+// @desc    Update user's last known location (called silently from client)
+// @route   PATCH /api/auth/user/location
+const updateUserLocation = async (req, res) => {
+  try {
+    const { userId, latitude, longitude, city, state, country } = req.body;
+    if (!userId) return res.status(400).json({ success: false, message: 'userId is required' });
+
+    await User.findByIdAndUpdate(userId, {
+      lastKnownLocation: { latitude, longitude, city, state, country, updatedAt: new Date() }
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { authAdmin, syncUser, authGoogle, getUsers, updateUserLocation };

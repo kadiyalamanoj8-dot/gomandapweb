@@ -33,11 +33,11 @@ app.use('/api/settings', settingsRoutes);
 const filterRoutes = require('./routes/filterRoutes');
 app.use('/api/filters', filterRoutes);
 
-const dynamicContentRoutes = require('./routes/dynamicContentRoutes');
-app.use('/api/content', dynamicContentRoutes);
-
 const inquiryRoutes = require('./routes/inquiryRoutes');
 app.use('/api/inquiries', inquiryRoutes);
+
+const userRoutes = require('./routes/userRoutes');
+app.use('/api/users', userRoutes);
 
 const PORT = process.env.PORT || 5000;
 

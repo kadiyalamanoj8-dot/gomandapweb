@@ -8,9 +8,11 @@ export default {
     extend: {
       colors: {
         brand: {
-          primary: '#EF4444',
-          secondary: '#F59E0B',
-          gold: '#B8860B',
+          primary: '#D4AF37',
+          'primary-hover': '#C9A227',
+          secondary: '#FACC15',
+          gold: '#D4AF37',
+          'gold-light': '#FACC15',
           black: '#111111'
         }
       }

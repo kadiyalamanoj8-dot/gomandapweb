@@ -8,9 +8,12 @@ export default {
     extend: {
       colors: {
         brand: {
-          primary: '#e63946',
-          secondary: '#f4a261',
-          gold: '#d4af37',
+          primary: '#D4AF37',
+          'primary-hover': '#C9A227',
+          secondary: '#FACC15',
+          gold: '#D4AF37',
+          'gold-light': '#FACC15',
+          black: '#111111',
         }
       },
       boxShadow: {

@@ -3,12 +3,15 @@ const mongoose = require('mongoose');
 const vendorSchema = new mongoose.Schema({
   // Identity
   name: { type: String, default: '' },
+  email: { type: String, sparse: true, unique: true }, // Added for Google Auth
+  googleId: { type: String, sparse: true, unique: true }, // Added for Google Auth
+  photoUrl: { type: String }, // Added for Google Auth
   category: { type: String, default: '' },
   ownerName: { type: String, default: '' },
   
   // Contact
   contact: {
-    phone: { type: String, default: '' },
+    phone: { type: String, default: '' }, // Made optional
     whatsapp: { type: String },
     email: { type: String }
   },

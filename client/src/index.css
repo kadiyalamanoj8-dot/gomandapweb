@@ -211,10 +211,78 @@
     scrollbar-width: none;
   }
   
+  /* === LIQUID GLASS 3D NAVBAR (not frost) === */
   .glass-panel {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-glass;
+    position: relative;
+    /* Refractive multi-layer fill — NOT frost white */
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.25) 40%,
+      rgba(212, 175, 55, 0.06) 70%,
+      rgba(255, 255, 255, 0.30) 100%
+    );
+    backdrop-filter: blur(28px) saturate(200%) brightness(1.08);
+    -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.08);
+    /* Liquid glass border with shimmer */
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    /* 3D depth: bright top edge + deep bottom shadow */
+    box-shadow:
+      /* Top specular edge — key to 3D liquid look */
+      inset 0 2px 0 rgba(255, 255, 255, 0.9),
+      /* Bottom inner shadow for depth */
+      inset 0 -1px 0 rgba(212, 175, 55, 0.15),
+      /* Side highlights */
+      inset 1px 0 0 rgba(255, 255, 255, 0.4),
+      inset -1px 0 0 rgba(255, 255, 255, 0.4),
+      /* Outer shadow with gold tint */
+      0 8px 32px rgba(0, 0, 0, 0.10),
+      0 2px 8px rgba(212, 175, 55, 0.08),
+      0 1px 2px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
   }
-  
+
+  /* Specular glare sweep — top half bright band */
+  .glass-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 8%; right: 8%;
+    height: 55%;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.65) 0%,
+      rgba(255, 255, 255, 0.15) 60%,
+      rgba(255, 255, 255, 0.0) 100%
+    );
+    border-radius: 0 0 80% 80%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Iridescent animated border shimmer */
+  .glass-panel::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      90deg,
+      rgba(212, 175, 55, 0.0) 0%,
+      rgba(212, 175, 55, 0.12) 30%,
+      rgba(250, 204, 21, 0.10) 50%,
+      rgba(212, 175, 55, 0.12) 70%,
+      rgba(212, 175, 55, 0.0) 100%
+    );
+    animation: glass-shimmer 4s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @keyframes glass-shimmer {
+    0%, 100% { opacity: 0.4; transform: translateX(-20%); }
+    50% { opacity: 1; transform: translateX(20%); }
+  }
+
   .glass-dark {
     @apply bg-black/40 backdrop-blur-md border border-white/10;
   }

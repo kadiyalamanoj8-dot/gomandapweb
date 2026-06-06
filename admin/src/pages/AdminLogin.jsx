@@ -44,11 +44,11 @@ const AdminLogin = () => {
       <div className="relative w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-primary/20 border border-brand-primary/30 mb-4">
-            <ShieldCheck size={32} className="text-brand-primary" />
+          <div className="inline-flex items-center justify-center mb-4">
+            <img src="/logo.svg" alt="Gomandap" className="h-12 w-auto object-contain" />
           </div>
           <h1 className="text-3xl font-black text-white tracking-tight">
-            Gomandap <span className="text-brand-primary">Admin</span>
+            Admin <span className="text-brand-primary">Panel</span>
           </h1>
           <p className="text-gray-500 mt-2 font-medium">Sign in to manage the platform</p>
         </div>
