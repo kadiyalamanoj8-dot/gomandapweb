@@ -227,7 +227,229 @@ const LocationPicker = ({ locationData, onChange }) => {
           </div>
         ) : (
           <div className="h-[300px] w-full rounded-2xl overflow-hidden border border-gray-200 z-0 relative cursor-crosshair group shadow-sm">
-            {/* Inject CSS to hide all logos and attributions */}
+import React, { useState, useEffect } from 'react';
+import Map, { Marker } from 'react-map-gl/maplibre';
+import 'maplibre-gl/dist/maplibre-gl.css';
+
+const LocationPicker = ({ locationData, onChange }) => {
+  const [viewState, setViewState] = useState({
+    longitude: locationData?.coordinates && locationData.coordinates[0] !== 0 ? locationData.coordinates[0] : 78.9629,
+    latitude: locationData?.coordinates && locationData.coordinates[0] !== 0 ? locationData.coordinates[1] : 20.5937,
+    zoom: 15,
+    pitch: 60,
+    bearing: 20
+  });
+
+  const [mapLink, setMapLink] = useState(locationData?.googleMapsLink || '');
+  const [searchText, setSearchText] = useState('');
+  const [predictions, setPredictions] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    if (locationData?.coordinates && locationData.coordinates[0] !== 0) {
+      setViewState(prev => ({
+        ...prev,
+        longitude: locationData.coordinates[0],
+        latitude: locationData.coordinates[1]
+      }));
+    }
+  }, [locationData]);
+
+  const updatePosition = async (lng, lat, skipReverseGeocode = false) => {
+    setViewState(prev => ({ ...prev, longitude: lng, latitude: lat }));
+    
+    let locationDataUpdate = {
+        type: 'Point',
+        coordinates: [lng, lat],
+        googleMapsLink: mapLink
+    };
+
+    if (!skipReverseGeocode) {
+      try {
+        const apiKey = import.meta.env.VITE_OLA_MAPS_API_KEY;
+        if (!apiKey) throw new Error("API Key missing");
+        const res = await fetch(`https://api.olamaps.io/places/v1/reverse-geocode?lat=${lat}&lng=${lng}&api_key=${apiKey}`);
+        const data = await res.json();
+        
+        if (data.results && data.results.length > 0) {
+          const comp = data.results[0].address_components || [];
+          const getComp = (types) => {
+            const found = comp.find(c => types.some(t => c.types.includes(t)));
+            return found ? found.long_name : '';
+          };
+
+          locationDataUpdate.parsedAddress = {
+            village: getComp(['sublocality', 'neighborhood', 'route', 'locality']) || '',
+            mandal: getComp(['administrative_area_level_3', 'administrative_area_level_2']) || '',
+            district: getComp(['administrative_area_level_2', 'administrative_area_level_1']) || '',
+            state: getComp(['administrative_area_level_1']) || ''
+          };
+        }
+      } catch (error) {
+        console.error("Ola Maps Reverse geocoding failed", error);
+      }
+    }
+    
+    onChange(locationDataUpdate);
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (searchText.length > 2) {
+        setIsSearching(true);
+        try {
+          const apiKey = import.meta.env.VITE_OLA_MAPS_API_KEY;
+          if (!apiKey) throw new Error("API Key missing");
+          const res = await fetch(`https://api.olamaps.io/places/v1/autocomplete?input=${encodeURIComponent(searchText)}&api_key=${apiKey}`);
+          const data = await res.json();
+          if (data.predictions) {
+            setPredictions(data.predictions);
+          }
+        } catch(e) {
+          console.error("Autocomplete failed", e);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setPredictions([]);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
+  const handleSelectPrediction = async (prediction) => {
+    setSearchText(prediction.description);
+    setPredictions([]);
+    try {
+      const apiKey = import.meta.env.VITE_OLA_MAPS_API_KEY;
+      if (!apiKey) throw new Error("API Key missing");
+      const res = await fetch(`https://api.olamaps.io/places/v1/geocode?address=${encodeURIComponent(prediction.description)}&api_key=${apiKey}`);
+      const data = await res.json();
+      if (data.geocodingResults && data.geocodingResults.length > 0) {
+        const loc = data.geocodingResults[0].geometry.location;
+        updatePosition(loc.lng, loc.lat);
+      }
+    } catch(e) {
+      console.error("Geocode failed", e);
+    }
+  };
+
+  const handleLinkParse = () => {
+    if (!mapLink) return;
+    const regex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
+    const match = mapLink.match(regex);
+    if (match) {
+        const lat = parseFloat(match[1]);
+        const lng = parseFloat(match[2]);
+        updatePosition(lng, lat);
+        alert('Coordinates extracted and mapped!');
+    } else {
+        alert('Could not find coordinates in the link. Please drop the pin manually on the map.');
+        onChange({
+            ...locationData,
+            googleMapsLink: mapLink
+        });
+    }
+  };
+
+  const handleAutoCapture = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords;
+        updatePosition(longitude, latitude);
+      }, (error) => {
+          alert("Please allow location access to auto-capture your venue.");
+      });
+    } else {
+      alert("Geolocation is not supported by your browser.");
+    }
+  };
+
+  const transformRequest = (url, resourceType) => {
+    const apiKey = import.meta.env.VITE_OLA_MAPS_API_KEY;
+    if (url.includes('api.olamaps.io')) {
+      return { url: url.includes('?') ? `${url}&api_key=${apiKey}` : `${url}?api_key=${apiKey}` };
+    }
+    return { url };
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="relative z-50">
+        <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Search Location</label>
+        <div className="relative">
+          <input 
+              type="text" 
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder="Search for an area, street, or venue..."
+              className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary shadow-sm"
+          />
+          {isSearching && (
+            <div className="absolute right-4 top-3.5">
+              <div className="w-5 h-5 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          )}
+        </div>
+        
+        {predictions.length > 0 && (
+          <div className="absolute top-full mt-2 w-full bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 max-h-60 overflow-y-auto">
+            {predictions.map((pred, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleSelectPrediction(pred)}
+                className="w-full text-left px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors flex items-start gap-3"
+              >
+                <svg className="w-5 h-5 text-brand-primary mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <span className="text-sm font-semibold text-gray-700">{pred.description}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Google Maps Link (Optional)</label>
+        <div className="flex gap-2">
+            <input 
+                type="text" 
+                value={mapLink}
+                onChange={(e) => setMapLink(e.target.value)}
+                placeholder="Paste Google Maps URL"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-semibold text-gray-900 focus:outline-none focus:border-brand-primary"
+            />
+            <button 
+                type="button" 
+                onClick={handleLinkParse}
+                className="bg-brand-primary/10 text-brand-primary px-4 py-2 rounded-xl font-bold whitespace-nowrap"
+            >
+                Parse Link
+            </button>
+        </div>
+      </div>
+
+      <div className="relative z-0">
+        <div className="flex justify-between items-end mb-2">
+            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest">Pin your exact location</label>
+            <button 
+                type="button" 
+                onClick={handleAutoCapture}
+                className="text-xs font-bold text-brand-primary flex items-center gap-1 hover:text-brand-secondary transition-colors"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+                Locate Me
+            </button>
+        </div>
+        
+        {!import.meta.env.VITE_OLA_MAPS_API_KEY ? (
+          <div className="h-[300px] w-full rounded-2xl border-2 border-dashed border-red-200 bg-red-50 flex flex-col items-center justify-center p-6 text-center z-0 relative">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-red-400 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <h3 className="text-red-800 font-black text-lg mb-1">Map Engine Offline</h3>
+            <p className="text-red-600 text-sm font-semibold">The Ola Maps API Key is missing.<br/>Please ask the Admin to check the <code>.env</code> file and restart the server.</p>
+          </div>
+        ) : (
+          <div className="h-[300px] w-full rounded-2xl overflow-hidden border border-gray-200 z-0 relative cursor-crosshair group shadow-sm">
             <style>{`
               .maplibregl-ctrl-bottom-left,
               .maplibregl-ctrl-bottom-right,
@@ -242,9 +464,7 @@ const LocationPicker = ({ locationData, onChange }) => {
               {...viewState}
               onMove={evt => setViewState(evt.viewState)}
               onClick={(e) => {
-                if (!locationData?.isLocationLocked) {
-                  updatePosition(e.lngLat.lng, e.lngLat.lat);
-                }
+                updatePosition(e.lngLat.lng, e.lngLat.lat);
               }}
               mapStyle="https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard/style.json"
               transformRequest={transformRequest}
@@ -255,10 +475,10 @@ const LocationPicker = ({ locationData, onChange }) => {
                 longitude={viewState.longitude} 
                 latitude={viewState.latitude} 
                 anchor="bottom"
-                draggable={!locationData?.isLocationLocked}
+                draggable={true}
                 onDragEnd={e => updatePosition(e.lngLat.lng, e.lngLat.lat)}
               >
-                <div className={`w-10 h-10 -mt-5 -ml-5 bg-brand-primary rounded-full border-4 border-white shadow-lg flex items-center justify-center transition-transform hover:scale-110 ${!locationData?.isLocationLocked ? 'cursor-grab active:cursor-grabbing' : 'opacity-80'}`}>
+                <div className="w-10 h-10 -mt-5 -ml-5 bg-brand-primary rounded-full border-4 border-white shadow-lg flex items-center justify-center transition-transform hover:scale-110 cursor-grab active:cursor-grabbing">
                   <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
                 </div>
               </Marker>
@@ -271,18 +491,14 @@ const LocationPicker = ({ locationData, onChange }) => {
               <span className="text-[10px] font-black text-gray-800 tracking-wide uppercase">Gomandap <span className="text-gray-400 font-bold">Maps</span></span>
             </div>
             
-            {/* Reticle */}
-            {!locationData?.isLocationLocked && (
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="w-12 h-12 border-2 border-brand-primary/30 rounded-full flex items-center justify-center">
-                  <div className="w-1 h-1 bg-brand-primary rounded-full"></div>
-                </div>
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="w-12 h-12 border-2 border-brand-primary/30 rounded-full flex items-center justify-center">
+                <div className="w-1 h-1 bg-brand-primary rounded-full"></div>
               </div>
-            )}
+            </div>
           </div>
         )}
       </div>
-
     </div>
   );
 };

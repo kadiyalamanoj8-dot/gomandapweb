@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Map, { Marker } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Lock, Unlock } from 'lucide-react';
 
 const LocationMapAdmin = ({ vendorId, locationData }) => {
   const [viewState, setViewState] = useState({
@@ -11,9 +10,6 @@ const LocationMapAdmin = ({ vendorId, locationData }) => {
     pitch: 60,
     bearing: 20
   });
-
-  const [isLocked, setIsLocked] = useState(locationData?.isLocationLocked || false);
-  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (locationData?.coordinates && locationData.coordinates[0] !== 0) {
@@ -25,32 +21,6 @@ const LocationMapAdmin = ({ vendorId, locationData }) => {
     }
   }, [locationData]);
 
-  const toggleLock = async () => {
-    setIsSaving(true);
-    try {
-        const token = localStorage.getItem('adminToken');
-        // If your API url is dynamic, you might need import.meta.env
-        const apiUrl = import.meta.env.VITE_API_URL || 'https://gomandap-api.onrender.com';
-        const response = await fetch(`${apiUrl}/api/vendors/${vendorId}/location-lock`, {
-            method: 'PATCH',
-            headers: { 
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}` 
-            },
-            body: JSON.stringify({ isLocationLocked: !isLocked })
-        });
-        const data = await response.json();
-        if (data.success) {
-            setIsLocked(!isLocked);
-        } else {
-            alert('Failed to update location lock.');
-        }
-    } catch (error) {
-        console.error("Error updating lock status:", error);
-    }
-    setIsSaving(false);
-  };
-
   const transformRequest = (url, resourceType) => {
     const apiKey = import.meta.env.VITE_OLA_MAPS_API_KEY;
     if (url.includes('api.olamaps.io')) {
@@ -61,25 +31,6 @@ const LocationMapAdmin = ({ vendorId, locationData }) => {
 
   return (
     <div className="space-y-4">
-        <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-200">
-            <div>
-                <span className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Location Pin Access</span>
-                <span className={`text-sm font-black ${isLocked ? 'text-red-600' : 'text-green-600'}`}>
-                    {isLocked ? 'Locked (Vendor cannot change)' : 'Unlocked (Vendor can change)'}
-                </span>
-            </div>
-            <button 
-                onClick={toggleLock} 
-                disabled={isSaving}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-colors disabled:opacity-50 ${
-                    isLocked ? 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50' : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-100'
-                }`}
-            >
-                {isLocked ? <Unlock size={16} /> : <Lock size={16} />}
-                {isLocked ? 'Unlock Pin' : 'Lock Pin'}
-            </button>
-        </div>
-
         {!import.meta.env.VITE_OLA_MAPS_API_KEY ? (
           <div className="h-[250px] w-full rounded-2xl border-2 border-dashed border-red-200 bg-red-50 flex flex-col items-center justify-center p-6 text-center z-0 relative">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-red-400 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
