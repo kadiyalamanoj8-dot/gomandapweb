@@ -14,6 +14,7 @@ const VendorPrivacy = lazy(() => import('./pages/vendor/VendorPrivacy'));
 import Preloader from './components/Preloader';
 import { HelmetProvider } from 'react-helmet-async';
 import DynamicSEO from './components/DynamicSEO';
+import { Toaster } from 'react-hot-toast';
 
 function AppContent() {
   const [isPreloading, setIsPreloading] = useState(true);
@@ -75,6 +76,7 @@ function AppContent() {
       </AnimatePresence>
       {!isPreloading && (
         <div className="flex flex-col min-h-screen bg-[#0A0A0A] overflow-x-hidden">
+          <Toaster position="top-center" reverseOrder={false} toastOptions={{ style: { background: '#333', color: '#fff' } }} />
           <DynamicSEO appTarget="vendor" pageName="global" />
           <AnimatePresence mode="wait">
             <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-[#0A0A0A]"><div className="w-10 h-10 border-4 border-brand-gold border-t-transparent rounded-full animate-spin"></div></div>}>

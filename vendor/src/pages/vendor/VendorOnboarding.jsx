@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import LocationPicker from '../../components/common/LocationPicker';
 import LazyInput from '../../components/common/LazyInput';
 
@@ -168,14 +170,16 @@ const VendorOnboarding = () => {
     }));
     formData.append('banking', JSON.stringify(bankingInfo));
 
+    const loadingToastId = toast.loading('Saving progress...');
     const result = await saveDraft(formData, vendorProfile?._id);
     setIsSubmitting(false);
 
     if (result.success) {
+      toast.success(nextStep > step ? 'Step Complete! ✨' : 'Progress saved!', { id: loadingToastId, duration: 2000 });
       setStep(nextStep);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      alert("Error saving draft: " + result.message);
+      toast.error("Error saving draft: " + result.message, { id: loadingToastId });
     }
   };
 
@@ -242,22 +246,24 @@ const VendorOnboarding = () => {
       formData.append('portfolioImages', file);
     });
 
+    const loadingToastId = toast.loading('Submitting profile for review...');
     const result = await saveDraft(formData, vendorProfile?._id);
     setIsSubmitting(false);
 
     if (result.success) {
+      toast.success('Profile Submitted! 🎉', { id: loadingToastId });
       navigate('/pending');
     } else {
-      alert("Error submitting profile: " + result.message);
+      toast.error("Error submitting profile: " + result.message, { id: loadingToastId });
     }
   };
 
   const isStep2Valid = basicInfo.name && basicInfo.ownerName && basicInfo.phone && basicInfo.city && basicInfo.streetAddress;
   const isStep4Valid = bankingInfo.accountNumber && bankingInfo.ifscCode && bankingInfo.bankName && bankingInfo.accountName;
 
-  // Dark Pro Theme Input Classes
-  const inputClassName = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 font-medium text-white focus:outline-none focus:border-brand-gold focus:bg-white/10 focus:ring-1 focus:ring-brand-gold/50 transition-all placeholder:text-white/30";
-  const labelClassName = "block text-[11px] font-bold text-white/50 uppercase tracking-widest mb-2";
+  // Bright Aesthetic Input Classes
+  const inputClassName = "w-full bg-white border border-white/20 rounded-xl px-4 py-3.5 font-bold text-black focus:outline-none focus:border-brand-gold focus:ring-4 focus:ring-brand-gold/30 shadow-[0_4px_10px_rgba(0,0,0,0.5)] focus:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300 placeholder:text-gray-400 placeholder:font-medium";
+  const labelClassName = "block text-[11px] font-black text-white/80 uppercase tracking-widest mb-2 flex items-center gap-1";
 
   return (
     <div className="min-h-screen bg-black font-sans text-white relative">
@@ -285,14 +291,14 @@ const VendorOnboarding = () => {
           
           <div className="hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10">
              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-             <span className="text-[11px] font-bold text-white/70 uppercase tracking-widest">Step {step} of 6 : Onboarding</span>
+             <span className="text-[11px] font-bold text-white/70 uppercase tracking-widest">Completed {step - 1} of 6 Steps</span>
           </div>
 
           <div className="flex items-center gap-4 md:gap-6">
             <div className="flex items-center gap-3">
                <div className="text-right hidden sm:block">
                  <div className="text-sm font-bold text-white">{basicInfo.name || basicInfo.ownerName || 'Vendor'}</div>
-                 <div className="text-[10px] text-brand-gold uppercase tracking-widest font-bold">Draft Profile</div>
+                 <div className="text-[10px] text-brand-gold uppercase tracking-widest font-bold">{basicInfo.email || 'Draft Profile'}</div>
                </div>
                {basicInfo.photoUrl ? (
                  <img src={basicInfo.photoUrl} alt="Profile" className="w-10 h-10 rounded-full border-2 border-brand-gold/50 shadow-md object-cover" />
@@ -548,10 +554,10 @@ const VendorOnboarding = () => {
                 </button>
                 <button 
                   onClick={handleNext} 
-                  disabled={!isStep2Valid}
+                  disabled={!isStep2Valid || isSubmitting}
                   className="bg-brand-gold text-white px-8 py-3.5 rounded-xl font-black shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all disabled:opacity-50 disabled:shadow-none flex items-center gap-2"
                 >
-                  Save & Continue <ChevronRight size={18} />
+                  {isSubmitting ? <><Loader2 size={18} className="animate-spin" /> Saving...</> : <>Save & Continue <ChevronRight size={18} /></>}
                 </button>
               </div>
             </div>
@@ -630,8 +636,8 @@ const VendorOnboarding = () => {
                 <button onClick={handlePrev} className="flex items-center gap-2 text-white/50 font-bold hover:text-white px-4 py-2 transition-colors">
                   <ChevronLeft size={18} /> Back
                 </button>
-                <button onClick={handleNext} className="bg-brand-gold text-white px-8 py-3.5 rounded-xl font-black shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all flex items-center gap-2">
-                  Save & Continue <ChevronRight size={18} />
+                <button onClick={handleNext} disabled={isSubmitting} className="bg-brand-gold text-white px-8 py-3.5 rounded-xl font-black shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all disabled:opacity-50 disabled:shadow-none flex items-center gap-2">
+                  {isSubmitting ? <><Loader2 size={18} className="animate-spin" /> Saving...</> : <>Save & Continue <ChevronRight size={18} /></>}
                 </button>
               </div>
             </div>
@@ -677,10 +683,10 @@ const VendorOnboarding = () => {
                 </button>
                 <button 
                   onClick={handleNext} 
-                  disabled={!isStep4Valid}
+                  disabled={!isStep4Valid || isSubmitting}
                   className="bg-brand-gold text-white px-8 py-3.5 rounded-xl font-black shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all disabled:opacity-50 disabled:shadow-none flex items-center gap-2"
                 >
-                  Save & Continue <ChevronRight size={18} />
+                  {isSubmitting ? <><Loader2 size={18} className="animate-spin" /> Saving...</> : <>Save & Continue <ChevronRight size={18} /></>}
                 </button>
               </div>
             </div>
@@ -737,8 +743,8 @@ const VendorOnboarding = () => {
                 <button onClick={handlePrev} className="flex items-center gap-2 text-white/50 font-bold hover:text-white px-4 py-2 transition-colors">
                   <ChevronLeft size={18} /> Back
                 </button>
-                <button onClick={handleNext} className="bg-brand-gold text-white px-8 py-3.5 rounded-xl font-black shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all flex items-center gap-2">
-                  Review Application <ChevronRight size={18} />
+                <button onClick={handleNext} disabled={isSubmitting} className="bg-brand-gold text-white px-8 py-3.5 rounded-xl font-black shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all disabled:opacity-50 disabled:shadow-none flex items-center gap-2">
+                  {isSubmitting ? <><Loader2 size={18} className="animate-spin" /> Saving...</> : <>Review Application <ChevronRight size={18} /></>}
                 </button>
               </div>
             </div>
@@ -760,9 +766,9 @@ const VendorOnboarding = () => {
                 <button 
                   onClick={handleSubmit} 
                   disabled={isSubmitting}
-                  className="bg-brand-gold text-white px-10 py-3.5 rounded-xl font-black shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:hover:translate-y-0"
+                  className="bg-brand-gold text-white px-10 py-3.5 rounded-xl font-black shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:hover:translate-y-0 flex items-center justify-center gap-2"
                 >
-                  {isSubmitting ? 'Uploading & Submitting...' : 'Submit Profile'}
+                  {isSubmitting ? <><Loader2 size={18} className="animate-spin" /> Submitting...</> : 'Submit Profile for Verification'}
                 </button>
               </div>
             </div>
