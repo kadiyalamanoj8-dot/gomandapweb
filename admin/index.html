@@ -2,21 +2,34 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>admin</title>
+    <meta name="theme-color" content="#1D1D1F" />
+    
+    <!-- Primary Meta Tags -->
+    <title>Gomandap Admin | Platform Management</title>
+    <meta name="title" content="Gomandap Admin | Platform Management" />
+    <meta name="robots" content="noindex, nofollow" />
+
+    <!-- Favicon and PWA -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="144x144" href="/favicon-144x144.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+
+    <!-- Preconnects -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      // EMERGENCY CACHE BUSTER: Unregister orphaned Service Workers from removed VitePWA
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
           for(let registration of registrations) {
-            registration.unregister().then(function() {
-              console.log('Service Worker unregistered successfully.');
-            });
+            registration.unregister();
           }
         });
       }
