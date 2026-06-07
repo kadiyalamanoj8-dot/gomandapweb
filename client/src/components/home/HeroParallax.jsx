@@ -184,7 +184,7 @@ const HeroParallax = () => {
     };
   }, [mouseX, mouseY]);
 
-  const currentMandap = EVENT_MANDAP_MAP[eventType] || '/images/temple_mandap.webp';
+  const currentMandap = '/images/temple_mandap copy.webp';
 
   const background3D = useMemo(() => (
     <div 
