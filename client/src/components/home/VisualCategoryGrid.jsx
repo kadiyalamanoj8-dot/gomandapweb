@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { VENUE_CATEGORIES, VENDOR_CATEGORIES } from '../../data/mockData';
 import * as Icons from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -35,37 +35,104 @@ const ICON_MAP = {
   'Event Planners':             '/images/3d_planner copy.webp',
 };
 
-// Simple animated icon component without borders or containers
+// Subtle gyro offset — shared across all cards, updated from deviceorientation
+const gyroState = { rx: 0, ry: 0 };
+
+// ── 3D Tilt Card ───────────────────────────────────────────────────────────
 const SimpleAnimatedIconCard = ({ cat, icon3d, iconName, delay, onClick }) => {
+  const cardRef = useRef(null);
+  const rafRef  = useRef(null);
+  const tiltRef = useRef({ x: 0, y: 0 });
+
+  // Apply transform via RAF for buttery-smooth rendering
+  const applyTransform = useCallback((tx, ty) => {
+    if (!cardRef.current) return;
+    const MAX_TILT = 14;  // degrees max tilt on hover
+    const rx = Math.max(-MAX_TILT, Math.min(MAX_TILT, ty)); // rotateX
+    const ry = Math.max(-MAX_TILT, Math.min(MAX_TILT, tx)); // rotateY
+    cardRef.current.style.transform =
+      `perspective(600px) rotateX(${-rx}deg) rotateY(${ry}deg) scale3d(1.06,1.06,1.06)`;
+  }, []);
+
+  const resetTransform = useCallback(() => {
+    if (!cardRef.current) return;
+    cardRef.current.style.transform =
+      `perspective(600px) rotateX(${gyroState.rx}deg) rotateY(${gyroState.ry}deg) scale3d(1,1,1)`;
+  }, []);
+
+  const onMouseMove = useCallback((e) => {
+    const rect = cardRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const cx = rect.left + rect.width  / 2;
+    const cy = rect.top  + rect.height / 2;
+    const dx = (e.clientX - cx) / (rect.width  / 2); // -1..1
+    const dy = (e.clientY - cy) / (rect.height / 2); // -1..1
+    tiltRef.current = { x: dx * 14, y: dy * 14 };
+
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() =>
+      applyTransform(tiltRef.current.x, tiltRef.current.y)
+    );
+  }, [applyTransform]);
+
+  const onMouseLeave = useCallback(() => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (cardRef.current) {
+      cardRef.current.style.transition = 'transform 0.5s cubic-bezier(0.23,1,0.32,1)';
+      resetTransform();
+      setTimeout(() => {
+        if (cardRef.current) cardRef.current.style.transition = '';
+      }, 500);
+    }
+  }, [resetTransform]);
+
+  // Gyro tick — only desktop applies tilt on hover; gyro nudges idle state
+  useEffect(() => {
+    let tick;
+    const update = () => {
+      if (cardRef.current && !cardRef.current.matches(':hover')) {
+        cardRef.current.style.transform =
+          `perspective(600px) rotateX(${gyroState.rx}deg) rotateY(${gyroState.ry}deg) scale3d(1,1,1)`;
+      }
+      tick = requestAnimationFrame(update);
+    };
+    tick = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(tick);
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-30px' }}
       transition={{ delay, duration: 0.4 }}
-      className="cursor-pointer group flex flex-col items-center gap-2"
+      className="cursor-pointer flex flex-col items-center gap-2"
       onClick={onClick}
     >
-      {/* Static Container with clean hardware-accelerated CSS hover scale transition */}
-      <div className="relative z-10 w-24 h-24 flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300 ease-out">
+      {/* 3D tilt container */}
+      <div
+        ref={cardRef}
+        onMouseMove={onMouseMove}
+        onMouseLeave={onMouseLeave}
+        className="relative z-10 w-24 h-24 flex items-center justify-center"
+        style={{ willChange: 'transform', transformStyle: 'preserve-3d' }}
+      >
         {icon3d ? (
           <img
             src={icon3d}
             alt={cat.label}
-            fetchpriority={delay < 0.2 ? "high" : "auto"}
-            loading={delay < 0.2 ? "eager" : "lazy"}
+            fetchpriority={delay < 0.2 ? 'high' : 'auto'}
+            loading={delay < 0.2 ? 'eager' : 'lazy'}
             className="w-full h-full object-contain"
-            style={{
-              pointerEvents: 'none',
-            }}
+            style={{ pointerEvents: 'none' }}
           />
         ) : (
-          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 transform group-hover:scale-105 transition-transform duration-300 ease-out">
+          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-400">
             <IconComponent name={iconName} size={32} />
           </div>
         )}
       </div>
-      
+
       {/* Label */}
       <p className="text-center text-[12px] sm:text-sm font-bold text-gray-800 leading-tight px-1 group-hover:text-brand-primary transition-colors flex items-start justify-center">
         {cat.label}
@@ -74,6 +141,29 @@ const SimpleAnimatedIconCard = ({ cat, icon3d, iconName, delay, onClick }) => {
   );
 };
 
+// ── Gyro listener (mobile) — very subtle, capped at ±3° ──────────────────
+const GyroListener = () => {
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768;
+    if (!isMobile) return;
+
+    const MAX = 3; // degrees max nudge from gyro
+    const handle = (e) => {
+      // gamma = left/right tilt, beta = front/back tilt
+      const ry =  (e.gamma ?? 0) * 0.06;  // very small factor
+      const rx = -(e.beta  ?? 0) * 0.04;
+      gyroState.ry = Math.max(-MAX, Math.min(MAX, ry));
+      gyroState.rx = Math.max(-MAX, Math.min(MAX, rx));
+    };
+
+    window.addEventListener('deviceorientation', handle, { passive: true });
+    return () => window.removeEventListener('deviceorientation', handle);
+  }, []);
+
+  return null;
+};
+
+// ── Main grid ─────────────────────────────────────────────────────────────
 const VisualCategoryGrid = () => {
   const navigate = useNavigate();
   const { isCategoryEnabled } = useSettings();
@@ -83,6 +173,7 @@ const VisualCategoryGrid = () => {
 
   return (
     <section className="py-10 bg-gradient-to-b from-gray-50 to-white border-b border-gray-100">
+      <GyroListener />
       <div className="w-full max-w-7xl mx-auto px-4 md:px-8">
 
         {/* ── VENUES ── */}
@@ -133,4 +224,3 @@ const VisualCategoryGrid = () => {
 };
 
 export default VisualCategoryGrid;
-
