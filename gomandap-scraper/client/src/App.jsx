@@ -255,12 +255,12 @@ function App() {
         <div className="lg:col-span-4 space-y-6">
           
           {/* Engine Controls */}
-          <div className="bg-[#111] border border-white/5 rounded-3xl p-6 relative overflow-hidden">
+          <div className="bg-[#111] border border-white/5 rounded-3xl p-6 relative">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/10 rounded-full blur-[50px]"></div>
             
             <h2 className="text-lg font-black mb-6 flex items-center gap-2"><Search className="text-[#D4AF37]" size={20}/> Target Locator</h2>
             
-            <div className="space-y-5 relative z-10">
+            <div className="space-y-5 relative z-10 overflow-visible">
               {/* Mode Toggle */}
               <div className="flex bg-black/50 border border-white/10 rounded-xl p-1 mb-2">
                 <button 

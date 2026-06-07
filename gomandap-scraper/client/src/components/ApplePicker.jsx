@@ -42,7 +42,7 @@ const ApplePicker = ({
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1.5 w-full bg-[#111]/95 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl p-1 animate-in fade-in slide-in-from-top-1 duration-150 origin-top">
+        <div className="absolute z-[9999] mt-1.5 w-full bg-[#111]/95 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl p-1 animate-in fade-in slide-in-from-top-1 duration-150 origin-top">
           <div className="max-h-60 overflow-y-auto space-y-0.5 no-scrollbar">
             {options.map((opt) => {
               const isSelected = opt.value === value;
