@@ -8,7 +8,8 @@ const ApplePicker = ({
   placeholder = 'Select...', 
   className = '', 
   icon: Icon,
-  buttonClassName = '' 
+  buttonClassName = '',
+  position = 'bottom'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -42,7 +43,11 @@ const ApplePicker = ({
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-2 w-full bg-gray-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl p-1.5 animate-in fade-in slide-in-from-top-1 duration-150 origin-top">
+        <div className={`absolute z-50 w-full bg-gray-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl p-1.5 animate-in fade-in duration-150 ${
+          position === 'top' 
+            ? 'bottom-full mb-2 origin-bottom slide-in-from-bottom-1' 
+            : 'mt-2 origin-top slide-in-from-top-1'
+        }`}>
           <div className="max-h-60 overflow-y-auto space-y-0.5 no-scrollbar">
             {options.map((opt) => {
               const isSelected = opt.value === value;

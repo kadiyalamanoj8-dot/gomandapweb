@@ -14,6 +14,7 @@ const GlassDatePicker = ({
   placeholder = 'Pick a date',
   variant = 'glass', // 'glass' (dark) | 'light'
   className = '',
+  position = 'bottom',
 }) => {
   const today = new Date();
   const [isOpen, setIsOpen] = useState(false);
@@ -131,12 +132,14 @@ const GlassDatePicker = ({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 14, scale: 0.95 }}
+            initial={{ opacity: 0, y: position === 'top' ? -10 : 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.95 }}
+            exit={{ opacity: 0, y: position === 'top' ? -6 : 6, scale: 0.95 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className={`absolute z-[9999] mt-3 p-4 w-[320px] ${panelCls}`}
-            style={{ transformOrigin: 'top left' }}
+            className={`absolute z-[9999] p-4 w-[320px] ${panelCls} ${
+              position === 'top' ? 'bottom-full mb-3' : 'mt-3'
+            }`}
+            style={{ transformOrigin: position === 'top' ? 'bottom left' : 'top left' }}
             onClick={e => e.stopPropagation()}
           >
             {/* Month / Year Navigation */}

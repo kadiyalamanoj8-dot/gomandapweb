@@ -14,7 +14,7 @@ const MobileBottomNav = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full h-[65px] glass-panel z-[40] flex justify-around items-center md:hidden border-t-0 shadow-[0_-10px_30px_-10px_rgba(0,0,0,0.1)] rounded-t-3xl pb-safe">
+    <nav className="fixed bottom-0 left-0 w-full h-[65px] glass-panel z-[300] flex justify-around items-center md:hidden border-t-0 shadow-[0_-10px_30px_-10px_rgba(0,0,0,0.1)] rounded-t-3xl pb-safe">
       {navItems.map((item) => (
         <NavLink 
           key={item.to} 

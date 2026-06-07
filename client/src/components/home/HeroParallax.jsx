@@ -287,15 +287,17 @@ const HeroParallax = () => {
                         {/* iOS Segment: Event Type */}
               <div className="flex-1 w-full md:w-auto relative group rounded-[32px] md:rounded-full hover:bg-white/5 transition-colors cursor-pointer pt-2 md:pt-3 pb-1">
                 <div className="px-6 flex flex-col items-start w-full">
-                  <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.18em] mb-0 ml-1">{t('search_event_type')}</span>
-                  <div className="w-full -ml-3 z-[300]">
+                  <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.18em] mb-0.5 ml-1">{t('search_event_type')}</span>
+                  <div className="w-full z-[300]">
                     <ApplePicker
                       options={EVENT_TYPES.map(tOption => ({label: tOption, value: tOption}))}
                       value={eventType}
                       onChange={setEventType}
                       placeholder={t('search_event_placeholder')}
+                      icon={PartyPopper}
+                      position="top"
                       className="w-full"
-                      buttonClassName="!bg-transparent !border-none !shadow-none !px-4 !py-1 w-full text-[17px] font-semibold text-white tracking-tight"
+                      buttonClassName="!bg-transparent !border-none !shadow-none !px-1 !py-1 w-full text-[17px] font-semibold text-white tracking-tight"
                     />
                   </div>
                 </div>
@@ -327,13 +329,12 @@ const HeroParallax = () => {
                         <circle cx="12" cy="12" r="3"></circle>
                     </svg>
                   </button>
-
                   {/* Autocomplete Dropdown */}
                   {locationResults.length > 0 && (
-                    <div className="absolute top-full left-0 mt-3 w-full md:left-1/2 md:-translate-x-1/2 md:w-[420px] bg-black/20 backdrop-blur-xl border border-white/20 border-t-white/40 shadow-[inset_0_1px_4px_rgba(255,255,255,0.25),0_30px_60px_rgba(0,0,0,0.7)] rounded-[24px] overflow-hidden z-[9999]">
+                    <div className="absolute bottom-full left-0 mb-3 w-full md:left-1/2 md:-translate-x-1/2 md:w-[420px] bg-black/20 backdrop-blur-xl border border-white/20 border-t-white/40 shadow-[inset_0_1px_4px_rgba(255,255,255,0.25),0_30px_60px_rgba(0,0,0,0.7)] rounded-[24px] overflow-hidden z-[9999]">
                       {locationResults.map((loc, i) => (
                         <div 
-                          key={i} 
+                           key={i} 
                           onClick={() => handleLocationSelect(loc)}
                           className="px-5 py-3.5 cursor-pointer flex items-center gap-3 hover:bg-white/10 active:bg-white/20 transition-colors border-b border-white/10 last:border-b-0"
                         >
@@ -362,6 +363,7 @@ const HeroParallax = () => {
                     onChange={setSelectedDate}
                     placeholder="When?"
                     variant="glass"
+                    position="top"
                   />
                 </div>
               </div>
