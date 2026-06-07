@@ -104,18 +104,30 @@ const VendorOnboarding = () => {
   useEffect(() => {
     if (basicInfo.category) {
       const schema = getCategorySchema(basicInfo.category);
+      
+      // Merge existing pricing from vendorProfile if available
+      const savedPricing = vendorProfile?.customBlocks?.pricingPackages || [];
+      const mergedPricing = schema.customBlocks?.pricingPackages?.map(p => {
+        const saved = savedPricing.find(sp => sp.title === p.title);
+        return { ...p, price: saved ? saved.price : '' };
+      }) || [];
+
       setSchemaFields({
-        pricingPackages: schema.customBlocks?.pricingPackages?.map(p => ({ ...p, price: '' })) || [],
+        pricingPackages: mergedPricing,
         vendorFormFields: schema.vendorFormFields || []
       });
       
-      const initialResponses = {};
+      const initialResponses = { ...(vendorProfile?.deepFeatures || {}) };
       (schema.vendorFormFields || []).forEach(f => {
-        initialResponses[f.id] = '';
+        if (initialResponses[f.id] === undefined) {
+          initialResponses[f.id] = '';
+        }
       });
-      setFormResponses(initialResponses);
+      
+      // Only set if we haven't modified it locally yet
+      setFormResponses(prev => Object.keys(prev).length > 0 ? prev : initialResponses);
     }
-  }, [basicInfo.category]);
+  }, [basicInfo.category, vendorProfile]);
 
   useEffect(() => {
     if (basicInfo.locationData?.parsedAddress) {

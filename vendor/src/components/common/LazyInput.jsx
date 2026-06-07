@@ -10,13 +10,11 @@ const LazyInput = ({ value, onChange, className, placeholder, type = "text", ...
 
   const handleChange = (e) => {
     setLocalValue(e.target.value);
+    onChange(e); // Sync immediately to prevent stale closures
   };
 
   const handleBlur = (e) => {
-    if (localValue !== value) {
-      // Simulate an event object to match standard onChange signature
-      onChange({ target: { value: localValue } });
-    }
+    // Keep handleBlur for compatibility if needed, but logic is handled in handleChange
   };
 
   return (

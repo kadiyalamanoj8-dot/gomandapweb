@@ -6,24 +6,20 @@ const VendorContext = createContext();
 export const useVendor = () => useContext(VendorContext);
 
 export const VendorProvider = ({ children }) => {
-  // 'unregistered', 'pending', 'approved'
-  const [vendorStatus, setVendorStatus] = useState('unregistered');
-  const [vendorProfile, setVendorProfile] = useState(null);
-
-  // Load from local storage and sync with backend on mount
-  useEffect(() => {
-    const savedStatus = localStorage.getItem('gomandap_vendor_status');
+  // Load from local storage synchronously
+  const [vendorStatus, setVendorStatus] = useState(() => {
+    return localStorage.getItem('gomandap_vendor_status') || 'unregistered';
+  });
+  
+  const [vendorProfile, setVendorProfile] = useState(() => {
     const savedProfileStr = localStorage.getItem('gomandap_vendor_profile');
-    
-    if (savedStatus) setVendorStatus(savedStatus);
-    
-    if (savedProfileStr) {
-      const savedProfile = JSON.parse(savedProfileStr);
-      setVendorProfile(savedProfile);
-      
-      // Sync with backend to get latest adminFeedback and status
-      if (savedProfile._id) {
-        fetch(`https://gomandap-api.onrender.com/api/vendors/${savedProfile._id}`)
+    return savedProfileStr ? JSON.parse(savedProfileStr) : null;
+  });
+
+  // Sync with backend on mount
+  useEffect(() => {
+    if (vendorProfile?._id) {
+        fetch(`https://gomandap-api.onrender.com/api/vendors/${vendorProfile._id}`)
           .then(res => res.json())
           .then(data => {
             if (data.success) {
@@ -35,8 +31,7 @@ export const VendorProvider = ({ children }) => {
           })
           .catch(err => console.error("Error syncing vendor profile:", err));
       }
-    }
-  }, []);
+  }, [vendorProfile?._id]);
 
   const loginWithGoogle = async (googleToken) => {
     try {
