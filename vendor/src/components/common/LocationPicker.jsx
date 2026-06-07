@@ -117,7 +117,7 @@ const LocationPicker = ({ locationData, onChange }) => {
     }
   }, [locationData]);
 
-  const updatePosition = async (lng, lat, skipReverseGeocode = false, customFormattedAddress = null, customGoogleLink = null) => {
+  const updatePosition = async (lng, lat, skipReverseGeocode = false, customFormattedAddress = null, customGoogleLink = null, customVillage = null) => {
     let locationDataUpdate = {
         type: 'Point',
         coordinates: [lng, lat],
@@ -138,7 +138,7 @@ const LocationPicker = ({ locationData, onChange }) => {
           };
 
           locationDataUpdate.parsedAddress = {
-            village: getComp(['sublocality', 'neighborhood', 'route']) || getComp(['locality']) || '',
+            village: customVillage || getComp(['sublocality', 'neighborhood', 'route']) || getComp(['locality']) || '',
             mandal: getComp(['administrative_area_level_3', 'sublocality_level_1', 'locality']) || '',
             district: getComp(['administrative_area_level_2']) || '',
             state: getComp(['administrative_area_level_1']) || '',
@@ -191,7 +191,7 @@ const LocationPicker = ({ locationData, onChange }) => {
 
         if (markerRef.current) markerRef.current.setLngLat([loc.lng, loc.lat]);
         if (mapRef.current) mapRef.current.flyTo({ center: [loc.lng, loc.lat], zoom: 15 });
-        updatePosition(loc.lng, loc.lat, false, prediction.description, generatedGoogleLink);
+        updatePosition(loc.lng, loc.lat, false, prediction.description, generatedGoogleLink, prediction.description.split(',')[0]);
       }
     } catch(e) {
       console.error("Geocode failed", e);
