@@ -32,11 +32,26 @@ const EVENT_MANDAP_MAP = {
 const HeroParallax = () => {
   const { t } = useTranslation();
   const containerRef = useRef(null);
+  const heroRef = useRef(null);
   const navigate = useNavigate();
   const [eventType, setEventType] = useState('');
   const [isEventPickerOpen, setIsEventPickerOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
+  const [isHeroVisible, setIsHeroVisible] = useState(true);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsHeroVisible(entry.isIntersecting);
+      },
+      { threshold: 0.05 }
+    );
+    if (heroRef.current) {
+      observer.observe(heroRef.current);
+    }
+    return () => observer.disconnect();
+  }, []);
   
   // Location Autocomplete State
   const [locationQuery, setLocationQuery] = useState('');
@@ -132,6 +147,8 @@ const HeroParallax = () => {
   const frontY = useTransform(smoothY, [-1, 1], [-30, 30]);
 
   useEffect(() => {
+    if (!isHeroVisible) return;
+
     const handleMouseMove = (e) => {
       if (!containerRef.current) return;
       const { clientWidth, clientHeight } = containerRef.current;
@@ -182,7 +199,7 @@ const HeroParallax = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('deviceorientation', handleOrientation);
     };
-  }, [mouseX, mouseY]);
+  }, [mouseX, mouseY, isHeroVisible]);
 
   const currentMandap = '/images/temple_mandap copy.webp';
 
@@ -260,7 +277,10 @@ const HeroParallax = () => {
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="relative w-full h-screen h-[100dvh] min-h-[600px] z-40 focus-within:z-[60] select-none overflow-hidden">
+      <div 
+        ref={heroRef}
+        className="relative w-full h-screen h-[100dvh] min-h-[600px] bg-black z-40 focus-within:z-[60] select-none overflow-hidden"
+      >
       
       {background3D}
 
