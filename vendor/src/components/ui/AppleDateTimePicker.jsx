@@ -90,17 +90,20 @@ const AppleDateTimePicker = ({
     { 
       options: dates, 
       value: selectedDate, 
-      onChange: (d) => handleDateChange(selectedYear, selectedMonth, d) 
+      onChange: (d) => handleDateChange(selectedYear, selectedMonth, d),
+      onItemClick: () => setIsOpen(false)
     },
     { 
       options: months, 
       value: selectedMonth, 
-      onChange: (m) => handleDateChange(selectedYear, m, selectedDate) 
+      onChange: (m) => handleDateChange(selectedYear, m, selectedDate),
+      onItemClick: () => setIsOpen(false)
     },
     { 
       options: years, 
       value: selectedYear, 
-      onChange: (y) => handleDateChange(y, selectedMonth, selectedDate) 
+      onChange: (y) => handleDateChange(y, selectedMonth, selectedDate),
+      onItemClick: () => setIsOpen(false)
     }
   ];
 
@@ -130,18 +133,14 @@ const AppleDateTimePicker = ({
       </button>
 
       {isOpen && (
-        <div className={`absolute z-[9999] p-4 ${
+        <div className={`absolute z-[9999] p-2 ${
           isDark ? 'bg-[#111]/95 border-white/10 shadow-2xl' : 'bg-white border-gray-100 shadow-[0_16px_48px_rgba(0,0,0,0.1)]'
-        } backdrop-blur-2xl border rounded-3xl animate-in fade-in duration-150 flex flex-col gap-2 min-w-[280px] w-full ${
+        } backdrop-blur-2xl border rounded-[24px] animate-in fade-in duration-150 flex flex-col min-w-[280px] w-full ${
           position === 'top' 
             ? 'bottom-full mb-2 origin-bottom slide-in-from-bottom-1' 
             : 'mt-2 origin-top slide-in-from-top-1'
         }`}>
           
-          <div className="px-1 text-center w-full mb-1">
-            <span className={`text-xs uppercase tracking-widest font-bold ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{placeholder}</span>
-          </div>
-
           <AppleScrollPicker columns={columns} theme={theme} className="w-full" />
         </div>
       )}

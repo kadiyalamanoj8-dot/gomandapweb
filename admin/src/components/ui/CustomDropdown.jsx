@@ -35,19 +35,19 @@ const CustomDropdown = ({
   const variants = {
     ios: {
       button: "bg-transparent text-white border-none",
-      menu: "bg-black/25 backdrop-blur-2xl border border-white/15 border-t-white/30 shadow-[inset_0_1px_3px_rgba(255,255,255,0.15),0_24px_48px_rgba(0,0,0,0.6)] rounded-[22px] overflow-hidden p-3",
+      menu: "bg-black/25 backdrop-blur-2xl border border-white/15 border-t-white/30 shadow-[inset_0_1px_3px_rgba(255,255,255,0.15),0_24px_48px_rgba(0,0,0,0.6)] rounded-[22px] overflow-hidden p-2",
       placeholder: "text-white/45",
       theme: "dark"
     },
     glass: {
       button: "bg-transparent text-white border-none",
-      menu: "bg-black/25 backdrop-blur-2xl border border-white/15 border-t-white/30 shadow-[inset_0_1px_3px_rgba(255,255,255,0.15),0_24px_48px_rgba(0,0,0,0.6)] rounded-[22px] overflow-hidden p-3",
+      menu: "bg-black/25 backdrop-blur-2xl border border-white/15 border-t-white/30 shadow-[inset_0_1px_3px_rgba(255,255,255,0.15),0_24px_48px_rgba(0,0,0,0.6)] rounded-[22px] overflow-hidden p-2",
       placeholder: "text-white/45",
       theme: "dark"
     },
     light: {
       button: "bg-white/70 text-gray-800 border border-gray-200/70 shadow-sm hover:border-gray-300 backdrop-blur-sm px-4 py-3 rounded-2xl",
-      menu: "bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_16px_48px_rgba(0,0,0,0.09)] rounded-[20px] overflow-hidden p-3",
+      menu: "bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_16px_48px_rgba(0,0,0,0.09)] rounded-[20px] overflow-hidden p-2",
       placeholder: "text-gray-400",
       theme: "light"
     }
@@ -89,16 +89,12 @@ const CustomDropdown = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.97 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className={`absolute left-0 z-[9999] w-full min-w-[280px] mt-2 flex flex-col gap-3 ${s.menu} ${dropdownClassName}`}
+            className={`absolute left-0 z-[9999] w-full min-w-[280px] mt-2 flex flex-col gap-2 ${s.menu} ${dropdownClassName}`}
             style={{ transformOrigin: 'top center' }}
           >
-            <div className="px-1 text-center w-full mb-1">
-              <span className={`text-xs uppercase tracking-widest font-bold ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{placeholder}</span>
-            </div>
-            
             <div className="w-full flex justify-center pb-1">
               <AppleScrollPicker 
-                columns={[{ options: normalizedOptions, value, onChange }]} 
+                columns={[{ options: normalizedOptions, value, onChange, onItemClick: () => setIsOpen(false) }]} 
                 theme={s.theme} 
               />
             </div>
