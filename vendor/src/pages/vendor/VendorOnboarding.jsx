@@ -512,7 +512,7 @@ const VendorOnboarding = () => {
                     >
                       <MapPin className="shrink-0 mt-0.5 animate-bounce" size={18} />
                       <span>
-                        <strong className="font-black uppercase tracking-wider">Pro Tip:</strong> Auto-location might snap to the nearest major area. Please <strong>drag the map pin</strong> exactly to your venue, and manually correct the Village/Mandal boxes below if they are slightly off!
+                        <strong className="font-black uppercase tracking-wider">Pro Tip:</strong> For rural areas, automatic location might default to the nearest town. To ensure customers can find you, please <strong className="font-bold">drag the map pin exactly to your doorstep</strong>, and manually correct the Village/Mandal/Pincode boxes below if the auto-filled data is slightly off!
                       </span>
                     </motion.p>
                   </motion.div>
