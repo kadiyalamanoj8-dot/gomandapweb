@@ -124,7 +124,8 @@ const VendorOnboarding = () => {
         district: pa.district || prev.district,
         state: pa.state || prev.state,
         city: pa.district || pa.village || prev.city,
-        streetAddress: pa.formattedAddress || prev.streetAddress
+        streetAddress: pa.formattedAddress || prev.streetAddress,
+        pincode: pa.pincode || prev.pincode
       }));
     }
   }, [basicInfo.locationData?.parsedAddress]);

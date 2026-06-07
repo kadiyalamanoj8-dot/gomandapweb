@@ -138,10 +138,11 @@ const LocationPicker = ({ locationData, onChange }) => {
           };
 
           locationDataUpdate.parsedAddress = {
-            village: getComp(['sublocality', 'neighborhood', 'route', 'locality']) || '',
-            mandal: getComp(['administrative_area_level_3', 'administrative_area_level_2']) || '',
-            district: getComp(['administrative_area_level_2', 'administrative_area_level_1']) || '',
+            village: getComp(['sublocality', 'neighborhood', 'route']) || getComp(['locality']) || '',
+            mandal: getComp(['administrative_area_level_3', 'sublocality_level_1', 'locality']) || '',
+            district: getComp(['administrative_area_level_2']) || '',
             state: getComp(['administrative_area_level_1']) || '',
+            pincode: getComp(['postal_code']) || '',
             formattedAddress: customFormattedAddress || data.results[0].formatted_address || ''
           };
         }
