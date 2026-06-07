@@ -46,17 +46,8 @@ const SimpleAnimatedIconCard = ({ cat, icon3d, iconName, delay, onClick }) => {
       className="cursor-pointer group flex flex-col items-center gap-2"
       onClick={onClick}
     >
-      {/* Container just for the image and floating animation */}
-      <motion.div 
-        animate={{ y: [0, -8, 0] }}
-        transition={{ 
-          repeat: Infinity, 
-          duration: 3, 
-          ease: "easeInOut",
-          delay: delay * 2 // stagger the animation start slightly
-        }}
-        className="relative z-10 w-24 h-24 flex items-center justify-center"
-      >
+      {/* Static Container with clean hardware-accelerated CSS hover scale transition */}
+      <div className="relative z-10 w-24 h-24 flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300 ease-out">
         {icon3d ? (
           <img
             src={icon3d}
@@ -65,16 +56,15 @@ const SimpleAnimatedIconCard = ({ cat, icon3d, iconName, delay, onClick }) => {
             loading={delay < 0.2 ? "eager" : "lazy"}
             className="w-full h-full object-contain"
             style={{
-              filter: 'drop-shadow(0 15px 20px rgba(0,0,0,0.15)) drop-shadow(0 5px 10px rgba(0,0,0,0.1))',
               pointerEvents: 'none',
             }}
           />
         ) : (
-          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-400">
+          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 transform group-hover:scale-105 transition-transform duration-300 ease-out">
             <IconComponent name={iconName} size={32} />
           </div>
         )}
-      </motion.div>
+      </div>
       
       {/* Label */}
       <p className="text-center text-[12px] sm:text-sm font-bold text-gray-800 leading-tight px-1 group-hover:text-brand-primary transition-colors flex items-start justify-center">
