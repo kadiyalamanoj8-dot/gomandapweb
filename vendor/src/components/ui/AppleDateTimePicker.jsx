@@ -1,48 +1,39 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ChevronDown, Calendar } from 'lucide-react';
 import AppleScrollPicker from './AppleScrollPicker';
 
-// Generate Options
-const generateDays = () => {
-  const days = [];
-  const date = new Date();
-  for (let i = 0; i < 30; i++) {
-    const d = new Date(date);
-    d.setDate(d.getDate() + i);
-    const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-    const monthName = d.toLocaleDateString('en-US', { month: 'short' });
-    const dateNum = d.getDate();
-    days.push({
-      value: d.toISOString().split('T')[0],
-      label: `${dayName} ${monthName} ${dateNum}`
-    });
-  }
-  return days;
-};
-
-const generateHours = () => {
-  return Array.from({ length: 12 }, (_, i) => ({
-    value: i === 0 ? 12 : i,
-    label: (i === 0 ? 12 : i).toString()
-  }));
-};
-
-const generateMinutes = () => {
-  return Array.from({ length: 12 }, (_, i) => ({
-    value: i * 5,
-    label: (i * 5).toString().padStart(2, '0')
-  }));
-};
-
-const amPmOptions = [
-  { value: 'AM', label: 'AM' },
-  { value: 'PM', label: 'PM' }
+const MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
 ];
+
+const generateYears = () => {
+  const currentYear = new Date().getFullYear();
+  return Array.from({ length: 10 }, (_, i) => ({
+    value: currentYear + i,
+    label: (currentYear + i).toString()
+  }));
+};
+
+const generateMonths = () => {
+  return MONTHS.map((m, i) => ({
+    value: i,
+    label: m
+  }));
+};
+
+const generateDates = (year, month) => {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  return Array.from({ length: daysInMonth }, (_, i) => ({
+    value: i + 1,
+    label: (i + 1).toString().padStart(2, '0')
+  }));
+};
 
 const AppleDateTimePicker = ({ 
   value, 
   onChange, 
-  placeholder = 'Pick a date & time', 
+  placeholder = 'Pick a date', 
   className = '', 
   theme = 'dark',
   position = 'bottom'
@@ -50,23 +41,23 @@ const AppleDateTimePicker = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Data Sources
-  const [days] = useState(generateDays());
-  const [hours] = useState(generateHours());
-  const [minutes] = useState(generateMinutes());
+  const initialDate = value || new Date();
+  
+  const [selectedYear, setSelectedYear] = useState(initialDate.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(initialDate.getMonth());
+  const [selectedDate, setSelectedDate] = useState(initialDate.getDate());
 
-  // Current Selections
-  const [selectedDay, setSelectedDay] = useState(days[0].value);
-  const [selectedHour, setSelectedHour] = useState(hours[0].value);
-  const [selectedMinute, setSelectedMinute] = useState(minutes[0].value);
-  const [selectedAmPm, setSelectedAmPm] = useState(amPmOptions[0].value);
+  const years = useMemo(() => generateYears(), []);
+  const months = useMemo(() => generateMonths(), []);
+  const dates = useMemo(() => generateDates(selectedYear, selectedMonth), [selectedYear, selectedMonth]);
 
-  // Sync incoming value to local states (simplified)
+  // Sync incoming value
   useEffect(() => {
-    if (value && value.day) setSelectedDay(value.day);
-    if (value && value.hour) setSelectedHour(value.hour);
-    if (value && value.minute !== undefined) setSelectedMinute(value.minute);
-    if (value && value.amPm) setSelectedAmPm(value.amPm);
+    if (value && value instanceof Date && !isNaN(value)) {
+      setSelectedYear(value.getFullYear());
+      setSelectedMonth(value.getMonth());
+      setSelectedDate(value.getDate());
+    }
   }, [value]);
 
   useEffect(() => {
@@ -79,33 +70,43 @@ const AppleDateTimePicker = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleApply = () => {
+  // Update parent instantly when any part of the date changes
+  const handleDateChange = (y, m, d) => {
+    const maxDays = new Date(y, m + 1, 0).getDate();
+    const safeDate = Math.min(d, maxDays);
+    
+    setSelectedYear(y);
+    setSelectedMonth(m);
+    setSelectedDate(safeDate);
+
     if (onChange) {
-      onChange({
-        day: selectedDay,
-        hour: selectedHour,
-        minute: selectedMinute,
-        amPm: selectedAmPm
-      });
+      onChange(new Date(y, m, safeDate));
     }
-    setIsOpen(false);
   };
 
   const isDark = theme === 'dark';
 
   const columns = [
-    { options: days, value: selectedDay, onChange: setSelectedDay },
-    { options: hours, value: selectedHour, onChange: setSelectedHour },
-    { options: minutes, value: selectedMinute, onChange: setSelectedMinute },
-    { options: amPmOptions, value: selectedAmPm, onChange: setSelectedAmPm },
+    { 
+      options: dates, 
+      value: selectedDate, 
+      onChange: (d) => handleDateChange(selectedYear, selectedMonth, d) 
+    },
+    { 
+      options: months, 
+      value: selectedMonth, 
+      onChange: (m) => handleDateChange(selectedYear, m, selectedDate) 
+    },
+    { 
+      options: years, 
+      value: selectedYear, 
+      onChange: (y) => handleDateChange(y, selectedMonth, selectedDate) 
+    }
   ];
 
   const getDisplayText = () => {
     if (!value) return placeholder;
-    const dayOpt = days.find(d => d.value === value.day);
-    const dayStr = dayOpt ? dayOpt.label : value.day;
-    const minStr = value.minute.toString().padStart(2, '0');
-    return `${dayStr} at ${value.hour}:${minStr} ${value.amPm}`;
+    return value.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
   return (
@@ -131,25 +132,17 @@ const AppleDateTimePicker = ({
       {isOpen && (
         <div className={`absolute z-[9999] p-4 ${
           isDark ? 'bg-[#111]/95 border-white/10 shadow-2xl' : 'bg-white border-gray-100 shadow-[0_16px_48px_rgba(0,0,0,0.1)]'
-        } backdrop-blur-2xl border rounded-3xl animate-in fade-in duration-150 flex flex-col gap-4 ${
+        } backdrop-blur-2xl border rounded-3xl animate-in fade-in duration-150 flex flex-col gap-2 min-w-[280px] w-full ${
           position === 'top' 
             ? 'bottom-full mb-2 origin-bottom slide-in-from-bottom-1' 
             : 'mt-2 origin-top slide-in-from-top-1'
         }`}>
           
-          <div className="flex justify-between items-center px-1">
-            <span className={`text-sm font-bold ${isDark ? 'text-white/50' : 'text-gray-500'}`}>Select Date & Time</span>
-            <button 
-              onClick={handleApply}
-              className={`text-sm font-bold px-3 py-1 rounded-lg ${
-                isDark ? 'bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90' : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
-            >
-              Done
-            </button>
+          <div className="px-1 text-center w-full mb-1">
+            <span className={`text-xs uppercase tracking-widest font-bold ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{placeholder}</span>
           </div>
 
-          <AppleScrollPicker columns={columns} theme={theme} />
+          <AppleScrollPicker columns={columns} theme={theme} className="w-full" />
         </div>
       )}
     </div>

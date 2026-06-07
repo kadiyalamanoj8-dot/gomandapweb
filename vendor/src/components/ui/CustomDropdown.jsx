@@ -92,16 +92,8 @@ const CustomDropdown = ({
             className={`absolute left-0 z-[9999] w-full min-w-[280px] mt-2 flex flex-col gap-3 ${s.menu} ${dropdownClassName}`}
             style={{ transformOrigin: 'top center' }}
           >
-            <div className="flex justify-between items-center px-2 pt-1">
-              <span className={`text-sm font-bold ${isDark ? 'text-white/50' : 'text-gray-500'}`}>{placeholder}</span>
-              <button 
-                onClick={() => setIsOpen(false)}
-                className={`text-sm font-bold px-3 py-1 rounded-lg ${
-                  isDark ? 'bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90' : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
-              >
-                Done
-              </button>
+            <div className="px-1 text-center w-full mb-1">
+              <span className={`text-xs uppercase tracking-widest font-bold ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{placeholder}</span>
             </div>
             
             <div className="w-full flex justify-center pb-1">

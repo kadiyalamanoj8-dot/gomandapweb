@@ -64,16 +64,8 @@ const ApplePicker = ({
             : 'mt-2 origin-top slide-in-from-top-1'
         }`}>
           
-          <div className="flex justify-between items-center px-1">
-            <span className={`text-sm font-bold ${isDark ? 'text-white/50' : 'text-gray-500'}`}>{placeholder}</span>
-            <button 
-              onClick={() => setIsOpen(false)}
-              className={`text-sm font-bold px-3 py-1 rounded-lg ${
-                isDark ? 'bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90' : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
-            >
-              Done
-            </button>
+          <div className="px-1 text-center w-full mb-1">
+            <span className={`text-xs uppercase tracking-widest font-bold ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{placeholder}</span>
           </div>
 
           <AppleScrollPicker columns={columns} theme={theme} className="w-full" />
