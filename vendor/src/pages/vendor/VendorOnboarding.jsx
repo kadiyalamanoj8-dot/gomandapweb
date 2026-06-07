@@ -7,7 +7,8 @@ import { getCategorySchema } from '../../config/categorySchemas';
 import CustomDropdown from '../../components/ui/CustomDropdown';
 import { 
   Camera, Store, MapPin, DollarSign, CheckCircle2, ChevronRight, ChevronLeft,
-  Building2, UserCircle2, Briefcase, Landmark, Image as ImageIcon, UploadCloud
+  Building2, UserCircle2, Briefcase, Landmark, Image as ImageIcon, UploadCloud,
+  LogOut, Home
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
@@ -44,7 +45,7 @@ const ICON_MAP = {
 };
 
 const VendorOnboarding = () => {
-  const { submitOnboarding, saveDraft, vendorProfile } = useVendor();
+  const { submitOnboarding, saveDraft, vendorProfile, logoutVendor } = useVendor();
   const { isCategoryEnabled } = useSettings();
   const navigate = useNavigate();
   const location = useLocation();
@@ -181,6 +182,15 @@ const VendorOnboarding = () => {
   const handleNext = () => performSaveDraft(step + 1);
   const handlePrev = () => performSaveDraft(step - 1);
 
+  const handleLogout = () => {
+    logoutVendor();
+    navigate('/');
+  };
+
+  const handleHome = () => {
+    navigate('/');
+  };
+
   const handleCategorySelect = (categoryLabel) => {
     setBasicInfo({...basicInfo, category: categoryLabel});
     performSaveDraft(2, categoryLabel);
@@ -263,9 +273,44 @@ const VendorOnboarding = () => {
       
       {/* Apple-style sticky transparent/blur header */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-3xl border-b border-white/10 transition-all duration-300">
-        <div className="container mx-auto max-w-[1400px] px-6 h-[60px] flex items-center justify-between">
-          <div className="text-xl font-black text-brand-gold tracking-tight">
-            Gomandap <span className="text-white/70 font-medium ml-1 text-lg">Business</span>
+        <div className="container mx-auto max-w-[1400px] px-6 h-[70px] flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-brand-gold/20 border border-brand-gold/30 rounded-xl flex items-center justify-center">
+              <Store className="text-brand-gold w-4 h-4" />
+            </div>
+            <div className="text-lg font-black text-white tracking-tight">
+              Gomandap <span className="text-brand-gold font-medium">Business</span>
+            </div>
+          </div>
+          
+          <div className="hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10">
+             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+             <span className="text-[11px] font-bold text-white/70 uppercase tracking-widest">Step {step} of 6 : Onboarding</span>
+          </div>
+
+          <div className="flex items-center gap-4 md:gap-6">
+            <div className="flex items-center gap-3">
+               <div className="text-right hidden sm:block">
+                 <div className="text-sm font-bold text-white">{basicInfo.name || basicInfo.ownerName || 'Vendor'}</div>
+                 <div className="text-[10px] text-brand-gold uppercase tracking-widest font-bold">Draft Profile</div>
+               </div>
+               {basicInfo.photoUrl ? (
+                 <img src={basicInfo.photoUrl} alt="Profile" className="w-10 h-10 rounded-full border-2 border-brand-gold/50 shadow-md object-cover" />
+               ) : (
+                 <div className="w-10 h-10 rounded-full bg-brand-gold/10 border-2 border-brand-gold/30 flex items-center justify-center">
+                   <UserCircle2 size={20} className="text-brand-gold" />
+                 </div>
+               )}
+            </div>
+            
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-white/50 hover:text-red-400 transition-colors pl-4 border-l border-white/10"
+              title="Logout"
+            >
+              <LogOut size={18} />
+              <span className="hidden sm:inline text-xs font-bold uppercase tracking-wider">Exit</span>
+            </button>
           </div>
         </div>
       </nav>
@@ -397,6 +442,12 @@ const VendorOnboarding = () => {
                     );
                   })}
                 </div>
+              </div>
+
+              <div className="mt-12 flex justify-center pt-8 border-t border-white/10">
+                <button onClick={handleHome} className="flex items-center gap-2 text-white/50 font-bold hover:text-white px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10">
+                  <Home size={18} /> Return to Home
+                </button>
               </div>
             </div>
           )}

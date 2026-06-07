@@ -604,7 +604,6 @@ const VendorLandingPage = () => {
                           console.error('Google Login Failed');
                           alert("Login failed.");
                         }}
-                        useOneTap
                         theme="filled_black"
                         shape="pill"
                         size="large"
