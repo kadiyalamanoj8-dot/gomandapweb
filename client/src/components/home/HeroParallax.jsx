@@ -260,7 +260,7 @@ const HeroParallax = () => {
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="relative w-full h-screen h-[100dvh] min-h-[600px] z-40 select-none overflow-hidden">
+      <div className="relative w-full h-screen h-[100dvh] min-h-[600px] select-none overflow-hidden">
       
       {background3D}
 
