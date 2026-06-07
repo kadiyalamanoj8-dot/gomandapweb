@@ -14,12 +14,11 @@ const ScrollColumn = ({ options, value, onChange, isDark }) => {
     if (!ulRef.current) return;
     const index = options.findIndex((o) => o.value === value);
     if (index >= 0) {
-      // Mark as programmatic so onScroll doesn't fire back a change unnecessarily
       isProgrammaticScroll.current = true;
       ulRef.current.scrollTo({ top: index * ITEM_HEIGHT, behavior: 'smooth' });
       setTimeout(() => {
         isProgrammaticScroll.current = false;
-      }, 300); // Wait for smooth scroll to finish
+      }, 300);
     }
   }, [value, options]);
 
@@ -38,7 +37,6 @@ const ScrollColumn = ({ options, value, onChange, isDark }) => {
         onChange(newValue);
       }
       
-      // Snap exactly to the item
       ulRef.current.scrollTo({ top: clampedIndex * ITEM_HEIGHT, behavior: 'smooth' });
     }, 100);
   };
@@ -61,15 +59,17 @@ const ScrollColumn = ({ options, value, onChange, isDark }) => {
         return (
           <li
             key={opt.value}
-            className={`snap-center flex items-center justify-center text-center font-medium transition-all duration-200 cursor-pointer ${
-              isSelected ? 'opacity-100 text-[17px]' : 'opacity-40 text-[15px]'
+            className={`snap-center flex items-center justify-center text-center font-medium transition-all duration-200 cursor-pointer px-2 ${
+              isSelected 
+                ? (isDark ? 'opacity-100 text-[18px] text-[#D4AF37] font-bold' : 'opacity-100 text-[18px] text-blue-600 font-bold') 
+                : (isDark ? 'opacity-60 text-[15px] hover:opacity-80' : 'opacity-50 text-[15px] hover:opacity-80')
             }`}
             style={{ height: `${ITEM_HEIGHT}px` }}
             onClick={() => {
               if (!isSelected) onChange(opt.value);
             }}
           >
-            {opt.label}
+            <span className="truncate">{opt.label}</span>
           </li>
         );
       })}
@@ -82,36 +82,27 @@ const AppleScrollPicker = ({ columns = [], theme = 'dark', className = '' }) => 
 
   return (
     <div
-      className={`relative inline-flex rounded-2xl px-4 py-2 shadow-xl overflow-hidden ${
-        isDark ? 'bg-[#111] text-white border border-white/10' : 'bg-white text-gray-900 border border-gray-200'
-      } ${className}`}
-      style={{ height: `${CONTAINER_HEIGHT + 16}px` }} // +16 for padding
+      className={`relative inline-flex w-full overflow-hidden ${className}`}
+      style={{ 
+        height: `${CONTAINER_HEIGHT}px`,
+        WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)',
+        maskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)'
+      }}
     >
-      {/* Top Gradient */}
-      <div
-        className={`absolute top-0 left-0 w-full h-[80px] z-10 pointer-events-none bg-gradient-to-b ${
-          isDark ? 'from-[#111] via-[#111]/80 to-transparent' : 'from-white via-white/80 to-transparent'
-        }`}
-      ></div>
-
-      {/* Bottom Gradient */}
-      <div
-        className={`absolute bottom-0 left-0 w-full h-[80px] z-10 pointer-events-none bg-gradient-to-t ${
-          isDark ? 'from-[#111] via-[#111]/80 to-transparent' : 'from-white via-white/80 to-transparent'
-        }`}
-      ></div>
-
       {/* Selection Window Middle Line */}
-      <div className="absolute top-1/2 left-0 w-full z-0 pointer-events-none -translate-y-1/2" style={{ height: `${ITEM_HEIGHT}px` }}>
+      <div 
+        className="absolute top-1/2 left-0 w-full z-0 pointer-events-none -translate-y-1/2" 
+        style={{ height: `${ITEM_HEIGHT}px` }}
+      >
         <div
           className={`w-full h-full border-y ${
-            isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50/50'
+            isDark ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-gray-50/30'
           }`}
         ></div>
       </div>
 
       {/* Columns */}
-      <div className="relative z-20 flex gap-2 w-full justify-center">
+      <div className="relative z-20 flex gap-1 w-full justify-center">
         {columns.map((col, i) => (
           <ScrollColumn
             key={i}
