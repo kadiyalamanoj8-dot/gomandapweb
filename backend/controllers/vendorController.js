@@ -47,8 +47,15 @@ const syncVendorAuth = async (req, res) => {
         vendorId: vendor._id,
         token: generateToken(vendor._id)
       });
+    } else if (vendor && vendor.status === 'draft') {
+      return res.json({
+        success: true,
+        action: 'resume',
+        vendorId: vendor._id,
+        token: generateToken(vendor._id)
+      });
     } else {
-      // New vendor, or draft vendor (needs onboarding)
+      // New vendor
       return res.json({
         success: true,
         action: 'onboard',
@@ -85,8 +92,16 @@ const syncGoogleAuth = async (req, res) => {
         vendorId: vendor._id,
         token: generateToken(vendor._id)
       });
+    } else if (vendor && vendor.status === 'draft') {
+      // Vendor is in draft state, return their draft to resume
+      return res.json({
+        success: true,
+        action: 'resume',
+        vendorId: vendor._id,
+        token: generateToken(vendor._id)
+      });
     } else {
-      // New vendor, or draft vendor (needs onboarding)
+      // Completely new vendor
       return res.json({
         success: true,
         action: 'onboard',

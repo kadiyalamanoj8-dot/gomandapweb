@@ -50,7 +50,7 @@ export const VendorProvider = ({ children }) => {
       const data = await res.json();
       
       if (data.success) {
-        if (data.action === 'dashboard') {
+        if (data.action === 'dashboard' || data.action === 'resume') {
           localStorage.setItem('gomandap_vendor_token', data.token);
           // Fetch the vendor profile using the ID
           const profileRes = await fetch(`https://gomandap-api.onrender.com/api/vendors/${data.vendorId}`);
