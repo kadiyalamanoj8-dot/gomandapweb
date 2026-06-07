@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, MapPin, Calendar, Users, PartyPopper } from 'lucide-react';
 import GlassDatePicker from '../ui/GlassDatePicker';
+import ApplePicker from '../ui/ApplePicker';
 
 const HeroSearch = () => {
   const [eventType, setEventType] = useState('');
@@ -13,6 +14,13 @@ const HeroSearch = () => {
     console.log('Searching:', { eventType, location, date, guests });
   };
 
+  const eventOptions = [
+    { value: 'wedding', label: 'Wedding' },
+    { value: 'reception', label: 'Reception' },
+    { value: 'corporate', label: 'Corporate Event' },
+    { value: 'birthday', label: 'Birthday Party' }
+  ];
+
   return (
     <header className="hero">
       <div className="hero-bg"></div>
@@ -24,20 +32,15 @@ const HeroSearch = () => {
         </p>
 
         <form className="advanced-search-bar" onSubmit={handleSearch}>
-          <div className="search-field">
-            <PartyPopper size={20} className="search-icon" />
-            <select 
-              className="search-input" 
+          <div className="search-field flex-1 min-w-[200px]">
+            <ApplePicker
+              options={eventOptions}
               value={eventType}
-              onChange={(e) => setEventType(e.target.value)}
-              required
-            >
-              <option value="" disabled>Event Type</option>
-              <option value="wedding">Wedding</option>
-              <option value="reception">Reception</option>
-              <option value="corporate">Corporate Event</option>
-              <option value="birthday">Birthday Party</option>
-            </select>
+              onChange={setEventType}
+              placeholder="Event Type"
+              icon={PartyPopper}
+              className="w-full"
+            />
           </div>
           
           <div className="search-divider"></div>

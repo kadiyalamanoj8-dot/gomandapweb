@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, CheckCircle2, XCircle, Landmark, MapPin, Phone, Building2, Store, Star, Send, UserCircle2 } from 'lucide-react';
 import { getCategorySchema } from '../config/categorySchemas';
 import LocationMapAdmin from './LocationMapAdmin';
+import ApplePicker from './ApplePicker';
 
 const VendorDetailsModal = ({ vendor, onClose, onUpdateStatus }) => {
   const [viewMode, setViewMode] = useState('admin'); // 'admin' | 'preview'
@@ -286,19 +287,20 @@ const VendorDetailsModal = ({ vendor, onClose, onUpdateStatus }) => {
           {['draft', 'pending', 'rejected_with_feedback'].includes(vendor.status) && (
             <div className="px-4 md:px-8 py-4 bg-red-50/50 border-b border-gray-100 flex flex-col md:flex-row gap-3 items-center">
               <span className="text-sm font-bold text-red-600 whitespace-nowrap">Flag Issue:</span>
-              <select 
+              <ApplePicker
                 value={feedbackField}
-                onChange={e => setFeedbackField(e.target.value)}
-                className="w-full md:w-48 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:border-red-400"
-              >
-                <option value="">Select Field...</option>
-                <option value="portfolioImages">Portfolio/Images</option>
-                <option value="banking.accountNumber">Bank Account Number</option>
-                <option value="banking.ifscCode">IFSC Code</option>
-                <option value="gstin">GST Number</option>
-                <option value="address">Address/Location</option>
-                <option value="deepFeatures">Pricing/Features</option>
-              </select>
+                onChange={setFeedbackField}
+                options={[
+                  { value: 'portfolioImages', label: 'Portfolio/Images' },
+                  { value: 'banking.accountNumber', label: 'Bank Account Number' },
+                  { value: 'banking.ifscCode', label: 'IFSC Code' },
+                  { value: 'gstin', label: 'GST Number' },
+                  { value: 'address', label: 'Address/Location' },
+                  { value: 'deepFeatures', label: 'Pricing/Features' }
+                ]}
+                placeholder="Select Field..."
+                className="w-full md:w-56"
+              />
               <input 
                 type="text" 
                 value={feedbackMessage}

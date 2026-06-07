@@ -4,7 +4,7 @@ import { Search, MapPin, Calendar, PartyPopper } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { EVENT_TYPES } from '../../data/mockData';
-import CustomDropdown from '../ui/CustomDropdown';
+import ApplePicker from '../ui/ApplePicker';
 import GlassDatePicker from '../ui/GlassDatePicker';
 
 const EVENT_CATEGORY_MAP = {
@@ -288,14 +288,14 @@ const HeroParallax = () => {
               <div className="flex-1 w-full md:w-auto relative group rounded-[32px] md:rounded-full hover:bg-white/5 transition-colors cursor-pointer pt-2 md:pt-3 pb-1">
                 <div className="px-6 flex flex-col items-start w-full">
                   <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.18em] mb-0 ml-1">{t('search_event_type')}</span>
-                  <div className="w-full -ml-3">
-                    <CustomDropdown
+                  <div className="w-full -ml-3 z-[300]">
+                    <ApplePicker
                       options={EVENT_TYPES.map(tOption => ({label: tOption, value: tOption}))}
                       value={eventType}
                       onChange={setEventType}
                       placeholder={t('search_event_placeholder')}
-                      variant="glass"
-                      className="!bg-transparent !border-none !shadow-none !px-4 !py-1 w-full text-[17px] font-semibold text-white tracking-tight"
+                      className="w-full"
+                      buttonClassName="!bg-transparent !border-none !shadow-none !px-4 !py-1 w-full text-[17px] font-semibold text-white tracking-tight"
                     />
                   </div>
                 </div>
