@@ -225,6 +225,13 @@
     scrollbar-width: none;
   }
   
+  /* iOS Safe Area Utilities */
+  .pt-safe { padding-top: max(env(safe-area-inset-top), 1rem); }
+  .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 1rem); }
+  .pl-safe { padding-left: max(env(safe-area-inset-left), 1rem); }
+  .pr-safe { padding-right: max(env(safe-area-inset-right), 1rem); }
+  .pb-safe-nav { padding-bottom: env(safe-area-inset-bottom); }
+  
   /* === LIQUID GLASS 3D NAVBAR (not frost) === */
   .glass-panel {
     /* Refractive multi-layer fill — True Liquid Glass (highly transparent) */

@@ -27,7 +27,7 @@ const CartDrawer = () => {
         transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
         className="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-[110] flex flex-col"
       >
-        <div className="flex justify-between items-center p-6 border-b border-gray-100">
+        <div className="flex justify-between items-center px-6 pb-6 pt-safe border-b border-gray-100">
           <h2 className="text-2xl font-black text-gray-900">Your Event Cart</h2>
           <button 
             onClick={() => setIsCartOpen(false)}
@@ -87,7 +87,7 @@ const CartDrawer = () => {
         </div>
 
         {cartItems.length > 0 && (
-          <div className="p-6 bg-white border-t border-gray-100 pb-safe">
+          <div className="px-6 pt-6 bg-white border-t border-gray-100 pb-safe">
             <div className="flex justify-between items-center mb-4">
               <span className="text-sm font-bold text-gray-500 uppercase">Selected Services</span>
               <span className="text-xl font-black text-gray-900">{cartItems.length}</span>
