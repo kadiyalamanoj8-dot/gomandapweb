@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, MapPin, Calendar, Users, PartyPopper } from 'lucide-react';
-import GlassDatePicker from '../ui/GlassDatePicker';
+import AppleDateTimePicker from '../ui/AppleDateTimePicker';
 import ApplePicker from '../ui/ApplePicker';
 
 const HeroSearch = () => {
@@ -59,11 +59,11 @@ const HeroSearch = () => {
           <div className="search-divider"></div>
           
           <div className="search-field">
-            <GlassDatePicker
+            <AppleDateTimePicker
               value={date}
               onChange={setDate}
               placeholder="Event Date"
-              variant="light"
+              theme="light"
             />
           </div>
 

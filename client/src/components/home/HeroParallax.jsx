@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { EVENT_TYPES } from '../../data/mockData';
 import ApplePicker from '../ui/ApplePicker';
-import GlassDatePicker from '../ui/GlassDatePicker';
+import AppleDateTimePicker from '../ui/AppleDateTimePicker';
 
 const EVENT_CATEGORY_MAP = {
   'Pelli / Shaadi (The Grand Wedding)': ['Banquet Halls', 'Kalyana Mandapams', 'Open Lawns & Farmhouses', 'Photography & Videography', 'Makeup Artists (MUA)'],
@@ -364,11 +364,11 @@ const HeroParallax = () => {
               <div className="px-6 py-2 md:py-3 flex flex-col items-start w-full">
                 <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.18em] mb-0.5 ml-1">{t('search_dates')}</span>
                 <div className="px-1 py-1 w-full">
-                  <GlassDatePicker
+                  <AppleDateTimePicker
                     value={selectedDate}
                     onChange={setSelectedDate}
                     placeholder="When?"
-                    variant="glass"
+                    theme="dark"
                     position="top"
                   />
                 </div>

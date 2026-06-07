@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
+import AppleScrollPicker from './AppleScrollPicker';
 
 const ApplePicker = ({ 
   value, 
@@ -8,7 +9,9 @@ const ApplePicker = ({
   placeholder = 'Select...', 
   className = '', 
   icon: Icon,
-  buttonClassName = '' 
+  buttonClassName = '',
+  position = 'bottom',
+  theme = 'dark'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -25,47 +28,55 @@ const ApplePicker = ({
 
   const selectedOption = options.find(opt => opt.value === value);
 
+  // Map options to string values for the scroll picker if needed, but AppleScrollPicker handles objects
+  const columns = [
+    { options, value, onChange }
+  ];
+
+  const isDark = theme === 'dark';
+
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between bg-black hover:bg-white/5 active:bg-white/10 border border-white/10 rounded-xl p-4 text-white font-medium focus:outline-none focus:border-[#D4AF37] transition-all text-left shadow-lg cursor-pointer ${buttonClassName}`}
+        className={`w-full flex items-center justify-between border rounded-2xl px-4 py-3.5 text-sm font-semibold focus:outline-none transition-all text-left ${
+          isDark 
+            ? 'bg-white/5 hover:bg-white/10 border-white/10 text-white focus:ring-2 focus:ring-[#D4AF37]/50 active:bg-white/20' 
+            : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-800 shadow-sm focus:ring-2 focus:ring-blue-500'
+        } ${buttonClassName}`}
       >
         <div className="flex items-center gap-2.5 truncate">
-          {Icon && <Icon size={18} className="text-white/30 shrink-0" />}
-          <span className={selectedOption ? 'text-white' : 'text-white/40'}>
+          {Icon && <Icon size={20} className={isDark ? "text-white/40 shrink-0" : "text-gray-400 shrink-0"} />}
+          <span className={selectedOption ? (isDark ? 'text-white' : 'text-gray-900') : (isDark ? 'text-white/40' : 'text-gray-400')}>
             {selectedOption ? selectedOption.label : placeholder}
           </span>
         </div>
-        <ChevronDown size={18} className={`text-white/30 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown size={18} className={`${isDark ? 'text-white/30' : 'text-gray-400'} transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute z-[9999] mt-1.5 w-full bg-[#111]/95 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl p-1 animate-in fade-in slide-in-from-top-1 duration-150 origin-top">
-          <div className="max-h-60 overflow-y-auto space-y-0.5 no-scrollbar">
-            {options.map((opt) => {
-              const isSelected = opt.value === value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => {
-                    onChange(opt.value);
-                    setIsOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg text-left transition-colors ${
-                    isSelected 
-                      ? 'bg-white/10 text-[#D4AF37]' 
-                      : 'text-white/70 hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  <span className="truncate">{opt.label}</span>
-                  {isSelected && <Check size={14} className="text-[#D4AF37] shrink-0" />}
-                </button>
-              );
-            })}
+        <div className={`absolute z-[9999] p-4 ${
+          isDark ? 'bg-[#111]/95 border-white/10 shadow-2xl' : 'bg-white border-gray-100 shadow-[0_16px_48px_rgba(0,0,0,0.1)]'
+        } backdrop-blur-2xl border rounded-3xl animate-in fade-in duration-150 flex flex-col gap-4 min-w-[280px] w-full ${
+          position === 'top' 
+            ? 'bottom-full mb-2 origin-bottom slide-in-from-bottom-1' 
+            : 'mt-2 origin-top slide-in-from-top-1'
+        }`}>
+          
+          <div className="flex justify-between items-center px-1">
+            <span className={`text-sm font-bold ${isDark ? 'text-white/50' : 'text-gray-500'}`}>{placeholder}</span>
+            <button 
+              onClick={() => setIsOpen(false)}
+              className={`text-sm font-bold px-3 py-1 rounded-lg ${
+                isDark ? 'bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90' : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
+            >
+              Done
+            </button>
           </div>
+
+          <AppleScrollPicker columns={columns} theme={theme} className="w-full" />
         </div>
       )}
     </div>

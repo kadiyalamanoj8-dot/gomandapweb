@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Check } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import AppleScrollPicker from './AppleScrollPicker';
 
 const CustomDropdown = ({ 
   options = [], 
@@ -33,38 +34,27 @@ const CustomDropdown = ({
 
   const variants = {
     ios: {
-      // Dark clear glass — used in hero / dark backgrounds
       button: "bg-transparent text-white border-none",
-      menu: "bg-black/25 backdrop-blur-2xl border border-white/15 border-t-white/30 shadow-[inset_0_1px_3px_rgba(255,255,255,0.15),0_24px_48px_rgba(0,0,0,0.6)] rounded-[22px] overflow-hidden",
-      itemBase: "text-white/90 hover:bg-white/8 hover:text-white transition-colors",
-      activeText: "text-white font-semibold",
-      activeBg: "bg-white/10",
-      divider: "border-white/[0.06]",
+      menu: "bg-black/25 backdrop-blur-2xl border border-white/15 border-t-white/30 shadow-[inset_0_1px_3px_rgba(255,255,255,0.15),0_24px_48px_rgba(0,0,0,0.6)] rounded-[22px] overflow-hidden p-3",
       placeholder: "text-white/45",
+      theme: "dark"
     },
     glass: {
       button: "bg-transparent text-white border-none",
-      menu: "bg-black/25 backdrop-blur-2xl border border-white/15 border-t-white/30 shadow-[inset_0_1px_3px_rgba(255,255,255,0.15),0_24px_48px_rgba(0,0,0,0.6)] rounded-[22px] overflow-hidden",
-      itemBase: "text-white/90 hover:bg-white/8 hover:text-white transition-colors",
-      activeText: "text-white font-semibold",
-      activeBg: "bg-white/10",
-      divider: "border-white/[0.06]",
+      menu: "bg-black/25 backdrop-blur-2xl border border-white/15 border-t-white/30 shadow-[inset_0_1px_3px_rgba(255,255,255,0.15),0_24px_48px_rgba(0,0,0,0.6)] rounded-[22px] overflow-hidden p-3",
       placeholder: "text-white/45",
+      theme: "dark"
     },
     light: {
-      // Light glass — vendor/admin panels on white/gray backgrounds
       button: "bg-white/70 text-gray-800 border border-gray-200/70 shadow-sm hover:border-gray-300 backdrop-blur-sm px-4 py-3 rounded-2xl",
-      menu: "bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_16px_48px_rgba(0,0,0,0.09)] rounded-[20px] overflow-hidden",
-      itemBase: "text-gray-700 hover:bg-gray-50 transition-colors",
-      activeText: "text-gray-900 font-semibold",
-      activeBg: "bg-gray-50",
-      divider: "border-gray-100",
+      menu: "bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_16px_48px_rgba(0,0,0,0.09)] rounded-[20px] overflow-hidden p-3",
       placeholder: "text-gray-400",
+      theme: "light"
     }
   };
 
   const s = variants[variant] || variants.ios;
-  const isDark = variant === 'glass' || variant === 'ios';
+  const isDark = s.theme === 'dark';
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
@@ -91,7 +81,7 @@ const CustomDropdown = ({
         />
       </div>
 
-      {/* Menu */}
+      {/* Menu - Upgraded to Apple Scroll Picker */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -99,49 +89,26 @@ const CustomDropdown = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.97 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className={`absolute left-0 z-[9999] w-full min-w-[200px] mt-2 ${s.menu} ${dropdownClassName}`}
+            className={`absolute left-0 z-[9999] w-full min-w-[280px] mt-2 flex flex-col gap-3 ${s.menu} ${dropdownClassName}`}
             style={{ transformOrigin: 'top center' }}
           >
-            <div 
-              className="max-h-[300px] overflow-y-auto overscroll-contain" 
-              style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}
-            >
-              {normalizedOptions.map((option, idx) => {
-                const isActive = option.value === value;
-                return (
-                  <div
-                    key={option.value || idx}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onChange(option.value);
-                      setIsOpen(false);
-                    }}
-                    className={`
-                      px-5 py-3 cursor-pointer flex items-center justify-between gap-3 
-                      border-b last:border-b-0 ${s.divider}
-                      ${isActive ? s.activeBg : s.itemBase}
-                    `}
-                  >
-                    <div className="flex items-center gap-3">
-                      {option.icon && (
-                        <option.icon 
-                          size={17} strokeWidth={2} 
-                          className={isDark ? (isActive ? 'text-white/80' : 'text-white/40') : (isActive ? 'text-gray-600' : 'text-gray-400')} 
-                        />
-                      )}
-                      <span className={`text-[14.5px] tracking-tight ${isActive ? s.activeText : 'font-normal'}`}>
-                        {option.label}
-                      </span>
-                    </div>
-                    {isActive && (
-                      <Check 
-                        size={15} strokeWidth={2.5} 
-                        className={isDark ? 'text-white/70' : 'text-gray-500'} 
-                      />
-                    )}
-                  </div>
-                );
-              })}
+            <div className="flex justify-between items-center px-2 pt-1">
+              <span className={`text-sm font-bold ${isDark ? 'text-white/50' : 'text-gray-500'}`}>{placeholder}</span>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className={`text-sm font-bold px-3 py-1 rounded-lg ${
+                  isDark ? 'bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90' : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                Done
+              </button>
+            </div>
+            
+            <div className="w-full flex justify-center pb-1">
+              <AppleScrollPicker 
+                columns={[{ options: normalizedOptions, value, onChange }]} 
+                theme={s.theme} 
+              />
             </div>
           </motion.div>
         )}
