@@ -22,9 +22,13 @@ const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const TermsPage = lazy(() => import('./pages/TermsPage'));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 
+// Routes where the Footer should be hidden on MOBILE (bottom nav is enough)
+const MOBILE_NO_FOOTER_ROUTES = ['/profile', '/saved'];
+
 function AppContent() {
   const location = useLocation();
   const [isPreloading, setIsPreloading] = useState(true);
+  const hideMobileFooter = MOBILE_NO_FOOTER_ROUTES.some(r => location.pathname === r) || location.pathname.startsWith('/vendor/');
   const [preloadProgress, setPreloadProgress] = useState(0);
 
   React.useEffect(() => {
@@ -109,7 +113,10 @@ function AppContent() {
               </Suspense>
             </AnimatePresence>
           </main>
-          <Footer />
+          {/* Hide footer on mobile for profile/vendor-detail — bottom nav handles it */}
+          <div className={hideMobileFooter ? 'hidden md:block' : 'block'}>
+            <Footer />
+          </div>
           <MobileBottomNav />
         </div>
       )}

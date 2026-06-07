@@ -18,7 +18,7 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen pt-32 pb-24 px-4 bg-gray-50/50">
+    <div className="min-h-[calc(100dvh-65px)] md:min-h-screen pt-32 pb-8 md:pb-24 px-4 bg-gray-50/50">
       <div className="max-w-4xl mx-auto space-y-8">
         
         {/* Header & Personal Info */}

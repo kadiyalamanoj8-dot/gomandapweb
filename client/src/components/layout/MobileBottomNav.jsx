@@ -1,10 +1,13 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Home, Search, Heart, ShoppingCart, User } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 
 const MobileBottomNav = () => {
   const { cartItems, setIsCartOpen } = useCart();
+  const { requireAuth } = useAuth();
+  const navigate = useNavigate();
   const cartCount = cartItems.length;
 
   const navItems = [
@@ -45,17 +48,14 @@ const MobileBottomNav = () => {
         <span className="text-[10px] font-bold">Cart</span>
       </button>
 
-      <NavLink 
-        to="/profile"
-        className={({ isActive }) => 
-          `flex flex-col items-center gap-1 p-2 transition-colors duration-200 ${
-            isActive ? 'text-brand-primary' : 'text-gray-400'
-          }`
-        }
+      {/* Custom Profile Button */}
+      <button 
+        onClick={() => requireAuth(() => navigate('/profile'))}
+        className="flex flex-col items-center gap-1 p-2 transition-colors duration-200 text-gray-400 hover:text-brand-primary"
       >
         <User size={22} strokeWidth={2.5} />
         <span className="text-[10px] font-bold">Profile</span>
-      </NavLink>
+      </button>
       </div>
     </nav>
   );
