@@ -16,7 +16,7 @@ const CartDrawer = () => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={() => setIsCartOpen(false)}
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[350]"
       />
 
       {/* Drawer */}
@@ -25,7 +25,7 @@ const CartDrawer = () => {
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
-        className="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-[110] flex flex-col"
+        className="fixed top-0 right-0 h-[100dvh] w-full md:w-[448px] bg-white shadow-2xl z-[400] flex flex-col"
       >
         <div className="flex justify-between items-center px-6 pb-6 pt-safe border-b border-gray-100">
           <h2 className="text-2xl font-black text-gray-900">Your Event Cart</h2>
