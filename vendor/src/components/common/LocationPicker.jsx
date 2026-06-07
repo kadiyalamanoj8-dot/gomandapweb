@@ -72,7 +72,9 @@ const LocationPicker = ({ locationData, onChange }) => {
         map.on('click', (e) => {
           const { lng, lat } = e.lngLat;
           marker.setLngLat([lng, lat]);
-          updatePosition(lng, lat);
+          const generatedGoogleLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+          setMapLink(generatedGoogleLink);
+          updatePosition(lng, lat, false, null, generatedGoogleLink);
         });
 
         // Auto-locate on first load if no existing location is set
@@ -82,7 +84,9 @@ const LocationPicker = ({ locationData, onChange }) => {
               const { latitude, longitude } = position.coords;
               marker.setLngLat([longitude, latitude]);
               map.flyTo({ center: [longitude, latitude], zoom: 15 });
-              updatePosition(longitude, latitude);
+              const generatedGoogleLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+              setMapLink(generatedGoogleLink);
+              updatePosition(longitude, latitude, false, null, generatedGoogleLink);
             }, () => {
               console.log("Auto-location denied or failed on load.");
             });
@@ -113,11 +117,11 @@ const LocationPicker = ({ locationData, onChange }) => {
     }
   }, [locationData]);
 
-  const updatePosition = async (lng, lat, skipReverseGeocode = false) => {
+  const updatePosition = async (lng, lat, skipReverseGeocode = false, customFormattedAddress = null, customGoogleLink = null) => {
     let locationDataUpdate = {
         type: 'Point',
         coordinates: [lng, lat],
-        googleMapsLink: mapLink
+        googleMapsLink: customGoogleLink || mapLink
     };
 
     if (!skipReverseGeocode) {
@@ -137,7 +141,8 @@ const LocationPicker = ({ locationData, onChange }) => {
             village: getComp(['sublocality', 'neighborhood', 'route', 'locality']) || '',
             mandal: getComp(['administrative_area_level_3', 'administrative_area_level_2']) || '',
             district: getComp(['administrative_area_level_2', 'administrative_area_level_1']) || '',
-            state: getComp(['administrative_area_level_1']) || ''
+            state: getComp(['administrative_area_level_1']) || '',
+            formattedAddress: customFormattedAddress || data.results[0].formatted_address || ''
           };
         }
       } catch (error) {
@@ -180,9 +185,12 @@ const LocationPicker = ({ locationData, onChange }) => {
       const data = await res.json();
       if (data.geocodingResults && data.geocodingResults.length > 0) {
         const loc = data.geocodingResults[0].geometry.location;
+        const generatedGoogleLink = `https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lng}`;
+        setMapLink(generatedGoogleLink);
+
         if (markerRef.current) markerRef.current.setLngLat([loc.lng, loc.lat]);
         if (mapRef.current) mapRef.current.flyTo({ center: [loc.lng, loc.lat], zoom: 15 });
-        updatePosition(loc.lng, loc.lat);
+        updatePosition(loc.lng, loc.lat, false, prediction.description, generatedGoogleLink);
       }
     } catch(e) {
       console.error("Geocode failed", e);
@@ -215,7 +223,9 @@ const LocationPicker = ({ locationData, onChange }) => {
         const { latitude, longitude } = position.coords;
         if (markerRef.current) markerRef.current.setLngLat([longitude, latitude]);
         if (mapRef.current) mapRef.current.flyTo({ center: [longitude, latitude], zoom: 15 });
-        updatePosition(longitude, latitude);
+        const generatedGoogleLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+        setMapLink(generatedGoogleLink);
+        updatePosition(longitude, latitude, false, null, generatedGoogleLink);
       }, (error) => {
           alert("Please allow location access to auto-capture your venue.");
       });

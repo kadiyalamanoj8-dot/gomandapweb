@@ -123,7 +123,8 @@ const VendorOnboarding = () => {
         mandal: pa.mandal || prev.mandal,
         district: pa.district || prev.district,
         state: pa.state || prev.state,
-        city: pa.district || pa.village || prev.city
+        city: pa.district || pa.village || prev.city,
+        streetAddress: pa.formattedAddress || prev.streetAddress
       }));
     }
   }, [basicInfo.locationData?.parsedAddress]);
