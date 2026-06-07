@@ -117,14 +117,16 @@ const LocationPicker = ({ locationData, onChange }) => {
     }
   }, [locationData]);
 
-  const updatePosition = async (lng, lat, skipReverseGeocode = false, customFormattedAddress = null, customGoogleLink = null, customVillage = null) => {
+  const updatePosition = async (lng, lat, skipReverseGeocode = false, customFormattedAddress = null, customGoogleLink = null, customParsedAddressObj = null) => {
     let locationDataUpdate = {
         type: 'Point',
         coordinates: [lng, lat],
         googleMapsLink: customGoogleLink || mapLink
     };
 
-    if (!skipReverseGeocode) {
+    if (customParsedAddressObj) {
+      locationDataUpdate.parsedAddress = customParsedAddressObj;
+    } else if (!skipReverseGeocode) {
       try {
         const apiKey = import.meta.env.VITE_OLA_MAPS_API_KEY;
         const res = await fetch(`https://api.olamaps.io/places/v1/reverse-geocode?latlng=${lat},${lng}&api_key=${apiKey}`);
@@ -138,7 +140,7 @@ const LocationPicker = ({ locationData, onChange }) => {
           };
 
           locationDataUpdate.parsedAddress = {
-            village: customVillage || getComp(['sublocality', 'neighborhood', 'route']) || getComp(['locality']) || '',
+            village: getComp(['sublocality', 'neighborhood', 'route']) || getComp(['locality']) || '',
             mandal: getComp(['administrative_area_level_3', 'sublocality_level_1', 'locality']) || '',
             district: getComp(['administrative_area_level_2']) || '',
             state: getComp(['administrative_area_level_1']) || '',
@@ -185,13 +187,39 @@ const LocationPicker = ({ locationData, onChange }) => {
       const res = await fetch(`https://api.olamaps.io/places/v1/geocode?address=${encodeURIComponent(prediction.description)}&api_key=${apiKey}`);
       const data = await res.json();
       if (data.geocodingResults && data.geocodingResults.length > 0) {
-        const loc = data.geocodingResults[0].geometry.location;
+        const result = data.geocodingResults[0];
+        const loc = result.geometry.location;
         const generatedGoogleLink = `https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lng}`;
         setMapLink(generatedGoogleLink);
 
         if (markerRef.current) markerRef.current.setLngLat([loc.lng, loc.lat]);
         if (mapRef.current) mapRef.current.flyTo({ center: [loc.lng, loc.lat], zoom: 15 });
-        updatePosition(loc.lng, loc.lat, false, prediction.description, generatedGoogleLink, prediction.description.split(',')[0]);
+        
+        const comp = result.address_components || [];
+        const getComp = (types) => {
+          const found = comp.find(c => types.some(t => c.types.includes(t)));
+          return found ? found.long_name : '';
+        };
+
+        const parts = prediction.description.split(',').map(s => s.trim());
+        let bestVillage = getComp(['sublocality', 'neighborhood', 'route']);
+        if (!bestVillage && parts.length > 1) {
+            // The search was like "Name, Village, City", pick the second item as village fallback
+            bestVillage = parts[1];
+        } else if (!bestVillage) {
+            bestVillage = parts[0] || getComp(['locality']) || '';
+        }
+
+        const customParsedAddressObj = {
+          village: bestVillage,
+          mandal: getComp(['administrative_area_level_3', 'sublocality_level_1', 'locality']) || '',
+          district: getComp(['administrative_area_level_2']) || '',
+          state: getComp(['administrative_area_level_1']) || '',
+          pincode: getComp(['postal_code']) || '',
+          formattedAddress: prediction.description
+        };
+
+        updatePosition(loc.lng, loc.lat, true, prediction.description, generatedGoogleLink, customParsedAddressObj);
       }
     } catch(e) {
       console.error("Geocode failed", e);
