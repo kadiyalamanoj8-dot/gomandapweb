@@ -227,7 +227,6 @@
   
   /* === LIQUID GLASS 3D NAVBAR (not frost) === */
   .glass-panel {
-    position: relative;
     /* Refractive multi-layer fill — True Liquid Glass (highly transparent) */
     background: linear-gradient(
       135deg,
