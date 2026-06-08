@@ -302,7 +302,7 @@ app.post('/api/scrape', (req, res) => {
 });
 
 // API: Omni-Search Scrape (Advanced NLP)
-app.post('/api/scrape/omni', (req, res) => {
+app.post('/api/scrape/omni', async (req, res) => {
   const { query, engine = 'google' } = req.body;
   if (!query) return res.status(400).json({ error: 'Search query required' });
 
@@ -324,39 +324,40 @@ app.post('/api/scrape/omni', (req, res) => {
     }
   }
 
-  // If no prepositions found, use smart word-by-word matching
-  if (!rawLocation) {
-    const words = query.split(' ');
-    for (let i = 0; i < words.length; i++) {
-      const match = locationFuse.search(words[i]);
-      // If a word matches a location with high confidence
-      if (match.length > 0 && match[0].score < 0.4) {
-        rawLocation = match[0].item.name;
-        // Remove the location word from the category string
-        rawCategory = query.replace(new RegExp(words[i], 'i'), '').trim();
-        break;
-      }
-    }
-  }
-
-  // Spell check Category (but allow arbitrary strings if no close match)
+  // Spell check Category
   const catMatch = categoryFuse.search(rawCategory);
-  let matchedCategory = rawCategory; // Default to exact string they typed
+  let matchedCategory = rawCategory; 
   let categoryCorrected = false;
   if (catMatch.length > 0 && catMatch[0].score < 0.4) {
-    matchedCategory = catMatch[0].item; // Use standard category if it's a close misspelling
+    matchedCategory = catMatch[0].item;
     categoryCorrected = true;
   }
   
-  // Spell check Location
+  // Ola Maps Location Resolution
   let queryLocation = rawLocation;
   let locationCorrected = false;
+  
   if (rawLocation) {
-    const locMatch = locationFuse.search(rawLocation);
-    if (locMatch.length > 0 && locMatch[0].score < 0.4) {
-      const loc = locMatch[0].item;
-      queryLocation = loc.type === 'mandal' ? `${loc.name}, ${loc.district}` : loc.name;
-      locationCorrected = true;
+    try {
+      const apiKey = process.env.OLA_MAPS_API_KEY || 'H0NKbjwH3YFcVwyDZBpxtIlGsdrZsxXPjoX0yutE';
+      const olaRes = await axios.get(`https://api.olamaps.io/places/v1/autocomplete?input=${encodeURIComponent(rawLocation)}&api_key=${apiKey}`);
+      
+      if (olaRes.data && olaRes.data.predictions && olaRes.data.predictions.length > 0) {
+        // Get the top prediction from Ola Maps
+        const topPrediction = olaRes.data.predictions[0];
+        queryLocation = topPrediction.description; // e.g. "Arundelpet, Guntur, Andhra Pradesh, India"
+        locationCorrected = true;
+        console.log(`Ola Maps Location Resolved: ${rawLocation} -> ${queryLocation}`);
+      }
+    } catch (err) {
+      console.error("Ola Maps API Error, falling back to local fuzzy search:", err.message);
+      // Fallback to local fuse logic
+      const locMatch = locationFuse.search(rawLocation);
+      if (locMatch.length > 0 && locMatch[0].score < 0.4) {
+        const loc = locMatch[0].item;
+        queryLocation = loc.type === 'mandal' ? `${loc.name}, ${loc.district}` : loc.name;
+        locationCorrected = true;
+      }
     }
   }
 
@@ -496,7 +497,18 @@ async function scrapeWebsiteForSocials(browser, url) {
   try {
     const context = await browser.newContext();
     newPage = await context.newPage();
-    await newPage.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    
+    // Disable heavy resources
+    await newPage.route('**/*', (route) => {
+      const rt = route.request().resourceType();
+      if (['image', 'media', 'font', 'stylesheet'].includes(rt)) {
+        route.abort();
+      } else {
+        route.continue();
+      }
+    });
+
+    await newPage.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 });
     const html = await newPage.content();
     
     // Find Emails
@@ -602,10 +614,10 @@ async function scrapeGooglePlaces(category, location) {
       if (await scrollable.count() > 0) {
         console.log("Scrolling through search results feed... (Fast Mode)");
         
-        // Fast scroll - only scroll 2 times instead of 4
-        for(let i=0; i<2; i++) {
+        // Aggressive Infinite Scroll - scroll 15 times to load ~100-150 vendors
+        for(let i=0; i<15; i++) {
           await scrollable.evaluate(el => el.scrollTop = el.scrollHeight);
-          await page.waitForTimeout(800);
+          await page.waitForTimeout(1000);
         }
 
         const cards = page.locator('a.hfpxzc');
@@ -614,7 +626,7 @@ async function scrapeGooglePlaces(category, location) {
 
         // Phase 1: Rapid Extraction of HREFs
         const vendorLinks = [];
-        for (let i = 0; i < Math.min(count, 30); i++) {
+        for (let i = 0; i < Math.min(count, 120); i++) {
           const card = cards.nth(i);
           const name = await card.getAttribute('aria-label');
           const mapsLink = await card.getAttribute('href');
@@ -765,6 +777,7 @@ async function scrapeGooglePlaces(category, location) {
 
       if (!existing) {
         const newLead = new StagingLead({
+          id: place.id,
           name: place.name,
           category: category,
           city: location || 'Global',
@@ -773,6 +786,7 @@ async function scrapeGooglePlaces(category, location) {
           phone: place.phone || 'Requires Manual Lookup',
           rating: parsedRating,
           mapsLink: place.mapsLink || '',
+          source: 'Google Places',
           email: place.email || '',
           instagram: place.instagram || '',
           facebook: place.facebook || '',

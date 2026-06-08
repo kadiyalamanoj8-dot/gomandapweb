@@ -17,6 +17,7 @@
     "framer-motion": "^12.40.0",
     "jszip": "^3.10.1",
     "lucide-react": "^1.17.0",
+    "olamaps-web-sdk": "^1.4.0",
     "papaparse": "^5.5.3",
     "postcss": "^8.5.15",
     "react": "^19.2.6",
