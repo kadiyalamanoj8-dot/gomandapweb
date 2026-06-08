@@ -10,138 +10,190 @@ const IconComponent = ({ name, ...props }) => {
   return <Icon {...props} />;
 };
 
-// Native fallback filters for each schema type
+// Native fallback filters for each schema type - CATEGORY SPECIFIC
 const NATIVE_FILTERS = {
   VENUE: [
-    { name: 'capacity', title: 'Guest Capacity', type: 'RADIO', options: [
+    { name: 'guestCapacity', title: 'Guest Capacity', type: 'RADIO', options: [
       { value: 'any', label: 'Any' },
-      { value: '100-500', label: '100-500 guests' },
-      { value: '500-1000', label: '500-1000 guests' },
-      { value: '1000-2000', label: '1000-2000 guests' },
-      { value: '2000+', label: '2000+ guests' }
+      { value: 'less-100', label: 'Less than 100' },
+      { value: '100-250', label: '100 to 250' },
+      { value: '250-500', label: '250 to 500' },
+      { value: '500-1000', label: '500 to 1000' },
+      { value: '1000+', label: '1000 and above' }
     ]},
-    { name: 'priceRange', title: 'Budget Range', type: 'RADIO', options: [
-      { value: 'any', label: 'Any' },
-      { value: '0-50000', label: '₹0 - ₹50,000' },
-      { value: '50000-150000', label: '₹50,000 - ₹1,50,000' },
-      { value: '150000-300000', label: '₹1,50,000 - ₹3,00,000' },
-      { value: '300000+', label: '₹3,00,000+' }
+    { name: 'priceRange', title: 'Price Range (Per Plate/Rental)', type: 'RADIO', options: [
+      { value: 'any', label: 'Any Budget' },
+      { value: '500-1000', label: '₹500 - ₹1,000' },
+      { value: '1000-2000', label: '₹1,000 - ₹2,000' },
+      { value: '2000-3000', label: '₹2,000 - ₹3,000' },
+      { value: '3000+', label: '₹3,000 +' }
     ]},
-    { name: 'amenities', title: 'Amenities', type: 'CHECKBOX', options: [
-      { value: 'parking', label: 'Parking Available' },
-      { value: 'ac', label: 'Air Conditioning' },
-      { value: 'inhouse-catering', label: 'In-house Catering' },
-      { value: 'inhouse-decor', label: 'In-house Decor' },
-      { value: 'inhouse-photography', label: 'In-house Photography' },
-      { value: 'outdoor-space', label: 'Outdoor Space' },
-      { value: 'lounge', label: 'Lounge Area' }
+    { name: 'amenities', title: 'Amenities & Rules', type: 'CHECKBOX', options: [
+      { value: 'air-conditioned', label: 'Air Conditioned' },
+      { value: 'rooms-available', label: 'Rooms Available' },
+      { value: 'inhouse-catering', label: 'In-house Catering Only' },
+      { value: 'outside-decorators', label: 'Outside Decorators Allowed' },
+      { value: 'liquor-allowed', label: 'Liquor Allowed' },
+      { value: 'valet-parking', label: 'Valet Parking' }
+    ]},
+    { name: 'settingType', title: 'Setting Type', type: 'CHECKBOX', options: [
+      { value: 'indoor-banquet', label: 'Indoor Banquet' },
+      { value: 'outdoor-lawn', label: 'Outdoor Lawn' },
+      { value: 'poolside', label: 'Poolside' },
+      { value: 'rooftop', label: 'Rooftop' },
+      { value: 'garden', label: 'Garden' }
     ]}
   ],
   PHOTO: [
-    { name: 'photoType', title: 'Service Type', type: 'CHECKBOX', options: [
-      { value: 'photography', label: 'Photography' },
-      { value: 'videography', label: 'Videography' },
+    { name: 'photoStyle', title: 'Photography Style', type: 'CHECKBOX', options: [
+      { value: 'candid', label: 'Candid' },
+      { value: 'traditional', label: 'Traditional' },
+      { value: 'cinematic', label: 'Cinematic/Videography' },
       { value: 'drone', label: 'Drone Shots' },
-      { value: 'editing', label: 'Video Editing' },
-      { value: 'album', label: 'Album Design' }
+      { value: 'pre-wedding', label: 'Pre-wedding Shoots' }
     ]},
-    { name: 'priceRange', title: 'Budget', type: 'RADIO', options: [
-      { value: 'any', label: 'Any' },
+    { name: 'priceRange', title: 'Price Range', type: 'RADIO', options: [
+      { value: 'any', label: 'Any Budget' },
       { value: '20000-50000', label: '₹20K - ₹50K' },
       { value: '50000-100000', label: '₹50K - ₹1L' },
       { value: '100000-200000', label: '₹1L - ₹2L' },
       { value: '200000+', label: '₹2L+' }
+    ]},
+    { name: 'photoPackage', title: 'Package Includes', type: 'CHECKBOX', options: [
+      { value: 'photography', label: 'Photography Only' },
+      { value: 'videography', label: 'Videography' },
+      { value: 'album', label: 'Album Design' },
+      { value: 'editing', label: 'Professional Editing' },
+      { value: 'pre-wedding', label: 'Pre-wedding Shoot' }
     ]}
   ],
   MAKEUP: [
     { name: 'makeupType', title: 'Service Type', type: 'CHECKBOX', options: [
-      { value: 'bridal', label: 'Bridal Makeup' },
+      { value: 'bridal-makeup', label: 'Bridal Makeup' },
+      { value: 'groom-makeup', label: 'Groom Makeup' },
+      { value: 'guest-makeup', label: 'Guest Makeup' },
       { value: 'mehndi', label: 'Mehndi' },
-      { value: 'groom', label: 'Groom Makeup' },
-      { value: 'guests', label: 'Guest Makeup' },
       { value: 'jewelry', label: 'Jewelry Services' }
     ]},
-    { name: 'priceRange', title: 'Budget', type: 'RADIO', options: [
-      { value: 'any', label: 'Any' },
+    { name: 'priceRange', title: 'Price Range', type: 'RADIO', options: [
+      { value: 'any', label: 'Any Budget' },
       { value: '5000-15000', label: '₹5K - ₹15K' },
       { value: '15000-30000', label: '₹15K - ₹30K' },
       { value: '30000-50000', label: '₹30K - ₹50K' },
       { value: '50000+', label: '₹50K+' }
+    ]},
+    { name: 'makeupStyle', title: 'Makeup Style', type: 'CHECKBOX', options: [
+      { value: 'traditional', label: 'Traditional' },
+      { value: 'modern', label: 'Modern' },
+      { value: 'bridal-fusion', label: 'Bridal Fusion' },
+      { value: 'hd-makeup', label: 'HD Makeup' },
+      { value: 'airbrush', label: 'Airbrush' }
     ]}
   ],
   CATERING: [
     { name: 'cuisineType', title: 'Cuisine Type', type: 'CHECKBOX', options: [
       { value: 'north-indian', label: 'North Indian' },
       { value: 'south-indian', label: 'South Indian' },
+      { value: 'gujarati', label: 'Gujarati' },
+      { value: 'mughlai', label: 'Mughlai' },
       { value: 'continental', label: 'Continental' },
       { value: 'chinese', label: 'Chinese' },
-      { value: 'fusion', label: 'Fusion' },
       { value: 'vegan', label: 'Vegan Options' }
     ]},
     { name: 'pricePerPlate', title: 'Price Per Plate', type: 'RADIO', options: [
-      { value: 'any', label: 'Any' },
-      { value: '300-500', label: '₹300 - ₹500' },
+      { value: 'any', label: 'Any Budget' },
       { value: '500-1000', label: '₹500 - ₹1,000' },
       { value: '1000-1500', label: '₹1,000 - ₹1,500' },
-      { value: '1500+', label: '₹1,500+' }
+      { value: '1500-2000', label: '₹1,500 - ₹2,000' },
+      { value: '2000+', label: '₹2,000+' }
+    ]},
+    { name: 'cateringType', title: 'Service Type', type: 'CHECKBOX', options: [
+      { value: 'full-catering', label: 'Full Catering' },
+      { value: 'venue-catering', label: 'Venue Catering' },
+      { value: 'desserts', label: 'Desserts Only' },
+      { value: 'beverages', label: 'Beverages Service' },
+      { value: 'bar-setup', label: 'Bar Setup' }
     ]}
   ],
   DECOR: [
-    { name: 'decorType', title: 'Decor Type', type: 'CHECKBOX', options: [
+    { name: 'decorStyle', title: 'Decor Style', type: 'CHECKBOX', options: [
       { value: 'traditional', label: 'Traditional' },
       { value: 'modern', label: 'Modern' },
       { value: 'minimalist', label: 'Minimalist' },
-      { value: 'floral', label: 'Floral Decor' },
-      { value: 'lighting', label: 'LED/Lighting' }
+      { value: 'royal', label: 'Royal/Luxury' },
+      { value: 'floral', label: 'Floral Centric' }
     ]},
-    { name: 'priceRange', title: 'Budget', type: 'RADIO', options: [
-      { value: 'any', label: 'Any' },
+    { name: 'priceRange', title: 'Price Range', type: 'RADIO', options: [
+      { value: 'any', label: 'Any Budget' },
       { value: '50000-150000', label: '₹50K - ₹1.5L' },
       { value: '150000-300000', label: '₹1.5L - ₹3L' },
       { value: '300000-500000', label: '₹3L - ₹5L' },
       { value: '500000+', label: '₹5L+' }
+    ]},
+    { name: 'decorElements', title: 'Decor Elements', type: 'CHECKBOX', options: [
+      { value: 'floral-decor', label: 'Floral Arrangements' },
+      { value: 'lighting', label: 'LED/Lighting Design' },
+      { value: 'entrance-setup', label: 'Entrance Setup' },
+      { value: 'stage-decor', label: 'Stage Decoration' },
+      { value: 'table-setup', label: 'Table Setup' }
     ]}
   ],
   DJ: [
     { name: 'serviceType', title: 'Service Type', type: 'CHECKBOX', options: [
-      { value: 'dj', label: 'DJ Services' },
+      { value: 'dj-only', label: 'DJ Only' },
       { value: 'live-band', label: 'Live Band' },
-      { value: 'sound-system', label: 'Sound System' },
-      { value: 'lighting-dj', label: 'Lighting' },
-      { value: 'singers', label: 'Live Singers' }
+      { value: 'singers', label: 'Live Singers' },
+      { value: 'sound-system', label: 'Sound System Only' },
+      { value: 'orchestra', label: 'Orchestra' }
     ]},
-    { name: 'priceRange', title: 'Budget', type: 'RADIO', options: [
-      { value: 'any', label: 'Any' },
+    { name: 'priceRange', title: 'Price Range', type: 'RADIO', options: [
+      { value: 'any', label: 'Any Budget' },
       { value: '10000-30000', label: '₹10K - ₹30K' },
       { value: '30000-60000', label: '₹30K - ₹60K' },
       { value: '60000-100000', label: '₹60K - ₹1L' },
       { value: '100000+', label: '₹1L+' }
+    ]},
+    { name: 'musicGenre', title: 'Music Genre', type: 'CHECKBOX', options: [
+      { value: 'bollywood', label: 'Bollywood' },
+      { value: 'devotional', label: 'Devotional' },
+      { value: 'western', label: 'Western' },
+      { value: 'regional', label: 'Regional' },
+      { value: 'sufi', label: 'Sufi/Classical' }
     ]}
   ],
   JEWELRY: [
-    { name: 'jewelryType', title: 'Service Type', type: 'CHECKBOX', options: [
+    { name: 'jewelryType', title: 'Jewelry Type', type: 'CHECKBOX', options: [
       { value: 'bridal-jewelry', label: 'Bridal Jewelry' },
-      { value: 'clothing', label: 'Bridal Clothing' },
-      { value: 'groom-wear', label: 'Groom Wear' },
-      { value: 'accessories', label: 'Accessories' }
+      { value: 'groom-jewelry', label: 'Groom Jewelry' },
+      { value: 'imitation', label: 'Imitation/Fashion' },
+      { value: 'precious', label: 'Precious Metals' },
+      { value: 'customization', label: 'Customization Available' }
     ]},
-    { name: 'priceRange', title: 'Budget', type: 'RADIO', options: [
-      { value: 'any', label: 'Any' },
+    { name: 'priceRange', title: 'Price Range', type: 'RADIO', options: [
+      { value: 'any', label: 'Any Budget' },
       { value: '30000-100000', label: '₹30K - ₹1L' },
       { value: '100000-300000', label: '₹1L - ₹3L' },
       { value: '300000-500000', label: '₹3L - ₹5L' },
       { value: '500000+', label: '₹5L+' }
+    ]},
+    { name: 'clothingType', title: 'Clothing/Apparel', type: 'CHECKBOX', options: [
+      { value: 'bridal-lehenga', label: 'Bridal Lehenga' },
+      { value: 'saree', label: 'Saree' },
+      { value: 'groom-sherwani', label: 'Groom Sherwani' },
+      { value: 'designer-wear', label: 'Designer Wear' },
+      { value: 'customization', label: 'Customization' }
     ]}
   ],
   LOGISTICS: [
     { name: 'serviceType', title: 'Service Type', type: 'CHECKBOX', options: [
-      { value: 'invitation', label: 'Wedding Cards' },
-      { value: 'transportation', label: 'Vehicles & Travel' },
-      { value: 'astrologer', label: 'Astrology Services' },
-      { value: 'honeymoon', label: 'Honeymoon Packages' }
+      { value: 'invitation-cards', label: 'Invitation Cards' },
+      { value: 'transportation', label: 'Transportation (Cars/Buses)' },
+      { value: 'honeymoon', label: 'Honeymoon Packages' },
+      { value: 'astrology', label: 'Astrology Services' },
+      { value: 'event-planning', label: 'Event Planning' }
     ]},
-    { name: 'priceRange', title: 'Budget', type: 'RADIO', options: [
-      { value: 'any', label: 'Any' },
+    { name: 'priceRange', title: 'Price Range', type: 'RADIO', options: [
+      { value: 'any', label: 'Any Budget' },
       { value: '5000-25000', label: '₹5K - ₹25K' },
       { value: '25000-100000', label: '₹25K - ₹1L' },
       { value: '100000-300000', label: '₹1L - ₹3L' },

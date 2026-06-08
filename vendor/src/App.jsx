@@ -7,6 +7,7 @@ import { AnimatePresence } from 'framer-motion';
 // Pages
 const VendorLandingPage = lazy(() => import('./pages/vendor/VendorLandingPage'));
 const VendorOnboarding = lazy(() => import('./pages/vendor/VendorOnboarding'));
+const CategoryOnboarding = lazy(() => import('./pages/vendor/CategoryOnboarding'));
 const VendorPending = lazy(() => import('./pages/vendor/VendorPending'));
 const VendorDashboard = lazy(() => import('./pages/vendor/VendorDashboard'));
 const VendorTerms = lazy(() => import('./pages/vendor/VendorTerms'));
@@ -83,6 +84,7 @@ function AppContent() {
               <Routes>
                 <Route path="/" element={<VendorLandingPage />} />
                 <Route path="/onboarding" element={<VendorOnboarding />} />
+                <Route path="/onboarding/:category" element={<CategoryOnboarding />} />
                 <Route path="/pending" element={<VendorPending />} />
                 <Route path="/dashboard" element={<VendorDashboard />} />
                 <Route path="/terms" element={<VendorTerms />} />
