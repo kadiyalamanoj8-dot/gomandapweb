@@ -12,7 +12,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
-      strategies: 'injectManifest',
+      strategies: 'generateSW',
       workbox: {
         skipWaiting: false,
         clientsClaim: false,
