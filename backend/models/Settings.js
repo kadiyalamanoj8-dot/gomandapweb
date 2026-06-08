@@ -11,6 +11,14 @@ const SettingsSchema = new mongoose.Schema(
     activeLanguages: {
       type: [String],
       default: ['en', 'hi', 'te', 'ta', 'mr']
+    },
+    clientUI: {
+      use3DCarousel: { type: Boolean, default: true },
+      carouselImages: { type: [String], default: [] },
+      marqueeWidth: { type: String, default: '100vw' },
+      marqueeHeight: { type: String, default: '100%' },
+      marqueePositionY: { type: String, default: '0px' },
+      marqueeSpeed: { type: Number, default: 3 }
     }
   },
   {

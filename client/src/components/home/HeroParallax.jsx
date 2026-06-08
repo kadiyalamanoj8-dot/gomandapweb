@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { EVENT_TYPES } from '../../data/mockData';
 import ApplePicker from '../ui/ApplePicker';
 import AppleDateTimePicker from '../ui/AppleDateTimePicker';
+import HeroMarquee from './HeroMarquee';
 
 const EVENT_CATEGORY_MAP = {
   'Pelli / Shaadi (The Grand Wedding)': ['Banquet Halls', 'Kalyana Mandapams', 'Open Lawns & Farmhouses', 'Photography & Videography', 'Makeup Artists (MUA)'],
@@ -40,6 +41,29 @@ const HeroParallax = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [isHeroVisible, setIsHeroVisible] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [clientUI, setClientUI] = useState({ 
+    use3DCarousel: true, 
+    carouselImages: [],
+    marqueeWidth: '100vw',
+    marqueeHeight: '100%',
+    marqueePositionY: '0px',
+    marqueeSpeed: 3
+  });
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://gomandap-api.onrender.com'}/api/settings`);
+        const data = await res.json();
+        if (data.success && data.data?.clientUI) {
+          setClientUI(data.data.clientUI);
+        }
+      } catch (err) {
+        console.error('Failed to fetch settings:', err);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -156,9 +180,10 @@ const HeroParallax = () => {
   const frontY = useTransform(smoothY, [-1, 1], [-30, 30]);
 
   useEffect(() => {
-    if (!isHeroVisible || isMobile) return;
+    if (!isHeroVisible) return;
 
     const handleMouseMove = (e) => {
+      if (isMobile) return; // Ignore mouse on mobile
       if (!containerRef.current) return;
       const { clientWidth, clientHeight } = containerRef.current;
       const x = (e.clientX / clientWidth - 0.5) * 2; 
@@ -167,8 +192,12 @@ const HeroParallax = () => {
       mouseY.set(y);
     };
 
-    // Industry standard gyroscope handler with orientation compensation
+    // Baseline tracking for auto-centering gyro
     let rAF;
+    let baselineX = 0;
+    let baselineY = 0;
+    let hasBaseline = false;
+
     const handleOrientation = (e) => {
       if (!e.gamma || !e.beta) return;
       
@@ -177,7 +206,6 @@ const HeroParallax = () => {
         let x = 0;
         let y = 0;
         
-        // Compensate for device orientation (portrait vs landscape)
         const orientation = window.orientation || 0;
         
         if (orientation === 90) {
@@ -188,14 +216,27 @@ const HeroParallax = () => {
           y = e.gamma;
         } else {
           x = e.gamma;
-          // In portrait, the phone is usually held at a 45 degree angle. Center around 45.
           y = e.beta - 45;
         }
 
-        // Clamp values and normalize to [-1, 1]
-        // Lock horizontal almost entirely (divide by 240) and enhance vertical (divide by 30)
-        const normalizedX = Math.max(-1, Math.min(1, x / 240));
-        const normalizedY = Math.max(-1, Math.min(1, y / 30));
+        if (!hasBaseline) {
+          baselineX = x;
+          baselineY = y;
+          hasBaseline = true;
+        }
+
+        // Slowly pull the baseline towards the current value (auto-centering)
+        baselineX += (x - baselineX) * 0.03;
+        baselineY += (y - baselineY) * 0.03;
+
+        const deltaX = x - baselineX;
+        const deltaY = y - baselineY;
+
+        // Very light moving on mobile (scale 0.2)
+        const mobileScale = isMobile ? 0.2 : 1;
+
+        const normalizedX = Math.max(-1, Math.min(1, deltaX / 45)) * mobileScale;
+        const normalizedY = Math.max(-1, Math.min(1, deltaY / 45)) * mobileScale;
         
         mouseX.set(normalizedX);
         mouseY.set(normalizedY);
@@ -203,20 +244,13 @@ const HeroParallax = () => {
     };
 
     window.addEventListener('mousemove', handleMouseMove);
-    // Only add gyro on desktop
-    if (window.innerWidth >= 1024) {
-      window.addEventListener('deviceorientation', handleOrientation);
-    }
+    window.addEventListener('deviceorientation', handleOrientation);
+    
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('deviceorientation', handleOrientation);
     };
   }, [mouseX, mouseY, isHeroVisible, isMobile]);
-
-  // Choose mandap image based on selected event type; fallback to default
-  const currentMandap = useMemo(() => {
-    return EVENT_MANDAP_MAP[eventType] || '/images/temple_mandap.webp';
-  }, [eventType]);
 
   const background3D = useMemo(() => (
     <div 
@@ -243,48 +277,70 @@ const HeroParallax = () => {
       {/* 3D Perspective container for mandap + couple only */}
       <div
         className="absolute inset-0 w-full h-full pointer-events-none"
-        style={{ perspective: isMobile ? 'none' : '1200px' }}
+        style={{ perspective: '1200px' }}
       >
         <m.div
           style={{ 
-            rotateX: isMobile ? 0 : rotateX, 
-            rotateY: isMobile ? 0 : rotateY, 
+            rotateX: rotateX, 
+            rotateY: rotateY, 
             transformStyle: "preserve-3d" 
           }}
           className="absolute inset-0 w-full h-full flex items-center justify-center"
         >
-          {/* Layer 2: Dynamic Mandap Frame */}
+          {/* Layer 2: Dynamic Stop-and-Go Marquee */}
+          {clientUI.use3DCarousel && (
+            <m.div 
+              style={{ 
+                x: midX, 
+                y: midY, 
+                translateZ: 0, 
+                willChange: isMobile ? 'auto' : 'transform' 
+              }} 
+              className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
+            >
+              <HeroMarquee 
+                images={clientUI.carouselImages} 
+                width={clientUI.marqueeWidth}
+                height={clientUI.marqueeHeight}
+                positionY={clientUI.marqueePositionY}
+                speed={clientUI.marqueeSpeed}
+                isMobile={isMobile}
+              />
+            </m.div>
+          )}
+
+          {/* Layer 2.5: Hero Text (Behind the Couple) */}
           <m.div 
             style={{ 
-              x: isMobile ? 0 : midX, 
-              y: isMobile ? 0 : midY, 
-              translateZ: 0, 
+              x: midX, 
+              y: midY, 
+              translateZ: 30, 
               willChange: isMobile ? 'auto' : 'transform' 
             }} 
-            className="absolute inset-0 z-20 flex items-center justify-center"
+            className="absolute inset-0 z-[25] flex flex-col items-center justify-center text-center px-3 sm:px-4 pt-16 sm:pt-20 pointer-events-none"
           >
-            <AnimatePresence mode="wait">
-              <m.img 
-                key={currentMandap}
-                src={currentMandap} 
-                initial={{ opacity: 0, filter: 'blur(10px)' }}
-                animate={{ opacity: 1, filter: 'blur(0px)' }}
-                exit={{ opacity: 0, filter: 'blur(10px)' }}
-                transition={{ duration: 1.2, ease: "easeInOut" }}
-                alt="Event Mandap"
-                className="absolute w-full h-full max-w-full max-h-full object-contain mix-blend-screen opacity-100" 
-                style={{ willChange: isMobile ? 'auto' : 'transform, opacity, filter' }}
-                loading="lazy"
+            <m.div 
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.2 }}
+              className="w-full max-w-5xl pointer-events-none mt-[-150px] sm:mt-[-200px]"
+            >
+              <h1 
+                className="text-2xl sm:text-4xl md:text-[64px] font-black text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] mb-2 sm:mb-4 tracking-tight leading-[1.15] sm:leading-[1.2] md:leading-[1.35]"
+                dangerouslySetInnerHTML={{ __html: t('hero_title') }}
               />
-            </AnimatePresence>
+              <p className="text-sm sm:text-lg md:text-xl text-white/90 max-w-2xl mx-auto drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] font-medium px-2">
+                {t('hero_desc')}
+              </p>
+            </m.div>
           </m.div>
 
           {/* Layer 3: The Couple */}
           <m.div 
             style={{ 
-              x: isMobile ? 0 : frontX, 
-              y: isMobile ? 0 : frontY, 
-              translateZ: isMobile ? 0 : 80, 
+              x: frontX, 
+              y: frontY, 
+              translateZ: 80, 
               scale: 1.05, 
               willChange: isMobile ? 'auto' : 'transform' 
             }} 
@@ -294,7 +350,7 @@ const HeroParallax = () => {
               src="/images/couple_transparent.webp" 
               fetchPriority="high" 
               alt="Couple"
-              className="w-[90vw] sm:w-[80vw] md:w-[70vw] max-h-[60vh] md:max-h-[70vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)]" 
+              className="w-[90vw] sm:w-[80vw] md:w-[70vw] max-h-[60vh] md:max-h-[70vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)] pointer-events-none" 
               style={{ willChange: isMobile ? 'auto' : 'transform' }}
               loading="eager"
             />
@@ -302,7 +358,7 @@ const HeroParallax = () => {
         </m.div>
       </div>
     </div>
-  ), [currentMandap, rotateX, rotateY, bgX, bgY, midX, midY, frontX, frontY, isMobile]);
+  ), [rotateX, rotateY, bgX, bgY, midX, midY, frontX, frontY, isMobile, clientUI]);
 
 
   return (
@@ -319,25 +375,16 @@ const HeroParallax = () => {
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay: 0.2 }}
-        className="absolute inset-0 z-[200] flex flex-col items-center justify-center text-center px-3 sm:px-4 pt-16 sm:pt-20 pointer-events-none"
+        className="absolute inset-0 z-[200] flex flex-col items-center justify-center px-3 sm:px-4 pointer-events-none mt-[100px] sm:mt-[150px]"
       >
         <div className="w-full max-w-5xl pointer-events-auto">
-          
-          <h1 
-            className="text-2xl sm:text-4xl md:text-[64px] font-black text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] mb-2 sm:mb-4 tracking-tight leading-[1.15] sm:leading-[1.2] md:leading-[1.35]"
-            dangerouslySetInnerHTML={{ __html: t('hero_title') }}
-          />
-          
-          <p className="text-sm sm:text-lg md:text-xl text-white/90 mb-6 sm:mb-12 max-w-2xl mx-auto drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] font-medium px-2">
-            {t('hero_desc')}
-          </p>
 
           {/* Liquid Glass Pill Search Bar */}
           <div className="w-full bg-white/5 backdrop-blur-md shadow-[inset_0_2px_10px_rgba(255,255,255,0.3),0_20px_50px_rgba(0,0,0,0.5)] border border-white/30 border-t-white/50 rounded-[24px] md:rounded-full p-1.5 sm:p-2.5 flex flex-col md:flex-row items-center gap-1 md:gap-0 mx-auto relative z-[200]">
                         {/* iOS Segment: Event Type */}
               <div className="flex-1 w-full md:w-auto relative group rounded-[24px] md:rounded-full hover:bg-white/5 transition-colors cursor-pointer py-2 md:pt-3 md:pb-1">
                 <div className="px-3 sm:px-6 flex flex-col items-start w-full">
-                  <span className="text-[8px] sm:text-[10px] font-bold text-white/50 uppercase tracking-[0.18em] mb-0.5 ml-1">{t('search_event_type')}</span>
+                  <span className="text-[8px] sm:text-[10px] font-bold text-[#FFD700]/70 uppercase tracking-[0.18em] mb-0.5 ml-1">{t('search_event_type')}</span>
                   <div className="w-full z-[300]">
                     <ApplePicker
                       options={EVENT_TYPES.map(tOption => ({label: tOption, value: tOption}))}
@@ -347,7 +394,7 @@ const HeroParallax = () => {
                       icon={PartyPopper}
                       position="top"
                       className="w-full"
-                      buttonClassName="!bg-transparent !border-none !shadow-none !px-1 !py-1 w-full text-[17px] font-semibold text-white tracking-tight"
+                      buttonClassName="!bg-transparent !border-none !shadow-none !px-1 !py-1 w-full text-[17px] font-semibold text-[#FFD700] tracking-tight"
                     />
                   </div>
                 </div>
@@ -358,9 +405,9 @@ const HeroParallax = () => {
             {/* iOS Segment: Location */}
             <div className="flex-1 w-full md:w-auto relative group rounded-[24px] md:rounded-full hover:bg-white/5 transition-colors cursor-text py-2 md:py-3">
               <div className="px-3 sm:px-6 flex flex-col items-start w-full">
-                <span className="text-[8px] sm:text-[10px] font-bold text-white/50 uppercase tracking-[0.18em] mb-0.5 ml-1">{t('search_location')}</span>
+                <span className="text-[8px] sm:text-[10px] font-bold text-[#FFD700]/70 uppercase tracking-[0.18em] mb-0.5 ml-1">{t('search_location')}</span>
                 <div className="flex items-center gap-1 sm:gap-2 px-1 py-1 w-full relative">
-                  <MapPin size={16} strokeWidth={2} className="text-white/60 shrink-0 sm:size-[18px]" />
+                  <MapPin size={16} strokeWidth={2} className="text-[#FFD700]/80 shrink-0 sm:size-[18px]" />
                   <input 
                     type="text" 
                     value={locationQuery}
@@ -369,7 +416,7 @@ const HeroParallax = () => {
                       if (selectedLocation) setSelectedLocation(null);
                     }}
                     placeholder={t('search_location_placeholder')} 
-                    className="w-full bg-transparent text-white font-semibold text-[14px] sm:text-[17px] tracking-tight focus:outline-none placeholder-white/40" 
+                    className="w-full bg-transparent text-[#FFD700] font-semibold text-[14px] sm:text-[17px] tracking-tight focus:outline-none placeholder-[#FFD700]/50" 
                   />
                   
                   {/* Locate Me Button */}
@@ -406,7 +453,7 @@ const HeroParallax = () => {
             {/* iOS Segment: Dates & Button */}
             <div className="flex-1 w-full md:w-auto relative group rounded-[24px] md:rounded-full hover:bg-white/5 transition-colors cursor-text flex items-center justify-between pr-1 sm:pr-2 py-2 md:py-3">
               <div className="px-3 sm:px-6 flex flex-col items-start w-full">
-                <span className="text-[8px] sm:text-[10px] font-bold text-white/50 uppercase tracking-[0.18em] mb-0.5 ml-1">{t('search_dates')}</span>
+                <span className="text-[8px] sm:text-[10px] font-bold text-[#FFD700]/70 uppercase tracking-[0.18em] mb-0.5 ml-1">{t('search_dates')}</span>
                 <div className="px-1 py-1 w-full">
                   <AppleDateTimePicker
                     value={selectedDate}

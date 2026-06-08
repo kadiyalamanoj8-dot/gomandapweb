@@ -78,7 +78,7 @@ const ClientRow = ({ user, isExpanded, onToggle }) => {
   const latestLogin = user.loginHistory?.[user.loginHistory.length - 1];
   const latestProvider = latestLogin?.authProvider || 'phone';
   const displayName = user.name || user.email || user.phoneNumber || 'Anonymous User';
-  const avatar = user.profilePicture;
+  const avatar = user.profilePicture || user.photoUrl || user.imageUrl;
 
   return (
     <>
@@ -91,7 +91,7 @@ const ClientRow = ({ user, isExpanded, onToggle }) => {
           <div className="flex items-center gap-3">
             <div className="relative">
               {avatar ? (
-                <img src={avatar} alt={displayName} className="w-9 h-9 rounded-full object-cover ring-2 ring-white/10" />
+                <img src={avatar} alt={displayName} referrerPolicy="no-referrer" className="w-9 h-9 rounded-full object-cover ring-2 ring-white/10" />
               ) : (
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#D4AF37]/20 to-[#FACC15]/20 border border-[#D4AF37]/30 flex items-center justify-center">
                   <User size={16} className="text-[#D4AF37]" />

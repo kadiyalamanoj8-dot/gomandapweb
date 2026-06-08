@@ -7,5 +7,7 @@
     "start:client": "cd client && npm run dev",
     "dev": "npx concurrently --kill-others \"npm run start:server\" \"npm run start:client\""
   },
-  "dependencies": {}
+  "dependencies": {
+    "fuse.js": "^7.4.2"
+  }
 }

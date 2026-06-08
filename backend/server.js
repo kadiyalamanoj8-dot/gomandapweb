@@ -39,6 +39,9 @@ app.use('/api/inquiries', inquiryRoutes);
 const userRoutes = require('./routes/userRoutes');
 app.use('/api/users', userRoutes);
 
+const leadRoutes = require('./routes/leadRoutes');
+app.use('/api/leads', leadRoutes);
+
 const PORT = process.env.PORT || 5000;
 
 // Auto-seed Admin

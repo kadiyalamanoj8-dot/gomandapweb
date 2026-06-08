@@ -252,10 +252,11 @@ const AdminDashboard = () => {
               >
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 shrink-0">
-                    {vendor.portfolioImages?.length > 0
-                      ? <img src={vendor.portfolioImages[0]} alt="" className="w-full h-full object-cover" />
-                      : <div className="w-full h-full flex items-center justify-center text-gray-400 font-bold text-xs">No Img</div>
-                    }
+                    {(vendor.portfolioImages?.[0] || vendor.imageUrl || vendor.photoUrl) ? (
+                      <img src={vendor.portfolioImages?.[0] || vendor.imageUrl || vendor.photoUrl} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 font-bold text-xs">No Img</div>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-black text-gray-900 truncate">{vendor.name}</div>
@@ -307,10 +308,11 @@ const AdminDashboard = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                          {vendor.portfolioImages?.length > 0
-                            ? <img src={vendor.portfolioImages[0]} alt="" className="w-full h-full object-cover" />
-                            : <div className="w-full h-full flex items-center justify-center text-gray-400 font-bold text-xs">?</div>
-                          }
+                          {(vendor.portfolioImages?.[0] || vendor.imageUrl || vendor.photoUrl) ? (
+                            <img src={vendor.portfolioImages?.[0] || vendor.imageUrl || vendor.photoUrl} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 font-bold text-xs">?</div>
+                          )}
                         </div>
                         <div>
                           <div className="font-bold text-gray-900">{vendor.name}</div>

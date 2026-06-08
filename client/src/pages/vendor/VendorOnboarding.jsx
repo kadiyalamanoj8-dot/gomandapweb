@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useVendor } from '../../context/VendorContext';
 import { CATEGORIES } from '../../data/mockData';
 import { getCategorySchema } from '../../config/categorySchemas';
 import { Camera, Store, MapPin, DollarSign, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import CustomDropdown from '../../components/ui/CustomDropdown';
+import axios from 'axios';
 
 const VendorOnboarding = () => {
   const { submitOnboarding } = useVendor();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const leadId = searchParams.get('lead_id');
   const [step, setStep] = useState(1);
+  const [isLoadingLead, setIsLoadingLead] = useState(false);
 
   // Form State
   const [basicInfo, setBasicInfo] = useState({
@@ -29,6 +33,33 @@ const VendorOnboarding = () => {
   });
 
   const [images, setImages] = useState([]);
+
+  // Fetch Lead Data if lead_id is present
+  useEffect(() => {
+    if (leadId) {
+      const fetchLead = async () => {
+        setIsLoadingLead(true);
+        try {
+          const res = await axios.get(`http://localhost:5000/api/leads/${leadId}`);
+          if (res.data.success) {
+            const lead = res.data.data;
+            setBasicInfo({
+              name: lead.name || '',
+              category: lead.category || '',
+              location: `${lead.address?.city || ''} ${lead.address?.pincode || ''}`.trim() || '',
+              email: lead.email || '',
+              phone: lead.phone || ''
+            });
+          }
+        } catch (err) {
+          console.error("Failed to fetch lead data", err);
+        } finally {
+          setIsLoadingLead(false);
+        }
+      };
+      fetchLead();
+    }
+  }, [leadId]);
 
   // When category changes, load the schema structure to pre-fill the form requirements
   useEffect(() => {
@@ -68,9 +99,22 @@ const VendorOnboarding = () => {
       }
     };
 
+    // If there's a leadId, update the lead status to "Claimed"
+    if (leadId) {
+      axios.put(`http://localhost:5000/api/leads/${leadId}`, { status: 'Claimed' }).catch(err => console.log('Failed to update lead status'));
+    }
+
     submitOnboarding(finalProfile);
     navigate('/vendor-portal/pending');
   };
+
+  if (isLoadingLead) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-16">

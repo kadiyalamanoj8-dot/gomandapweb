@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { chromium, firefox } = require('playwright');
 const axios = require('axios');
+const Fuse = require('fuse.js');
 require('dotenv').config();
 
 const app = express();
@@ -21,14 +22,43 @@ if (!fs.existsSync(DATA_FILE)) {
   fs.writeFileSync(DATA_FILE, JSON.stringify([]));
 }
 
-// Helper to read data
-const readData = () => JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
-// Helper to write data
-const writeData = (data) => fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+const mongoose = require('mongoose');
+const StagingLead = require('./models/StagingLead');
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/gomandap_scraper')
+  .then(() => console.log('Scraper connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // Load regions
 const REGIONS_FILE = path.join(__dirname, 'data', 'regions.json');
 const getRegions = () => fs.existsSync(REGIONS_FILE) ? JSON.parse(fs.readFileSync(REGIONS_FILE, 'utf-8')) : {};
+
+// Telecaller Data
+const EMPLOYEES_FILE = path.join(__dirname, 'data', 'employees.json');
+if (!fs.existsSync(EMPLOYEES_FILE)) {
+  fs.writeFileSync(EMPLOYEES_FILE, JSON.stringify([
+    { id: 'emp_1', username: 'telecaller1', password: 'password123', name: 'Agent 1', location: 'Guntur', role: 'employee' }
+  ]));
+}
+const getEmployees = () => JSON.parse(fs.readFileSync(EMPLOYEES_FILE, 'utf-8'));
+const writeEmployees = (data) => fs.writeFileSync(EMPLOYEES_FILE, JSON.stringify(data, null, 2));
+
+// Auth Login API
+app.post('/api/auth/login', (req, res) => {
+  const { username, password } = req.body;
+  if (username === 'admin' && password === 'admin') {
+    return res.json({ success: true, user: { role: 'admin', name: 'Administrator' } });
+  }
+
+  const employees = getEmployees();
+  const employee = employees.find(e => e.username === username && e.password === password);
+  if (employee) {
+    return res.json({ success: true, user: { role: 'employee', name: employee.name, location: employee.location, id: employee.id } });
+  }
+
+  res.status(401).json({ success: false, message: 'Invalid credentials' });
+});
 
 const CATEGORIES = [
   "Banquet Halls", "Kalyana Mandapams", "Open Lawns & Farmhouses", 
@@ -46,89 +76,103 @@ let batchQueue = [];
 let isBatchRunning = false;
 let batchProgress = { total: 0, completed: 0, currentTask: '', isActive: false };
 
+// NLP & Spelling Correction Setup
+const categoryFuse = new Fuse(CATEGORIES, { includeScore: true, threshold: 0.6 });
+
+const getFlatLocations = () => {
+  const regions = getRegions();
+  let allLocs = [];
+  for (const [district, mandals] of Object.entries(regions)) {
+    allLocs.push({ type: 'district', name: district });
+    if (mandals) {
+      for (const m of mandals) {
+        allLocs.push({ type: 'mandal', name: m, district: district });
+      }
+    }
+  }
+  return allLocs;
+};
+let locationFuse = new Fuse(getFlatLocations(), { keys: ['name'], includeScore: true, threshold: 0.6 });
+
 // API: Get Regions
 app.get('/api/regions', (req, res) => {
   res.json(getRegions());
 });
 
 // API: Get all scraped vendors
-app.get('/api/vendors', (req, res) => {
-  const data = readData();
-  res.json(data);
+app.get('/api/vendors', async (req, res) => {
+  try {
+    const data = await StagingLead.find().sort({ scrapedAt: -1 }).lean();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // API: Update a vendor (verify/edit)
-app.put('/api/vendors/:id', (req, res) => {
-  const data = readData();
-  const index = data.findIndex(v => v.id === req.params.id);
-  if (index !== -1) {
-    data[index] = { ...data[index], ...req.body, verified: true };
-    writeData(data);
-    res.json({ success: true, vendor: data[index] });
-  } else {
-    res.status(404).json({ error: 'Vendor not found' });
+app.put('/api/vendors/:id', async (req, res) => {
+  try {
+    const updated = await StagingLead.findOneAndUpdate(
+      { id: req.params.id }, 
+      { ...req.body, verified: true }, 
+      { new: true }
+    );
+    if (updated) res.json({ success: true, vendor: updated });
+    else res.status(404).json({ error: 'Vendor not found' });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
 // API: Delete a vendor
-app.delete('/api/vendors/:id', (req, res) => {
-  let data = readData();
-  data = data.filter(v => v.id !== req.params.id);
-  writeData(data);
-  res.json({ success: true });
+app.delete('/api/vendors/:id', async (req, res) => {
+  try {
+    await StagingLead.deleteOne({ id: req.params.id });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // API: Clear all unverified vendors from queue
-app.post('/api/vendors/clear-unverified', (req, res) => {
-  let data = readData();
-  data = data.filter(v => v.verified || v.pushed);
-  writeData(data);
-  res.json({ success: true });
-});
-
-// API: Push verified vendors to Production
-app.post('/api/vendors/push', async (req, res) => {
-  const data = readData();
-  const verifiedVendors = data.filter(v => v.verified && !v.pushed);
-  
-  if (verifiedVendors.length === 0) {
-    return res.status(400).json({ error: 'No verified unpushed vendors found.' });
-  }
-
+app.post('/api/vendors/clear-unverified', async (req, res) => {
   try {
-    let successCount = 0;
-    for (const vendor of verifiedVendors) {
-      // Create draft first
-      const draftRes = await axios.post('https://gomandap-api.onrender.com/api/vendors/draft', {
-        name: vendor.name,
-        category: vendor.category,
-        contact: { phone: vendor.phone || '' },
-        address: { 
-          street: vendor.address || '', 
-          village: vendor.location || '', 
-          district: vendor.city || '', 
-          state: 'Andhra Pradesh' 
-        },
-        deepFeatures: {},
-        status: 'approved'
-      });
-      
-      if (draftRes.data.success) {
-        vendor.pushed = true;
-        vendor.pushedAt = new Date().toISOString();
-        vendor.gomandapId = draftRes.data.data._id;
-        successCount++;
-      }
-    }
-    writeData(data);
-    res.json({ success: true, pushed: successCount });
+    await StagingLead.deleteMany({ verified: false, pushed: false });
+    res.json({ success: true });
   } catch (error) {
-    console.error('Error pushing to prod:', error);
-    res.status(500).json({ error: 'Failed to push to production' });
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
-// API: Manual Scrape
+// API: Push verified vendors to CRM Lead Pipeline
+app.post('/api/vendors/push', async (req, res) => {
+  try {
+    const verifiedVendors = await StagingLead.find({ verified: true, pushed: false }).lean();
+    
+    if (verifiedVendors.length === 0) {
+      return res.status(400).json({ error: 'No verified unpushed vendors found.' });
+    }
+
+    const response = await axios.post('http://localhost:5000/api/leads/bulk', {
+      leads: verifiedVendors
+    });
+    
+    if (response.data.success) {
+      await StagingLead.updateMany(
+        { id: { $in: verifiedVendors.map(v => v.id) } },
+        { $set: { pushed: true, pushedAt: new Date() } }
+      );
+      res.json({ success: true, pushed: verifiedVendors.length, message: response.data.message });
+    } else {
+      res.status(500).json({ error: 'Failed to push to CRM' });
+    }
+  } catch (error) {
+    console.error('Error pushing to CRM:', error);
+    res.status(500).json({ error: 'Failed to push to CRM' });
+  }
+});
+
+// API: Manual Scrape (Legacy)
 app.post('/api/scrape', (req, res) => {
   const { category, district, mandal, engine } = req.body;
   if (!category || !district) return res.status(400).json({ error: 'Category and district required' });
@@ -137,19 +181,64 @@ app.post('/api/scrape', (req, res) => {
 
   res.json({ success: true, message: `Started scraping ${category} in ${queryLocation} using ${engine}` });
 
-  if (engine === 'justdial') {
-    scrapeJustDial(category, queryLocation).catch(console.error);
-  } else if (engine === 'weddingbazaar') {
-    scrapeWeddingBazaar(category, queryLocation).catch(console.error);
-  } else if (engine === 'weddingwire') {
-    scrapeWeddingWire(category, queryLocation).catch(console.error);
-  } else if (engine === 'mandap') {
-    scrapeMandap(category, queryLocation).catch(console.error);
-  } else if (engine === 'google') {
-    scrapeGooglePlaces(category, queryLocation).catch(console.error);
-  } else {
-    console.log("Engine not implemented.");
+  if (engine === 'justdial') scrapeJustDial(category, queryLocation).catch(console.error);
+  else if (engine === 'weddingbazaar') scrapeWeddingBazaar(category, queryLocation).catch(console.error);
+  else if (engine === 'weddingwire') scrapeWeddingWire(category, queryLocation).catch(console.error);
+  else if (engine === 'mandap') scrapeMandap(category, queryLocation).catch(console.error);
+  else if (engine === 'google') scrapeGooglePlaces(category, queryLocation).catch(console.error);
+  else if (engine === 'ola') scrapeGooglePlaces(category, queryLocation).catch(console.error); // Fallback to Google if Ola not ready
+  else console.log("Engine not implemented.");
+});
+
+// API: Omni-Search Scrape (Advanced NLP)
+app.post('/api/scrape/omni', (req, res) => {
+  const { query, engine = 'google' } = req.body;
+  if (!query) return res.status(400).json({ error: 'Search query required' });
+
+  // Update location fuse in case regions changed
+  locationFuse = new Fuse(getFlatLocations(), { keys: ['name'], includeScore: true, threshold: 0.6 });
+
+  // Extract category and location using split points
+  const splitKeywords = [' in ', ' at ', ' near ', ' around ', ' for '];
+  let rawCategory = query;
+  let rawLocation = '';
+  
+  for (const keyword of splitKeywords) {
+    const lowerQuery = query.toLowerCase();
+    if (lowerQuery.includes(keyword)) {
+      const idx = lowerQuery.indexOf(keyword);
+      rawCategory = query.substring(0, idx).trim();
+      rawLocation = query.substring(idx + keyword.length).trim();
+      break;
+    }
   }
+
+  // Spell check Category
+  const catMatch = categoryFuse.search(rawCategory);
+  let matchedCategory = catMatch.length > 0 ? catMatch[0].item : CATEGORIES[0];
+  
+  // Spell check Location
+  let queryLocation = rawLocation;
+  if (rawLocation) {
+    const locMatch = locationFuse.search(rawLocation);
+    if (locMatch.length > 0) {
+      const loc = locMatch[0].item;
+      queryLocation = loc.type === 'mandal' ? `${loc.name}, ${loc.district}` : loc.name;
+    }
+  }
+
+  res.json({ 
+    success: true, 
+    parsed: { category: matchedCategory, queryLocation },
+    message: `Omni-Parsed: Scraping ${matchedCategory} in ${queryLocation || 'Global'} using ${engine}`
+  });
+
+  if (engine === 'justdial') scrapeJustDial(matchedCategory, queryLocation).catch(console.error);
+  else if (engine === 'weddingbazaar') scrapeWeddingBazaar(matchedCategory, queryLocation).catch(console.error);
+  else if (engine === 'weddingwire') scrapeWeddingWire(matchedCategory, queryLocation).catch(console.error);
+  else if (engine === 'mandap') scrapeMandap(matchedCategory, queryLocation).catch(console.error);
+  else if (engine === 'google') scrapeGooglePlaces(matchedCategory, queryLocation).catch(console.error);
+  else if (engine === 'ola') scrapeGooglePlaces(matchedCategory, queryLocation).catch(console.error); // Ola Fallback
 });
 
 // API: Batch Auto-Pilot Scrape
@@ -418,7 +507,6 @@ async function scrapeGooglePlaces(category, location) {
 
     console.log(`Google Maps Scraping found ${scrapedResults.length} vendors.`);
 
-    let data = readData();
     let inserted = 0;
 
     for (const place of scrapedResults) {
@@ -438,13 +526,21 @@ async function scrapeGooglePlaces(category, location) {
         continue;
       }
 
-      const existingIndex = data.findIndex(existing => 
-        (place.mapsLink && existing.mapsLink === place.mapsLink) || 
-        existing.name === place.name
-      );
+      let parsedRating = null;
+      if (place.rating && place.rating !== '-') {
+        parsedRating = parseFloat(place.rating);
+        if (isNaN(parsedRating)) parsedRating = null;
+      }
 
-      if (existingIndex === -1) {
-        data.push({
+      const existing = await StagingLead.findOne({
+        $or: [
+          { mapsLink: place.mapsLink },
+          { name: place.name }
+        ]
+      });
+
+      if (!existing) {
+        await StagingLead.create({
           id: place.id,
           name: place.name,
           category: category,
@@ -452,28 +548,24 @@ async function scrapeGooglePlaces(category, location) {
           address: place.address || '',
           pincode: pincode,
           phone: place.phone || 'Requires Manual Lookup',
-          rating: place.rating,
+          rating: parsedRating,
           mapsLink: place.mapsLink || '',
-          source: 'Google Places',
-          verified: false,
-          pushed: false,
-          scrapedAt: new Date().toISOString()
+          source: 'Google Places'
         });
         inserted++;
       } else {
-        const existing = data[existingIndex];
         if (!existing.pincode && place.address) {
-          const pincodeMatch = place.address.match(/\b\d{6}\b/);
-          if (pincodeMatch) existing.pincode = pincodeMatch[0];
+          const pMatch = place.address.match(/\b\d{6}\b/);
+          if (pMatch) existing.pincode = pMatch[0];
         }
-        if (!existing.rating && place.rating) existing.rating = place.rating;
+        if (!existing.rating && parsedRating) existing.rating = parsedRating;
         if ((!existing.phone || existing.phone.includes('Obfuscated') || existing.phone.includes('Requires')) && place.phone) {
           existing.phone = place.phone;
         }
+        await existing.save();
       }
     }
 
-    writeData(data);
     console.log(`Google Maps Scraping complete. Inserted ${inserted} new vendors into staging.`);
   } catch (error) {
     console.error('Google Maps Scraper error:', error.message);
@@ -484,14 +576,10 @@ async function scrapeGooglePlaces(category, location) {
 
 async function scrapeJustDial(category, location) {
   console.log(`Starting JustDial scrape for ${category} in ${location}`);
-  const data = readData();
   const searchUrl = `https://www.justdial.com/${location.split(',')[0].trim()}/${category.replace(/ /g, '-')}`;
   
   console.log(`Navigating to: ${searchUrl}`);
-  // Setup playwright to scrape JustDial
-  const browser = await firefox.launch({ 
-    headless: true
-  });
+  const browser = await firefox.launch({ headless: true });
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0',
     viewport: { width: 1280, height: 800 }
@@ -502,7 +590,6 @@ async function scrapeJustDial(category, location) {
     await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForTimeout(5000);
 
-    // 1. Redirect Check: Verify if JustDial redirected to an unrelated city (like Mumbai or Delhi)
     const finalUrl = page.url().toLowerCase();
     const mandalSegment = location.split(',')[0].trim().toLowerCase().replace(/ /g, '-');
     const districtSegment = location.includes(',') ? location.split(',')[1].trim().toLowerCase().replace(/ /g, '-') : '';
@@ -511,22 +598,13 @@ async function scrapeJustDial(category, location) {
     const isDistrictMatched = districtSegment && finalUrl.includes(districtSegment);
 
     if (!isMandalMatched && !isDistrictMatched) {
-      console.log(`[Warning] JustDial redirected to an unrelated city page: ${page.url()} (expected ${location}). Skipping scrape to avoid dirtying database.`);
+      console.log(`[Warning] JustDial redirected to an unrelated city page. Skipping.`);
       return;
     }
 
-    // 2. Rate Limit Check: Verify if Akamai returned a blank body
     let html = await page.content();
     if (html.includes('<body></body>') || html.length < 500) {
-      console.log(`[Warning] JustDial blocked the scraper at ${searchUrl} (IP Rate Limited by Akamai).`);
-      console.log("Waiting 15 seconds to let the rate limit cool down before retrying...");
-      await page.waitForTimeout(15000);
-      await page.reload({ waitUntil: 'domcontentloaded' });
-      await page.waitForTimeout(5000);
-      html = await page.content();
-      if (html.includes('<body></body>') || html.length < 500) {
-        throw new Error("JustDial persistently blocked this request (IP Rate Limited). Try again later.");
-      }
+      throw new Error("JustDial persistently blocked this request (IP Rate Limited). Try again later.");
     }
 
     for (let i = 0; i < 5; i++) {
@@ -538,16 +616,12 @@ async function scrapeJustDial(category, location) {
       return nodes.map(node => {
         const nameEl = node.querySelector('.resultbox_title_anchor, .resultbox_title, h2');
         const name = nameEl ? nameEl.innerText.trim() : null;
-        
         const addressEl = node.querySelector('.resultbox_address, address');
         const address = addressEl ? addressEl.innerText.trim() : null;
-        
         const ratingEl = node.querySelector('.resultbox_totalrate');
         const rating = ratingEl ? ratingEl.innerText.trim() : null;
-        
         const phoneEl = node.querySelector('.callNowAnchor, .callbutton');
         const phone = phoneEl ? phoneEl.innerText.trim() : 'Requires Manual Lookup';
-        
         return { name, address, rating, phone };
       }).filter(v => v.name);
     });
@@ -556,31 +630,29 @@ async function scrapeJustDial(category, location) {
     let newCount = 0;
     
     for (const v of results) {
-      if (!data.find(existing => existing.name === v.name && existing.city === location)) {
+      const existing = await StagingLead.findOne({ name: v.name, city: location });
+      if (!existing) {
+        let parsedRating = null;
+        if (v.rating && v.rating !== '-') {
+          parsedRating = parseFloat(v.rating);
+          if (isNaN(parsedRating)) parsedRating = null;
+        }
         const pincodeMatch = v.address ? v.address.match(/\b\d{6}\b/) : null;
-        const pincode = pincodeMatch ? pincodeMatch[0] : '';
-
-        data.push({
+        await StagingLead.create({
           id: Date.now().toString() + Math.random().toString(36).substring(7),
           name: v.name,
           category: category,
           city: location,
           address: v.address || `Located in ${location}`,
-          pincode: pincode,
+          pincode: pincodeMatch ? pincodeMatch[0] : '',
           phone: v.phone || 'Requires Manual Lookup',
-          rating: v.rating,
-          mapsLink: '',
-          source: 'JustDial',
-          verified: false,
-          pushed: false,
-          scrapedAt: new Date().toISOString()
+          rating: parsedRating,
+          source: 'JustDial'
         });
         newCount++;
       }
     }
-    writeData(data);
     console.log(`Scraping complete. Inserted ${newCount} new vendors into staging.`);
-    
   } catch (error) {
     console.error('JustDial Scraper error:', error);
   } finally {
@@ -590,13 +662,7 @@ async function scrapeJustDial(category, location) {
 
 async function genericPlaywrightScrape(engineName, searchUrl, category, location, evaluateFn) {
   console.log(`Starting ${engineName} scrape for ${category} in ${location}`);
-  const data = readData();
-  
-  console.log(`Navigating to: ${searchUrl}`);
-  const browser = await chromium.launch({ 
-    headless: true,
-    args: ['--disable-http2']
-  });
+  const browser = await chromium.launch({ headless: true, args: ['--disable-http2'] });
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     viewport: { width: 1280, height: 800 }
@@ -618,29 +684,29 @@ async function genericPlaywrightScrape(engineName, searchUrl, category, location
     let newCount = 0;
     
     for (const v of results) {
-      if (!data.find(existing => existing.name === v.name && existing.city === location)) {
+      const existing = await StagingLead.findOne({ name: v.name, city: location });
+      if (!existing) {
+        let parsedRating = null;
+        if (v.rating && v.rating !== '-') {
+          parsedRating = parseFloat(v.rating);
+          if (isNaN(parsedRating)) parsedRating = null;
+        }
         const pincodeMatch = v.address ? v.address.match(/\b\d{6}\b/) : null;
-        const pincode = pincodeMatch ? pincodeMatch[0] : '';
-
-        data.push({
+        await StagingLead.create({
           id: Date.now().toString() + Math.random().toString(36).substring(7),
           name: v.name,
           category: category,
           city: location,
           address: v.address || `Located in ${location}`,
-          pincode: pincode,
+          pincode: pincodeMatch ? pincodeMatch[0] : '',
           phone: 'Requires Manual Lookup / Login',
-          rating: v.rating || null,
+          rating: parsedRating,
           mapsLink: v.profileLink || '',
-          source: engineName,
-          verified: false,
-          pushed: false,
-          scrapedAt: new Date().toISOString()
+          source: engineName
         });
         newCount++;
       }
     }
-    writeData(data);
     console.log(`${engineName} Scraping complete. Inserted ${newCount} new vendors.`);
   } catch (error) {
     console.error(`${engineName} Scraper error:`, error.message);

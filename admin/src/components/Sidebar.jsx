@@ -57,8 +57,22 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           >
             <Store size={18} /> Vendor Approvals
           </NavLink>
+          <NavLink
+            to="/leads"
+            onClick={() => setIsOpen(false)}
+            className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'btn-liquid text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          >
+            <Users size={18} /> Leads CRM
+          </NavLink>
 
           <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-4 mb-2 mt-6">Configuration</p>
+          <NavLink
+            to="/client-ui"
+            onClick={() => setIsOpen(false)}
+            className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'btn-liquid text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          >
+            <LayoutDashboard size={18} /> Client UI Settings
+          </NavLink>
           <NavLink
             to="/category-settings"
             onClick={() => setIsOpen(false)}

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getCategorySchema } from '../../config/categorySchemas';
+import ProfileCard from '../../components/auth/ProfileCard';
 
 const VendorDashboard = () => {
   const { vendorProfile, vendorStatus, logoutVendor, updateVendorProfile } = useVendor();
@@ -462,51 +463,24 @@ const VendorDashboard = () => {
 
         {/* Profile Tab */}
         {activeTab === 'profile' && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="bg-black/40 backdrop-blur-2xl rounded-[2.5rem] p-6 md:p-10 border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.5)] relative z-10 max-w-4xl mx-auto">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10">
-              <div className="flex items-center gap-6">
-                <div className="w-24 h-24 rounded-full border-4 border-white/20 shadow-lg overflow-hidden shrink-0">
-                  <img src={vendorProfile.portfolioImages?.[0] || vendorProfile.imageUrl || "https://i.pravatar.cc/150"} alt={vendorProfile.name} className="w-full h-full object-cover" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-black tracking-tight text-white mb-1">{vendorProfile.name}</h2>
-                  <span className="px-3 py-1 rounded-full bg-white/10 text-brand-gold text-sm font-bold border border-brand-gold/20">{vendorProfile.category}</span>
-                </div>
-              </div>
-              
-              {!isEditingProfile ? (
-                <button 
-                  onClick={() => setIsEditingProfile(true)}
-                  className="px-6 py-3 bg-brand-gold text-black rounded-xl font-bold hover:bg-brand-gold transition-colors shadow-lg w-full md:w-auto"
-                >
-                  Edit Profile
-                </button>
-              ) : (
-                <div className="flex gap-3 w-full md:w-auto">
-                  <button 
-                    onClick={() => {
-                      setIsEditingProfile(false);
-                      setEditForm({
-                        name: vendorProfile.name || '',
-                        ownerName: vendorProfile.ownerName || '',
-                        phone: vendorProfile.contact?.phone || '',
-                        city: vendorProfile.address?.city || '',
-                      });
-                    }}
-                    className="flex-1 md:flex-none px-6 py-3 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    onClick={handleSaveProfile}
-                    disabled={isSaving}
-                    className="flex-1 md:flex-none px-6 py-3 bg-brand-gold text-black rounded-xl font-bold hover:bg-brand-gold transition-colors shadow-lg disabled:opacity-50"
-                  >
-                    {isSaving ? 'Saving...' : 'Save Changes'}
-                  </button>
-                </div>
-              )}
-            </div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="relative z-10 max-w-4xl mx-auto space-y-8">
+            <ProfileCard 
+              user={vendorProfile} 
+              onLogout={handleLogout} 
+              isEditingProfile={isEditingProfile}
+              setIsEditingProfile={setIsEditingProfile}
+              onCancel={() => {
+                setIsEditingProfile(false);
+                setEditForm({
+                  name: vendorProfile.name || '',
+                  ownerName: vendorProfile.ownerName || '',
+                  phone: vendorProfile.contact?.phone || '',
+                  city: vendorProfile.address?.city || '',
+                });
+              }}
+              onSave={handleSaveProfile}
+              isSaving={isSaving}
+            />
              
             <div className="bg-white/5 p-6 md:p-8 rounded-[1.5rem] border border-white/10 shadow-inner">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

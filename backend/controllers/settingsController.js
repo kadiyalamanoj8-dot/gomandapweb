@@ -98,4 +98,40 @@ const toggleLanguage = async (req, res) => {
   }
 };
 
-module.exports = { getSettings, toggleCategory, toggleLanguage };
+// @desc    Update Client UI settings (Admin)
+// @route   PATCH /api/settings/client-ui
+// @access  Admin
+const updateClientUI = async (req, res) => {
+  try {
+    const { use3DCarousel, carouselImages, marqueeWidth, marqueeHeight, marqueePositionY, marqueeSpeed } = req.body;
+
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = await Settings.create({});
+    }
+
+    if (!settings.clientUI) {
+      settings.clientUI = { use3DCarousel: true, carouselImages: [] };
+    }
+
+    if (use3DCarousel !== undefined) settings.clientUI.use3DCarousel = use3DCarousel;
+    if (carouselImages !== undefined) settings.clientUI.carouselImages = carouselImages;
+    if (marqueeWidth !== undefined) settings.clientUI.marqueeWidth = marqueeWidth;
+    if (marqueeHeight !== undefined) settings.clientUI.marqueeHeight = marqueeHeight;
+    if (marqueePositionY !== undefined) settings.clientUI.marqueePositionY = marqueePositionY;
+    if (marqueeSpeed !== undefined) settings.clientUI.marqueeSpeed = marqueeSpeed;
+
+    await settings.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Client UI settings updated.',
+      data: settings
+    });
+  } catch (error) {
+    console.error('updateClientUI Error:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+module.exports = { getSettings, toggleCategory, toggleLanguage, updateClientUI };
