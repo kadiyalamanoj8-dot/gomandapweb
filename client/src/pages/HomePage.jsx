@@ -11,9 +11,9 @@ const HomePage = () => {
       {/* Hero — full viewport height, dark background fills edge to edge */}
       <HeroParallax />
 
-      {/* Categories — white card that overlaps the hero bottom with rounded top corners */}
-      <div className="relative z-[50] bg-white rounded-t-[2rem] -mt-8 shadow-[0_-8px_32px_rgba(0,0,0,0.15)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
+      {/* Categories — white card starts below hero, no overlap */}
+      <div className="relative z-[50] bg-white rounded-t-[1.5rem] sm:rounded-t-[2rem] mt-0 shadow-[0_-8px_32px_rgba(0,0,0,0.15)]">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-6 sm:pt-8 pb-4">
           <Suspense fallback={
             <div className="h-64 flex items-center justify-center">
               <div className="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
