@@ -10,6 +10,146 @@ const IconComponent = ({ name, ...props }) => {
   return <Icon {...props} />;
 };
 
+// Native fallback filters for each schema type
+const NATIVE_FILTERS = {
+  VENUE: [
+    { name: 'capacity', title: 'Guest Capacity', type: 'RADIO', options: [
+      { value: 'any', label: 'Any' },
+      { value: '100-500', label: '100-500 guests' },
+      { value: '500-1000', label: '500-1000 guests' },
+      { value: '1000-2000', label: '1000-2000 guests' },
+      { value: '2000+', label: '2000+ guests' }
+    ]},
+    { name: 'priceRange', title: 'Budget Range', type: 'RADIO', options: [
+      { value: 'any', label: 'Any' },
+      { value: '0-50000', label: '₹0 - ₹50,000' },
+      { value: '50000-150000', label: '₹50,000 - ₹1,50,000' },
+      { value: '150000-300000', label: '₹1,50,000 - ₹3,00,000' },
+      { value: '300000+', label: '₹3,00,000+' }
+    ]},
+    { name: 'amenities', title: 'Amenities', type: 'CHECKBOX', options: [
+      { value: 'parking', label: 'Parking Available' },
+      { value: 'ac', label: 'Air Conditioning' },
+      { value: 'inhouse-catering', label: 'In-house Catering' },
+      { value: 'inhouse-decor', label: 'In-house Decor' },
+      { value: 'inhouse-photography', label: 'In-house Photography' },
+      { value: 'outdoor-space', label: 'Outdoor Space' },
+      { value: 'lounge', label: 'Lounge Area' }
+    ]}
+  ],
+  PHOTO: [
+    { name: 'photoType', title: 'Service Type', type: 'CHECKBOX', options: [
+      { value: 'photography', label: 'Photography' },
+      { value: 'videography', label: 'Videography' },
+      { value: 'drone', label: 'Drone Shots' },
+      { value: 'editing', label: 'Video Editing' },
+      { value: 'album', label: 'Album Design' }
+    ]},
+    { name: 'priceRange', title: 'Budget', type: 'RADIO', options: [
+      { value: 'any', label: 'Any' },
+      { value: '20000-50000', label: '₹20K - ₹50K' },
+      { value: '50000-100000', label: '₹50K - ₹1L' },
+      { value: '100000-200000', label: '₹1L - ₹2L' },
+      { value: '200000+', label: '₹2L+' }
+    ]}
+  ],
+  MAKEUP: [
+    { name: 'makeupType', title: 'Service Type', type: 'CHECKBOX', options: [
+      { value: 'bridal', label: 'Bridal Makeup' },
+      { value: 'mehndi', label: 'Mehndi' },
+      { value: 'groom', label: 'Groom Makeup' },
+      { value: 'guests', label: 'Guest Makeup' },
+      { value: 'jewelry', label: 'Jewelry Services' }
+    ]},
+    { name: 'priceRange', title: 'Budget', type: 'RADIO', options: [
+      { value: 'any', label: 'Any' },
+      { value: '5000-15000', label: '₹5K - ₹15K' },
+      { value: '15000-30000', label: '₹15K - ₹30K' },
+      { value: '30000-50000', label: '₹30K - ₹50K' },
+      { value: '50000+', label: '₹50K+' }
+    ]}
+  ],
+  CATERING: [
+    { name: 'cuisineType', title: 'Cuisine Type', type: 'CHECKBOX', options: [
+      { value: 'north-indian', label: 'North Indian' },
+      { value: 'south-indian', label: 'South Indian' },
+      { value: 'continental', label: 'Continental' },
+      { value: 'chinese', label: 'Chinese' },
+      { value: 'fusion', label: 'Fusion' },
+      { value: 'vegan', label: 'Vegan Options' }
+    ]},
+    { name: 'pricePerPlate', title: 'Price Per Plate', type: 'RADIO', options: [
+      { value: 'any', label: 'Any' },
+      { value: '300-500', label: '₹300 - ₹500' },
+      { value: '500-1000', label: '₹500 - ₹1,000' },
+      { value: '1000-1500', label: '₹1,000 - ₹1,500' },
+      { value: '1500+', label: '₹1,500+' }
+    ]}
+  ],
+  DECOR: [
+    { name: 'decorType', title: 'Decor Type', type: 'CHECKBOX', options: [
+      { value: 'traditional', label: 'Traditional' },
+      { value: 'modern', label: 'Modern' },
+      { value: 'minimalist', label: 'Minimalist' },
+      { value: 'floral', label: 'Floral Decor' },
+      { value: 'lighting', label: 'LED/Lighting' }
+    ]},
+    { name: 'priceRange', title: 'Budget', type: 'RADIO', options: [
+      { value: 'any', label: 'Any' },
+      { value: '50000-150000', label: '₹50K - ₹1.5L' },
+      { value: '150000-300000', label: '₹1.5L - ₹3L' },
+      { value: '300000-500000', label: '₹3L - ₹5L' },
+      { value: '500000+', label: '₹5L+' }
+    ]}
+  ],
+  DJ: [
+    { name: 'serviceType', title: 'Service Type', type: 'CHECKBOX', options: [
+      { value: 'dj', label: 'DJ Services' },
+      { value: 'live-band', label: 'Live Band' },
+      { value: 'sound-system', label: 'Sound System' },
+      { value: 'lighting-dj', label: 'Lighting' },
+      { value: 'singers', label: 'Live Singers' }
+    ]},
+    { name: 'priceRange', title: 'Budget', type: 'RADIO', options: [
+      { value: 'any', label: 'Any' },
+      { value: '10000-30000', label: '₹10K - ₹30K' },
+      { value: '30000-60000', label: '₹30K - ₹60K' },
+      { value: '60000-100000', label: '₹60K - ₹1L' },
+      { value: '100000+', label: '₹1L+' }
+    ]}
+  ],
+  JEWELRY: [
+    { name: 'jewelryType', title: 'Service Type', type: 'CHECKBOX', options: [
+      { value: 'bridal-jewelry', label: 'Bridal Jewelry' },
+      { value: 'clothing', label: 'Bridal Clothing' },
+      { value: 'groom-wear', label: 'Groom Wear' },
+      { value: 'accessories', label: 'Accessories' }
+    ]},
+    { name: 'priceRange', title: 'Budget', type: 'RADIO', options: [
+      { value: 'any', label: 'Any' },
+      { value: '30000-100000', label: '₹30K - ₹1L' },
+      { value: '100000-300000', label: '₹1L - ₹3L' },
+      { value: '300000-500000', label: '₹3L - ₹5L' },
+      { value: '500000+', label: '₹5L+' }
+    ]}
+  ],
+  LOGISTICS: [
+    { name: 'serviceType', title: 'Service Type', type: 'CHECKBOX', options: [
+      { value: 'invitation', label: 'Wedding Cards' },
+      { value: 'transportation', label: 'Vehicles & Travel' },
+      { value: 'astrologer', label: 'Astrology Services' },
+      { value: 'honeymoon', label: 'Honeymoon Packages' }
+    ]},
+    { name: 'priceRange', title: 'Budget', type: 'RADIO', options: [
+      { value: 'any', label: 'Any' },
+      { value: '5000-25000', label: '₹5K - ₹25K' },
+      { value: '25000-100000', label: '₹25K - ₹1L' },
+      { value: '100000-300000', label: '₹1L - ₹3L' },
+      { value: '300000+', label: '₹3L+' }
+    ]}
+  ]
+};
+
 const VENUE_CATEGORIES = ['Banquet Halls', 'Kalyana Mandapams', 'Open Lawns & Farmhouses', 'Resorts & Destination Venues', '5-Star Hotels', 'Party & Mini Halls', 'Temples & Ashrams'];
 const PHOTO_CATEGORIES = ['Photography & Videography'];
 const MAKEUP_CATEGORIES = ['Makeup Artists (MUA)', 'Mehndi Designers'];
@@ -103,25 +243,22 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [],
   }, [selectedCategories]);
 
   const [dynamicFilters, setDynamicFilters] = useState([]);
-  const [isLoadingFilters, setIsLoadingFilters] = useState(true);
+  const [isLoadingFilters, setIsLoadingFilters] = useState(false);
+  const [filterError, setFilterError] = useState(false);
 
   React.useEffect(() => {
     const fetchFilters = async () => {
-      setIsLoadingFilters(true);
-      try {
-        const groupsParam = activeSchemas.join(',');
-        const res = await fetch(`https://gomandap-api.onrender.com/api/filters?groups=${groupsParam}`);
-        const data = await res.json();
-        
-        if (data.success) {
-          const combinedFilters = data.data.flatMap(schema => schema.filters);
-          setDynamicFilters(combinedFilters);
+      // Use native filters for these schemas without API call
+      const nativeSchemas = ['VENUE', 'PHOTO', 'MAKEUP', 'CATERING', 'DECOR', 'DJ', 'JEWELRY', 'LOGISTICS'];
+      const nativeFilters = [];
+      
+      activeSchemas.forEach(schema => {
+        if (NATIVE_FILTERS[schema]) {
+          nativeFilters.push(...NATIVE_FILTERS[schema]);
         }
-      } catch (error) {
-        console.error("Failed to fetch dynamic filters", error);
-      } finally {
-        setIsLoadingFilters(false);
-      }
+      });
+      
+      setDynamicFilters(nativeFilters);
     };
     
     fetchFilters();
@@ -274,15 +411,12 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [],
           </div>
         </div>
 
-        {/* Dynamic MongoDB Filters */}
+        {/* Dynamic MongoDB Filters / Native Filters */}
         <div className="pt-4 border-t border-gray-100 space-y-2">
-          {isLoadingFilters ? (
-            <div className="py-10 text-center">
-              <div className="w-6 h-6 border-2 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-              <p className="text-xs font-bold text-gray-400">Loading dynamic filters...</p>
-            </div>
-          ) : (
+          {dynamicFilters.length > 0 ? (
             dynamicFilters.map(block => renderDynamicBlock(block))
+          ) : (
+            <p className="text-xs font-bold text-gray-400 py-4 text-center">No additional filters available</p>
           )}
         </div>
 
