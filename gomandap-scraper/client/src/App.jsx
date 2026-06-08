@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Toaster } from 'react-hot-toast';
 import Login from './Login';
 import ScraperDashboard from './ScraperDashboard';
 import EmployeeDashboard from './EmployeeDashboard';
@@ -35,4 +36,11 @@ function App() {
   return <Login onLogin={handleLogin} />;
 }
 
-export default App;
+export default function AppWrapper() {
+  return (
+    <>
+      <Toaster position="top-right" toastOptions={{ style: { background: '#1a1a2e', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' } }} />
+      <App />
+    </>
+  );
+}

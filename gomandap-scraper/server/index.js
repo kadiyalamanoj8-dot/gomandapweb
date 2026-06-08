@@ -2,12 +2,19 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const cron = require('node-cron');
+const jsdom = require('jsdom');
+const { JSDOM } = jsdom;
+
+const activeCronJobs = {};
 const { chromium } = require('playwright-extra');
 const stealth = require('puppeteer-extra-plugin-stealth')();
 chromium.use(stealth);
 const { firefox } = require('playwright');
 const axios = require('axios');
+const cheerio = require('cheerio');
 const Fuse = require('fuse.js');
+const MiniSearch = require('minisearch');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 require('dotenv').config({ path: path.join(__dirname, '../../backend/.env') }); // Load backend .env for Cloudinary
@@ -122,12 +129,62 @@ const getFlatLocations = () => {
   }
   return allLocs;
 };
-let locationFuse = new Fuse(getFlatLocations(), { keys: ['name'], includeScore: true, threshold: 0.6 });
+
+// Initialize MiniSearch for Locations
+let locationSearch = new MiniSearch({
+  fields: ['name', 'district'], 
+  storeFields: ['name', 'type', 'district'],
+  searchOptions: { fuzzy: 0.2, prefix: true }
+});
+// Add unique IDs to the locations so MiniSearch can index them
+const indexLocations = () => {
+  locationSearch.removeAll();
+  const flat = getFlatLocations().map((loc, i) => ({ id: `loc_${i}`, ...loc }));
+  locationSearch.addAll(flat);
+};
+indexLocations();
 
 // API: Get Regions
 app.get('/api/regions', (req, res) => {
   res.json(getRegions());
 });
+
+// API: Get Knowledge Base (Categories + Flat Locations)
+app.get('/api/knowledge', (req, res) => {
+  res.json({
+    categories: CATEGORIES,
+    locations: getFlatLocations()
+  });
+});
+
+// Big Data Analytics: Lead Quality Scoring Algorithm
+function calculateLeadScore(vendor) {
+  let score = 0;
+  
+  // Base Data
+  if (vendor.phone) score += 30;
+  if (vendor.address) score += 10;
+  
+  // Rich Data
+  if (vendor.website) score += 20;
+  
+  // Reputation
+  if (vendor.rating && parseFloat(vendor.rating) > 4.2) score += 15;
+  if (vendor.reviews && parseInt(vendor.reviews.replace(/,/g, '')) > 50) score += 5;
+  
+  // Deep Scraped Data
+  if (vendor.email) score += 10;
+  if (vendor.instagram) score += 5;
+  if (vendor.facebook) score += 5;
+
+  return Math.min(score, 100);
+}
+
+function determineTier(score) {
+  if (score >= 80) return 'Premium';
+  if (score >= 50) return 'Standard';
+  return 'Basic';
+}
 
 // API: Get all scraped vendors
 app.get('/api/vendors', async (req, res) => {
@@ -306,9 +363,6 @@ app.post('/api/scrape/omni', async (req, res) => {
   const { query, engine = 'google' } = req.body;
   if (!query) return res.status(400).json({ error: 'Search query required' });
 
-  // Update location fuse in case regions changed
-  locationFuse = new Fuse(getFlatLocations(), { keys: ['name'], includeScore: true, threshold: 0.6 });
-
   // Extract category and location using split points
   const splitKeywords = [' in ', ' at ', ' near ', ' around ', ' for '];
   let rawCategory = query;
@@ -324,52 +378,117 @@ app.post('/api/scrape/omni', async (req, res) => {
     }
   }
 
-  // Spell check Category
-  const catMatch = categoryFuse.search(rawCategory);
-  let matchedCategory = rawCategory; 
-  let categoryCorrected = false;
-  if (catMatch.length > 0 && catMatch[0].score < 0.4) {
-    matchedCategory = catMatch[0].item;
-    categoryCorrected = true;
-  }
+  // --- Deep Misspelling Correction (NLP) ---
+  const standardCategories = [
+    "Mechanics", "Venues", "Photographers", "Caterers", "Decorators", "Makeup Artists", 
+    "Bridal Wear", "Groom Wear", "Mehendi Artists", "Choreographers", "Pandits", 
+    "Invitations", "Favors", "Planners", "Transport", "Jewellery"
+  ];
   
-  // Ola Maps Location Resolution
-  let queryLocation = rawLocation;
-  let locationCorrected = false;
-  
-  if (rawLocation) {
-    try {
-      const apiKey = process.env.OLA_MAPS_API_KEY || 'H0NKbjwH3YFcVwyDZBpxtIlGsdrZsxXPjoX0yutE';
-      const olaRes = await axios.get(`https://api.olamaps.io/places/v1/autocomplete?input=${encodeURIComponent(rawLocation)}&api_key=${apiKey}`);
-      
-      if (olaRes.data && olaRes.data.predictions && olaRes.data.predictions.length > 0) {
-        // Get the top prediction from Ola Maps
-        const topPrediction = olaRes.data.predictions[0];
-        queryLocation = topPrediction.description; // e.g. "Arundelpet, Guntur, Andhra Pradesh, India"
-        locationCorrected = true;
-        console.log(`Ola Maps Location Resolved: ${rawLocation} -> ${queryLocation}`);
-      }
-    } catch (err) {
-      console.error("Ola Maps API Error, falling back to local fuzzy search:", err.message);
-      // Fallback to local fuse logic
-      const locMatch = locationFuse.search(rawLocation);
-      if (locMatch.length > 0 && locMatch[0].score < 0.4) {
-        const loc = locMatch[0].item;
-        queryLocation = loc.type === 'mandal' ? `${loc.name}, ${loc.district}` : loc.name;
-        locationCorrected = true;
-      }
+  let matchedCategory = rawCategory;
+  if (rawCategory) {
+    const categoryFuse = new Fuse(standardCategories, { includeScore: true, threshold: 0.4 });
+    const result = categoryFuse.search(rawCategory);
+    if (result.length > 0) {
+      console.log(`[NLP Engine] Auto-corrected Category: "${rawCategory}" -> "${result[0].item}" (Score: ${result[0].score})`);
+      matchedCategory = result[0].item;
     }
   }
 
-  const isCorrected = categoryCorrected || locationCorrected;
-  const correctedQuery = isCorrected ? `${matchedCategory} in ${queryLocation}` : null;
+  let queryLocation = rawLocation;
+  if (rawLocation) {
+    // Flatten regions to build a dictionary of known towns
+    const regions = getRegions();
+    const allLocations = [];
+    Object.keys(regions).forEach(dist => {
+      allLocations.push(dist);
+      regions[dist].forEach(m => allLocations.push(m));
+    });
+    
+    const locationFuse = new Fuse(allLocations, { includeScore: true, threshold: 0.3 });
+    const locResult = locationFuse.search(rawLocation);
+    if (locResult.length > 0) {
+      console.log(`[NLP Engine] Auto-corrected Location: "${rawLocation}" -> "${locResult[0].item}" (Score: ${locResult[0].score})`);
+      queryLocation = locResult[0].item;
+    }
+  }
 
+  const correctedQuery = `${matchedCategory} in ${queryLocation}`;
+
+  // --- Opt-In Radius Expansion (Using internal regions) ---
+  const numericRadius = parseInt(req.body.radius) || 0;
+  
+  if (numericRadius > 0) {
+    console.log(`[Radius Expansion] Radius set to ${numericRadius}km. Expanding search around ${queryLocation}...`);
+    const regions = getRegions();
+    let parentDistrict = null;
+    let nearbyTowns = [queryLocation]; // Always include the target
+
+    // Find the district this location belongs to
+    for (const dist in regions) {
+      if (dist.toLowerCase() === queryLocation.toLowerCase() || regions[dist].some(m => m.toLowerCase() === queryLocation.toLowerCase())) {
+        parentDistrict = dist;
+        break;
+      }
+    }
+
+    if (parentDistrict) {
+      // Add a subset of towns from this district to simulate radius coverage
+      // 10km ~ 2 towns, 50km ~ 10 towns, 100km ~ all towns
+      const maxTownsToAdd = Math.ceil(numericRadius / 5);
+      const allMandals = regions[parentDistrict];
+      const additional = allMandals.filter(m => m.toLowerCase() !== queryLocation.toLowerCase()).slice(0, maxTownsToAdd);
+      nearbyTowns = [...nearbyTowns, ...additional];
+      console.log(`[Radius Expansion] Discovered ${nearbyTowns.length} nearby locations:`, nearbyTowns);
+    }
+
+    // Queue them up in the batch system
+    for (const town of nearbyTowns) {
+      batchQueue.push({ category: matchedCategory, mandal: town, district: parentDistrict || 'Unknown', engine });
+    }
+    batchProgress.total = batchQueue.length;
+    batchProgress.isActive = true;
+
+    if (!isBatchRunning) {
+      runBatchQueue();
+    }
+
+    return res.json({ 
+      success: true, 
+      parsed: { category: matchedCategory, queryLocation, correctedQuery },
+      message: `Radius expansion active. Queued ${nearbyTowns.length} locations.`
+    });
+  }
+
+  // STANDARD SINGLE SCRAPE (Radius === 0)
   res.json({ 
     success: true, 
     parsed: { category: matchedCategory, queryLocation, correctedQuery },
-    message: `Omni-Parsed: Scraping ${matchedCategory} in ${queryLocation || 'Global'} using ${engine}`
+    message: `Scraping exactly: ${query} using ${engine}`
   });
 
+  // Schedule background task
+  const jobKey = matchedCategory; 
+  if (!activeCronJobs[jobKey]) {
+    console.log(`[CRON] Registering recurring background scrape for: ${jobKey} in ${queryLocation}`);
+    
+    const intervalMs = 10 * 60 * 1000; // default 10 min
+    const timer = setInterval(() => {
+      console.log(`[CRON] Executing scheduled background scrape for: ${jobKey}`);
+      if (engine === 'google' || engine === 'ola') {
+        scrapeGooglePlaces(matchedCategory, queryLocation).catch(console.error);
+      }
+    }, intervalMs);
+
+    activeCronJobs[jobKey] = {
+      interval: intervalMs,
+      timer,
+      status: 'running',
+      location: queryLocation
+    };
+  }
+
+  // Execute directly right now
   if (engine === 'justdial') scrapeJustDial(matchedCategory, queryLocation).catch(console.error);
   else if (engine === 'weddingbazaar') scrapeWeddingBazaar(matchedCategory, queryLocation).catch(console.error);
   else if (engine === 'weddingwire') scrapeWeddingWire(matchedCategory, queryLocation).catch(console.error);
@@ -485,7 +604,7 @@ async function runBatchQueue() {
 let globalBrowser = null;
 
 async function getBrowser() {
-  if (!globalBrowser) {
+  if (!globalBrowser || !globalBrowser.isConnected()) {
     globalBrowser = await chromium.launch({ headless: true, args: ['--disable-http2', '--no-sandbox'] });
   }
   return globalBrowser;
@@ -493,41 +612,46 @@ async function getBrowser() {
 
 async function scrapeWebsiteForSocials(browser, url) {
   if (!url || !url.startsWith('http')) return { email: '', instagram: '', facebook: '' };
-  let newPage;
+  
   try {
-    const context = await browser.newContext();
-    newPage = await context.newPage();
-    
-    // Disable heavy resources
-    await newPage.route('**/*', (route) => {
-      const rt = route.request().resourceType();
-      if (['image', 'media', 'font', 'stylesheet'].includes(rt)) {
-        route.abort();
-      } else {
-        route.continue();
+    // Ultra-Fast Open Source Deep Scraping using Axios & Cheerio (No headless browser needed)
+    const response = await axios.get(url, { 
+      timeout: 8000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5'
       }
     });
 
-    await newPage.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 });
-    const html = await newPage.content();
+    const html = response.data;
+    const $ = cheerio.load(html);
     
-    // Find Emails
+    // Find Emails (using Regex on raw HTML is extremely fast)
     const emailMatch = html.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}/g) || [];
-    const validEmails = [...new Set(emailMatch)].filter(e => !e.endsWith('.png') && !e.endsWith('.jpg') && !e.endsWith('.jpeg') && !e.endsWith('.webp'));
-    
-    // Find Socials
-    const igMatch = html.match(/https?:\/\/(www\.)?instagram\.com\/[^\s'"<>]+/);
-    const fbMatch = html.match(/https?:\/\/(www\.)?facebook\.com\/[^\s'"<>]+/);
-    
+    const validEmails = [...new Set(emailMatch)].filter(e => 
+      !e.endsWith('.png') && !e.endsWith('.jpg') && !e.endsWith('.jpeg') && !e.endsWith('.webp') && !e.endsWith('.gif') && !e.includes('wixpress') && !e.includes('sentry')
+    );
+
+    // Advanced Social Parsing using Cheerio selectors
+    let instagram = '';
+    let facebook = '';
+
+    $('a').each((i, el) => {
+      const href = $(el).attr('href');
+      if (!href) return;
+      if (href.includes('instagram.com/') && !instagram) instagram = href;
+      if (href.includes('facebook.com/') && !facebook && !href.includes('sharer')) facebook = href;
+    });
+
     return {
       email: validEmails.length > 0 ? validEmails[0] : '',
-      instagram: igMatch ? igMatch[0] : '',
-      facebook: fbMatch ? fbMatch[0] : ''
+      instagram,
+      facebook
     };
   } catch (err) {
+    console.log(`[Cheerio Deep Scrape] Failed or timed out for ${url}`);
     return { email: '', instagram: '', facebook: '' };
-  } finally {
-    if (newPage) await newPage.close();
   }
 }
 
@@ -776,6 +900,7 @@ async function scrapeGooglePlaces(category, location) {
       });
 
       if (!existing) {
+        const leadScore = calculateLeadScore(place);
         const newLead = new StagingLead({
           id: place.id,
           name: place.name,
@@ -790,6 +915,9 @@ async function scrapeGooglePlaces(category, location) {
           email: place.email || '',
           instagram: place.instagram || '',
           facebook: place.facebook || '',
+          website: place.website || '',
+          qualityScore: leadScore,
+          tier: determineTier(leadScore),
           operatingHours: place.operatingHours || '',
           topReviews: place.topReviews || []
         });
@@ -1015,6 +1143,89 @@ async function scrapeMandap(category, location) {
     }).filter(v => v.name);
   });
 }
+
+// API: Get Active Cron Jobs
+app.get('/api/scrape/jobs', (req, res) => {
+  const jobs = Object.keys(activeCronJobs).map(cat => ({
+    category: cat,
+    interval: activeCronJobs[cat].interval,
+    status: activeCronJobs[cat].status,
+    location: activeCronJobs[cat].location
+  }));
+  res.json(jobs);
+});
+
+// API: Update Cron Job
+app.post('/api/scrape/jobs/update', (req, res) => {
+  const { category, action, intervalMs } = req.body;
+  const job = activeCronJobs[category];
+  
+  if (!job) return res.status(404).json({ error: 'Job not found' });
+
+  if (action === 'stop') {
+    clearInterval(job.timer);
+    job.status = 'stopped';
+  } else if (action === 'start') {
+    if (job.status === 'stopped') {
+      const ms = intervalMs || job.interval;
+      job.interval = ms;
+      job.status = 'running';
+      job.timer = setInterval(() => {
+        scrapeGooglePlaces(category, job.location).catch(console.error);
+      }, ms);
+    }
+  } else if (action === 'update_interval') {
+    clearInterval(job.timer);
+    job.interval = intervalMs;
+    job.status = 'running';
+    job.timer = setInterval(() => {
+        scrapeGooglePlaces(category, job.location).catch(console.error);
+    }, intervalMs);
+  }
+
+  res.json({ success: true, message: `Job for ${category} updated.` });
+});
+
+// API: Bulk CSV Upload Ingestion
+app.post('/api/scrape/upload', (req, res) => {
+  const { tasks } = req.body; // Array of { category, location }
+  if (!tasks || !Array.isArray(tasks)) return res.status(400).json({ error: 'Invalid tasks array' });
+
+  for (const task of tasks) {
+    // Treat location as mandal for batch queue
+    batchQueue.push({ category: task.category, mandal: task.location, district: 'Bulk Upload', engine: 'google' });
+  }
+
+  batchProgress = {
+    total: batchQueue.length,
+    completed: 0,
+    currentTask: 'Processing Bulk Upload...',
+    isActive: true
+  };
+
+  if (!isBatchRunning) {
+    runBatchQueue();
+  }
+
+  res.json({ success: true, message: `Successfully queued ${tasks.length} bulk tasks.` });
+});
+
+// API: Stop All Cron Jobs & Batches (Master Stop)
+app.post('/api/scrape/jobs/stop-all', (req, res) => {
+  // Stop all active cron jobs
+  for (const key of Object.keys(activeCronJobs)) {
+    clearInterval(activeCronJobs[key].timer);
+    activeCronJobs[key].status = 'stopped';
+  }
+
+  // Stop batch queue
+  batchQueue = [];
+  batchProgress.currentTask = 'Stopped manually by Master Stop';
+  batchProgress.isActive = false;
+  isBatchRunning = false;
+
+  res.json({ success: true, message: 'Master Stop initiated. All background tasks and queues have been terminated.' });
+});
 
 app.listen(PORT, () => {
   console.log(`Scraper backend running on http://localhost:${PORT}`);
