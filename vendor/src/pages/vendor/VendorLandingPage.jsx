@@ -110,9 +110,12 @@ const VendorLandingPage = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10"></div>
         
         <div className="relative z-20 w-full max-w-6xl mx-auto px-6 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }} className="mb-6 flex justify-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }} className="mb-6 flex justify-center gap-3 flex-wrap">
             <span className="px-5 py-1.5 rounded-full bg-brand-gold/10 border border-brand-gold/30 text-brand-gold text-sm font-black tracking-widest uppercase shadow-[0_0_30px_rgba(212,175,55,0.3)]">
               {t('hero_badge')}
+            </span>
+            <span className="px-5 py-1.5 rounded-full bg-green-500/20 border border-green-400/50 text-green-300 text-sm font-black tracking-widest uppercase shadow-[0_0_30px_rgba(74,222,128,0.3)]">
+              ✓ FREE REGISTRATION
             </span>
           </motion.div>
 
@@ -125,13 +128,13 @@ const VendorLandingPage = () => {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="text-2xl md:text-5xl font-bold text-white tracking-tight leading-tight max-w-4xl mx-auto mb-6"
           >
-            {t('hero_subtitle')}
+            {t('hero_subtitle')} <span className="text-brand-gold">100% FREE</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
             className="text-lg md:text-xl font-medium text-white/70 tracking-wide max-w-3xl mx-auto mb-10 leading-relaxed"
           >
-            {t('hero_desc')}
+            {t('hero_desc')} | <span className="text-green-300 font-bold">Zero Commission on First 50 Bookings</span>
           </motion.p>
           
           <motion.div 
