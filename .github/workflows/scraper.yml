@@ -1,0 +1,53 @@
+name: CI - Scraper
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scraper/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scraper/**'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: scraper
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Deploy to Firebase Functions (scraper)
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: npx firebase deploy --only functions:scraper
+
+      - name: Set up Cloud Scheduler (if needed)
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+        run: |
+          # Example: schedule scraper to run daily at 02:00 UTC
+          gcloud scheduler jobs create http scraper-job \
+            --schedule="0 2 * * *" \
+            --uri="https://$(firebase projects:list --json | jq -r '.projects[0].projectId').cloudfunctions.net/scraper" \
+            --http-method=GET
