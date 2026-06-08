@@ -37,10 +37,10 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Deploy to Firebase Functions (scraper)
+      - name: Deploy to Firebase Hosting (scraper)
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-        run: npx firebase deploy --only functions:scraper
+        run: npx firebase deploy --only hosting:scraper
 
       - name: Set up Cloud Scheduler (if needed)
         env:

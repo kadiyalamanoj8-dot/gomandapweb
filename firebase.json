@@ -2,7 +2,6 @@
   "hosting": [
     {
       "target": "client",
-      "site": "gomandap",
       "public": "client/dist",
       "ignore": [
         "firebase.json",
@@ -15,7 +14,6 @@
     },
     {
       "target": "vendor",
-      "site": "gomandap-vendor",
       "public": "vendor/dist",
       "ignore": [
         "firebase.json",
@@ -28,7 +26,6 @@
     },
     {
       "target": "admin",
-      "site": "gomandap-admin",
       "public": "admin/dist",
       "ignore": [
         "firebase.json",
@@ -41,7 +38,6 @@
     },
     {
       "target": "scraper",
-      "site": "gomandap-scraper",
       "public": "scraper/dist",
       "ignore": [
         "firebase.json",
