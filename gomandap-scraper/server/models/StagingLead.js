@@ -14,7 +14,15 @@ const stagingLeadSchema = new mongoose.Schema({
   verified: { type: Boolean, default: false },
   pushed: { type: Boolean, default: false },
   pushedAt: { type: Date, default: null },
-  scrapedAt: { type: Date, default: Date.now }
+  scrapedAt: { type: Date, default: Date.now },
+  assignedTo: { type: String, default: null }, // Telecaller ID
+  crmStatus: { type: String, default: 'New' }, // e.g., Interested, Callback, Not Interested
+  crmNotes: { type: String, default: '' },
+  email: { type: String },
+  instagram: { type: String },
+  facebook: { type: String },
+  operatingHours: { type: String },
+  topReviews: [{ type: String }]
 });
 
 // Create index for fast duplicate checks

@@ -1,27 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Login from './Login';
-import AdminDashboard from './AdminDashboard';
+import ScraperDashboard from './ScraperDashboard';
 import EmployeeDashboard from './EmployeeDashboard';
 
 function App() {
-  const [user, setUser] = useState(null);
-
-  // Check local storage on mount
-  useEffect(() => {
-    const savedUser = localStorage.getItem('scraperUser');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-  }, []);
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('gomandap_scraper_user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
   const handleLogin = (userData) => {
     setUser(userData);
-    localStorage.setItem('scraperUser', JSON.stringify(userData));
+    localStorage.setItem('gomandap_scraper_user', JSON.stringify(userData));
   };
 
   const handleLogout = () => {
     setUser(null);
-    localStorage.removeItem('scraperUser');
+    localStorage.removeItem('gomandap_scraper_user');
   };
 
   if (!user) {
@@ -29,7 +24,7 @@ function App() {
   }
 
   if (user.role === 'admin') {
-    return <AdminDashboard onLogout={handleLogout} />;
+    return <ScraperDashboard onLogout={handleLogout} />;
   }
 
   if (user.role === 'employee') {

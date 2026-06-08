@@ -2,10 +2,23 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const { chromium, firefox } = require('playwright');
+const { chromium } = require('playwright-extra');
+const stealth = require('puppeteer-extra-plugin-stealth')();
+chromium.use(stealth);
+const { firefox } = require('playwright');
 const axios = require('axios');
 const Fuse = require('fuse.js');
-require('dotenv').config();
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+require('dotenv').config({ path: path.join(__dirname, '../../backend/.env') }); // Load backend .env for Cloudinary
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const upload = multer({ dest: 'uploads/' });
 
 const app = express();
 app.use(cors());
@@ -44,20 +57,37 @@ if (!fs.existsSync(EMPLOYEES_FILE)) {
 const getEmployees = () => JSON.parse(fs.readFileSync(EMPLOYEES_FILE, 'utf-8'));
 const writeEmployees = (data) => fs.writeFileSync(EMPLOYEES_FILE, JSON.stringify(data, null, 2));
 
+// Admin Credentials
+const ADMIN_FILE = path.join(__dirname, 'data', 'admin.json');
+if (!fs.existsSync(ADMIN_FILE)) {
+  fs.writeFileSync(ADMIN_FILE, JSON.stringify({ username: 'admin', password: 'password123' }));
+}
+const getAdminCredentials = () => JSON.parse(fs.readFileSync(ADMIN_FILE, 'utf-8'));
+
 // Auth Login API
 app.post('/api/auth/login', (req, res) => {
   const { username, password } = req.body;
-  if (username === 'admin' && password === 'admin') {
+  const admin = getAdminCredentials();
+  
+  if (username === admin.username && password === admin.password) {
     return res.json({ success: true, user: { role: 'admin', name: 'Administrator' } });
   }
 
   const employees = getEmployees();
   const employee = employees.find(e => e.username === username && e.password === password);
   if (employee) {
-    return res.json({ success: true, user: { role: 'employee', name: employee.name, location: employee.location, id: employee.id } });
+    return res.json({ success: true, user: { role: 'employee', name: employee.name, location: employee.location, id: employee.id, avatar: employee.avatar } });
   }
 
   res.status(401).json({ success: false, message: 'Invalid credentials' });
+});
+
+// Update Admin Credentials API
+app.put('/api/auth/admin', (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+  fs.writeFileSync(ADMIN_FILE, JSON.stringify({ username, password }));
+  res.json({ success: true, message: 'Admin credentials updated' });
 });
 
 const CATEGORIES = [
@@ -144,6 +174,87 @@ app.post('/api/vendors/clear-unverified', async (req, res) => {
   }
 });
 
+// API: Get all employees (Telecallers)
+app.get('/api/employees', (req, res) => {
+  const employees = getEmployees().filter(e => e.role === 'employee');
+  res.json(employees);
+});
+
+// API: Create an Employee
+app.post('/api/employees', (req, res) => {
+  const employees = getEmployees();
+  const newEmp = { ...req.body, id: 'emp_' + Date.now(), role: 'employee' };
+  employees.push(newEmp);
+  writeEmployees(employees);
+  res.json({ success: true, employee: newEmp });
+});
+
+// API: Update an Employee
+app.put('/api/employees/:id', (req, res) => {
+  const employees = getEmployees();
+  const index = employees.findIndex(e => e.id === req.params.id);
+  if (index > -1) {
+    employees[index] = { ...employees[index], ...req.body };
+    writeEmployees(employees);
+    res.json({ success: true, employee: employees[index] });
+  } else {
+    res.status(404).json({ error: 'Not found' });
+  }
+});
+
+// API: Delete an Employee
+app.delete('/api/employees/:id', (req, res) => {
+  const employees = getEmployees();
+  const newEmployees = employees.filter(e => e.id !== req.params.id);
+  writeEmployees(newEmployees);
+  res.json({ success: true });
+});
+
+// API: Upload to Cloudinary
+app.post('/api/upload', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'gomandap_avatars',
+    });
+    fs.unlinkSync(req.file.path); // Clean up local file
+    res.json({ success: true, url: result.secure_url });
+  } catch (error) {
+    res.status(500).json({ error: 'Upload failed', details: error.message });
+  }
+});
+
+// API: Batch assign leads
+app.post('/api/vendors/assign', async (req, res) => {
+  try {
+    const { vendorIds, employeeId } = req.body;
+    if (!vendorIds || !employeeId) return res.status(400).json({ error: 'Missing data' });
+    
+    await StagingLead.updateMany(
+      { id: { $in: vendorIds } },
+      { $set: { assignedTo: employeeId, verified: true } } // Implicitly verify when assigning
+    );
+    res.json({ success: true, count: vendorIds.length });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// API: Telecaller update CRM status
+app.put('/api/vendors/:id/crm', async (req, res) => {
+  try {
+    const { crmStatus, crmNotes } = req.body;
+    const updated = await StagingLead.findOneAndUpdate(
+      { id: req.params.id },
+      { $set: { crmStatus, crmNotes } },
+      { new: true }
+    );
+    res.json({ success: true, vendor: updated });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // API: Push verified vendors to CRM Lead Pipeline
 app.post('/api/vendors/push', async (req, res) => {
   try {
@@ -213,23 +324,48 @@ app.post('/api/scrape/omni', (req, res) => {
     }
   }
 
-  // Spell check Category
-  const catMatch = categoryFuse.search(rawCategory);
-  let matchedCategory = catMatch.length > 0 ? catMatch[0].item : CATEGORIES[0];
-  
-  // Spell check Location
-  let queryLocation = rawLocation;
-  if (rawLocation) {
-    const locMatch = locationFuse.search(rawLocation);
-    if (locMatch.length > 0) {
-      const loc = locMatch[0].item;
-      queryLocation = loc.type === 'mandal' ? `${loc.name}, ${loc.district}` : loc.name;
+  // If no prepositions found, use smart word-by-word matching
+  if (!rawLocation) {
+    const words = query.split(' ');
+    for (let i = 0; i < words.length; i++) {
+      const match = locationFuse.search(words[i]);
+      // If a word matches a location with high confidence
+      if (match.length > 0 && match[0].score < 0.4) {
+        rawLocation = match[0].item.name;
+        // Remove the location word from the category string
+        rawCategory = query.replace(new RegExp(words[i], 'i'), '').trim();
+        break;
+      }
     }
   }
 
+  // Spell check Category (but allow arbitrary strings if no close match)
+  const catMatch = categoryFuse.search(rawCategory);
+  let matchedCategory = rawCategory; // Default to exact string they typed
+  let categoryCorrected = false;
+  if (catMatch.length > 0 && catMatch[0].score < 0.4) {
+    matchedCategory = catMatch[0].item; // Use standard category if it's a close misspelling
+    categoryCorrected = true;
+  }
+  
+  // Spell check Location
+  let queryLocation = rawLocation;
+  let locationCorrected = false;
+  if (rawLocation) {
+    const locMatch = locationFuse.search(rawLocation);
+    if (locMatch.length > 0 && locMatch[0].score < 0.4) {
+      const loc = locMatch[0].item;
+      queryLocation = loc.type === 'mandal' ? `${loc.name}, ${loc.district}` : loc.name;
+      locationCorrected = true;
+    }
+  }
+
+  const isCorrected = categoryCorrected || locationCorrected;
+  const correctedQuery = isCorrected ? `${matchedCategory} in ${queryLocation}` : null;
+
   res.json({ 
     success: true, 
-    parsed: { category: matchedCategory, queryLocation },
+    parsed: { category: matchedCategory, queryLocation, correctedQuery },
     message: `Omni-Parsed: Scraping ${matchedCategory} in ${queryLocation || 'Global'} using ${engine}`
   });
 
@@ -344,21 +480,60 @@ async function runBatchQueue() {
   batchProgress.currentTask = 'Completed';
 }
 
+// Global Browser Instance for Ultra-Fast Scraping
+let globalBrowser = null;
+
+async function getBrowser() {
+  if (!globalBrowser) {
+    globalBrowser = await chromium.launch({ headless: true, args: ['--disable-http2', '--no-sandbox'] });
+  }
+  return globalBrowser;
+}
+
+async function scrapeWebsiteForSocials(browser, url) {
+  if (!url || !url.startsWith('http')) return { email: '', instagram: '', facebook: '' };
+  let newPage;
+  try {
+    const context = await browser.newContext();
+    newPage = await context.newPage();
+    await newPage.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    const html = await newPage.content();
+    
+    // Find Emails
+    const emailMatch = html.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}/g) || [];
+    const validEmails = [...new Set(emailMatch)].filter(e => !e.endsWith('.png') && !e.endsWith('.jpg') && !e.endsWith('.jpeg') && !e.endsWith('.webp'));
+    
+    // Find Socials
+    const igMatch = html.match(/https?:\/\/(www\.)?instagram\.com\/[^\s'"<>]+/);
+    const fbMatch = html.match(/https?:\/\/(www\.)?facebook\.com\/[^\s'"<>]+/);
+    
+    return {
+      email: validEmails.length > 0 ? validEmails[0] : '',
+      instagram: igMatch ? igMatch[0] : '',
+      facebook: fbMatch ? fbMatch[0] : ''
+    };
+  } catch (err) {
+    return { email: '', instagram: '', facebook: '' };
+  } finally {
+    if (newPage) await newPage.close();
+  }
+}
+
 async function scrapeGooglePlaces(category, location) {
   console.log(`Starting Google Maps browser scrape for ${category} in ${location}`);
   const query = `${category} in ${location}`;
   
-  const browser = await chromium.launch({ headless: true });
+  const browser = await getBrowser();
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     viewport: { width: 1280, height: 800 }
   });
   const page = await context.newPage();
 
-  // Abort image, font, and media loads to speed up scraping
+  // Abort image, font, media, and stylesheets to speed up scraping instantly
   await page.route('**/*', (route) => {
     const resourceType = route.request().resourceType();
-    if (['image', 'media', 'font'].includes(resourceType)) {
+    if (['image', 'media', 'font', 'stylesheet', 'other'].includes(resourceType)) {
       route.abort();
     } else {
       route.continue();
@@ -368,21 +543,19 @@ async function scrapeGooglePlaces(category, location) {
   try {
     const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(query)}`;
     console.log(`Navigating to Google Maps search: ${searchUrl}`);
-    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    // Wait for networkidle instead of domcontentloaded for faster extraction
+    await page.goto(searchUrl, { waitUntil: 'load', timeout: 30000 });
 
-    // Handle any cookie consent screens that Google often serves (e.g. consent.google.com)
     const consentBtn = page.locator('button:has-text("Accept all"), button:has-text("Reject all"), button:has-text("I agree"), button:has-text("Agree")');
     if (await consentBtn.count() > 0) {
-      console.log("Google consent page active. Handling...");
       await consentBtn.first().click();
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(1000);
     }
 
-    // Wait for the results feed or the details panel (if direct redirect)
     try {
       await Promise.race([
-        page.waitForSelector('div[role="feed"]', { timeout: 15000 }),
-        page.waitForSelector('[data-item-id="address"]', { timeout: 15000 })
+        page.waitForSelector('div[role="feed"]', { timeout: 10000 }),
+        page.waitForSelector('[data-item-id="address"]', { timeout: 10000 })
       ]);
     } catch (e) {
       console.log("Could not find feed or place details within timeout");
@@ -419,10 +592,7 @@ async function scrapeGooglePlaces(category, location) {
       }
 
       scrapedResults.push({
-        name,
-        address,
-        phone,
-        rating,
+        name, address, phone, rating,
         mapsLink: page.url(),
         id: 'place_' + Date.now().toString() + Math.random().toString(36).substring(7)
       });
@@ -430,77 +600,131 @@ async function scrapeGooglePlaces(category, location) {
       // Case B: Search results list is loaded
       const scrollable = page.locator('div[role="feed"]');
       if (await scrollable.count() > 0) {
-        console.log("Scrolling through search results feed...");
-        let previousScrollHeight = 0;
-        let sameHeightCount = 0;
+        console.log("Scrolling through search results feed... (Fast Mode)");
         
-        while (sameHeightCount < 4) {
-          previousScrollHeight = await scrollable.evaluate(el => el.scrollHeight);
+        // Fast scroll - only scroll 2 times instead of 4
+        for(let i=0; i<2; i++) {
           await scrollable.evaluate(el => el.scrollTop = el.scrollHeight);
-          await page.waitForTimeout(1500);
-          
-          const newScrollHeight = await scrollable.evaluate(el => el.scrollHeight);
-          if (newScrollHeight === previousScrollHeight) {
-            sameHeightCount++;
-          } else {
-            sameHeightCount = 0;
-          }
-          
-          const cardCount = await page.locator('a.hfpxzc').count();
-          if (cardCount >= 30) {
-            break;
-          }
+          await page.waitForTimeout(800);
         }
 
         const cards = page.locator('a.hfpxzc');
         const count = await cards.count();
-        console.log(`Found ${count} total business cards. Scraping details...`);
+        console.log(`Found ${count} total business cards. Extracting URLs...`);
 
+        // Phase 1: Rapid Extraction of HREFs
+        const vendorLinks = [];
         for (let i = 0; i < Math.min(count, 30); i++) {
           const card = cards.nth(i);
-          try {
-            const name = await card.getAttribute('aria-label');
-            const mapsLink = await card.getAttribute('href');
-            
-            await card.scrollIntoViewIfNeeded();
-            await card.click();
-            await page.waitForTimeout(1500);
+          const name = await card.getAttribute('aria-label');
+          const mapsLink = await card.getAttribute('href');
+          if (name && mapsLink) {
+            vendorLinks.push({ name, mapsLink });
+          }
+        }
 
-            let address = '';
-            const addressEl = page.locator('[data-item-id="address"]');
-            if (await addressEl.count() > 0) {
-              const rawAddress = await addressEl.getAttribute('aria-label');
-              address = rawAddress ? rawAddress.replace(/^Address:\s*/i, '') : '';
-            }
+        console.log(`Extracted ${vendorLinks.length} raw links. Beginning concurrent Deep Extraction (Hardware Accelerated)...`);
 
-            let phone = '';
-            const phoneEl = page.locator('[data-item-id^="phone:tel:"]');
-            if (await phoneEl.count() > 0) {
-              const rawPhone = await phoneEl.getAttribute('aria-label');
-              phone = rawPhone ? rawPhone.replace(/^Phone:\s*/i, '') : '';
-            }
+        // Phase 2: Concurrent Multi-Tab Execution (Batch size of 5)
+        const CONCURRENCY_LIMIT = 5;
+        for (let i = 0; i < vendorLinks.length; i += CONCURRENCY_LIMIT) {
+          const batch = vendorLinks.slice(i, i + CONCURRENCY_LIMIT);
+          console.log(`Processing concurrent batch ${i/CONCURRENCY_LIMIT + 1} of ${Math.ceil(vendorLinks.length/CONCURRENCY_LIMIT)}...`);
+          
+          const batchPromises = batch.map(async (vendor) => {
+            let newPage;
+            try {
+              newPage = await context.newPage();
+              // Disable heavy resources on the new tab as well
+              await newPage.route('**/*', (route) => {
+                const rt = route.request().resourceType();
+                if (['image', 'media', 'font', 'stylesheet'].includes(rt)) {
+                  route.abort();
+                } else {
+                  route.continue();
+                }
+              });
 
-            let rating = null;
-            const ratingEl = page.locator('div.F7nice').first();
-            if (await ratingEl.count() > 0) {
-              const text = await ratingEl.innerText();
-              const match = text.match(/^([0-9.]+)/);
-              if (match) rating = parseFloat(match[1]);
-            }
+              // Navigate directly to the Maps detail view using domcontentloaded
+              await newPage.goto(vendor.mapsLink, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
-            if (name) {
-              scrapedResults.push({
-                name,
+              let address = '';
+              const addressEl = newPage.locator('[data-item-id="address"]');
+              if (await addressEl.count() > 0) {
+                const rawAddress = await addressEl.getAttribute('aria-label');
+                address = rawAddress ? rawAddress.replace(/^Address:\s*/i, '') : '';
+              }
+
+              let phone = '';
+              const phoneEl = newPage.locator('[data-item-id^="phone:tel:"]');
+              if (await phoneEl.count() > 0) {
+                const rawPhone = await phoneEl.getAttribute('aria-label');
+                phone = rawPhone ? rawPhone.replace(/^Phone:\s*/i, '') : '';
+              }
+
+              let rating = null;
+              const ratingEl = newPage.locator('div.F7nice').first();
+              if (await ratingEl.count() > 0) {
+                const text = await ratingEl.innerText();
+                const match = text.match(/^([0-9.]+)/);
+                if (match) rating = parseFloat(match[1]);
+              }
+
+              // Advanced Extraction: Website & Operating Hours
+              let websiteUrl = '';
+              const websiteEl = newPage.locator('a[data-item-id="authority"]');
+              if (await websiteEl.count() > 0) {
+                websiteUrl = await websiteEl.getAttribute('href');
+              }
+
+              let operatingHours = '';
+              const hoursEl = newPage.locator('[aria-label*="hours"]').first();
+              if (await hoursEl.count() > 0) {
+                operatingHours = await hoursEl.getAttribute('aria-label') || await hoursEl.innerText();
+              }
+
+              // Advanced Extraction: Top Reviews Sentiment
+              const topReviews = [];
+              const reviewEls = newPage.locator('.OA1nbd');
+              const reviewCount = await reviewEls.count();
+              for (let j = 0; j < Math.min(reviewCount, 3); j++) {
+                topReviews.push(await reviewEls.nth(j).innerText());
+              }
+
+              // Parallel Website Deep Enrichment
+              let enrichedData = { email: '', instagram: '', facebook: '' };
+              if (websiteUrl) {
+                enrichedData = await scrapeWebsiteForSocials(browser, websiteUrl);
+              }
+
+              return {
+                name: vendor.name,
                 address,
                 phone,
                 rating,
-                mapsLink: mapsLink || page.url(),
+                mapsLink: vendor.mapsLink,
+                website: websiteUrl,
+                operatingHours: operatingHours.substring(0, 150),
+                topReviews,
+                email: enrichedData.email,
+                instagram: enrichedData.instagram,
+                facebook: enrichedData.facebook,
                 id: 'place_' + Date.now().toString() + Math.random().toString(36).substring(7)
-              });
+              };
+
+            } catch (err) {
+              console.error(`Error in concurrent extraction for ${vendor.name}:`, err.message);
+              return null;
+            } finally {
+              if (newPage) await newPage.close();
             }
-          } catch (err) {
-            console.error(`Error scraping listing index ${i}:`, err.message);
-          }
+          });
+
+          // Wait for the entire batch to finish concurrently
+          const batchResults = await Promise.all(batchPromises);
+          
+          // Filter out failed extractions and add to results
+          batchResults.filter(res => res !== null).forEach(res => scrapedResults.push(res));
         }
       }
     }
@@ -540,18 +764,22 @@ async function scrapeGooglePlaces(category, location) {
       });
 
       if (!existing) {
-        await StagingLead.create({
-          id: place.id,
+        const newLead = new StagingLead({
           name: place.name,
           category: category,
-          city: location,
+          city: location || 'Global',
           address: place.address || '',
           pincode: pincode,
           phone: place.phone || 'Requires Manual Lookup',
           rating: parsedRating,
           mapsLink: place.mapsLink || '',
-          source: 'Google Places'
+          email: place.email || '',
+          instagram: place.instagram || '',
+          facebook: place.facebook || '',
+          operatingHours: place.operatingHours || '',
+          topReviews: place.topReviews || []
         });
+        await newLead.save();
         inserted++;
       } else {
         if (!existing.pincode && place.address) {
@@ -570,7 +798,7 @@ async function scrapeGooglePlaces(category, location) {
   } catch (error) {
     console.error('Google Maps Scraper error:', error.message);
   } finally {
-    await browser.close();
+    await context.close();
   }
 }
 
