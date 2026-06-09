@@ -5,9 +5,6 @@
   "targets": {
     "gomandap-60eed": {
       "hosting": {
-        "scraper": [
-          "gomandap-leads"
-        ],
         "client": [
           "gomandap-60eed"
         ],

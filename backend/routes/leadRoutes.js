@@ -12,46 +12,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Create new lead(s) from scraper
-router.post('/bulk', async (req, res) => {
-  try {
-    const leads = req.body.leads;
-    if (!leads || !Array.isArray(leads)) {
-      return res.status(400).json({ success: false, message: 'Invalid payload' });
-    }
 
-    let inserted = 0;
-    for (const leadData of leads) {
-      // Check for exact duplicate name and city to avoid flooding
-      const existing = await Lead.findOne({ 
-        name: leadData.name, 
-        'address.city': leadData.city || leadData.address?.city 
-      });
-
-      if (!existing) {
-        await Lead.create({
-          name: leadData.name,
-          phone: leadData.phone && leadData.phone.length > 5 && !leadData.phone.includes('Requires') ? leadData.phone : '',
-          category: leadData.category,
-          address: {
-            street: leadData.address || '',
-            city: leadData.city || '',
-            pincode: leadData.pincode || ''
-          },
-          mapsLink: leadData.mapsLink || '',
-          rating: leadData.rating || null,
-          source: leadData.source || 'Scraper'
-        });
-        inserted++;
-      }
-    }
-
-    res.json({ success: true, message: `Inserted ${inserted} new leads to CRM.` });
-  } catch (error) {
-    console.error('Lead Bulk Create Error:', error);
-    res.status(500).json({ success: false, message: 'Server Error' });
-  }
-});
 
 // Get all leads
 router.get('/', async (req, res) => {

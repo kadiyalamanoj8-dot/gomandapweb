@@ -87,7 +87,7 @@ const LeadsCRM = () => {
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-brand-black mb-1">Lead Generation CRM</h1>
-          <p className="text-gray-500 text-sm">Manage scraped leads, send WhatsApps, and dispatch emails.</p>
+          <p className="text-gray-500 text-sm">Manage leads, send WhatsApps, and dispatch emails.</p>
         </div>
 
         <div className="flex gap-2 bg-white p-1 rounded-xl border border-gray-200 shadow-sm">

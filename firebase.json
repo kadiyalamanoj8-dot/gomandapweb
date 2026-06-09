@@ -35,18 +35,6 @@
       "rewrites": [
         { "source": "**", "destination": "/index.html" }
       ]
-    },
-    {
-      "target": "scraper",
-      "public": "gomandap-scraper/client/dist",
-      "ignore": [
-        "firebase.json",
-        "**/.*",
-        "**/node_modules/**"
-      ],
-      "rewrites": [
-        { "source": "**", "destination": "/index.html" }
-      ]
     }
   ]
 }

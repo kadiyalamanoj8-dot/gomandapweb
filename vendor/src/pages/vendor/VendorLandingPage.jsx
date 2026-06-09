@@ -10,7 +10,6 @@ import {
 import GlassLanguageSelector from '../../components/ui/GlassLanguageSelector';
 import { CATEGORIES } from '../../data/mockData';
 import { useVendor } from '../../context/VendorContext';
-import { GoogleLogin } from '@react-oauth/google';
 import Footer from '../../components/layout/Footer';
 
 const ICON_MAP = {
@@ -43,33 +42,12 @@ const VendorLandingPage = () => {
   const location = useLocation();
   const { vendorStatus, loginWithGoogle } = useVendor();
 
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
   useEffect(() => {
     if (vendorStatus !== 'unregistered') {
       if (vendorStatus === 'draft') navigate('/onboarding');
       else navigate('/dashboard');
     }
   }, [vendorStatus, navigate]);
-
-  const handleGoogleCredential = async (credential) => {
-    setIsLoading(true);
-    try {
-      const res = await loginWithGoogle(credential);
-      if (res.success) {
-        if (res.action === 'dashboard') navigate('/dashboard');
-        else navigate('/onboarding', { state: { email: res.email, googleId: res.googleId, name: res.name, photoUrl: res.photoUrl } });
-      } else {
-        alert("Backend sync failed.");
-      }
-    } catch (error) {
-      console.error("Google Login Error:", error);
-      alert("Login failed.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <LazyMotion features={domAnimation}>
@@ -90,7 +68,7 @@ const VendorLandingPage = () => {
               {t('nav_client_portal')}
             </a>
             <button 
-              onClick={() => setShowAuthModal(true)}
+              onClick={() => navigate('/login')}
               className="text-[13px] font-bold tracking-wide flex items-center gap-1.5 text-white hover:text-brand-gold transition-colors"
             >
               {t('nav_vendor_login')} <UserCircle2 size={16} className="opacity-80" />
@@ -145,7 +123,7 @@ const VendorLandingPage = () => {
               whileHover={{ scale: 1.05, filter: "brightness(1.1)" }}
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              onClick={() => setShowAuthModal(true)}
+              onClick={() => navigate('/login')}
               className="relative overflow-hidden px-8 md:px-14 py-4 md:py-5 bg-gradient-to-b from-[#FACC15]/90 to-[#D4AF37]/80 backdrop-blur-xl border-t-2 border-white/50 border-x border-[#D4AF37]/30 border-b border-black/40 text-black rounded-full font-black text-[16px] md:text-[22px] tracking-wide shadow-[0_20px_40px_rgba(212,175,55,0.4),inset_0_4px_10px_rgba(255,255,255,0.7)] flex flex-row items-center justify-center gap-3 w-fit mx-auto"
             >
               <motion.div 
@@ -529,7 +507,7 @@ const VendorLandingPage = () => {
               return (
                 <div 
                   key={cat.id}
-                  onClick={() => setShowAuthModal(true)}
+                  onClick={() => navigate('/login')}
                   className="flex flex-col items-center cursor-pointer group"
                 >
                   <div className="w-full aspect-square rounded-[1.2rem] bg-white/5 border border-white/10 p-4 md:p-6 mb-3 flex items-center justify-center transition-all duration-300 group-hover:bg-white/10 group-hover:border-brand-gold/30 group-hover:-translate-y-1 shadow-[0_8px_20px_rgba(0,0,0,0.3)]">
@@ -555,7 +533,7 @@ const VendorLandingPage = () => {
             The future of <br/> Indian events is here.
           </h2>
           <button 
-            onClick={() => setShowAuthModal(true)}
+            onClick={() => navigate('/login')}
             className="px-10 py-5 bg-brand-gold text-black rounded-full font-black text-xl hover:bg-[#FACC15] hover:scale-105 transition-all shadow-[0_0_50px_rgba(212,175,55,0.4)]"
           >
             Claim Your Spot Now
@@ -565,61 +543,6 @@ const VendorLandingPage = () => {
 
       {/* Dynamic Footer */}
       <Footer />
-
-      {/* Dark Auth Modal */}
-      <AnimatePresence>
-        {showAuthModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-2xl">
-            <motion.div 
-              initial={{ y: 20, opacity: 0, scale: 0.98 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 10, opacity: 0, scale: 0.98 }} transition={{ duration: 0.2, ease: "easeOut" }}
-              className="relative w-full max-w-[420px] bg-[#111111] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.8)] rounded-[2.5rem] overflow-hidden"
-            >
-              <button 
-                onClick={() => setShowAuthModal(false)}
-                className="absolute top-5 right-5 p-2 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-colors z-10"
-              >
-                <X size={20} />
-              </button>
-
-              <div className="p-8 md:p-10 flex flex-col items-center text-center">
-                <div className="mb-6">
-                   <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.05)] mx-auto p-4">
-                     <img src="/logo.svg?v=2" alt="Gomandap Logo" className="w-full h-full object-contain" />
-                   </div>
-                </div>
-                <h2 className="text-[26px] font-black text-white mb-2 tracking-tight">
-                  Welcome to Gomandap
-                </h2>
-                <p className="text-[15px] text-white/50 font-medium mb-8">
-                  Sign in with Google to continue.
-                </p>
-
-                <div className="w-full space-y-4">
-                  {isLoading ? (
-                    <div className="w-full py-4 text-center text-white/50">Connecting...</div>
-                  ) : (
-                    <div className="flex justify-center w-full">
-                      <GoogleLogin
-                        onSuccess={credentialResponse => {
-                          handleGoogleCredential(credentialResponse.credential);
-                        }}
-                        onError={() => {
-                          console.error('Google Login Failed');
-                          alert("Login failed.");
-                        }}
-                        theme="filled_black"
-                        shape="pill"
-                        size="large"
-                        width="100%"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       <style jsx global>{`
         @keyframes image-drift {

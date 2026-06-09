@@ -146,11 +146,8 @@ const HeroParallax = () => {
   useEffect(() => {
     if (!isHeroVisible) return;
     const handleMouseMove = (e) => {
-      if (isMobile) return;
-      if (!containerRef.current) return;
-      const { clientWidth, clientHeight } = containerRef.current;
-      mouseX.set((e.clientX / clientWidth - 0.5) * 2);
-      mouseY.set((e.clientY / clientHeight - 0.5) * 2);
+      // Disabled desktop mouse parallax as requested
+      return;
     };
 
     let rAF;

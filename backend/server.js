@@ -20,20 +20,6 @@ app.get('/', (req, res) => {
   res.send('Gomandap API is running...');
 });
 
-// Proxy Scraper Requests to local scraper process
-const { createProxyMiddleware } = require('http-proxy-middleware');
-app.use('/api/scraper-app', createProxyMiddleware({
-  target: 'http://127.0.0.1:5002/api',
-  changeOrigin: true,
-  on: {
-    error: (err, req, res) => {
-      console.error('[Proxy Error] Failed to connect to Scraper Server:', err.message);
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.writeHead(503, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Scraper Server is offline or unreachable', details: err.message }));
-    }
-  }
-}));
 
 // Import Routes
 const vendorRoutes = require('./routes/vendorRoutes');

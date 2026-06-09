@@ -80,7 +80,7 @@ router.put('/:id/crm', async (req, res) => {
   }
 });
 
-// API: Push Verified Leads to Production (Gomandap main DB)
+// API: Mark Verified Leads as Pushed locally (detached from main Gomandap DB)
 router.post('/push', async (req, res) => {
   try {
     const verifiedVendors = await StagingLead.find({ verified: true, pushed: false }).lean();
@@ -89,19 +89,13 @@ router.post('/push', async (req, res) => {
       return res.status(400).json({ error: 'No verified unpushed vendors found.' });
     }
 
-    const response = await axios.post('http://localhost:5000/api/leads/bulk', {
-      leads: verifiedVendors
-    });
-    
-    if (response.data.success) {
-      await StagingLead.updateMany(
-        { id: { $in: verifiedVendors.map(v => v.id) } },
-        { $set: { pushed: true, pushedAt: new Date() } }
-      );
-      res.json({ success: true, pushed: verifiedVendors.length, message: response.data.message });
-    } else {
-      res.status(500).json({ error: 'Failed to push to CRM' });
-    }
+    // Now it operates as a standalone separate entity backend
+    await StagingLead.updateMany(
+      { id: { $in: verifiedVendors.map(v => v.id) } },
+      { $set: { pushed: true, pushedAt: new Date() } }
+    );
+    res.json({ success: true, pushed: verifiedVendors.length, message: "Leads successfully marked as pushed in standalone database." });
+
   } catch (error) {
     res.status(500).json({ error: 'Push failed: ' + error.message });
   }

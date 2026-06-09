@@ -27,14 +27,9 @@ const MOBILE_NO_FOOTER_ROUTES = ['/profile', '/saved'];
 
 function AppContent() {
   const location = useLocation();
-  const [isPreloading, setIsPreloading] = useState(true);
   const hideMobileFooter = MOBILE_NO_FOOTER_ROUTES.some(r => location.pathname === r) || location.pathname.startsWith('/vendor/');
-  const [preloadProgress, setPreloadProgress] = useState(0);
 
   React.useEffect(() => {
-    const startTime = Date.now();
-    const MINIMUM_LOAD_TIME = 500; // Small delay for smooth fade out
-    
     // Heavy assets that cause layout pop-in on first load
     const imagesToPreload = [
       '/images/temple_background.webp',
@@ -42,85 +37,51 @@ function AppContent() {
       '/images/couple_transparent.webp'
     ];
 
-    let loadedCount = 0;
-    
-    // Safety timeout in case images hang or fail to load on a bad connection
-    const safetyTimeout = setTimeout(() => {
-      setIsPreloading(false);
-    }, 8000);
-
     imagesToPreload.forEach(async (src) => {
       const img = new Image();
       img.src = src;
-      
       try {
         // Force the browser to decode the image on a background thread
-        // This completely eliminates the GPU stutter when the parallax first renders
+        // This eliminates the GPU stutter when the parallax first renders
         await img.decode();
-        handleImageLoad();
       } catch (err) {
-        console.warn(`Failed to decode ${src}`, err);
-        handleImageLoad(); // Still proceed so we don't hang
+        // Silently ignore decode errors
       }
     });
-
-    function handleImageLoad() {
-      loadedCount++;
-      const currentProgress = Math.round((loadedCount / imagesToPreload.length) * 100);
-      setPreloadProgress(currentProgress);
-      
-      if (loadedCount === imagesToPreload.length) {
-        clearTimeout(safetyTimeout);
-        const elapsedTime = Date.now() - startTime;
-        const timeToWait = Math.max(0, MINIMUM_LOAD_TIME - elapsedTime);
-        
-        // Ensure the progress bar visually hits 100% and stays for a moment
-        setTimeout(() => setIsPreloading(false), timeToWait);
-      }
-    }
-    
-    return () => clearTimeout(safetyTimeout);
   }, []);
 
   return (
-    <>
-      <AnimatePresence>
-        {isPreloading && <Preloader progress={preloadProgress} />}
-      </AnimatePresence>
-      {!isPreloading && (
-        <div className="flex flex-col min-h-screen overflow-x-hidden">
-          <DynamicSEO appTarget="client" pageName="global" />
-          <SpatialNavbar />
-          <main className="flex-grow w-full">
-            <CartDrawer />
-            <AnimatePresence mode="wait">
-              <Suspense fallback={
-                <div className="min-h-screen w-full bg-black flex items-center justify-center">
-                  <div className="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
-                </div>
-              }>
-                <Routes location={location} key={location.pathname}>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/venues" element={<SearchPage />} />
-                  <Route path="/vendors" element={<SearchPage />} />
-                  <Route path="/search" element={<SearchPage />} />
-                  <Route path="/vendor/:id" element={<VendorDetailsPage />} />
-                  <Route path="/profile" element={<ProfilePage />} />
-                  <Route path="/terms" element={<TermsPage />} />
-                  <Route path="/privacy" element={<PrivacyPage />} />
-                  <Route path="*" element={<HomePage />} />
-                </Routes>
-              </Suspense>
-            </AnimatePresence>
-          </main>
-          {/* Hide footer on mobile for profile/vendor-detail — bottom nav handles it */}
-          <div className={hideMobileFooter ? 'hidden md:block' : 'block'}>
-            <Footer />
-          </div>
-          <MobileBottomNav />
-        </div>
-      )}
-    </>
+    <div className="flex flex-col min-h-screen overflow-x-hidden">
+      <DynamicSEO appTarget="client" pageName="global" />
+      <SpatialNavbar />
+      <main className="flex-grow w-full">
+        <CartDrawer />
+        <AnimatePresence mode="wait">
+          <Suspense fallback={
+            <div className="min-h-screen w-full bg-black flex items-center justify-center">
+              <div className="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          }>
+            <Routes location={location} key={location.pathname}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/venues" element={<SearchPage />} />
+              <Route path="/vendors" element={<SearchPage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/vendor/:id" element={<VendorDetailsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="*" element={<HomePage />} />
+            </Routes>
+          </Suspense>
+        </AnimatePresence>
+      </main>
+      {/* Hide footer on mobile for profile/vendor-detail — bottom nav handles it */}
+      <div className={hideMobileFooter ? 'hidden md:block' : 'block'}>
+        <Footer />
+      </div>
+      <MobileBottomNav />
+    </div>
   );
 }
 

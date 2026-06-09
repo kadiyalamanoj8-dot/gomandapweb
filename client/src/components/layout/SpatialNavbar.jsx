@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 
 const SpatialNavbar = () => {
   const { cartItems, setIsCartOpen } = useCart();
-  const { requireAuth } = useAuth();
+  const { user, requireAuth } = useAuth();
   const navigate = useNavigate();
   const cartCount = cartItems.length;
 
@@ -54,14 +54,30 @@ const SpatialNavbar = () => {
           )}
         </button>
 
-        <button 
-          onClick={() => requireAuth(() => navigate('/profile'))}
-          className="btn-liquid text-white px-4 lg:px-5 py-2 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-brand-primary-hover shadow-3d hover:shadow-3d-hover transition-all transform hover:-translate-y-0.5 touch-manipulation"
-          aria-label="Go to profile"
-        >
-          <User size={16} />
-          Profile
-        </button>
+        {user ? (
+          <button 
+            onClick={() => navigate('/profile')}
+            className="flex items-center gap-2 bg-white border border-gray-200 px-1.5 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all touch-manipulation pr-4"
+            aria-label="Go to profile"
+          >
+            <img 
+              src={user.photoUrl || user.profilePicture || user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=random`} 
+              alt={user.name || 'Profile'} 
+              className="w-7 h-7 rounded-full object-cover bg-gray-100"
+              onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=random`; }}
+            />
+            <span className="text-sm font-bold text-gray-800">{user.name ? user.name.split(' ')[0] : 'Profile'}</span>
+          </button>
+        ) : (
+          <button 
+            onClick={() => requireAuth(() => navigate('/profile'))}
+            className="btn-liquid text-white px-4 lg:px-5 py-2 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-brand-primary-hover shadow-3d hover:shadow-3d-hover transition-all transform hover:-translate-y-0.5 touch-manipulation"
+            aria-label="Go to profile"
+          >
+            <User size={16} />
+            Profile
+          </button>
+        )}
       </div>
 
       {/* Mobile Profile & Cart Icon */}
@@ -77,13 +93,6 @@ const SpatialNavbar = () => {
               {cartCount}
             </span>
           )}
-        </button>
-        <button 
-          onClick={() => requireAuth(() => navigate('/profile'))}
-          className="bg-brand-primary/10 text-brand-primary p-1.5 sm:p-2 rounded-full hover:bg-brand-primary/20 transition-colors touch-manipulation"
-          aria-label="Go to profile"
-        >
-          <User size={20} className="sm:size-[20px]" />
         </button>
       </div>
     </motion.nav>

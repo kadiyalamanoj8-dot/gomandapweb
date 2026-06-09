@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 
 const MobileBottomNav = () => {
   const { cartItems, setIsCartOpen } = useCart();
-  const { requireAuth } = useAuth();
+  const { user, requireAuth } = useAuth();
   const navigate = useNavigate();
   const cartCount = cartItems.length;
 
@@ -53,7 +53,16 @@ const MobileBottomNav = () => {
         onClick={() => requireAuth(() => navigate('/profile'))}
         className="flex flex-col items-center gap-1 p-2 transition-colors duration-200 text-gray-400 hover:text-brand-primary"
       >
-        <User size={22} strokeWidth={2.5} />
+        {user ? (
+          <img 
+            src={user.photoUrl || user.profilePicture || user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=random`} 
+            alt={user.name || 'Profile'} 
+            className="w-[22px] h-[22px] rounded-full object-cover border border-brand-primary/30"
+            onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=random`; }}
+          />
+        ) : (
+          <User size={22} strokeWidth={2.5} />
+        )}
         <span className="text-[10px] font-bold">Profile</span>
       </button>
       </div>
