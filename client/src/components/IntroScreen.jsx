@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { motion, useMotionValue, useTransform, useSpring, AnimatePresence } from 'framer-motion';
 
 const IntroScreen = ({ onComplete }) => {
@@ -155,18 +155,27 @@ const IntroScreen = ({ onComplete }) => {
 
         {/* Floating Particles */}
         <div className="absolute inset-0 z-40 overflow-hidden pointer-events-none" style={{ transform: "translateZ(150px)" }}>
-          {Array.from({ length: 40 }).map((_, i) => (
-            <motion.div
-              key={i}
-              initial={{ y: "120vh", x: Math.random() * window.innerWidth, rotate: 0 }}
-              animate={{ y: "-20vh", x: `calc(${Math.random() * 100}vw)`, rotate: 360 }}
-              transition={{ duration: Math.random() * 8 + 5, repeat: Infinity, ease: "linear", delay: Math.random() * 5 }}
-              className={`absolute w-3 h-3 bg-gradient-to-br ${
-                i % 3 === 0 ? 'from-[#FFC107] to-white shadow-[0_0_15px_#FFC107]' : 
-                'from-[#E91E63] to-[#F48FB1] shadow-[0_0_10px_#E91E63] rounded-tr-full rounded-bl-full' 
-              } blur-[1px] opacity-80`}
-            />
-          ))}
+          {useMemo(() => {
+            return Array.from({ length: 40 }).map((_, i) => {
+              const x1 = Math.random() * window.innerWidth;
+              const x2 = Math.random() * 100;
+              const dur = Math.random() * 8 + 5;
+              const del = Math.random() * 5;
+              const isGold = i % 3 === 0;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ y: "120vh", x: x1, rotate: 0 }}
+                  animate={{ y: "-20vh", x: `calc(${x2}vw)`, rotate: 360 }}
+                  transition={{ duration: dur, repeat: Infinity, ease: "linear", delay: del }}
+                  className={`absolute w-3 h-3 bg-gradient-to-br ${
+                    isGold ? 'from-[#FFC107] to-white shadow-[0_0_15px_#FFC107]' : 
+                    'from-[#E91E63] to-[#F48FB1] shadow-[0_0_10px_#E91E63] rounded-tr-full rounded-bl-full' 
+                  } blur-[1px] opacity-80`}
+                />
+              );
+            });
+          }, [])}
         </div>
 
         {/* Layer 4: The 3D Doors (Z: 50) */}
