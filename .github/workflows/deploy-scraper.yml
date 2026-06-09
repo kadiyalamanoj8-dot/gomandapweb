@@ -1,0 +1,34 @@
+name: Deploy Scraper to Firebase Hosting
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'gomandap-scraper/client/**'
+      - 'firebase.json'
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install
+        working-directory: ./gomandap-scraper/client
+
+      - name: Build Scraper Client
+        run: npm run build
+        working-directory: ./gomandap-scraper/client
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Deploy to Firebase
+        run: firebase deploy --only hosting:scraper --token ${{ secrets.FIREBASE_TOKEN }}

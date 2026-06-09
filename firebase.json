@@ -38,7 +38,7 @@
     },
     {
       "target": "scraper",
-      "public": "scraper/dist",
+      "public": "gomandap-scraper/client/dist",
       "ignore": [
         "firebase.json",
         "**/.*",
