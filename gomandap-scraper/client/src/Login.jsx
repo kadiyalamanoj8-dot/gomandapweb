@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { Shield, Loader2 } from 'lucide-react';
+import { Shield, Loader2, Eye, EyeOff } from 'lucide-react';
 
 export default function Login({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,7 +22,7 @@ export default function Login({ onLogin }) {
         onLogin(res.data.user);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err.response?.data?.message || 'Login failed. Check that the scraper backend is running.');
     } finally {
       setLoading(false);
     }
@@ -67,6 +68,14 @@ export default function Login({ onLogin }) {
           <p className="text-white/60 text-sm mt-2 font-medium">Enterprise Intelligence System</p>
         </div>
 
+        {/* Credentials hint box */}
+        <div className="mb-6 p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-sm text-blue-200">
+          <p className="font-bold text-blue-300 mb-1">🔐 Default Credentials</p>
+          <p>Username: <span className="font-mono font-bold text-white">admin</span></p>
+          <p>Password: <span className="font-mono font-bold text-white">password123</span></p>
+          <p className="mt-2 text-xs text-white/40">⚠️ This app requires the scraper backend to be running locally on port 5002.</p>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
             <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="bg-red-500/20 text-red-300 text-sm font-bold p-4 rounded-xl border border-red-500/30 flex items-center gap-2">
@@ -81,18 +90,28 @@ export default function Login({ onLogin }) {
               required
               value={username} onChange={e => setUsername(e.target.value)}
               className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder-white/30 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all backdrop-blur-md" 
-              placeholder="Enter your assigned ID"
+              placeholder="admin"
             />
           </div>
+
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-white/70 uppercase tracking-widest ml-1">Password</label>
-            <input 
-              type="password" 
-              required
-              value={password} onChange={e => setPassword(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder-white/30 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all backdrop-blur-md" 
-              placeholder="Enter your secure password"
-            />
+            <div className="relative">
+              <input 
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={password} onChange={e => setPassword(e.target.value)}
+                className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 pr-14 text-white placeholder-white/30 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all backdrop-blur-md" 
+                placeholder="password123"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
           
           <button 
