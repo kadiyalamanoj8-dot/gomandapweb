@@ -161,6 +161,24 @@ const VendorDetailsPage = () => {
     "priceRange": vendor.pricePerPlate
   };
 
+  const handleShare = async () => {
+    const shareData = {
+      title: `${vendor.name} - Gomandap`,
+      text: `Check out ${vendor.name} on Gomandap!`,
+      url: window.location.href,
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.error("Error sharing:", err);
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard!');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pt-20 md:pt-28 pb-32 md:pb-20">
       <DynamicSEO customSchema={vendorSchema} />
@@ -176,10 +194,10 @@ const VendorDetailsPage = () => {
           </button>
           
           <div className="flex gap-3">
-            <button className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-brand-primary bg-white px-4 py-2 rounded-full shadow-sm">
+            <button onClick={handleShare} className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-brand-primary bg-white px-4 py-2 rounded-full shadow-sm active:scale-95 transition-transform">
               <Share2 size={16} /> <span className="hidden md:inline">Share</span>
             </button>
-            <button className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-red-500 bg-white px-4 py-2 rounded-full shadow-sm">
+            <button className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-red-500 bg-white px-4 py-2 rounded-full shadow-sm active:scale-95 transition-transform">
               <Heart size={16} /> <span className="hidden md:inline">Save</span>
             </button>
           </div>

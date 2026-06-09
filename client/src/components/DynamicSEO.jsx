@@ -31,6 +31,11 @@ const DynamicSEO = ({ appTarget = 'client', pageName = 'global', customSchema = 
       {seoConfig.keywords && <meta name="keywords" content={seoConfig.keywords} />}
       {seoConfig.title && <meta property="og:title" content={seoConfig.title} />}
       {seoConfig.description && <meta property="og:description" content={seoConfig.description} />}
+      {customSchema?.image?.[0] ? (
+        <meta property="og:image" content={customSchema.image[0]} />
+      ) : (
+        <meta property="og:image" content="https://gomandap.com/og-image.png" />
+      )}
       <link rel="canonical" href={`https://gomandap.com${window.location.pathname}${window.location.search}`} />
       {(customSchema || seoConfig.schema) && (
         <script type="application/ld+json">
