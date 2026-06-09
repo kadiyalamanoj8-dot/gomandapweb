@@ -25,9 +25,7 @@ const LiquidVendorCard = ({ vendor, layout = 'carousel' }) => {
 
     // Delay navigation slightly to let the user enjoy the ripple effect
     setTimeout(() => {
-      requireAuth(() => {
-        navigate(`/vendor/${vendor.id || vendor._id}`, { state: { vendor } });
-      });
+      navigate(`/vendor/${vendor.id || vendor._id}`, { state: { vendor } });
     }, 350);
   };
 
