@@ -16,6 +16,7 @@ import toast from 'react-hot-toast';
 import Fuse from 'fuse.js';
 import debounce from 'lodash.debounce';
 import SemanticWorker from './semanticWorker?worker';
+import { API_URL } from './apiConfig';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -43,8 +44,6 @@ class ErrorBoundary extends React.Component {
     return this.props.children; 
   }
 }
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
 
 const CATEGORY_META = {
   'Banquet Hall': { color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.2)', icon: Building2 },

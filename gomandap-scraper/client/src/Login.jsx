@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { Shield, Loader2, Eye, EyeOff, WifiOff } from 'lucide-react';
+import { API_URL } from './apiConfig';
 
 // Offline fallback credentials (for deployed version without backend access)
 const OFFLINE_ADMIN = { username: 'admin', password: 'password123' };
@@ -34,7 +35,6 @@ export default function Login({ onLogin }) {
     setError('');
     
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
       const res = await axios.post(`${API_URL}/auth/login`, { username, password }, { timeout: 5000 });
       if (res.data.success) {
         setIsOffline(false);

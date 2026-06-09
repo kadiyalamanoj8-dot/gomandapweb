@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { LogOut, Phone, MessageCircle, MapPin, Search, Calendar, ChevronDown, CheckCircle2, XCircle, Clock, Save, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
+import { API_URL } from './apiConfig';
 
 export default function EmployeeDashboard({ user, onLogout }) {
   const [leads, setLeads] = useState([]);
