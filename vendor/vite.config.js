@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
 import viteCompression from 'vite-plugin-compression'
 import Sitemap from 'vite-plugin-sitemap'
 
@@ -10,32 +9,6 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    // TEMPORARILY DISABLED TO FIX CACHING ISSUES
-    // VitePWA({
-    //   registerType: 'autoUpdate',
-    //   workbox: {
-    //     cleanupOutdatedCaches: true,
-    //     clientsClaim: true,
-    //     skipWaiting: true
-    //   },
-    //   includeAssets: ['favicon.svg'],
-    //   manifest: {
-    //     name: 'Gomandap Vendor',
-    //     short_name: 'Vendor',
-    //     description: 'Manage your Gomandap business profile.',
-    //     theme_color: '#EF4444',
-    //     background_color: '#ffffff',
-    //     display: 'standalone',
-    //     icons: [
-    //       {
-    //         src: 'favicon.svg',
-    //         sizes: '192x192 512x512',
-    //         type: 'image/svg+xml',
-    //         purpose: 'any maskable'
-    //       }
-    //     ]
-    //   }
-    // }),
     viteCompression({ algorithm: 'brotliCompress' }),
     Sitemap({
       hostname: 'https://vendor.gomandap.com',
