@@ -69,13 +69,24 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      // EMERGENCY CACHE BUSTER: Unregister orphaned Service Workers from removed VitePWA
+      // AGGRESSIVE CACHE BUSTER: Unregister old SWs, clear caches, and hard reload
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          let hasSw = registrations.length > 0;
           for(let registration of registrations) {
-            registration.unregister().then(function() {
-              console.log('Service Worker unregistered successfully.');
-            });
+            registration.unregister();
+          }
+          if (hasSw && !sessionStorage.getItem('sw_force_cleared_v2')) {
+            sessionStorage.setItem('sw_force_cleared_v2', 'true');
+            if ('caches' in window) {
+              caches.keys().then(function(names) {
+                Promise.all(names.map(name => caches.delete(name))).then(() => {
+                  window.location.reload(true);
+                });
+              });
+            } else {
+              window.location.reload(true);
+            }
           }
         });
       }
