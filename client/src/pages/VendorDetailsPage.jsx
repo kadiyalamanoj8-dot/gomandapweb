@@ -28,9 +28,23 @@ const VendorDetailsPage = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     
-    // 1. If vendor object was passed directly via React Router state (e.g. from SearchPage)
     if (location.state?.vendor) {
-      setVendor(location.state.vendor);
+      const v = location.state.vendor;
+      setVendor({
+        id: v.id || v._id,
+        name: v.name,
+        category: v.category,
+        location: v.location || (v.address?.city ? `${v.address.city}, India` : 'India'),
+        imageUrl: v.imageUrl || (v.portfolioImages?.length > 0 ? v.portfolioImages[0] : 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1200&q=80'),
+        pricePerPlate: v.pricePerPlate || v.customBlocks?.pricingPackages?.[0]?.price || 'Contact for Price',
+        rating: v.rating || 5.0,
+        reviewsCount: v.reviewsCount || 0,
+        deepFeatures: v.deepFeatures,
+        portfolioImages: v.portfolioImages || (v.imageUrl ? [v.imageUrl] : []),
+        contact: v.contact,
+        pricingPackages: v.pricingPackages || v.customBlocks?.pricingPackages || [],
+        locationData: v.locationData
+      });
       return;
     }
 

@@ -85,8 +85,12 @@ const SwipeableCategorySlider = () => {
                 transition={{ delay: idx * 0.03, type: "spring" }}
                 whileHover={{ scale: 1.08, y: -4 }}
                 className="snap-start shrink-0 w-24 md:w-32 flex flex-col items-center gap-3 group/item"
-                // Prevent drag from triggering click if user dragged
-                onClick={(e) => isDragging && e.preventDefault()}
+                onClickCapture={(e) => {
+                  if (isDragging) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                  }
+                }}
               >
                 <div className="w-16 h-16 md:w-20 md:h-20 rounded-[1.25rem] bg-gray-50 flex items-center justify-center text-gray-500 group-hover/item:bg-gradient-to-tr group-hover/item:from-brand-primary/10 group-hover/item:to-brand-primary/5 group-hover/item:text-brand-primary shadow-sm group-hover/item:shadow-lg transition-all duration-300 pointer-events-none border border-gray-100 group-hover/item:border-brand-primary/20">
                   {Icon && <Icon size={28} strokeWidth={1.5} />}

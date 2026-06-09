@@ -81,7 +81,12 @@ const VendorCarousel = ({ title, subtitle, vendors, bgColor = "bg-white" }) => {
             <div 
               key={vendor.id} 
               className="snap-start shrink-0" 
-              onClick={(e) => isDragging && e.preventDefault()}
+              onClickCapture={(e) => {
+                if (isDragging) {
+                  e.stopPropagation();
+                  e.preventDefault();
+                }
+              }}
             >
               <LiquidVendorCard vendor={vendor} />
             </div>
