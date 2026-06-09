@@ -23,11 +23,8 @@ app.get('/', (req, res) => {
 // Proxy Scraper Requests to local scraper process
 const { createProxyMiddleware } = require('http-proxy-middleware');
 app.use('/api/scraper-app', createProxyMiddleware({
-  target: 'http://127.0.0.1:5002',
+  target: 'http://127.0.0.1:5002/api',
   changeOrigin: true,
-  pathRewrite: {
-    '^/api/scraper-app': '/api'
-  },
   on: {
     error: (err, req, res) => {
       console.error('[Proxy Error] Failed to connect to Scraper Server:', err.message);
