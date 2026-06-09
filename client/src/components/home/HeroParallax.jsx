@@ -269,7 +269,7 @@ const HeroParallax = () => {
       <div 
         ref={heroRef} 
         onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }}
-        className="relative w-full h-screen h-[100dvh] min-h-[600px] bg-black z-40 focus-within:z-[60] select-none overflow-hidden"
+        className="relative w-full h-screen h-[100svh] min-h-[600px] bg-black z-40 focus-within:z-[60] select-none overflow-hidden"
       >
       
         {/* Layer 1: Deep Background */}
@@ -302,7 +302,7 @@ const HeroParallax = () => {
         </div>
 
         {/* Mobile UI: Compact Bottom Pill (Airbnb Style) */}
-        <div className="md:hidden absolute bottom-[120px] w-full z-[200] px-4 pointer-events-auto">
+        <div className="md:hidden absolute bottom-[140px] w-full z-[200] px-4 pointer-events-auto">
           <button 
             onClick={() => setIsMobileSearchOpen(true)}
             className="w-full bg-white/10 backdrop-blur-3xl shadow-[inset_0_2px_15px_rgba(255,255,255,0.3),0_20px_50px_rgba(0,0,0,0.7)] border border-white/20 border-t-white/40 rounded-[32px] py-4 px-6 flex items-center justify-between text-white active:scale-95 transition-transform"
