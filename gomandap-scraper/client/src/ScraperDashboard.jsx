@@ -6,7 +6,7 @@ import {
   Trash2, Database, Upload, Users, ShieldAlert, FileOutput, ArrowRight, BrainCircuit,
   Building2, Camera, Music, Utensils, Flower2, Zap, FolderOpen, X, Settings, 
   Share, Menu, ServerCrash, Check, Send, LogOut, Image, MessageCircle, Briefcase,
-  Clock, ExternalLink
+  Clock, ExternalLink, Smartphone, Cloud, Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Papa from 'papaparse';
@@ -286,6 +286,9 @@ function ScraperDashboard({ onLogout }) {
     `[INFO] Scraper service initialized.`,
     `[INFO] Awaiting tasks...`
   ]);
+  const [sseStatus, setSseStatus] = useState('disconnected'); // disconnected | connecting | open | error
+  const [logLevel, setLogLevel] = useState('ALL'); // ALL | INFO | WARN | ERROR | DEBUG
+  const eventSourceRef = useRef(null);
   const [searchRadius, setSearchRadius] = useState(0);
   const [enabledEngines, setEnabledEngines] = useState(['maps', 'instagram', 'facebook', 'youtube', 'pinterest', 'linkedin']);
   
@@ -301,23 +304,55 @@ function ScraperDashboard({ onLogout }) {
   const workerRef = useRef(null);
   const searchContainerRef = useRef(null);
 
-  // Live Backend Logs
+  // Live Backend Logs via Server-Sent Events (SSE)
   useEffect(() => {
-    let interval;
-    if (loading || activeJobs.length > 0) {
-      interval = setInterval(async () => {
+    setSseStatus('connecting');
+    let es;
+    try {
+      es = new EventSource(`${API_URL}/logs/stream`);
+      eventSourceRef.current = es;
+      es.addEventListener('open', () => setSseStatus('open'));
+      es.addEventListener('error', () => setSseStatus('error'));
+      es.addEventListener('init', (e) => {
+        try { const arr = JSON.parse(e.data); if (Array.isArray(arr)) setLogs(arr); } catch {}
+      });
+      es.addEventListener('vendor', (e) => {
+        try {
+          // Vendor event received; refresh vendor list
+          fetchVendors();
+        } catch (err) { /* ignore */ }
+      });
+      es.onmessage = (e) => {
+        try {
+          setLogs(prev => {
+            const next = [...prev, e.data];
+            return next.slice(-200);
+          });
+          // auto-scroll
+          setTimeout(() => {
+            if (terminalRef.current) {
+              terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+            }
+          }, 50);
+        } catch (err) {}
+      };
+      es.onerror = () => {
+        setSseStatus('error');
+        // EventSource will attempt automatic reconnects; keep the instance
+      };
+    } catch (err) {
+      setSseStatus('error');
+      // If EventSource isn't available, fallback to polling
+      let interval = setInterval(async () => {
         try {
           const res = await axios.get(`${API_URL}/logs`);
-          if (res.data && Array.isArray(res.data)) {
-            setLogs(res.data);
-          }
-        } catch (e) {
-          // Log polling is best-effort while a scrape is running.
-        }
+          if (res.data && Array.isArray(res.data)) setLogs(res.data);
+        } catch (e) {}
       }, 2000);
+      return () => clearInterval(interval);
     }
-    return () => clearInterval(interval);
-  }, [loading, activeJobs]);
+    return () => { try { es && es.close(); eventSourceRef.current = null; } catch (e) {} };
+  }, []);
 
   // Proactive AI Guidance Toast (Idle for 60s)
   useEffect(() => {
@@ -667,6 +702,16 @@ function ScraperDashboard({ onLogout }) {
         enabledEngines
       });
       toast.success('Omni-scrape started! Stream processing engaged.', { icon: '🚀' });
+      
+      // Trigger Firebase scrape if enabled
+      if (enabledEngines.includes('firebase')) {
+        axios.post(`${API_URL}/scrape/firebase`, {
+          query: queryToUse,
+          category: parsedCat,
+          location: locationPart
+        }).catch(err => console.error('[Firebase]', err.message));
+      }
+      
       setShowSuggestions(false);
       // Removed setOmniQuery(''); so you can search again easily!
     } catch (error) {
@@ -979,14 +1024,16 @@ function ScraperDashboard({ onLogout }) {
         </form>
 
         {/* PLATFORM SELECTOR */}
-        <div className="mt-6 flex flex-wrap justify-center gap-3 w-full max-w-2xl">
+        <div className="mt-6 flex flex-wrap justify-center gap-3 w-full max-w-3xl">
           {[
             { id: 'maps', label: 'Maps', icon: <MapPin size={14} /> },
             { id: 'instagram', label: 'Instagram', icon: <Camera size={14} /> },
             { id: 'facebook', label: 'Facebook', icon: <MessageCircle size={14} /> },
             { id: 'youtube', label: 'YouTube', icon: <Play size={14} /> },
             { id: 'pinterest', label: 'Pinterest', icon: <Image size={14} /> },
-            { id: 'linkedin', label: 'LinkedIn', icon: <Briefcase size={14} /> }
+            { id: 'linkedin', label: 'LinkedIn', icon: <Briefcase size={14} /> },
+            { id: 'justdial', label: 'Justdial', icon: <Globe size={14} /> },
+            { id: 'firebase', label: 'Firebase Sync', icon: <Database size={14} /> }
           ].map(platform => {
             const isEnabled = enabledEngines.includes(platform.id);
             return (
@@ -1059,16 +1106,37 @@ function ScraperDashboard({ onLogout }) {
         
         {/* Left Sidebar - Activity Log (Clean Terminal) */}
         <div className="w-80 border-r border-white/5 bg-[#0a0a0a] flex flex-col hidden lg:flex">
-          <div className="p-4 border-b border-white/5 flex items-center gap-2 text-sm font-medium text-white/70">
-            <Activity size={16} /> Activity Log
+          <div className="p-4 border-b border-white/5 flex items-center justify-between gap-2 text-sm font-medium text-white/70">
+            <div className="flex items-center gap-2">
+              <Activity size={16} /> Activity Log
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-xs">
+                <span className={`w-2 h-2 rounded-full ${sseStatus === 'open' ? 'bg-green-400' : sseStatus === 'connecting' ? 'bg-yellow-400' : sseStatus === 'error' ? 'bg-red-400' : 'bg-gray-500'}`} />
+                <span className="text-white/60">{sseStatus.toUpperCase()}</span>
+              </div>
+              <select value={logLevel} onChange={(e) => setLogLevel(e.target.value)} className="bg-transparent text-white/70 text-xs border border-white/5 px-2 py-1 rounded-md">
+                <option value="ALL">All</option>
+                <option value="INFO">Info</option>
+                <option value="WARN">Warn</option>
+                <option value="ERROR">Error</option>
+                <option value="DEBUG">Debug</option>
+              </select>
+            </div>
           </div>
           <div ref={terminalRef} className="flex-1 overflow-y-auto p-4 space-y-2 font-mono text-[11px] leading-relaxed text-white/50" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
-            {[...logs].reverse().map((log, i) => (
-              <div key={i} className="break-words border-b border-white/5 pb-2">
-                <span className="text-white/30">{new Date().toLocaleTimeString('en-US', { hour12: false, hour: "numeric", minute: "numeric", second: "numeric" })}</span>
-                <span className="ml-2 text-white/70">{log}</span>
-              </div>
-            ))}
+            {(() => {
+              const filtered = logs.filter(l => {
+                if (!logLevel || logLevel === 'ALL') return true;
+                try { return l.includes(`[${logLevel}]`); } catch { return true; }
+              }).slice(-200);
+              return [...filtered].reverse().map((log, i) => (
+                <div key={i} className="break-words border-b border-white/5 pb-2">
+                  <span className="text-white/30">{new Date().toLocaleTimeString('en-US', { hour12: false, hour: "numeric", minute: "numeric", second: "numeric" })}</span>
+                  <span className="ml-2 text-white/70">{log}</span>
+                </div>
+              ));
+            })()}
           </div>
         </div>
 
