@@ -8,10 +8,13 @@ const Footer = () => {
   const { t } = useTranslation();
   const defaultFooterData = {
     aboutText: "Your ultimate marketplace for discovering the finest wedding venues, top-tier caterers, and premium event services across India.",
+    contactInfo: { phone: "+91 98765 43210", email: "support@gomandap.com" },
     socialLinks: [
-      { platform: "facebook", url: "#" },
       { platform: "instagram", url: "#" },
-      { platform: "twitter", url: "#" }
+      { platform: "youtube", url: "#" },
+      { platform: "twitter", url: "#" },
+      { platform: "telegram", url: "#" },
+      { platform: "whatsapp", url: "#" }
     ],
     columns: [
       {
@@ -44,8 +47,8 @@ const Footer = () => {
     const fetchFooter = async () => {
       try {
         const res = await axios.get('https://gomandap-api.onrender.com/api/content');
-        if (res.data && res.data.clientFooter) {
-          setFooterData(res.data.clientFooter);
+        if (res.data && res.data.clientFooter && Object.keys(res.data.clientFooter).length > 0) {
+          setFooterData(prev => ({ ...prev, ...res.data.clientFooter }));
         }
       } catch (err) {
         console.error("Failed to load dynamic footer:", err);
@@ -61,6 +64,8 @@ const Footer = () => {
     if (p.includes('twitter') || p.includes('x')) return <MessageCircle size={18} />;
     if (p.includes('linkedin')) return <Share2 size={18} />;
     if (p.includes('youtube')) return <LinkIcon size={18} />;
+    if (p.includes('whatsapp')) return <MessageCircle size={18} />;
+    if (p.includes('telegram')) return <Share2 size={18} />;
     return <Globe size={18} />;
   };
 
@@ -79,10 +84,22 @@ const Footer = () => {
             <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
               {footerData.aboutText || "Your ultimate marketplace for discovering the finest wedding venues, top-tier caterers, and premium event services across India."}
             </p>
-            <div className="flex flex-wrap gap-3 mt-2">
+            
+            {footerData.contactInfo && (
+              <div className="flex flex-col gap-1 mt-2 text-sm text-gray-600 font-medium">
+                {footerData.contactInfo.phone && <p>📞 {footerData.contactInfo.phone}</p>}
+                {footerData.contactInfo.email && <p>✉️ {footerData.contactInfo.email}</p>}
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-3 mt-4">
               {footerData.socialLinks && footerData.socialLinks.map((social, idx) => (
-                <a key={idx} href={social.url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-brand-primary hover:text-white hover:border-transparent transition-all shadow-sm">
-                  {getIcon(social.platform)}
+                <a key={idx} href={social.url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-brand-primary hover:text-white hover:border-transparent transition-all shadow-sm overflow-hidden">
+                  {social.iconUrl ? (
+                    <img src={social.iconUrl} alt={social.platform} className="w-6 h-6 object-contain" />
+                  ) : (
+                    getIcon(social.platform)
+                  )}
                 </a>
               ))}
             </div>

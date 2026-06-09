@@ -31,6 +31,9 @@ app.use('/api/auth', authRoutes);
 const settingsRoutes = require('./routes/settingsRoutes');
 app.use('/api/settings', settingsRoutes);
 
+const contentRoutes = require('./routes/contentRoutes');
+app.use('/api/content', contentRoutes);
+
 const filterRoutes = require('./routes/filterRoutes');
 app.use('/api/filters', filterRoutes);
 

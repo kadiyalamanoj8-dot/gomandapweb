@@ -274,40 +274,35 @@ const HeroParallax = () => {
       
         {/* Layer 1: Deep Background */}
         <div ref={containerRef} className="absolute inset-0 w-full h-full z-0 perspective-[1200px]">
-          <m.div style={{ x: isMobile ? 0 : bgX, y: isMobile ? 0 : bgY }} className="absolute inset-[-10%] w-[120%] h-[120%] z-0">
+          <m.div className="absolute inset-[-5%] w-[110%] h-[110%] z-0">
             <img src="/images/temple_background.webp" alt="Background" className="w-full h-full object-cover opacity-60" loading="eager" />
             <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black z-10" />
           </m.div>
 
           <m.div style={{ rotateX, rotateY, transformStyle: "preserve-3d" }} className="absolute inset-0 w-full h-full flex items-center justify-center">
             
-            {/* Layer 2: Temple Doors Framing */}
-            <m.div style={{ x: doorsX, y: doorsY, translateZ: -100 }} className="absolute inset-0 z-10 pointer-events-none opacity-40 mix-blend-screen hidden md:block">
-               <img src="/images/real_temple_doors.webp" className="w-full h-full object-cover" alt="" />
-            </m.div>
-
             {/* Layer 4: Text */}
-            <m.div style={{ x: midX, y: midY, translateZ: 30 }} className="absolute top-[20%] md:top-[25%] w-full z-[25] flex flex-col items-center justify-start text-center px-4 pointer-events-none">
+            <m.div style={{ translateZ: 30 }} className="absolute top-[20%] md:top-[25%] w-full z-[25] flex flex-col items-center justify-start text-center px-4 pointer-events-none">
               <h1 className="text-4xl md:text-[64px] font-black text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] mb-4 tracking-tight leading-[1.2] md:leading-[1.35]" dangerouslySetInnerHTML={{ __html: t('hero_title') }} />
               <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] font-medium">{t('hero_desc')}</p>
             </m.div>
 
             {/* Layer 5: The Couple */}
-            <m.div style={{ x: frontX, y: frontY, translateZ: 80, scale: 1.05 }} className="absolute inset-0 z-30 flex items-center justify-center pt-[10vh] md:pt-[5vh]">
+            <m.div style={{ translateZ: 80, scale: 1.05 }} className="absolute inset-0 z-30 flex items-center justify-center pt-[10vh] md:pt-[5vh]">
               <img src="/images/couple_transparent.webp" alt="Couple" className="w-[85vw] md:w-[70vw] max-h-[65vh] md:max-h-[70vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)] pointer-events-none" />
             </m.div>
           </m.div>
         </div>
 
         {/* Desktop UI: Centered Glass Pill */}
-        <div className="hidden md:flex absolute top-[60%] w-full z-[200] flex-col items-center justify-start px-4 pointer-events-none">
+        <div className="hidden md:flex absolute top-[65%] w-full z-[200] flex-col items-center justify-start px-4 pointer-events-none">
           <div className="w-full max-w-5xl pointer-events-auto bg-white/10 backdrop-blur-xl shadow-[inset_0_2px_15px_rgba(255,255,255,0.4),0_25px_60px_rgba(0,0,0,0.6)] border border-white/20 border-t-white/40 rounded-full p-2.5 flex flex-row items-center mx-auto transition-all duration-300 hover:shadow-[inset_0_2px_15px_rgba(255,255,255,0.5),0_30px_70px_rgba(0,0,0,0.7)] hover:bg-white/15">
             {searchContent}
           </div>
         </div>
 
         {/* Mobile UI: Compact Bottom Pill (Airbnb Style) */}
-        <div className="md:hidden absolute bottom-[90px] w-full z-[200] px-4 pointer-events-auto">
+        <div className="md:hidden absolute bottom-[120px] w-full z-[200] px-4 pointer-events-auto">
           <button 
             onClick={() => setIsMobileSearchOpen(true)}
             className="w-full bg-white/10 backdrop-blur-3xl shadow-[inset_0_2px_15px_rgba(255,255,255,0.3),0_20px_50px_rgba(0,0,0,0.7)] border border-white/20 border-t-white/40 rounded-[32px] py-4 px-6 flex items-center justify-between text-white active:scale-95 transition-transform"

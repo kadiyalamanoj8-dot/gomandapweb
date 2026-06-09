@@ -2,8 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
-import { Search, Filter, CheckCircle2, XCircle, Clock, Users, Store, TrendingUp, AlertTriangle, ChevronDown } from 'lucide-react';
+import { Search, Filter, CheckCircle2, XCircle, Clock, Users, Store, TrendingUp, AlertTriangle, ChevronDown, LayoutTemplate } from 'lucide-react';
 import VendorDetailsModal from '../components/VendorDetailsModal';
+import FooterSettings from '../components/FooterSettings';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://gomandap-api.onrender.com';
 

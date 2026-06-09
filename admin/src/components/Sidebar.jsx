@@ -74,6 +74,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <LayoutDashboard size={18} /> Client UI Settings
           </NavLink>
           <NavLink
+            to="/footer-settings"
+            onClick={() => setIsOpen(false)}
+            className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'btn-liquid text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          >
+            <LayoutDashboard size={18} /> Footer Settings
+          </NavLink>
+          <NavLink
             to="/category-settings"
             onClick={() => setIsOpen(false)}
             className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'btn-liquid text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}

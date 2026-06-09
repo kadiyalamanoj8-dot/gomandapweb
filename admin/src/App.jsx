@@ -7,6 +7,7 @@ const LanguageSettings = lazy(() => import('./pages/LanguageSettings'));
 const ClientManager = lazy(() => import('./pages/ClientManager'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const ClientUISettings = lazy(() => import('./pages/ClientUISettings'));
+const FooterSettings = lazy(() => import('./pages/FooterSettings'));
 const LeadsCRM = lazy(() => import('./pages/LeadsCRM'));
 import Sidebar from './components/Sidebar';
 import { Menu } from 'lucide-react';
@@ -72,6 +73,7 @@ function AppLayout() {
                   <Route path="/language-settings" element={<AuthGuard><LanguageSettings /></AuthGuard>} />
                   <Route path="/clients" element={<AuthGuard><ClientManager /></AuthGuard>} />
                   <Route path="/client-ui" element={<AuthGuard><ClientUISettings /></AuthGuard>} />
+                  <Route path="/footer-settings" element={<AuthGuard><FooterSettings /></AuthGuard>} />
                   <Route path="/leads" element={<AuthGuard><LeadsCRM /></AuthGuard>} />
                 </Routes>
               </Suspense>

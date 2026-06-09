@@ -19,6 +19,14 @@ const SettingsSchema = new mongoose.Schema(
       marqueeHeight: { type: String, default: '100%' },
       marqueePositionY: { type: String, default: '0px' },
       marqueeSpeed: { type: Number, default: 3 }
+    },
+    clientFooter: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {}
+    },
+    vendorFooter: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {}
     }
   },
   {
