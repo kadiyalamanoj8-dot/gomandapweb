@@ -3,21 +3,20 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const cron = require('node-cron');
-const jsdom = require('jsdom');
-const { JSDOM } = jsdom;
-
-const activeCronJobs = {};
-const { chromium } = require('playwright-extra');
-const stealth = require('puppeteer-extra-plugin-stealth')();
-chromium.use(stealth);
-const { firefox } = require('playwright');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const Fuse = require('fuse.js');
 const MiniSearch = require('minisearch');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
-require('dotenv').config({ path: path.join(__dirname, '../../backend/.env') }); // Load backend .env for Cloudinary
+
+// Load .env — try the backend shared .env first (local), then process.env (Render)
+const backendEnvPath = path.join(__dirname, '../../backend/.env');
+if (fs.existsSync(backendEnvPath)) {
+  require('dotenv').config({ path: backendEnvPath });
+} else {
+  require('dotenv').config();
+}
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -28,10 +27,43 @@ cloudinary.config({
 const upload = multer({ dest: 'uploads/' });
 
 const app = express();
-app.use(cors());
+// CORS: allow Firebase-hosted frontends and local dev
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://gomandap-leads.web.app',
+    'https://gomandap-leads.firebaseapp.com',
+    /\.web\.app$/,
+    /\.firebaseapp\.com$/
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
-const PORT = 5002;
+// Health check endpoint (Render pings this to verify the service is up)
+app.get('/api/health', (req, res) => res.json({ status: 'ok', service: 'gomandap-scraper' }));
+app.get('/', (req, res) => res.json({ status: 'ok', message: 'Gomandap Scraper API is running.' }));
+
+const PORT = process.env.PORT || 5002;
+
+// Playwright: Only load if not in production or if ENABLE_PLAYWRIGHT env is set
+const PLAYWRIGHT_ENABLED = process.env.ENABLE_PLAYWRIGHT === 'true' || process.env.NODE_ENV !== 'production';
+let chromium, stealth;
+const activeCronJobs = {};
+if (PLAYWRIGHT_ENABLED) {
+  try {
+    const playwrightExtra = require('playwright-extra');
+    chromium = playwrightExtra.chromium;
+    stealth = require('puppeteer-extra-plugin-stealth')();
+    chromium.use(stealth);
+    console.log('[Playwright] Browser engine loaded.');
+  } catch (e) {
+    console.warn('[Playwright] Not available on this server. Scraping will use Cheerio only.');
+  }
+} else {
+  console.log('[Playwright] Disabled in production. Using Cheerio-only scraping.');
+}
 const DATA_FILE = path.join(__dirname, 'data', 'scraped_vendors.json');
 
 // Ensure data directory exists
@@ -604,8 +636,9 @@ async function runBatchQueue() {
 let globalBrowser = null;
 
 async function getBrowser() {
+  if (!chromium) throw new Error('Playwright not available on this server.');
   if (!globalBrowser || !globalBrowser.isConnected()) {
-    globalBrowser = await chromium.launch({ headless: true, args: ['--disable-http2', '--no-sandbox'] });
+    globalBrowser = await chromium.launch({ headless: true, args: ['--disable-http2', '--no-sandbox', '--disable-setuid-sandbox'] });
   }
   return globalBrowser;
 }
@@ -658,6 +691,12 @@ async function scrapeWebsiteForSocials(browser, url) {
 async function scrapeGooglePlaces(category, location) {
   console.log(`Starting Google Maps browser scrape for ${category} in ${location}`);
   const query = `${category} in ${location}`;
+
+  // If Playwright not available (production/Render), skip browser scraping
+  if (!chromium) {
+    console.warn('[scrapeGooglePlaces] Playwright not available. Skipping browser scrape.');
+    return [];
+  }
   
   const browser = await getBrowser();
   const context = await browser.newContext({
