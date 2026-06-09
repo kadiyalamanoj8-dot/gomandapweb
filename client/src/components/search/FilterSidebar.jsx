@@ -316,10 +316,11 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [],
     fetchFilters();
   }, [activeSchemas]);
 
-  const renderDynamicBlock = (block) => {
+  const renderDynamicBlock = (block, index) => {
+    const uniqueKey = `${block.name}-${block.title}-${index}`;
     if (block.type === 'RADIO') {
       return (
-        <div key={block.name} className="mb-6">
+        <div key={uniqueKey} className="mb-6">
           <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">{block.title}</h3>
           <div className="flex flex-col gap-3">
             {block.options.map((opt, idx) => {
@@ -329,7 +330,7 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [],
               <label key={opt.value} className="flex items-center gap-3 cursor-pointer group">
                 <input 
                   type="radio" 
-                  name={block.name} 
+                  name={uniqueKey} 
                   value={opt.value}
                   checked={isChecked} 
                   className="w-4 h-4 accent-brand-primary cursor-pointer" 
@@ -345,7 +346,7 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [],
 
     if (block.type === 'CHECKBOX') {
       return (
-        <div key={block.name} className="mb-6">
+        <div key={uniqueKey} className="mb-6">
           <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">{block.title}</h3>
           <div className="flex flex-col gap-3">
             {block.options.map((opt) => {

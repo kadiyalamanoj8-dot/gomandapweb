@@ -25,6 +25,27 @@ const VendorDetailsPage = () => {
   const [quoteForm, setQuoteForm] = useState({ name: '', phone: '', message: '' });
   const [isSendingQuote, setIsSendingQuote] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
+
+  // Initialize form data based on schema defaults
+  useEffect(() => {
+    if (vendor && vendor.category) {
+      const currentSchema = getCategorySchema(vendor.category);
+      if (currentSchema && currentSchema.bookingFields) {
+        const initialData = {};
+        currentSchema.bookingFields.forEach(field => {
+          if (field.type === 'select' && field.options?.length > 0) {
+            initialData[field.id] = field.options[0];
+          } else {
+            initialData[field.id] = '';
+          }
+        });
+        setFormData(initialData);
+      }
+    }
+  }, [vendor?.category]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
     
@@ -45,6 +66,7 @@ const VendorDetailsPage = () => {
         pricingPackages: v.pricingPackages || v.customBlocks?.pricingPackages || [],
         locationData: v.locationData
       });
+      setIsLoading(false);
       return;
     }
 
@@ -70,33 +92,46 @@ const VendorDetailsPage = () => {
             contact: v.contact,
             pricingPackages: v.customBlocks?.pricingPackages || []
           });
+        } else {
+          setFetchError("Vendor not found");
         }
       } catch (error) {
         console.error("Failed to load vendor details:", error);
+        setFetchError("Network error loading vendor");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchVendorDetails();
   }, [id, location.state]);
 
-  if (!vendor) return <div className="min-h-screen bg-white"></div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (fetchError || !vendor) {
+    return (
+      <div className="min-h-[80vh] bg-gray-50 flex flex-col items-center justify-center px-4">
+        <div className="bg-white p-10 rounded-3xl shadow-sm border border-gray-100 text-center max-w-md w-full">
+          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-400">
+            <Icons.Store size={40} />
+          </div>
+          <h2 className="text-2xl font-black text-gray-900 mb-3">{fetchError || "Vendor Not Found"}</h2>
+          <p className="text-gray-500 mb-8 font-medium">This vendor might have been removed, or the link you followed is incorrect. Please return to the homepage to explore other vendors.</p>
+          <button onClick={() => navigate('/')} className="w-full py-4 bg-brand-primary hover:bg-[#D41B4D] text-white font-black rounded-xl transition-colors shadow-lg shadow-brand-primary/20">
+            Return to Homepage
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const schema = getCategorySchema(vendor.category);
-
-  // Initialize form data based on schema defaults
-  useEffect(() => {
-    if (schema && schema.bookingFields) {
-      const initialData = {};
-      schema.bookingFields.forEach(field => {
-        if (field.type === 'select' && field.options?.length > 0) {
-          initialData[field.id] = field.options[0];
-        } else {
-          initialData[field.id] = '';
-        }
-      });
-      setFormData(initialData);
-    }
-  }, [vendor.category]);
 
   const handleInputChange = (fieldId, value) => {
     setFormData(prev => ({ ...prev, [fieldId]: value }));
@@ -194,91 +229,93 @@ const VendorDetailsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20 md:pt-28 pb-32 md:pb-20">
+    <div className="min-h-screen bg-white pt-16 md:pt-24 pb-24 md:pb-16">
       <DynamicSEO customSchema={vendorSchema} />
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
-        
-        {/* Back Button & Actions */}
-        <div className="flex justify-between items-center mb-6">
-          <button 
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-brand-primary transition-colors"
-          >
-            <ChevronLeft size={20} /> Back to Search
-          </button>
+      
+      {/* Mobile Title & Actions (Visible only on mobile) */}
+      <div className="md:hidden px-4 pt-4 pb-2 flex justify-between items-center bg-white z-10 sticky top-16">
+        <button 
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-1.5 text-[13px] font-bold text-gray-900 bg-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-200 transition-colors"
+        >
+          <ChevronLeft size={16} /> Back
+        </button>
+        <div className="flex gap-2">
+          <button onClick={handleShare} className="p-2 text-gray-900 bg-gray-100 rounded-full active:scale-95 transition-transform"><Share2 size={16} /></button>
+          <button className="p-2 text-gray-900 bg-gray-100 rounded-full active:scale-95 transition-transform hover:text-red-500"><Heart size={16} /></button>
+        </div>
+      </div>
+
+      {/* Cinematic Masonry Gallery (Desktop) & Edge-to-Edge Scroll (Mobile) */}
+      <div className="max-w-[1200px] mx-auto md:px-6 lg:px-8 mb-6 md:mb-10">
+        <div className="flex md:grid md:grid-cols-4 md:grid-rows-2 gap-1 md:gap-2 lg:gap-3 h-[30vh] md:h-[50vh] lg:h-[60vh] md:rounded-[2rem] overflow-x-auto overflow-y-hidden snap-x snap-mandatory md:snap-none md:overflow-hidden no-scrollbar">
           
-          <div className="flex gap-3">
-            <button onClick={handleShare} className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-brand-primary bg-white px-4 py-2 rounded-full shadow-sm active:scale-95 transition-transform">
-              <Share2 size={16} /> <span className="hidden md:inline">Share</span>
-            </button>
-            <button className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-red-500 bg-white px-4 py-2 rounded-full shadow-sm active:scale-95 transition-transform">
-              <Heart size={16} /> <span className="hidden md:inline">Save</span>
-            </button>
+          <div className="w-full shrink-0 snap-center md:col-span-2 md:row-span-2 relative group cursor-pointer md:rounded-l-[2rem] overflow-hidden">
+            <img src={gallery[0]} alt="Main" className="w-full h-full object-cover transition-transform duration-700 md:group-hover:scale-105" />
+            <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors hidden md:block"></div>
           </div>
-        </div>
 
-        {/* Hero Title Area */}
-        <div className="mb-6">
-          <h1 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight leading-tight mb-3">
-            {vendor.name}
-          </h1>
-          <div className="flex flex-wrap items-center gap-4 text-sm font-semibold text-gray-600">
-            <div className="flex items-center gap-1 bg-brand-gold/10 text-brand-gold px-2 py-1 rounded-md">
-              <Star size={16} fill="currentColor" /> {vendor.rating} <span className="text-gray-500">({vendor.reviewsCount} reviews)</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <MapPin size={16} className="text-gray-400" /> {vendor.location}
-            </div>
-            <div className="flex items-center gap-1 text-brand-secondary bg-brand-secondary/10 px-2 py-1 rounded-md uppercase tracking-wider text-xs font-black">
-              {vendor.category}
-            </div>
-          </div>
-        </div>
-
-        {/* Cinematic Masonry Gallery */}
-        <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-2 md:gap-4 h-[400px] md:h-[500px] rounded-3xl overflow-hidden mb-10">
-          <div className="col-span-1 md:col-span-2 row-span-2 relative group cursor-pointer">
-            <img src={gallery[0]} alt="Main" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-            <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
-          </div>
           {gallery.length > 1 && (
-            <div className="hidden md:block col-span-1 row-span-1 relative group cursor-pointer overflow-hidden">
-              <img src={gallery[1]} alt="View 2" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+            <div className="w-4/5 shrink-0 snap-center md:w-auto md:col-span-1 md:row-span-1 relative group cursor-pointer overflow-hidden">
+              <img src={gallery[1]} alt="View 2" className="w-full h-full object-cover transition-transform duration-700 md:group-hover:scale-110" />
             </div>
           )}
           {gallery.length > 2 && (
-            <div className="hidden md:block col-span-1 row-span-1 relative group cursor-pointer overflow-hidden">
-              <img src={gallery[2]} alt="View 3" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+            <div className="w-4/5 shrink-0 snap-center md:w-auto md:col-span-1 md:row-span-1 relative group cursor-pointer overflow-hidden md:rounded-tr-[2rem]">
+              <img src={gallery[2]} alt="View 3" className="w-full h-full object-cover transition-transform duration-700 md:group-hover:scale-110" />
             </div>
           )}
           {gallery.length > 3 && (
-            <div className="hidden md:block col-span-1 row-span-1 relative group cursor-pointer overflow-hidden">
-              <img src={gallery[3]} alt="View 4" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+            <div className="w-4/5 shrink-0 snap-center md:w-auto md:col-span-1 md:row-span-1 relative group cursor-pointer overflow-hidden">
+              <img src={gallery[3]} alt="View 4" className="w-full h-full object-cover transition-transform duration-700 md:group-hover:scale-110" />
             </div>
           )}
           {gallery.length > 4 && (
-            <div className="hidden md:block col-span-1 row-span-1 relative group cursor-pointer overflow-hidden">
-              <img src={gallery[4]} alt="View 5" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+            <div className="w-4/5 shrink-0 snap-center md:w-auto md:col-span-1 md:row-span-1 relative group cursor-pointer overflow-hidden md:rounded-br-[2rem]">
+              <img src={gallery[4]} alt="View 5" className="w-full h-full object-cover transition-transform duration-700 md:group-hover:scale-110" />
               {gallery.length > 5 && (
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">+{gallery.length - 5} Photos</span>
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
+                  <span className="text-white font-bold text-lg md:text-xl">+{gallery.length - 5} Photos</span>
                 </div>
               )}
             </div>
           )}
         </div>
+      </div>
 
+      <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8">
+        
         {/* Content Layout */}
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 relative items-start">
+        <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 relative items-start">
           
           {/* Left Column (Details) */}
-          <div className="flex-1 w-full space-y-12">
+          <div className="flex-1 w-full pb-8">
             
+            {/* Header Area (Desktop only layout, mobile inherits from flow) */}
+            <div className="mb-8 md:mb-12 border-b border-gray-200 pb-8">
+              <h1 className="text-[32px] md:text-[42px] font-black text-gray-900 tracking-tight leading-tight mb-4">
+                {vendor.name}
+              </h1>
+              <div className="flex flex-wrap items-center gap-y-3 gap-x-4 text-sm font-medium text-gray-900">
+                <div className="flex items-center gap-1.5 font-bold">
+                  <Star size={18} className="text-gray-900" fill="currentColor" /> {vendor.rating} <span className="text-gray-500 font-normal underline cursor-pointer hover:text-gray-900 transition-colors">{vendor.reviewsCount} reviews</span>
+                </div>
+                <div className="hidden md:block w-1 h-1 rounded-full bg-gray-300"></div>
+                <div className="flex items-center gap-1.5 text-gray-600 underline cursor-pointer hover:text-gray-900 transition-colors">
+                  {vendor.location}
+                </div>
+                <div className="hidden md:block w-1 h-1 rounded-full bg-gray-300"></div>
+                <div className="flex items-center gap-1 text-gray-600">
+                  {vendor.category}
+                </div>
+              </div>
+            </div>
+
             {/* About Section */}
-            <section>
-              <h2 className="text-2xl font-black text-gray-900 mb-4">{schema.aboutTitle}</h2>
-              <p className="text-gray-600 leading-relaxed font-medium">
-                Experience unparalleled quality and elegance at {vendor.name}. Known for breathtaking work and impeccable service, this vendor is the perfect choice for your dream event. We ensure every moment of your celebration is flawless and memorable.
+            <section className="mb-10 pb-10 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight">{schema.aboutTitle}</h2>
+              <p className="text-gray-600 leading-relaxed font-normal text-base md:text-[17px]">
+                Experience unparalleled quality and elegance at {vendor.name}. Known for breathtaking work and impeccable service, this vendor is the perfect choice for your dream event. We ensure every moment of your celebration is flawless and memorable. Located centrally in {vendor.location.split(',')[0]}, we pride ourselves on delivering exactly what you envision.
               </p>
             </section>
 
@@ -360,18 +397,17 @@ const VendorDetailsPage = () => {
           </div>
 
           {/* Right Column (Direct Booking Engine) */}
-          <aside className="w-full lg:w-[400px] shrink-0 lg:sticky lg:top-28 z-40">
+          <aside className="hidden md:block w-full lg:w-[380px] shrink-0 sticky top-28 z-40 pb-10">
             {/* Booking Card */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100"
+              className="bg-white rounded-2xl p-6 shadow-[0_6px_16px_rgba(0,0,0,0.12)] border border-gray-200"
             >
-              <div className="flex justify-between items-end mb-6 pb-6 border-b border-gray-100">
-                <div>
-                  <span className="text-sm font-bold text-gray-500 uppercase tracking-widest block mb-1">Starting Price</span>
-                  <span className="text-3xl font-black text-gray-900">{vendor.pricePerPlate}</span>
-                  <span className="text-sm font-bold text-gray-500">{schema.pricingUnit}</span>
+              <div className="flex flex-col items-start mb-6">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold text-gray-900">{vendor.pricePerPlate}</span>
+                  <span className="text-base text-gray-500 font-normal">{schema.pricingUnit.replace('/', ' / ')}</span>
                 </div>
               </div>
 
@@ -407,45 +443,41 @@ const VendorDetailsPage = () => {
                 })}
               </div>
               
-              {/* Desktop Buttons */}
-              <div className="hidden lg:flex flex-col gap-3">
+              <div className="flex flex-col gap-3">
                 <button 
                   onClick={() => setIsQuoteModalOpen(true)}
-                  className="w-full btn-liquid text-white py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 shadow-3d hover:shadow-3d-hover hover:-translate-y-1 transition-all active:scale-95"
+                  className="w-full bg-[#E51D53] hover:bg-[#D41B4D] text-white py-3.5 rounded-xl font-bold text-base transition-colors active:scale-95"
                 >
-                  <Icons.MessageSquare size={20} /> Request Quote
+                  Request Quote
                 </button>
                 <div className="flex gap-3">
                   <button 
                     onClick={handleAddToCart}
-                    className="flex-1 bg-brand-primary/10 text-brand-primary border border-brand-primary/20 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-brand-primary/20 transition-all active:scale-95"
+                    className="flex-1 bg-white border border-gray-900 text-gray-900 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors active:scale-95"
                   >
-                    <ShoppingCart size={18} /> Cart
-                  </button>
-                  <button className="flex-1 bg-gray-900 text-white py-3.5 rounded-xl font-bold shadow-lg hover:bg-gray-800 transition-all active:scale-95">
-                    Book Now
+                    <ShoppingCart size={18} /> Add to Cart
                   </button>
                 </div>
               </div>
 
-              <p className="hidden lg:flex items-center justify-center gap-2 text-xs font-bold text-gray-400 mt-4 text-center">
-                <Info size={14} /> You won't be charged yet.
-              </p>
+              <div className="flex items-center justify-center gap-2 text-[13px] text-gray-500 mt-4 text-center">
+                You won't be charged yet
+              </div>
             </motion.div>
           </aside>
           
           {/* Mobile Fixed Booking Bar */}
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50 flex justify-between items-center pb-safe gap-3">
-            <div className="flex-1">
-              <span className="text-xl md:text-2xl font-black text-gray-900 block leading-none truncate">{vendor.pricePerPlate}</span>
-              <span className="text-[10px] font-bold text-gray-500 uppercase">{schema.pricingUnit.replace('/', 'Per')}</span>
+          <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-5 py-4 z-50 flex justify-between items-center pb-safe gap-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+            <div className="flex flex-col">
+              <span className="text-[18px] font-bold text-gray-900 leading-none mb-1">{vendor.pricePerPlate}</span>
+              <span className="text-[12px] text-gray-500 font-normal leading-none underline">{schema.pricingUnit}</span>
             </div>
             
             <button 
               onClick={() => setIsQuoteModalOpen(true)}
-              className="flex-[1.5] btn-liquid text-white py-3.5 rounded-xl font-black text-sm md:text-base shadow-lg active:scale-95 transition-transform text-center flex items-center justify-center gap-2"
+              className="flex-1 bg-[#E51D53] text-white py-3.5 rounded-xl font-bold text-[15px] active:scale-95 transition-transform text-center"
             >
-              <Icons.MessageSquare size={18} /> Get Quote
+              Request Quote
             </button>
           </div>
 

@@ -14,6 +14,7 @@ import LoginModal from './components/auth/LoginModal';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { HelmetProvider } from 'react-helmet-async';
 import DynamicSEO from './components/DynamicSEO';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const SearchPage = lazy(() => import('./pages/SearchPage'));
@@ -62,17 +63,19 @@ function AppContent() {
               <div className="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
             </div>
           }>
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/venues" element={<SearchPage />} />
-              <Route path="/vendors" element={<SearchPage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/vendor/:id" element={<VendorDetailsPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/terms" element={<TermsPage />} />
-              <Route path="/privacy" element={<PrivacyPage />} />
-              <Route path="*" element={<HomePage />} />
-            </Routes>
+            <ErrorBoundary>
+              <Routes location={location} key={location.pathname}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/venues" element={<SearchPage />} />
+                <Route path="/vendors" element={<SearchPage />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/vendor/:id" element={<VendorDetailsPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/terms" element={<TermsPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="*" element={<HomePage />} />
+              </Routes>
+            </ErrorBoundary>
           </Suspense>
         </AnimatePresence>
       </main>
