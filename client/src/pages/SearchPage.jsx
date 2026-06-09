@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { CATEGORIES } from '../data/mockData';
 import LiquidVendorCard from '../components/common/LiquidVendorCard';
 import FilterSidebar from '../components/search/FilterSidebar';
-import { SlidersHorizontal, ChevronRight, Home, ArrowUpDown } from 'lucide-react';
+import { MapPin, SlidersHorizontal, Search as SearchIcon, ArrowLeft, ChevronRight, Home, ArrowUpDown } from 'lucide-react';
+import { API_URL } from '../../config/api';
 import { useLocation, Link, useSearchParams } from 'react-router-dom';
 import CustomDropdown from '../components/ui/CustomDropdown';
 import * as Icons from 'lucide-react';
@@ -82,7 +83,7 @@ const SearchPage = () => {
         const inHousePhotography = searchParams.get('inHousePhotography') === 'true';
         const inHouseDecorations = searchParams.get('inHouseDecorations') === 'true';
 
-        let url = `https://gomandap-api.onrender.com/api/vendors?categories=${encodeURIComponent(targetCategories.join(','))}`;
+        let url = `${API_URL}/api/vendors?categories=${encodeURIComponent(targetCategories.join(','))}`;
         if (inHouseCatering)    url += `&inHouseCatering=true`;
         if (inHousePhotography) url += `&inHousePhotography=true`;
         if (inHouseDecorations) url += `&inHouseDecorations=true`;

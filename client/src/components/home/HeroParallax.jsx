@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence, m, LazyMotion, domAnimation, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Search, MapPin, Calendar, PartyPopper, X } from 'lucide-react';
+import { API_URL } from '../../../config/api';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { EVENT_TYPES } from '../../data/mockData';
@@ -41,7 +42,7 @@ const HeroParallax = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://gomandap-api.onrender.com'}/api/settings`);
+        const res = await fetch(`${API_URL}/api/settings`);
         const data = await res.json();
         if (data.success && data.data?.clientUI) {
           setClientUI(data.data.clientUI);

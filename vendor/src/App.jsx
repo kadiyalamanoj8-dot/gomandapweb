@@ -63,10 +63,12 @@ function AppContent() {
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
+import { GOOGLE_CLIENT_ID } from './config/api';
+
 function App() {
   return (
     <HelmetProvider>
-      <GoogleOAuthProvider clientId="525881024479-s9c7umr8e5r5mrtqdld53o6o1mvar4l0.apps.googleusercontent.com">
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
         <Router>
           <SettingsProvider>
             <VendorProvider>

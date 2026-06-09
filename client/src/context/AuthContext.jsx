@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://gomandap-api.onrender.com';
+import { API_URL } from '../config/api';
 
 export const useAuth = () => useContext(AuthContext);
 

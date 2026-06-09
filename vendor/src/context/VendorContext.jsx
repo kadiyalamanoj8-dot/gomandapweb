@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 
+import { API_URL } from '../config/api';
+
 const VendorContext = createContext();
 
 export const useVendor = () => useContext(VendorContext);
@@ -19,7 +21,7 @@ export const VendorProvider = ({ children }) => {
   // Sync with backend on mount
   useEffect(() => {
     if (vendorProfile?._id) {
-        fetch(`https://gomandap-api.onrender.com/api/vendors/${vendorProfile._id}`)
+        fetch(`${API_URL}/api/vendors/${vendorProfile._id}`)
           .then(res => res.json())
           .then(data => {
             if (data.success) {
@@ -37,7 +39,7 @@ export const VendorProvider = ({ children }) => {
     try {
       const decoded = jwtDecode(googleToken);
       
-      const res = await fetch('https://gomandap-api.onrender.com/api/vendors/auth/google', {
+      const res = await fetch(`${API_URL}/api/vendors/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -53,7 +55,7 @@ export const VendorProvider = ({ children }) => {
         if (data.action === 'dashboard' || data.action === 'resume') {
           localStorage.setItem('gomandap_vendor_token', data.token);
           // Fetch the vendor profile using the ID
-          const profileRes = await fetch(`https://gomandap-api.onrender.com/api/vendors/${data.vendorId}`);
+          const profileRes = await fetch(`${API_URL}/api/vendors/${data.vendorId}`);
           const profileData = await profileRes.json();
           if (profileData.success) {
             setVendorProfile(profileData.data);
@@ -72,7 +74,7 @@ export const VendorProvider = ({ children }) => {
 
   const submitOnboarding = async (formData) => {
     try {
-      const response = await fetch('https://gomandap-api.onrender.com/api/vendors/onboard', {
+      const response = await fetch(`${API_URL}/api/vendors/onboard`, {
         method: 'POST',
         body: formData, 
       });
@@ -95,8 +97,8 @@ export const VendorProvider = ({ children }) => {
   const saveDraft = async (formData, vendorId = null) => {
     try {
       const url = vendorId 
-        ? `https://gomandap-api.onrender.com/api/vendors/draft/${vendorId}` 
-        : 'https://gomandap-api.onrender.com/api/vendors/draft';
+        ? `${API_URL}/api/vendors/draft/${vendorId}` 
+        : `${API_URL}/api/vendors/draft`;
       const method = vendorId ? 'PATCH' : 'POST';
 
       const response = await fetch(url, {

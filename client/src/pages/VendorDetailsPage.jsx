@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { FEATURED_VENDORS } from '../data/mockData';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { getCategorySchema } from '../config/categorySchemas';
+import { API_URL } from '../config/api';
 import { Star, MapPin, Heart, Share2, CheckCircle2, ChevronLeft, Info, ShoppingCart } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import * as Icons from 'lucide-react';
 import CustomDropdown from '../components/ui/CustomDropdown';
@@ -51,7 +51,7 @@ const VendorDetailsPage = () => {
     // 2. Otherwise, fetch from backend API
     const fetchVendorDetails = async () => {
       try {
-        const res = await fetch(`https://gomandap-api.onrender.com/api/vendors/${id}`);
+        const res = await fetch(`${API_URL}/api/vendors/${id}`);
         const data = await res.json();
         
         if (data.success) {
@@ -124,7 +124,7 @@ const VendorDetailsPage = () => {
         eventType: formData.eventType || formData.serviceType || formData.designType || ''
       };
       
-      const res = await fetch('https://gomandap-api.onrender.com/api/inquiries', {
+      const res = await fetch(`${API_URL}/api/inquiries`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

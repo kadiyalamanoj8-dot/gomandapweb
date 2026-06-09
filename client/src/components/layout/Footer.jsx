@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Share2, MessageCircle, AtSign, Globe, Link as LinkIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { API_URL } from '../../../config/api';
 
 const Footer = () => {
   const { t } = useTranslation();
@@ -46,7 +47,7 @@ const Footer = () => {
   useEffect(() => {
     const fetchFooter = async () => {
       try {
-        const res = await axios.get('https://gomandap-api.onrender.com/api/content');
+        const res = await axios.get(`${API_URL}/api/content`);
         if (res.data && res.data.clientFooter && Object.keys(res.data.clientFooter).length > 0) {
           setFooterData(prev => ({ ...prev, ...res.data.clientFooter }));
         }
