@@ -3,7 +3,7 @@ const router = express.Router();
 // Engines
 const { scrapeGooglePlaces, setDeps: setPlacesDeps } = require('../scrapers/engine-google-places');
 const { scrapeDuckDuckGoDork, setLogger: setDorkLogger } = require('../scrapers/engine-social-dork');
-const { scrapeJustDial, setDeps: setJustDialDeps } = require('../scrapers/engine-justdial');
+
 const { getKeywordSynonyms } = require('../utils/aiParser');
 
 // Safe execute wrapper
@@ -28,7 +28,7 @@ function setDeps(deps) {
   globalAbortSignal = deps.abortSignal;
   if (setPlacesDeps) setPlacesDeps(deps);
   if (setDorkLogger) setDorkLogger(deps.logger);
-  if (setJustDialDeps) setJustDialDeps(deps);
+
 }
 
 const activeCronJobs = {};
@@ -124,9 +124,7 @@ router.post('/omni', async (req, res) => {
       }
     }
     
-    if (activeEngines.includes('justdial')) {
-      await safeExecute(() => scrapeJustDial(matchedCategory, queryLocation), 'Justdial', addLog);
-    }
+
   })();
 });
 
@@ -214,9 +212,7 @@ async function runBatchQueue() {
           }
         }
         
-        if (engines.includes('justdial')) {
-          await safeExecute(() => scrapeJustDial(task.category, task.location), 'Justdial', addLog);
-        }
+
       } catch (e) {
       addLog(`[Batch Queue] Error processing ${q}: ${e.message}`);
     }
