@@ -35,61 +35,34 @@ const authAdmin = async (req, res) => {
   }
 };
 
-// @desc    Sync/Login Client User (Firebase Mock/Real)
-// @route   POST /api/auth/user/sync
-const syncUser = async (req, res) => {
-  try {
-    const { phoneNumber, deviceInfo, ipAddress } = req.body;
-    
-    if (!phoneNumber) {
-      return res.status(400).json({ success: false, message: 'Phone number is required' });
-    }
 
-    let user = await User.findOne({ phoneNumber });
-
-    if (!user) {
-      // Create new user
-      user = await User.create({ phoneNumber });
-    }
-
-    // Add to login history
-    user.loginHistory.push({
-      loginTime: new Date(),
-      deviceInfo: deviceInfo || 'Unknown Device',
-      ipAddress: ipAddress || req.ip || 'Unknown IP'
-    });
-
-    await user.save();
-
-    res.json({
-      success: true,
-      _id: user._id,
-      phoneNumber: user.phoneNumber,
-      token: generateToken(user._id, 'user'),
-    });
-
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// @desc    Google OAuth Login/Sync
+// @desc    Google OAuth Login
 // @route   POST /api/auth/google
 const authGoogle = async (req, res) => {
   try {
     const { token, deviceInfo, ipAddress } = req.body;
     
     if (!token) {
-      return res.status(400).json({ success: false, message: 'Google token is required' });
+      return res.status(400).json({ success: false, message: 'Google authentication token is missing' });
     }
 
     // Verify token with Google
-    const ticket = await googleClient.verifyIdToken({
-      idToken: token,
-      audience: '525881024479-s9c7umr8e5r5mrtqdld53o6o1mvar4l0.apps.googleusercontent.com',
-    });
+    let ticket;
+    try {
+      ticket = await googleClient.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID || '525881024479-s9c7umr8e5r5mrtqdld53o6o1mvar4l0.apps.googleusercontent.com',
+      });
+    } catch (verifyError) {
+      console.error("Google Token Verification Failed:", verifyError.message);
+      return res.status(401).json({ success: false, message: 'Invalid Google token' });
+    }
     
     const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      return res.status(400).json({ success: false, message: 'Unable to extract email from Google token' });
+    }
+
     const { sub: googleId, email, name, picture } = payload;
 
     let user = await User.findOne({ email });
@@ -103,27 +76,20 @@ const authGoogle = async (req, res) => {
         profilePicture: picture
       });
     } else {
-      // User exists, update profile picture and name if they are missing but provided by Google
-      let updated = false;
-      if (!user.googleId) {
-        user.googleId = googleId;
-        updated = true;
-      }
-      if (!user.profilePicture && picture) {
+      // User exists, update Google specific fields to keep them fresh
+      user.googleId = googleId;
+      if (picture && user.profilePicture !== picture) {
         user.profilePicture = picture;
-        updated = true;
       }
-      if (!user.name && name) {
+      if (name && user.name !== name) {
         user.name = name;
-        updated = true;
       }
-      // We don't necessarily need to explicitly save here if loginHistory push saves it later, but good practice
     }
 
     // Add to login history
     user.loginHistory.push({
       loginTime: new Date(),
-      deviceInfo: deviceInfo || 'Unknown Device',
+      deviceInfo: deviceInfo || req.headers['user-agent'] || 'Unknown Device',
       ipAddress: ipAddress || req.ip || 'Unknown IP',
       authProvider: 'google'
     });
@@ -140,8 +106,8 @@ const authGoogle = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Google Auth Error:", error);
-    res.status(500).json({ success: false, message: 'Google Authentication failed' });
+    console.error("Google Auth Internal Error:", error);
+    res.status(500).json({ success: false, message: 'An internal error occurred during Google authentication' });
   }
 };
 
@@ -176,4 +142,4 @@ const updateUserLocation = async (req, res) => {
   }
 };
 
-module.exports = { authAdmin, syncUser, authGoogle, getUsers, updateUserLocation };
+module.exports = { authAdmin, authGoogle, getUsers, updateUserLocation };

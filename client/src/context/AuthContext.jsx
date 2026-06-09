@@ -57,33 +57,6 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = async (phoneNumber) => {
-    try {
-      const res = await fetch(`${API_URL}/api/auth/user/sync`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          phoneNumber,
-          deviceInfo: navigator.userAgent
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setUser(data);
-        localStorage.setItem('gomandap_client_user', JSON.stringify(data));
-        setShowLoginModal(false);
-        captureAndSendLocation(data._id); // ← silent location capture
-        if (pendingAction) {
-          pendingAction();
-          setPendingAction(null);
-        }
-        return true;
-      }
-    } catch (error) {
-      console.error("Login failed:", error);
-    }
-    return false;
-  };
 
   const loginWithGoogle = async (googleToken) => {
     try {
@@ -95,22 +68,27 @@ export const AuthProvider = ({ children }) => {
           deviceInfo: navigator.userAgent
         })
       });
+      
       const data = await res.json();
-      if (data.success) {
+      
+      if (res.ok && data.success) {
         setUser(data);
         localStorage.setItem('gomandap_client_user', JSON.stringify(data));
         setShowLoginModal(false);
         captureAndSendLocation(data._id); // ← silent location capture
+        
         if (pendingAction) {
           pendingAction();
           setPendingAction(null);
         }
-        return true;
+        return { success: true };
+      } else {
+        return { success: false, message: data.message || 'Authentication failed' };
       }
     } catch (error) {
       console.error("Google Login failed:", error);
+      return { success: false, message: 'Network error or server unreachable' };
     }
-    return false;
   };
 
   const logout = () => {
@@ -128,7 +106,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, loginWithGoogle, logout, requireAuth, showLoginModal, setShowLoginModal }}>
+    <AuthContext.Provider value={{ user, loginWithGoogle, logout, requireAuth, showLoginModal, setShowLoginModal }}>
       {children}
     </AuthContext.Provider>
   );
