@@ -20,6 +20,16 @@ app.get('/', (req, res) => {
   res.send('Gomandap API is running...');
 });
 
+// Proxy Scraper Requests to local scraper process
+const { createProxyMiddleware } = require('http-proxy-middleware');
+app.use('/api/scraper-app', createProxyMiddleware({
+  target: 'http://127.0.0.1:5002',
+  changeOrigin: true,
+  pathRewrite: {
+    '^/api/scraper-app': '/api'
+  }
+}));
+
 // Import Routes
 const vendorRoutes = require('./routes/vendorRoutes');
 app.use('/api/vendors', vendorRoutes);

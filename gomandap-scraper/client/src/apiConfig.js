@@ -1,5 +1,5 @@
 const LOCAL_API_URL = 'http://localhost:5002/api';
-const PRODUCTION_API_URL = 'https://gomandap-api.onrender.com/api';
+const PRODUCTION_API_URL = 'https://gomandap-api.onrender.com/api/scraper-app';
 
 const isLocalHost =
   typeof window !== 'undefined' &&
