@@ -27,6 +27,14 @@ app.use('/api/scraper-app', createProxyMiddleware({
   changeOrigin: true,
   pathRewrite: {
     '^/api/scraper-app': '/api'
+  },
+  on: {
+    error: (err, req, res) => {
+      console.error('[Proxy Error] Failed to connect to Scraper Server:', err.message);
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Scraper Server is offline or unreachable', details: err.message }));
+    }
   }
 }));
 
