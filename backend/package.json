@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "concurrently \"node server.js\" \"cd ../gomandap-scraper/server && node index.js\"",
-    "postinstall": "cd ../gomandap-scraper/server && npm install && npx playwright install chromium firefox",
+    "postinstall": "cd ../gomandap-scraper/server && PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install && npx playwright install chromium",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
