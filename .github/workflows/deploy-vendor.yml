@@ -13,28 +13,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          
-      - name: Install Client Dependencies (Shared Components)
-        run: npm install
-        working-directory: ./client
 
       - name: Install Dependencies
         run: npm install
         working-directory: ./vendor
-        
+
       - name: Build Vendor
         run: npm run build
         working-directory: ./vendor
         env:
           VITE_OLA_MAPS_API_KEY: ${{ secrets.VITE_OLA_MAPS_API_KEY }}
-        
+
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
-        
+
       - name: Deploy to Firebase
         run: firebase deploy --only hosting:vendor --token ${{ secrets.FIREBASE_TOKEN }}
