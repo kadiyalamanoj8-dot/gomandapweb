@@ -95,8 +95,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
-// Use Render's assigned PORT, fallback to 5002 for local dev
-const PORT = process.env.PORT || 5002;
+// Use Render's assigned PORT in production, force 5002 for local dev to avoid clashing with main backend
+const PORT = process.env.RENDER ? process.env.PORT : 5002;
 app.listen(PORT, () => {
   console.log(`🚀 Gomandap Omni Scraper backend running on port ${PORT}`);
 });
