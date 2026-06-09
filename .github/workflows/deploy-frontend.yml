@@ -1,0 +1,63 @@
+name: Deploy Gomandap Frontends
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'client/**'
+      - 'vendor/**'
+      - 'admin/**'
+      - 'firebase.json'
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Build Client
+      - name: Install Client Dependencies
+        run: npm ci
+        working-directory: ./client
+
+      - name: Build Client
+        run: npm run build
+        working-directory: ./client
+        env:
+          VITE_OLA_MAPS_API_KEY: ${{ secrets.VITE_OLA_MAPS_API_KEY }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+      # Build Vendor
+      - name: Install Vendor Dependencies
+        run: npm ci
+        working-directory: ./vendor
+
+      - name: Build Vendor
+        run: npm run build
+        working-directory: ./vendor
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+      # Build Admin
+      - name: Install Admin Dependencies
+        run: npm ci
+        working-directory: ./admin
+
+      - name: Build Admin
+        run: npm run build
+        working-directory: ./admin
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+      # Deploy all frontend hosting targets
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Deploy to Firebase Hosting
+        run: firebase deploy --only hosting --token ${{ secrets.FIREBASE_TOKEN }}

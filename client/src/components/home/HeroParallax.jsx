@@ -146,8 +146,15 @@ const HeroParallax = () => {
   useEffect(() => {
     if (!isHeroVisible) return;
     const handleMouseMove = (e) => {
-      // Disabled desktop mouse parallax as requested
-      return;
+      if (rAF) cancelAnimationFrame(rAF);
+      rAF = requestAnimationFrame(() => {
+        // Normalize mouse coordinates to [-1, 1] relative to center
+        const x = (e.clientX / window.innerWidth) * 2 - 1;
+        const y = (e.clientY / window.innerHeight) * 2 - 1;
+        const desktopScale = isMobile ? 0 : 1;
+        mouseX.set(x * desktopScale);
+        mouseY.set(y * desktopScale);
+      });
     };
 
     let rAF;
@@ -300,7 +307,7 @@ const HeroParallax = () => {
         </div>
 
         {/* Mobile UI: Compact Bottom Pill (Airbnb Style) */}
-        <div className="md:hidden absolute bottom-[15%] w-full z-[200] px-4 pointer-events-auto">
+        <div className="md:hidden absolute bottom-[90px] w-full z-[200] px-4 pointer-events-auto">
           <button 
             onClick={() => setIsMobileSearchOpen(true)}
             className="w-full bg-white/10 backdrop-blur-3xl shadow-[inset_0_2px_15px_rgba(255,255,255,0.3),0_20px_50px_rgba(0,0,0,0.7)] border border-white/20 border-t-white/40 rounded-[32px] py-4 px-6 flex items-center justify-between text-white active:scale-95 transition-transform"
