@@ -9,6 +9,7 @@ const Fuse = require('fuse.js');
 const MiniSearch = require('minisearch');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
+const { HttpsProxyAgent } = require('https-proxy-agent');
 
 // Load .env — try the backend shared .env first (local), then process.env (Render)
 const backendEnvPath = path.join(__dirname, '../../backend/.env');
@@ -45,7 +46,11 @@ app.use(express.json());
 app.get('/api/health', (req, res) => res.json({ status: 'ok', service: 'gomandap-scraper' }));
 app.get('/', (req, res) => res.json({ status: 'ok', message: 'Gomandap Scraper API is running.' }));
 
-const PORT = process.env.PORT || 5002;
+const PORT = process.env.SCRAPER_PORT || (process.env.RENDER ? process.env.PORT : 5002);
+
+function buildScrapeQuery(category, location) {
+  return `${category || ''} in ${location || ''}`.trim();
+}
 
 // Playwright: Only load if not in production or if ENABLE_PLAYWRIGHT env is set
 const PLAYWRIGHT_ENABLED = process.env.ENABLE_PLAYWRIGHT === 'true' || process.env.NODE_ENV !== 'production';
@@ -145,6 +150,20 @@ let batchQueue = [];
 let isBatchRunning = false;
 let batchProgress = { total: 0, completed: 0, currentTask: '', isActive: false };
 
+// Global Abort Signal & Kill Switch
+let globalAbortSignal = false;
+let activeBrowsers = [];
+
+// System Logs for Activity Dashboard
+let systemLogs = [];
+function addLog(msg) {
+  console.log(msg);
+  systemLogs.push(msg);
+  if (systemLogs.length > 50) systemLogs.shift();
+}
+
+app.get('/api/logs', (req, res) => res.json(systemLogs));
+
 // NLP & Spelling Correction Setup
 const categoryFuse = new Fuse(CATEGORIES, { includeScore: true, threshold: 0.6 });
 
@@ -187,6 +206,99 @@ app.get('/api/knowledge', (req, res) => {
     categories: CATEGORIES,
     locations: getFlatLocations()
   });
+});
+
+// Open-Source Proxy Rotator Setup
+let proxyList = [];
+
+async function fetchProxies() {
+  try {
+    console.log('[Proxy Rotator] Fetching fresh open-source proxies from GitHub (TheSpeedX)...');
+    const res = await axios.get('https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt');
+    const lines = res.data.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    proxyList = lines.map(ipPort => `http://${ipPort}`);
+    console.log(`[Proxy Rotator] Loaded ${proxyList.length} proxies.`);
+  } catch (error) {
+    console.error('[Proxy Rotator] Failed to fetch proxies:', error.message);
+  }
+}
+
+// Fetch proxies on startup and every hour
+fetchProxies();
+setInterval(fetchProxies, 60 * 60 * 1000);
+
+// Proxy Rotator Helper for Axios
+async function axiosWithProxy(url, options = {}, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    // 80% chance to use proxy if available, to distribute load but keep some direct
+    const useProxy = proxyList.length > 0 && Math.random() > 0.2; 
+    let httpsAgent = null;
+    let selectedProxy = null;
+
+    if (useProxy) {
+      selectedProxy = proxyList[Math.floor(Math.random() * proxyList.length)];
+      httpsAgent = new HttpsProxyAgent(selectedProxy);
+    }
+
+    try {
+      const response = await axios.get(url, {
+        ...options,
+        httpsAgent: httpsAgent,
+        proxy: false // Tell axios not to use its default proxy behavior
+      });
+      return response;
+    } catch (error) {
+      console.warn(`[Proxy Rotator] Proxy ${selectedProxy || 'Direct'} failed (${i+1}/${retries}). Retrying...`);
+    }
+  }
+  
+  // Final fallback directly without proxy
+  console.log(`[Proxy Rotator] All proxies failed for ${url}. Falling back to direct connection.`);
+  return axios.get(url, { ...options, httpsAgent: null, proxy: false });
+}
+
+// Helper to generate a random IP address
+function getRandomIP() {
+  return `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+}
+
+// API: Dynamic Global Location Search (Nominatim Proxy with IP Spoofing & Open-Source Proxy Rotation)
+app.get('/api/location/search', async (req, res) => {
+  const query = req.query.q;
+  if (!query) return res.json([]);
+
+  try {
+    const fakeIP = getRandomIP();
+    // Using axiosWithProxy instead of raw axios!
+    const response = await axiosWithProxy(`https://nominatim.openstreetmap.org/search`, {
+      params: {
+        q: query,
+        format: 'json',
+        addressdetails: 1,
+        limit: 5,
+        countrycodes: 'in' // Restrict to India to keep it relevant, remove this param for truly global
+      },
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'X-Forwarded-For': fakeIP,
+        'X-Real-IP': fakeIP
+      },
+      timeout: 5000 // Keep timeout strict since proxies can hang
+    });
+
+    const parsedLocations = response.data.map(item => ({
+      name: item.name,
+      display: item.display_name,
+      type: item.type,
+      lat: item.lat,
+      lon: item.lon
+    })).filter(loc => loc.name);
+
+    res.json(parsedLocations);
+  } catch (error) {
+    console.error('Nominatim Proxy Error:', error.message);
+    res.json([]);
+  }
 });
 
 // Big Data Analytics: Lead Quality Scoring Algorithm
@@ -385,15 +497,18 @@ app.post('/api/scrape', (req, res) => {
   else if (engine === 'weddingbazaar') scrapeWeddingBazaar(category, queryLocation).catch(console.error);
   else if (engine === 'weddingwire') scrapeWeddingWire(category, queryLocation).catch(console.error);
   else if (engine === 'mandap') scrapeMandap(category, queryLocation).catch(console.error);
-  else if (engine === 'google') scrapeGooglePlaces(category, queryLocation).catch(console.error);
-  else if (engine === 'ola') scrapeGooglePlaces(category, queryLocation).catch(console.error); // Fallback to Google if Ola not ready
+  else if (engine === 'google') scrapeGooglePlaces(buildScrapeQuery(category, queryLocation), category, queryLocation).catch(console.error);
+  else if (engine === 'ola') scrapeGooglePlaces(buildScrapeQuery(category, queryLocation), category, queryLocation).catch(console.error); // Fallback to Google if Ola not ready
   else console.log("Engine not implemented.");
 });
 
 // API: Omni-Search Scrape (Advanced NLP)
 app.post('/api/scrape/omni', async (req, res) => {
-  const { query, engine = 'google' } = req.body;
+  const { query, engine = 'google', enabledEngines = ['maps', 'instagram', 'facebook', 'youtube', 'pinterest', 'linkedin'] } = req.body;
   if (!query) return res.status(400).json({ error: 'Search query required' });
+
+  // Reset abort signal
+  globalAbortSignal = false;
 
   // Extract category and location using split points
   const splitKeywords = [' in ', ' at ', ' near ', ' around ', ' for '];
@@ -410,20 +525,41 @@ app.post('/api/scrape/omni', async (req, res) => {
     }
   }
 
-  // --- Deep Misspelling Correction (NLP) ---
-  const standardCategories = [
-    "Mechanics", "Venues", "Photographers", "Caterers", "Decorators", "Makeup Artists", 
-    "Bridal Wear", "Groom Wear", "Mehendi Artists", "Choreographers", "Pandits", 
-    "Invitations", "Favors", "Planners", "Transport", "Jewellery"
-  ];
+  // --- Deep Misspelling Correction & AI Synonym Engine ---
+  const synonymDictionary = {
+    "Venues": ["Banquet Halls", "Function Halls", "Kalyana Mandapam", "Convention Centers", "Marriage Halls", "Party Halls", "Resorts for Wedding"],
+    "Photographers": ["Wedding Photographers", "Candid Photographers", "Videographers", "Pre-wedding Shoot", "Drone Photography", "Photo Studios"],
+    "Decorators": ["Wedding Decorators", "Event Planners", "Tent House", "Floral Decorators", "Stage Decorators"],
+    "Makeup Artists": ["Bridal Makeup", "Bridal Parlour", "Beauticians", "Hair Stylists for Wedding", "Wedding Makeup Artists"],
+    "Bridal Wear": ["Wedding Sarees", "Bridal Lehengas", "Bridal Boutiques", "Wedding Dresses"],
+    "Groom Wear": ["Men's Wedding Wear", "Sherwanis", "Tailors for Men Wedding"],
+    "Caterers": ["Wedding Caterers", "Food Caterers", "Veg Caterers", "Non-Veg Caterers"],
+    "Mehendi Artists": ["Bridal Mehendi", "Henna Artists"],
+    "Choreographers": ["Wedding Sangeet Choreographers", "Dance Classes for Wedding"],
+    "Pandits": ["Wedding Priests", "Purohits for Marriage", "Telugu Pandits"],
+    "Invitations": ["Wedding Card Printers", "Digital Invitations", "Wedding Invites"],
+    "Favors": ["Wedding Return Gifts", "Wedding Favors"],
+    "Planners": ["Wedding Planners", "Event Organizers", "Destination Wedding Planners"],
+    "Transport": ["Wedding Car Rentals", "Buses for Wedding Guests"],
+    "Jewellery": ["Wedding Jewellery", "Bridal Ornaments", "Gold Shops", "Diamond Merchants"],
+    "Mechanics": ["Car Mechanics", "Bike Mechanics"]
+  };
+  const standardCategories = Object.keys(synonymDictionary);
+  
+  // Build a reverse lookup to map "banquet halls" -> "Venues"
+  let reverseDictionary = [];
+  for (const [root, syns] of Object.entries(synonymDictionary)) {
+    reverseDictionary.push({ term: root, root });
+    syns.forEach(s => reverseDictionary.push({ term: s, root }));
+  }
   
   let matchedCategory = rawCategory;
   if (rawCategory) {
-    const categoryFuse = new Fuse(standardCategories, { includeScore: true, threshold: 0.4 });
+    const categoryFuse = new Fuse(reverseDictionary, { keys: ['term'], includeScore: true, threshold: 0.4 });
     const result = categoryFuse.search(rawCategory);
     if (result.length > 0) {
-      console.log(`[NLP Engine] Auto-corrected Category: "${rawCategory}" -> "${result[0].item}" (Score: ${result[0].score})`);
-      matchedCategory = result[0].item;
+      console.log(`[NLP Engine] Auto-corrected Category: "${rawCategory}" -> "${result[0].item.root}" (Score: ${result[0].score})`);
+      matchedCategory = result[0].item.root;
     }
   }
 
@@ -446,6 +582,57 @@ app.post('/api/scrape/omni', async (req, res) => {
   }
 
   const correctedQuery = `${matchedCategory} in ${queryLocation}`;
+
+  // --- AI Synonym Expansion ---
+  let synonymsToQueue = [];
+  if (synonymDictionary[matchedCategory]) {
+    // Exact match in our hardcoded Indian wedding dictionary
+    synonymsToQueue = synonymDictionary[matchedCategory].filter(s => s.toLowerCase() !== rawCategory.toLowerCase());
+  } else {
+    // Dynamic NLP Fallback: It's an unknown category (like "Ice cream vendors")
+    // Fetch semantic meaning from Datamuse NLP API
+    try {
+      addLog(`[AI Engine] Unknown category '${matchedCategory}'. Fetching dynamic semantics from NLP API...`);
+      const mlResponse = await axios.get(`https://api.datamuse.com/words?ml=${encodeURIComponent(matchedCategory)}&max=5`);
+      if (mlResponse.data && mlResponse.data.length > 0) {
+        synonymsToQueue = mlResponse.data.map(d => d.word);
+        addLog(`[AI Engine] NLP API returned semantic matches: ${synonymsToQueue.join(', ')}`);
+      }
+    } catch (err) {
+      console.error("[AI Engine] Failed to fetch dynamic synonyms:", err.message);
+    }
+  }
+
+  // --- Queue logic for AI Validation ---
+  let aiKeywords = [matchedCategory];
+  if (synonymDictionary[matchedCategory]) {
+    aiKeywords = [...aiKeywords, ...synonymDictionary[matchedCategory]];
+  } else {
+    aiKeywords = [...aiKeywords, ...synonymsToQueue];
+  }
+
+  // Queue synonyms into the background batch processing system
+  if (synonymsToQueue.length > 0) {
+    addLog(`[AI Engine] Expanding search... Queueing ${synonymsToQueue.length} synonyms for ${matchedCategory} into background tasks.`);
+    for (const syn of synonymsToQueue) {
+      batchQueue.push({ 
+        category: syn, 
+        mandal: queryLocation, 
+        district: 'Unknown', 
+        engine, 
+        isSynonym: true, 
+        parentCategory: matchedCategory,
+        aiKeywords, // Attach for HTML validation
+        enabledEngines
+      });
+    }
+    batchProgress.total += synonymsToQueue.length;
+    batchProgress.isActive = true;
+
+    if (!isBatchRunning) {
+      runBatchQueue();
+    }
+  }
 
   // --- Opt-In Radius Expansion (Using internal regions) ---
   const numericRadius = parseInt(req.body.radius) || 0;
@@ -508,7 +695,7 @@ app.post('/api/scrape/omni', async (req, res) => {
     const timer = setInterval(() => {
       console.log(`[CRON] Executing scheduled background scrape for: ${jobKey}`);
       if (engine === 'google' || engine === 'ola') {
-        scrapeGooglePlaces(matchedCategory, queryLocation).catch(console.error);
+        scrapeGooglePlaces(correctedQuery, matchedCategory, queryLocation).catch(console.error);
       }
     }, intervalMs);
 
@@ -525,14 +712,24 @@ app.post('/api/scrape/omni', async (req, res) => {
   else if (engine === 'weddingbazaar') scrapeWeddingBazaar(matchedCategory, queryLocation).catch(console.error);
   else if (engine === 'weddingwire') scrapeWeddingWire(matchedCategory, queryLocation).catch(console.error);
   else if (engine === 'mandap') scrapeMandap(matchedCategory, queryLocation).catch(console.error);
-  else if (engine === 'google') scrapeGooglePlaces(matchedCategory, queryLocation).catch(console.error);
-  else if (engine === 'ola') scrapeGooglePlaces(matchedCategory, queryLocation).catch(console.error); // Ola Fallback
+  else if (engine === 'google' || engine === 'ola') {
+    // Use the EXACT string they typed for the initial direct scrape
+    if (enabledEngines.includes('maps')) scrapeGooglePlaces(query, matchedCategory, queryLocation).catch(console.error);
+    if (enabledEngines.includes('instagram')) scrapeGoogleDork('instagram.com', query, matchedCategory, queryLocation).catch(console.error);
+    if (enabledEngines.includes('facebook')) scrapeGoogleDork('facebook.com', query, matchedCategory, queryLocation).catch(console.error);
+    if (enabledEngines.includes('pinterest')) scrapeGoogleDork('pinterest.com', query, matchedCategory, queryLocation).catch(console.error);
+    if (enabledEngines.includes('youtube')) scrapeGoogleDork('youtube.com', query, matchedCategory, queryLocation).catch(console.error);
+    if (enabledEngines.includes('linkedin')) scrapeGoogleDork('linkedin.com', query, matchedCategory, queryLocation).catch(console.error);
+  }
 });
 
 // API: Batch Auto-Pilot Scrape
 app.post('/api/scrape/batch', (req, res) => {
-  const { district, category: targetCategory, mandal: targetMandal, engine } = req.body;
+  const { district, category: targetCategory, mandal: targetMandal, engine, enabledEngines = ['maps', 'instagram', 'facebook', 'youtube', 'pinterest', 'linkedin'] } = req.body;
   if (!district || !engine) return res.status(400).json({ error: 'District and engine required' });
+
+  // Reset abort signal
+  globalAbortSignal = false;
 
   const regions = getRegions();
   let mandals = regions[district] || [];
@@ -553,7 +750,7 @@ app.post('/api/scrape/batch', (req, res) => {
   
   for (const category of categoriesToRun) {
     for (const mandal of mandals) {
-      batchQueue.push({ category, mandal, district, engine });
+      batchQueue.push({ category, mandal, district, engine, enabledEngines });
     }
   }
 
@@ -611,7 +808,16 @@ async function runBatchQueue() {
         } else if (task.engine === 'mandap') {
           await scrapeMandap(task.category, queryLocation);
         } else if (task.engine === 'google') {
-          await scrapeGooglePlaces(task.category, queryLocation);
+          const exactTaskQuery = `${task.category} in ${queryLocation}`;
+          const dbCategory = task.isSynonym ? task.parentCategory : task.category;
+          const engines = task.enabledEngines || ['maps', 'instagram', 'facebook', 'youtube', 'pinterest', 'linkedin'];
+          
+          if (engines.includes('maps')) await scrapeGooglePlaces(exactTaskQuery, dbCategory, queryLocation, task.aiKeywords);
+          if (engines.includes('instagram')) await scrapeGoogleDork('instagram.com', exactTaskQuery, dbCategory, queryLocation, task.aiKeywords);
+          if (engines.includes('facebook')) await scrapeGoogleDork('facebook.com', exactTaskQuery, dbCategory, queryLocation, task.aiKeywords);
+          if (engines.includes('pinterest')) await scrapeGoogleDork('pinterest.com', exactTaskQuery, dbCategory, queryLocation, task.aiKeywords);
+          if (engines.includes('youtube')) await scrapeGoogleDork('youtube.com', exactTaskQuery, dbCategory, queryLocation, task.aiKeywords);
+          if (engines.includes('linkedin')) await scrapeGoogleDork('linkedin.com', exactTaskQuery, dbCategory, queryLocation, task.aiKeywords);
         }
       } catch (err) {
         console.error(`Batch Task Failed: ${task.category} in ${queryLocation}`, err);
@@ -632,22 +838,69 @@ async function runBatchQueue() {
   batchProgress.currentTask = 'Completed';
 }
 
-// Global Browser Instance for Ultra-Fast Scraping
+// ========================================================
+// ADVANCED ANTI-DETECTION: Centralized Stealth Browser Factory
+// Wires: Stealth Plugin + Proxy Rotation + Random UA + Indian Locale/TZ
+// ========================================================
+const STEALTH_USER_AGENTS = [
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0',
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0',
+];
+
+async function launchStealthBrowser(useProxy = true) {
+  if (!chromium) throw new Error('Playwright not available on this server.');
+
+  const userAgent = STEALTH_USER_AGENTS[Math.floor(Math.random() * STEALTH_USER_AGENTS.length)];
+  const fakeIP = getRandomIP();
+
+  // Pick a working proxy from the list (if available)
+  let proxyConfig = undefined;
+  if (useProxy && proxyList.length > 0) {
+    const rawProxy = proxyList[Math.floor(Math.random() * proxyList.length)];
+    try {
+      const u = new URL(rawProxy);
+      proxyConfig = { server: rawProxy };
+    } catch(e) {}
+  }
+
+  const launchArgs = [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-http2',
+    '--disable-blink-features=AutomationControlled', // Hides Headless flag
+    '--disable-infobars',
+    `--user-agent=${userAgent}`,
+  ];
+
+  const browser = await chromium.launch({
+    headless: true,
+    args: launchArgs,
+    ...(proxyConfig ? { proxy: proxyConfig } : {})
+  });
+
+  return { browser, userAgent, fakeIP };
+}
+
+// Global Browser Instance for Ultra-Fast Maps Scraping
 let globalBrowser = null;
 
 async function getBrowser() {
-  if (!chromium) throw new Error('Playwright not available on this server.');
   if (!globalBrowser || !globalBrowser.isConnected()) {
-    globalBrowser = await chromium.launch({ headless: true, args: ['--disable-http2', '--no-sandbox', '--disable-setuid-sandbox'] });
+    const { browser } = await launchStealthBrowser(false); // Maps uses direct for speed
+    globalBrowser = browser;
   }
   return globalBrowser;
 }
 
-async function scrapeWebsiteForSocials(browser, url) {
-  if (!url || !url.startsWith('http')) return { email: '', instagram: '', facebook: '' };
+async function scrapeWebsiteForSocials(browser, url, vendorName) {
+  if (!url || !url.startsWith('http')) return { email: '', instagram: '', facebook: '', phone: '', instagramFollowers: '', facebookFollowers: '' };
   
   try {
-    // Ultra-Fast Open Source Deep Scraping using Axios & Cheerio (No headless browser needed)
+    addLog(`[Deep Scrape] Investigating website for ${vendorName || 'vendor'}...`);
     const response = await axios.get(url, { 
       timeout: 8000,
       headers: {
@@ -660,13 +913,14 @@ async function scrapeWebsiteForSocials(browser, url) {
     const html = response.data;
     const $ = cheerio.load(html);
     
-    // Find Emails (using Regex on raw HTML is extremely fast)
     const emailMatch = html.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}/g) || [];
     const validEmails = [...new Set(emailMatch)].filter(e => 
       !e.endsWith('.png') && !e.endsWith('.jpg') && !e.endsWith('.jpeg') && !e.endsWith('.webp') && !e.endsWith('.gif') && !e.includes('wixpress') && !e.includes('sentry')
     );
 
-    // Advanced Social Parsing using Cheerio selectors
+    const phoneMatch = html.match(/(?:\+91|0)?[ -]?(?:\d{5}[ -]?\d{5}|\d{3}[ -]?\d{3}[ -]?\d{4}|\d{4}[ -]?\d{4})/g) || [];
+    const validPhones = [...new Set(phoneMatch)].filter(p => p.replace(/\D/g, '').length >= 10);
+
     let instagram = '';
     let facebook = '';
 
@@ -677,20 +931,227 @@ async function scrapeWebsiteForSocials(browser, url) {
       if (href.includes('facebook.com/') && !facebook && !href.includes('sharer')) facebook = href;
     });
 
+    let instagramFollowers = '';
+    let facebookFollowers = '';
+
+    if (instagram) {
+      try {
+        const igRes = await axios.get(instagram, { timeout: 4000, headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)' } });
+        const igMeta = cheerio.load(igRes.data)('meta[property="og:description"]').attr('content');
+        if (igMeta) {
+          const match = igMeta.match(/([\d.,]+[KkMm]?)\s+Followers/i);
+          if (match) {
+            instagramFollowers = match[1];
+            addLog(`[Deep Scrape] Found Instagram for ${vendorName || 'vendor'}: ${instagramFollowers} Followers`);
+          }
+        }
+      } catch (e) {}
+    }
+
+    if (facebook) {
+      try {
+        const fbRes = await axios.get(facebook, { timeout: 4000, headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)' } });
+        const fbMeta = cheerio.load(fbRes.data)('meta[property="og:description"]').attr('content');
+        if (fbMeta) {
+          const match = fbMeta.match(/([\d.,]+[KkMm]?)\s+(?:likes|followers)/i);
+          if (match) {
+            facebookFollowers = match[1];
+            addLog(`[Deep Scrape] Found Facebook for ${vendorName || 'vendor'}: ${facebookFollowers}`);
+          }
+        }
+      } catch (e) {}
+    }
+
     return {
       email: validEmails.length > 0 ? validEmails[0] : '',
+      phone: validPhones.length > 0 ? validPhones[0] : '',
       instagram,
-      facebook
+      facebook,
+      instagramFollowers,
+      facebookFollowers
     };
   } catch (err) {
     console.log(`[Cheerio Deep Scrape] Failed or timed out for ${url}`);
-    return { email: '', instagram: '', facebook: '' };
+    return { email: '', instagram: '', facebook: '', phone: '', instagramFollowers: '', facebookFollowers: '' };
   }
 }
 
-async function scrapeGooglePlaces(category, location) {
-  console.log(`Starting Google Maps browser scrape for ${category} in ${location}`);
-  const query = `${category} in ${location}`;
+async function scrapeGoogleDork(platformDomain, exactQuery, category, location) {
+  if (!chromium) return;
+
+  let browser, context;
+
+  try {
+    const platformName = platformDomain.split('.')[0];
+    const query = `${exactQuery} ${platformName}`;
+    addLog(`[Dork Engine] 🕵️ Stealth search: "${query}"`);
+    
+    // Launch with full stealth + proxy rotation
+    const { browser: stealthBrowser, userAgent, fakeIP } = await launchStealthBrowser(true);
+    browser = stealthBrowser;
+    activeBrowsers.push(browser);
+    
+    context = await browser.newContext({
+      userAgent,
+      locale: 'en-IN',
+      timezoneId: 'Asia/Kolkata',
+      viewport: { width: 1366, height: 768 },
+      extraHTTPHeaders: {
+        'X-Forwarded-For': fakeIP,
+        'X-Real-IP': fakeIP,
+        'Accept-Language': 'en-IN,en;q=0.9,hi;q=0.8'
+      }
+    });
+    // Block images/fonts to speed up and reduce fingerprint
+    await context.route('**/*', route => {
+      const rt = route.request().resourceType();
+      if (['image','media','font','stylesheet'].includes(rt)) route.abort();
+      else route.continue();
+    });
+    const page = await context.newPage();
+
+    let totalInserted = 0;
+
+    for (let start = 0; start <= 20; start += 10) { // 3 pages
+      if (globalAbortSignal) throw new Error('Master Stop Aborted');
+      
+      const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&start=${start}&hl=en`;
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 25000 });
+      await page.waitForTimeout(1500); // Let JS render fully
+
+      // === MASTER EXTRACTION: Decode Google redirect URLs + parse snippets ===
+      const extracted = await page.evaluate((domain) => {
+        const results = [];
+        const seenUrls = new Set();
+
+        function decodeGoogleUrl(href) {
+          if (!href) return null;
+          // Direct link already pointing to domain
+          if (href.includes(domain) && !href.includes('google.com')) return href;
+          // Google redirect: /url?q=https://facebook.com/... or /url?esrc=...&q=...
+          try {
+            const u = new URL(href, location.origin);
+            const q = u.searchParams.get('q') || u.searchParams.get('url') || u.searchParams.get('adurl');
+            if (q && q.includes(domain)) return q.split('&')[0]; // strip extra params
+          } catch(e) {}
+          return null;
+        }
+
+        // METHOD 1: Walk all anchor tags and decode Google redirects
+        document.querySelectorAll('a[href]').forEach(a => {
+          const decoded = decodeGoogleUrl(a.href);
+          if (!decoded || seenUrls.has(decoded)) return;
+          if (/\/(reel|explore|p|stories)\//.test(decoded)) return; // skip reels
+          seenUrls.add(decoded);
+
+          // Find the result container (walk up DOM tree)
+          let container = a.parentElement;
+          for (let i = 0; i < 10; i++) {
+            if (!container) break;
+            if (container.tagName === 'BODY') break;
+            const tag = container.tagName;
+            const cls = container.className || '';
+            if (tag === 'DIV' && (cls.includes(' g') || cls === 'g' || container.hasAttribute('data-hveid'))) break;
+            container = container.parentElement;
+          }
+
+          const heading = container ? container.querySelector('h3, h2, [role="heading"]') : null;
+          const name = heading ? heading.textContent.trim() : '';
+
+          // Get snippet text
+          const snippetEl = container ? container.querySelector('.VwiC3b, .s3v9rd, .IsZvec, span.aCOpRe, div[data-sncf]') : null;
+          const snippet = snippetEl ? snippetEl.textContent : (container ? container.textContent.substring(0, 500) : '');
+
+          // Extract phone
+          const phoneMatch = snippet.match(/(?:\+91[\s\-]?)?[6-9]\d{9}/);
+          const phone = phoneMatch ? phoneMatch[0].replace(/\s/g,'').trim() : '';
+
+          // Extract followers/likes
+          const follMatch = snippet.match(/([\d.,]+[KkMm]?)\s*\+?\s*(?:followers?|likes?|subscribers?)/i);
+          const followers = follMatch ? follMatch[1] : '';
+
+          results.push({ profileUrl: decoded, name, phone, followers });
+        });
+
+        // METHOD 2: Parse visible cite text (Google displays URLs as green text)
+        document.querySelectorAll('cite').forEach(cite => {
+          const text = cite.textContent.trim();
+          if (!text.toLowerCase().includes(domain.split('.')[0])) return;
+          // text is like "www.facebook.com › VenueNameGuntur"
+          const parts = text.split('›');
+          const slug = parts[1] ? parts[1].trim().replace(/\s+/g, '') : '';
+          if (!slug) return;
+          const guessedUrl = `https://www.${domain}/${slug}`;
+          if (seenUrls.has(guessedUrl)) return;
+          seenUrls.add(guessedUrl);
+          // Find heading in the parent result
+          let c = cite.parentElement;
+          for (let i = 0; i < 10; i++) { c = c && c.parentElement; }
+          const h = c && c.querySelector('h3');
+          if (h) results.push({ profileUrl: guessedUrl, name: h.textContent.trim(), phone: '', followers: '' });
+        });
+
+        return results;
+      }, platformDomain);
+
+      addLog(`[Dork Engine] Page ${start/10 + 1}: ${extracted.length} ${platformName} results for "${exactQuery}"`);
+
+      for (const item of extracted) {
+        if (!item.profileUrl || globalAbortSignal) continue;
+        
+        const cleanName = (item.name || 'Unknown Vendor')
+          .replace(/\s*[\|·\-–]\s*(Facebook|Instagram|YouTube|Pinterest|LinkedIn).*$/i, '')
+          .replace(/\s*-\s*(Home|Official Page|Profile|Page).*$/i, '')
+          .trim() || 'Unknown Vendor';
+
+        const existing = await StagingLead.findOne({ 
+          $or: [
+            { instagram: item.profileUrl }, 
+            { facebook: item.profileUrl },
+            { pinterest: item.profileUrl },
+            { youtube: item.profileUrl },
+            { linkedin: item.profileUrl },
+            { name: cleanName }
+          ] 
+        });
+        
+        if (!existing) {
+          await StagingLead.create({
+            id: `dork_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+            name: cleanName,
+            category: category,
+            city: location,
+            scrapedAt: new Date(),
+            verified: false,
+            pushed: false,
+            qualityScore: item.followers ? 25 : (item.phone ? 15 : 8),
+            phone: item.phone || '',
+            instagram: platformDomain.includes('instagram') ? item.profileUrl : '',
+            instagramFollowers: platformDomain.includes('instagram') ? item.followers : '',
+            facebook: platformDomain.includes('facebook') ? item.profileUrl : '',
+            facebookFollowers: platformDomain.includes('facebook') ? item.followers : '',
+            pinterest: platformDomain.includes('pinterest') ? item.profileUrl : '',
+            youtube: platformDomain.includes('youtube') ? item.profileUrl : '',
+            linkedin: platformDomain.includes('linkedin') ? item.profileUrl : '',
+          });
+          addLog(`[Dork Engine] ✓ ${platformName}: "${cleanName}"${item.followers ? ` (${item.followers})` : ''}${item.phone ? ` 📞${item.phone}` : ''}`);
+          totalInserted++;
+        }
+      }
+    }
+
+    addLog(`[Dork Engine] Done: ${platformName} inserted ${totalInserted} leads for "${exactQuery}".`);
+  } catch (error) {
+    addLog(`[Dork Engine] Failed to scrape ${platformDomain}: ${error.message}`);
+  } finally {
+    activeBrowsers = activeBrowsers.filter(b => b !== browser);
+    if (browser) await browser.close();
+  }
+}
+
+
+async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = []) {
+  addLog(`Starting Google Maps browser scrape for ${exactQuery} (AI Validation Keywords: ${aiKeywords.length})`);
 
   // If Playwright not available (production/Render), skip browser scraping
   if (!chromium) {
@@ -708,7 +1169,7 @@ async function scrapeGooglePlaces(category, location) {
   // Abort image, font, media, and stylesheets to speed up scraping instantly
   await page.route('**/*', (route) => {
     const resourceType = route.request().resourceType();
-    if (['image', 'media', 'font', 'stylesheet', 'other'].includes(resourceType)) {
+    if (['image', 'media', 'font', 'stylesheet'].includes(resourceType)) {
       route.abort();
     } else {
       route.continue();
@@ -716,8 +1177,8 @@ async function scrapeGooglePlaces(category, location) {
   });
 
   try {
-    const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(query)}`;
-    console.log(`Navigating to Google Maps search: ${searchUrl}`);
+    const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(exactQuery)}`;
+    addLog(`[System] Navigating to Google Maps search: ${searchUrl}`);
     // Wait for networkidle instead of domcontentloaded for faster extraction
     await page.goto(searchUrl, { waitUntil: 'load', timeout: 30000 });
 
@@ -733,14 +1194,14 @@ async function scrapeGooglePlaces(category, location) {
         page.waitForSelector('[data-item-id="address"]', { timeout: 10000 })
       ]);
     } catch (e) {
-      console.log("Could not find feed or place details within timeout");
+      addLog("Could not find feed or place details within timeout");
     }
 
     let scrapedResults = [];
 
     // Case A: Redirected directly to a single business details page
     if (await page.locator('[data-item-id="address"]').count() > 0 && await page.locator('div[role="feed"]').count() === 0) {
-      console.log("Redirected directly to a single business page.");
+      addLog("Redirected directly to a single business page.");
       const nameEl = page.locator('h1.DUwDvf');
       const name = await nameEl.count() > 0 ? await nameEl.innerText() : 'Google Maps Listing';
       
@@ -775,21 +1236,27 @@ async function scrapeGooglePlaces(category, location) {
       // Case B: Search results list is loaded
       const scrollable = page.locator('div[role="feed"]');
       if (await scrollable.count() > 0) {
-        console.log("Scrolling through search results feed... (Fast Mode)");
+        addLog("Scrolling through search results feed... (Fast Mode)");
         
-        // Aggressive Infinite Scroll - scroll 15 times to load ~100-150 vendors
-        for(let i=0; i<15; i++) {
-          await scrollable.evaluate(el => el.scrollTop = el.scrollHeight);
-          await page.waitForTimeout(1000);
+        // Dynamic Fast Scroll - stop early to hit minimum 60
+        for(let i=0; i<30; i++) {
+          if (globalAbortSignal) throw new Error('Master Stop Aborted');
+          await scrollable.evaluate(node => node.scrollBy(0, 5000));
+          await page.waitForTimeout(400); // 400ms is ultra fast
+          const currentCount = await page.locator('a.hfpxzc').count();
+          if (currentCount >= 65) {
+            addLog(`Reached ${currentCount} cards quickly, stopping scroll.`);
+            break;
+          }
         }
 
         const cards = page.locator('a.hfpxzc');
         const count = await cards.count();
-        console.log(`Found ${count} total business cards. Extracting URLs...`);
+        addLog(`Found ${count} total business cards. Extracting URLs...`);
 
         // Phase 1: Rapid Extraction of HREFs
         const vendorLinks = [];
-        for (let i = 0; i < Math.min(count, 120); i++) {
+        for (let i = 0; i < count; i++) {
           const card = cards.nth(i);
           const name = await card.getAttribute('aria-label');
           const mapsLink = await card.getAttribute('href');
@@ -798,13 +1265,15 @@ async function scrapeGooglePlaces(category, location) {
           }
         }
 
-        console.log(`Extracted ${vendorLinks.length} raw links. Beginning concurrent Deep Extraction (Hardware Accelerated)...`);
+        addLog(`Extracted ${vendorLinks.length} raw links. Beginning concurrent Deep Extraction (Hardware Accelerated)...`);
 
-        // Phase 2: Concurrent Multi-Tab Execution (Batch size of 5)
+        // Phase 2: Concurrent Multi-Tab Execution (Lower batch size to prevent CPU choking and timeouts)
         const CONCURRENCY_LIMIT = 5;
         for (let i = 0; i < vendorLinks.length; i += CONCURRENCY_LIMIT) {
+          if (globalAbortSignal) throw new Error('Master Stop Aborted');
+          
           const batch = vendorLinks.slice(i, i + CONCURRENCY_LIMIT);
-          console.log(`Processing concurrent batch ${i/CONCURRENCY_LIMIT + 1} of ${Math.ceil(vendorLinks.length/CONCURRENCY_LIMIT)}...`);
+          addLog(`Processing concurrent batch ${i/CONCURRENCY_LIMIT + 1} of ${Math.ceil(vendorLinks.length/CONCURRENCY_LIMIT)}...`);
           
           const batchPromises = batch.map(async (vendor) => {
             let newPage;
@@ -820,8 +1289,8 @@ async function scrapeGooglePlaces(category, location) {
                 }
               });
 
-              // Navigate directly to the Maps detail view using domcontentloaded
-              await newPage.goto(vendor.mapsLink, { waitUntil: 'domcontentloaded', timeout: 15000 });
+              // Navigate directly to the Maps detail view
+              await newPage.goto(vendor.mapsLink, { waitUntil: 'domcontentloaded', timeout: 25000 });
 
               let address = '';
               const addressEl = newPage.locator('[data-item-id="address"]');
@@ -867,15 +1336,34 @@ async function scrapeGooglePlaces(category, location) {
               }
 
               // Parallel Website Deep Enrichment
-              let enrichedData = { email: '', instagram: '', facebook: '' };
+              let enrichedData = { email: '', instagram: '', facebook: '', phone: '', instagramFollowers: '', facebookFollowers: '' };
               if (websiteUrl) {
                 enrichedData = await scrapeWebsiteForSocials(browser, websiteUrl);
+              }
+
+              const finalPhone = (phone && !phone.includes('Requires')) ? phone : (enrichedData.phone || phone);
+
+              // AI HTML Verification: Scan innerText for semantic matches
+              let pageText = '';
+              try {
+                pageText = await newPage.innerText('body', { timeout: 2000 }).catch(()=>'');
+              } catch(e) {}
+              
+              let aiVerified = false;
+              let matchedKeywords = [];
+              if (aiKeywords && aiKeywords.length > 0 && pageText) {
+                const lowerText = pageText.toLowerCase();
+                matchedKeywords = aiKeywords.filter(kw => lowerText.includes(kw.toLowerCase()));
+                if (matchedKeywords.length > 0) {
+                  aiVerified = true;
+                  addLog(`[AI HTML Parser] Verified '${vendor.name}' - Found keywords: [${matchedKeywords.join(', ')}]`);
+                }
               }
 
               return {
                 name: vendor.name,
                 address,
-                phone,
+                phone: finalPhone,
                 rating,
                 mapsLink: vendor.mapsLink,
                 website: websiteUrl,
@@ -884,11 +1372,16 @@ async function scrapeGooglePlaces(category, location) {
                 email: enrichedData.email,
                 instagram: enrichedData.instagram,
                 facebook: enrichedData.facebook,
+                instagramFollowers: enrichedData.instagramFollowers,
+                facebookFollowers: enrichedData.facebookFollowers,
+                aiVerified,
+                matchedKeywords,
                 id: 'place_' + Date.now().toString() + Math.random().toString(36).substring(7)
               };
 
+
             } catch (err) {
-              console.error(`Error in concurrent extraction for ${vendor.name}:`, err.message);
+              addLog(`Error in concurrent extraction for ${vendor.name}: ${err.message}`);
               return null;
             } finally {
               if (newPage) await newPage.close();
@@ -898,104 +1391,116 @@ async function scrapeGooglePlaces(category, location) {
           // Wait for the entire batch to finish concurrently
           const batchResults = await Promise.all(batchPromises);
           
-          // Filter out failed extractions and add to results
-          batchResults.filter(res => res !== null).forEach(res => scrapedResults.push(res));
+          // STREAMING INSERTION TO DB
+          const validResults = batchResults.filter(res => res !== null);
+          let insertedInBatch = 0;
+
+          for (const place of validResults) {
+            if (!place.name) continue;
+
+            const pincodeMatch = place.address ? place.address.match(/\b\d{6}\b/) : null;
+            const pincode = pincodeMatch ? pincodeMatch[0] : '';
+
+            // Filter out Mumbai/Maharashtra results
+            const isMumbaiOrMH = place.address && (
+              place.address.toLowerCase().includes('mumbai') || 
+              place.address.toLowerCase().includes('maharashtra') || 
+              pincode.startsWith('4')
+            );
+            if (isMumbaiOrMH) continue;
+
+            let parsedRating = null;
+            if (place.rating && place.rating !== '-') {
+              parsedRating = parseFloat(place.rating);
+              if (isNaN(parsedRating)) parsedRating = null;
+            }
+
+            const existing = await StagingLead.findOne({
+              $or: [
+                { mapsLink: place.mapsLink },
+                { name: place.name }
+              ]
+            });
+
+            if (!existing) {
+              const leadScore = calculateLeadScore(place);
+              const newLead = new StagingLead({
+                id: place.id,
+                name: place.name,
+                category: category,
+                city: location || 'Global',
+                address: place.address || '',
+                pincode: pincode,
+                phone: place.phone || 'Requires Manual Lookup',
+                rating: parsedRating,
+                mapsLink: place.mapsLink || '',
+                source: 'Google Maps Engine',
+                verified: false,
+                aiVerified: place.aiVerified,
+                matchedKeywords: place.matchedKeywords,
+                email: place.email || '',
+                instagram: place.instagram || '',
+                instagramFollowers: place.instagramFollowers || '',
+                facebook: place.facebook || '',
+                facebookFollowers: place.facebookFollowers || '',
+                website: place.website || '',
+                qualityScore: leadScore,
+                tier: determineTier(leadScore),
+                operatingHours: place.operatingHours || '',
+                topReviews: place.topReviews || []
+              });
+              await newLead.save();
+              insertedInBatch++;
+            } else {
+              if (!existing.pincode && place.address) {
+                const pMatch = place.address.match(/\b\d{6}\b/);
+                if (pMatch) existing.pincode = pMatch[0];
+              }
+              if (!existing.rating && parsedRating) existing.rating = parsedRating;
+              if ((!existing.phone || existing.phone.includes('Obfuscated') || existing.phone.includes('Requires')) && place.phone) {
+                existing.phone = place.phone;
+              }
+              await existing.save();
+            }
+          }
+          
+          scrapedResults.push(...validResults);
+          addLog(`Streamed ${insertedInBatch} new vendors to DB from this batch. (Total extracted so far: ${scrapedResults.length})`);
         }
       }
     }
 
-    console.log(`Google Maps Scraping found ${scrapedResults.length} vendors.`);
-
-    let inserted = 0;
-
-    for (const place of scrapedResults) {
-      if (!place.name) continue;
-
-      const pincodeMatch = place.address ? place.address.match(/\b\d{6}\b/) : null;
-      const pincode = pincodeMatch ? pincodeMatch[0] : '';
-
-      // Filter out Mumbai/Maharashtra results
-      const isMumbaiOrMH = place.address && (
-        place.address.toLowerCase().includes('mumbai') || 
-        place.address.toLowerCase().includes('maharashtra') || 
-        pincode.startsWith('4')
-      );
-      if (isMumbaiOrMH) {
-        console.log(`[Warning] Google Maps returned a foreign listing in Mumbai/Maharashtra: ${place.name} (${place.address}). Skipping.`);
-        continue;
-      }
-
-      let parsedRating = null;
-      if (place.rating && place.rating !== '-') {
-        parsedRating = parseFloat(place.rating);
-        if (isNaN(parsedRating)) parsedRating = null;
-      }
-
-      const existing = await StagingLead.findOne({
-        $or: [
-          { mapsLink: place.mapsLink },
-          { name: place.name }
-        ]
-      });
-
-      if (!existing) {
-        const leadScore = calculateLeadScore(place);
-        const newLead = new StagingLead({
-          id: place.id,
-          name: place.name,
-          category: category,
-          city: location || 'Global',
-          address: place.address || '',
-          pincode: pincode,
-          phone: place.phone || 'Requires Manual Lookup',
-          rating: parsedRating,
-          mapsLink: place.mapsLink || '',
-          source: 'Google Places',
-          email: place.email || '',
-          instagram: place.instagram || '',
-          facebook: place.facebook || '',
-          website: place.website || '',
-          qualityScore: leadScore,
-          tier: determineTier(leadScore),
-          operatingHours: place.operatingHours || '',
-          topReviews: place.topReviews || []
-        });
-        await newLead.save();
-        inserted++;
-      } else {
-        if (!existing.pincode && place.address) {
-          const pMatch = place.address.match(/\b\d{6}\b/);
-          if (pMatch) existing.pincode = pMatch[0];
-        }
-        if (!existing.rating && parsedRating) existing.rating = parsedRating;
-        if ((!existing.phone || existing.phone.includes('Obfuscated') || existing.phone.includes('Requires')) && place.phone) {
-          existing.phone = place.phone;
-        }
-        await existing.save();
-      }
-    }
-
-    console.log(`Google Maps Scraping complete. Inserted ${inserted} new vendors into staging.`);
+    addLog(`Google Maps Scraping complete. Found ${scrapedResults.length} vendors total.`);
   } catch (error) {
-    console.error('Google Maps Scraper error:', error.message);
+    addLog(`Google Maps Scraper error: ${error.message}`);
   } finally {
-    await context.close();
+    activeBrowsers = activeBrowsers.filter(b => b !== browser);
+    if (context) await context.close();
+    if (browser) await browser.close();
   }
 }
 
 async function scrapeJustDial(category, location) {
-  console.log(`Starting JustDial scrape for ${category} in ${location}`);
+  addLog(`Starting JustDial scrape for ${category} in ${location}`);
   const searchUrl = `https://www.justdial.com/${location.split(',')[0].trim()}/${category.replace(/ /g, '-')}`;
   
-  console.log(`Navigating to: ${searchUrl}`);
-  const browser = await firefox.launch({ headless: true });
-  const context = await browser.newContext({
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0',
-    viewport: { width: 1280, height: 800 }
-  });
-  const page = await context.newPage();
+  addLog(`Navigating to: ${searchUrl}`);
+  // Use the same stealth browser factory to create a Chromium instance (Playwright)
+  let browser = null;
+  let context = null;
+  let page = null;
 
   try {
+    const launched = await launchStealthBrowser(false);
+    browser = launched.browser;
+    activeBrowsers.push(browser);
+
+    context = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0',
+      viewport: { width: 1280, height: 800 }
+    });
+    page = await context.newPage();
+
     await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForTimeout(5000);
 
@@ -1007,7 +1512,7 @@ async function scrapeJustDial(category, location) {
     const isDistrictMatched = districtSegment && finalUrl.includes(districtSegment);
 
     if (!isMandalMatched && !isDistrictMatched) {
-      console.log(`[Warning] JustDial redirected to an unrelated city page. Skipping.`);
+      addLog(`[Warning] JustDial redirected to an unrelated city page. Skipping.`);
       return;
     }
 
@@ -1035,7 +1540,7 @@ async function scrapeJustDial(category, location) {
       }).filter(v => v.name);
     });
 
-    console.log(`Found ${results.length} raw results from JustDial`);
+    addLog(`Found ${results.length} raw results from JustDial`);
     let newCount = 0;
     
     for (const v of results) {
@@ -1061,24 +1566,38 @@ async function scrapeJustDial(category, location) {
         newCount++;
       }
     }
-    console.log(`Scraping complete. Inserted ${newCount} new vendors into staging.`);
+    addLog(`Scraping complete. Inserted ${newCount} new vendors into staging.`);
   } catch (error) {
-    console.error('JustDial Scraper error:', error);
+    addLog(`JustDial Scraper error: ${error.message}`);
   } finally {
-    await browser.close();
+    activeBrowsers = activeBrowsers.filter(b => b !== browser);
+    try { if (context) await context.close(); } catch(e){}
+    try { if (browser) await browser.close(); } catch(e){}
   }
 }
 
 async function genericPlaywrightScrape(engineName, searchUrl, category, location, evaluateFn) {
-  console.log(`Starting ${engineName} scrape for ${category} in ${location}`);
-  const browser = await chromium.launch({ headless: true, args: ['--disable-http2'] });
-  const context = await browser.newContext({
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    viewport: { width: 1280, height: 800 }
-  });
-  const page = await context.newPage();
+  addLog(`Starting ${engineName} scrape for ${category} in ${location}`);
+  const query = `${category} in ${location}`;
 
+  // If Playwright not available (production/Render), skip browser scraping
+  if (!chromium) {
+    addLog('[Warning] Playwright not available on this server.');
+    return;
+  }
+
+  let browser;
+  let context;
   try {
+    browser = await (() => launchStealthBrowser(false))().then(r => r.browser);
+    activeBrowsers.push(browser);
+    
+    context = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      viewport: { width: 1280, height: 800 }
+    });
+    const page = await context.newPage();
+
     await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.waitForTimeout(6000);
 
@@ -1120,7 +1639,9 @@ async function genericPlaywrightScrape(engineName, searchUrl, category, location
   } catch (error) {
     console.error(`${engineName} Scraper error:`, error.message);
   } finally {
-    await browser.close();
+    activeBrowsers = activeBrowsers.filter(b => b !== browser);
+    if (context) await context.close().catch(() => {});
+    if (browser) await browser.close().catch(() => {});
   }
 }
 
@@ -1210,7 +1731,7 @@ app.post('/api/scrape/jobs/update', (req, res) => {
       job.interval = ms;
       job.status = 'running';
       job.timer = setInterval(() => {
-        scrapeGooglePlaces(category, job.location).catch(console.error);
+        scrapeGooglePlaces(buildScrapeQuery(category, job.location), category, job.location).catch(console.error);
       }, ms);
     }
   } else if (action === 'update_interval') {
@@ -1218,7 +1739,7 @@ app.post('/api/scrape/jobs/update', (req, res) => {
     job.interval = intervalMs;
     job.status = 'running';
     job.timer = setInterval(() => {
-        scrapeGooglePlaces(category, job.location).catch(console.error);
+        scrapeGooglePlaces(buildScrapeQuery(category, job.location), category, job.location).catch(console.error);
     }, intervalMs);
   }
 
@@ -1250,7 +1771,17 @@ app.post('/api/scrape/upload', (req, res) => {
 });
 
 // API: Stop All Cron Jobs & Batches (Master Stop)
-app.post('/api/scrape/jobs/stop-all', (req, res) => {
+app.post('/api/scrape/jobs/stop-all', async (req, res) => {
+  // Fire global abort signal
+  globalAbortSignal = true;
+
+  // HARD KILL: Forcefully close all active Playwright browsers instantly
+  addLog(`[SYSTEM] Hard-killing ${activeBrowsers.length} active headless browsers...`);
+  for (const b of activeBrowsers) {
+    try { await b.close(); } catch(e){}
+  }
+  activeBrowsers = [];
+
   // Stop all active cron jobs
   for (const key of Object.keys(activeCronJobs)) {
     clearInterval(activeCronJobs[key].timer);
@@ -1263,7 +1794,8 @@ app.post('/api/scrape/jobs/stop-all', (req, res) => {
   batchProgress.isActive = false;
   isBatchRunning = false;
 
-  res.json({ success: true, message: 'Master Stop initiated. All background tasks and queues have been terminated.' });
+  addLog(`[SYSTEM] MASTER STOP EXECUTED. All scrapers aborting...`);
+  res.json({ success: true, message: 'All active scrapers aborted.' });
 });
 
 app.listen(PORT, () => {

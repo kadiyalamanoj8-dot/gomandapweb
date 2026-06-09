@@ -12,6 +12,8 @@ const stagingLeadSchema = new mongoose.Schema({
   mapsLink: { type: String, default: '' },
   source: { type: String, default: 'Unknown' },
   verified: { type: Boolean, default: false },
+  aiVerified: { type: Boolean, default: false },
+  matchedKeywords: [{ type: String }],
   pushed: { type: Boolean, default: false },
   pushedAt: { type: Date, default: null },
   scrapedAt: { type: Date, default: Date.now },
@@ -20,7 +22,14 @@ const stagingLeadSchema = new mongoose.Schema({
   crmNotes: { type: String, default: '' },
   email: { type: String },
   instagram: { type: String },
+  instagramFollowers: { type: String },
   facebook: { type: String },
+  facebookFollowers: { type: String },
+  pinterest: { type: String },
+  youtube: { type: String },
+  linkedin: { type: String },
+  qualityScore: { type: Number, default: 0 },
+  tier: { type: String, default: 'Basic' },
   operatingHours: { type: String },
   topReviews: [{ type: String }]
 });

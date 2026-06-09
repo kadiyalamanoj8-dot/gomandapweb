@@ -18,11 +18,7 @@ export default function EmployeeDashboard({ user, onLogout }) {
   const [activeLeadId, setActiveLeadId] = useState(null);
   const [crmNotes, setCrmNotes] = useState('');
 
-  useEffect(() => {
-    fetchAssignedLeads();
-  }, []);
-
-  const fetchAssignedLeads = async () => {
+  async function fetchAssignedLeads() {
     try {
       const res = await axios.get(`${API_URL}/vendors`);
       // Filter leads specifically assigned to this telecaller
@@ -38,7 +34,14 @@ export default function EmployeeDashboard({ user, onLogout }) {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchAssignedLeads();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const updateLeadStatus = async (id, status) => {
     try {
