@@ -3,7 +3,7 @@ import { CATEGORIES } from '../data/mockData';
 import LiquidVendorCard from '../components/common/LiquidVendorCard';
 import FilterSidebar from '../components/search/FilterSidebar';
 import { MapPin, SlidersHorizontal, Search as SearchIcon, ArrowLeft, ChevronRight, Home, ArrowUpDown } from 'lucide-react';
-import { API_URL } from '../../config/api';
+import { API_URL } from '../config/api';
 import { useLocation, Link, useSearchParams } from 'react-router-dom';
 import CustomDropdown from '../components/ui/CustomDropdown';
 import * as Icons from 'lucide-react';

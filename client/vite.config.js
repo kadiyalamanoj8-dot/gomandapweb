@@ -117,7 +117,9 @@ export default defineConfig({
     Sitemap({
       hostname: 'https://gomandap.com',
       dynamicRoutes: ['/', '/search', '/profile'],
-      exclude: ['/404']
+      exclude: ['/404'],
+      generateRobotsTxt: false,
+      robots: []
     })
   ],
   build: {

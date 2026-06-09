@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence, m, LazyMotion, domAnimation, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Search, MapPin, Calendar, PartyPopper, X } from 'lucide-react';
-import { API_URL } from '../../../config/api';
+import { API_URL } from '../../config/api';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { EVENT_TYPES } from '../../data/mockData';

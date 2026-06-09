@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe } from 'lucide-react';
 import axios from 'axios';
-import { API_URL } from '../../../config/api';
+import { API_URL } from '../../config/api';
 
 const ALL_LANGUAGES = {
   en: { name: 'English', native: 'English' },

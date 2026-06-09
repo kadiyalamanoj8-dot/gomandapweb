@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Share2, MessageCircle, AtSign, Globe, Link as LinkIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { API_URL } from '../../../config/api';
+import { API_URL } from '../../config/api';
 
 const Footer = () => {
   const { t } = useTranslation();

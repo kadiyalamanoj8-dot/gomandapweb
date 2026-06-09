@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
-import { API_URL } from '../../config/api';
+import { API_URL } from '../config/api';
 
 const DynamicSEO = ({ appTarget = 'client', pageName = 'global', customSchema = null }) => {
   const [seoConfig, setSeoConfig] = useState(null);
