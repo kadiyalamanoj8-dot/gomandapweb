@@ -102,11 +102,22 @@ const authGoogle = async (req, res) => {
         name,
         profilePicture: picture
       });
-    } else if (!user.googleId) {
-      // Link existing account
-      user.googleId = googleId;
-      if (!user.profilePicture) user.profilePicture = picture;
-      if (!user.name) user.name = name;
+    } else {
+      // User exists, update profile picture and name if they are missing but provided by Google
+      let updated = false;
+      if (!user.googleId) {
+        user.googleId = googleId;
+        updated = true;
+      }
+      if (!user.profilePicture && picture) {
+        user.profilePicture = picture;
+        updated = true;
+      }
+      if (!user.name && name) {
+        user.name = name;
+        updated = true;
+      }
+      // We don't necessarily need to explicitly save here if loginHistory push saves it later, but good practice
     }
 
     // Add to login history

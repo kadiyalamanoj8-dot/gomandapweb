@@ -40,18 +40,20 @@ const captureAndSendLocation = async (userId) => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const storedUser = localStorage.getItem('gomandap_client_user');
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch (error) {
+      return null;
+    }
+  });
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
 
   useEffect(() => {
-    // Check localStorage on load
-    const storedUser = localStorage.getItem('gomandap_client_user');
-    if (storedUser) {
-      const parsed = JSON.parse(storedUser);
-      setUser(parsed);
-      // Re-capture location on every app load to keep it fresh
-      captureAndSendLocation(parsed._id);
+    if (user && user._id) {
+      captureAndSendLocation(user._id);
     }
   }, []);
 
