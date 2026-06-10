@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ChevronDown, Calendar } from 'lucide-react';
 import AppleScrollPicker from './AppleScrollPicker';

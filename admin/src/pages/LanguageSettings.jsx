@@ -16,7 +16,7 @@ const LanguageSettings = () => {
   const [activeLanguages, setActiveLanguages] = useState(['en']);
   const [loading, setLoading] = useState(true);
 
-  const fetchSettings = async () => {
+  async function fetchSettings() {
     try {
       const res = await axios.get('https://gomandap-api.onrender.com/api/settings');
       if (res.data && res.data.data && res.data.data.activeLanguages) {
@@ -27,9 +27,10 @@ const LanguageSettings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSettings();
   }, []);
 

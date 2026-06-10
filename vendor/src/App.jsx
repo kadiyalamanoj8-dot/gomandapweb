@@ -13,6 +13,7 @@ const VendorPending = lazy(() => import('./pages/vendor/VendorPending'));
 const VendorDashboard = lazy(() => import('./pages/vendor/VendorDashboard'));
 const VendorTerms = lazy(() => import('./pages/vendor/VendorTerms'));
 const VendorPrivacy = lazy(() => import('./pages/vendor/VendorPrivacy'));
+const ClaimProfile = lazy(() => import('./pages/vendor/ClaimProfile'));
 import Preloader from './components/Preloader';
 import { HelmetProvider } from 'react-helmet-async';
 import DynamicSEO from './components/DynamicSEO';
@@ -51,6 +52,8 @@ function AppContent() {
             <Route path="/onboarding/:category" element={<CategoryOnboarding />} />
             <Route path="/pending" element={<VendorPending />} />
             <Route path="/dashboard" element={<VendorDashboard />} />
+            <Route path="/claim/:id" element={<ClaimProfile />} />
+            <Route path="/claim" element={<ClaimProfile />} />
             <Route path="/terms" element={<VendorTerms />} />
             <Route path="/privacy" element={<VendorPrivacy />} />
             <Route path="*" element={<Navigate to="/" replace />} /> 

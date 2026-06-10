@@ -16,11 +16,8 @@ const ClientUISettings = () => {
   const [marqueePositionY, setMarqueePositionY] = useState('0px');
   const [marqueeSpeed, setMarqueeSpeed] = useState(3);
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
 
-  const fetchSettings = async () => {
+  async function fetchSettings() {
     try {
       const token = localStorage.getItem('adminToken');
       const res = await axios.get(`${API_URL}/api/settings`, {

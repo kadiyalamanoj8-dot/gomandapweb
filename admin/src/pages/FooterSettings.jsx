@@ -21,11 +21,8 @@ const FooterSettings = () => {
   const [clientFooter, setClientFooter] = useState(JSON.parse(JSON.stringify(defaultFooter)));
   const [vendorFooter, setVendorFooter] = useState(JSON.parse(JSON.stringify(defaultFooter)));
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
 
-  const fetchSettings = async () => {
+  async function fetchSettings() {
     try {
       const res = await axios.get(`${API_URL}/api/content`);
       if (res.data.success) {

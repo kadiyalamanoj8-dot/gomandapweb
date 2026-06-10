@@ -82,11 +82,15 @@ const SearchPage = () => {
         const inHouseCatering    = searchParams.get('inHouseCatering')    === 'true';
         const inHousePhotography = searchParams.get('inHousePhotography') === 'true';
         const inHouseDecorations = searchParams.get('inHouseDecorations') === 'true';
+        const date = searchParams.get('date');
+        const q = searchParams.get('q');
 
         let url = `${API_URL}/api/vendors?categories=${encodeURIComponent(targetCategories.join(','))}`;
         if (inHouseCatering)    url += `&inHouseCatering=true`;
         if (inHousePhotography) url += `&inHousePhotography=true`;
         if (inHouseDecorations) url += `&inHouseDecorations=true`;
+        if (date) url += `&date=${encodeURIComponent(date)}`;
+        if (q) url += `&q=${encodeURIComponent(q)}`;
         if (lat && lng)  url += `&lat=${lat}&lng=${lng}&radiusInKm=50`;
         else if (locName) url += `&locName=${encodeURIComponent(locName)}`;
 
@@ -112,9 +116,10 @@ const SearchPage = () => {
             portfolioImages:v.portfolioImages,
             contact:        v.contact,
             pricingPackages:v.customBlocks?.pricingPackages || [],
+            isFeatured:     v.isFeatured,
           }));
-          const recommended = mappedData.filter(v => v.rating >= 4.8);
-          const standard    = mappedData.filter(v => v.rating < 4.8);
+          const recommended = mappedData.filter(v => v.rating >= 4.8 || v.isFeatured);
+          const standard    = mappedData.filter(v => !(v.rating >= 4.8 || v.isFeatured));
           setRecommendedResults(recommended);
           setSearchResults(standard.length > 0 ? standard : mappedData);
         }

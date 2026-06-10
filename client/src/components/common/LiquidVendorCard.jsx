@@ -28,7 +28,7 @@ const LiquidVendorCard = ({ vendor, layout = 'carousel' }) => {
       <motion.div
         onClick={handleCardClick}
         whileHover={{ y: -2 }}
-        className="relative flex flex-col md:flex-row bg-white rounded-2xl md:rounded-3xl shadow-sm hover:shadow-lg border border-gray-100 transition-all duration-300 cursor-pointer overflow-hidden group w-full mb-6"
+        className="relative flex flex-col md:flex-row lg-card hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden group w-full mb-6"
       >
         {/* Image Section */}
         <div className="relative w-full md:w-[40%] aspect-[4/3] md:aspect-auto md:h-full shrink-0 overflow-hidden">
@@ -40,6 +40,12 @@ const LiquidVendorCard = ({ vendor, layout = 'carousel' }) => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           
+          {vendor.isFeatured && (
+            <span className="absolute top-3 left-3 bg-brand-gold text-gray-900 text-[10px] uppercase tracking-widest font-black px-3 py-1 rounded-md shadow-lg z-20 flex items-center gap-1">
+              <Star size={10} fill="currentColor" /> Highlighted
+            </span>
+          )}
+
           <button className="absolute top-3 right-3 md:top-4 md:right-4 bg-white/90 backdrop-blur-md p-2 rounded-full text-gray-400 hover:text-red-500 hover:bg-white shadow-sm transition-all z-20">
             <Heart size={18} />
           </button>
@@ -104,7 +110,7 @@ const LiquidVendorCard = ({ vendor, layout = 'carousel' }) => {
     <motion.div
       onClick={handleCardClick}
       whileHover={{ scale: 1.01, y: -2 }}
-      className={`relative rounded-2xl md:rounded-3xl bg-transparent transition-all duration-300 cursor-pointer overflow-hidden group flex flex-col ${
+      className={`relative lg-card transition-all duration-300 cursor-pointer overflow-hidden group flex flex-col ${
         layout === 'carousel' 
           ? 'w-[260px] md:w-[300px] shrink-0 snap-start' 
           : 'w-full h-full'
@@ -121,9 +127,9 @@ const LiquidVendorCard = ({ vendor, layout = 'carousel' }) => {
         {/* Subtle dark gradient overlay for text readability at bottom */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         
-        {vendor.featured && (
-          <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-gray-900 text-[9px] uppercase tracking-wider font-black px-2.5 py-1 rounded-md shadow-sm z-20">
-            Featured
+        {vendor.isFeatured && (
+          <span className="absolute top-3 left-3 bg-brand-gold text-gray-900 text-[9px] uppercase tracking-wider font-black px-2.5 py-1 rounded-md shadow-sm z-20 flex items-center gap-1">
+            <Star size={8} fill="currentColor" /> Highlighted
           </span>
         )}
         <button className="absolute top-3 right-3 bg-white/90 backdrop-blur-md p-1.5 md:p-2 rounded-full text-gray-400 hover:text-red-500 hover:bg-white shadow-sm transition-all z-20">

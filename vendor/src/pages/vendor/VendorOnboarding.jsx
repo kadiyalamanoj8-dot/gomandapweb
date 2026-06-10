@@ -112,6 +112,7 @@ const VendorOnboarding = () => {
         return { ...p, price: saved ? saved.price : '' };
       }) || [];
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSchemaFields({
         pricingPackages: mergedPricing,
         vendorFormFields: schema.vendorFormFields || []
@@ -132,6 +133,7 @@ const VendorOnboarding = () => {
   useEffect(() => {
     if (basicInfo.locationData?.parsedAddress) {
       const pa = basicInfo.locationData.parsedAddress;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setBasicInfo(prev => ({
         ...prev,
         village: pa.village || prev.village,

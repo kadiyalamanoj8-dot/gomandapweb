@@ -14,6 +14,46 @@ const LocationPicker = ({ locationData, onChange }) => {
   const markerRef = useRef(null);
   const isInitializing = useRef(false);
 
+  const updatePosition = async (lng, lat, skipReverseGeocode = false, customFormattedAddress = null, customGoogleLink = null, customParsedAddressObj = null) => {
+    let locationDataUpdate = {
+        type: 'Point',
+        coordinates: [lng, lat],
+        googleMapsLink: customGoogleLink || mapLink
+    };
+
+    if (customParsedAddressObj) {
+      locationDataUpdate.parsedAddress = customParsedAddressObj;
+    } else if (!skipReverseGeocode) {
+      try {
+        const apiKey = import.meta.env.VITE_OLA_MAPS_API_KEY;
+        const res = await fetch(`https://api.olamaps.io/places/v1/reverse-geocode?latlng=${lat},${lng}&api_key=${apiKey}`);
+        const data = await res.json();
+        
+        if (data.results && data.results.length > 0) {
+          const comp = data.results[0].address_components || [];
+          const getComp = (types) => {
+            const found = comp.find(c => types.some(t => c.types.includes(t)));
+            return found ? found.long_name : '';
+          };
+
+          locationDataUpdate.parsedAddress = {
+            village: getComp(['sublocality', 'neighborhood', 'route']) || getComp(['locality']) || '',
+            mandal: getComp(['administrative_area_level_3', 'sublocality_level_1', 'locality']) || '',
+            district: getComp(['administrative_area_level_2']) || '',
+            state: getComp(['administrative_area_level_1']) || '',
+            pincode: getComp(['postal_code']) || '',
+            formattedAddress: customFormattedAddress || data.results[0].formatted_address || ''
+          };
+        }
+      } catch (error) {
+        console.error("Ola Maps Reverse geocoding failed", error);
+      }
+    }
+    
+    onChange(locationDataUpdate);
+  };
+
+
   // Initialize Map
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current || isInitializing.current) return;
@@ -117,44 +157,6 @@ const LocationPicker = ({ locationData, onChange }) => {
     }
   }, [locationData]);
 
-  const updatePosition = async (lng, lat, skipReverseGeocode = false, customFormattedAddress = null, customGoogleLink = null, customParsedAddressObj = null) => {
-    let locationDataUpdate = {
-        type: 'Point',
-        coordinates: [lng, lat],
-        googleMapsLink: customGoogleLink || mapLink
-    };
-
-    if (customParsedAddressObj) {
-      locationDataUpdate.parsedAddress = customParsedAddressObj;
-    } else if (!skipReverseGeocode) {
-      try {
-        const apiKey = import.meta.env.VITE_OLA_MAPS_API_KEY;
-        const res = await fetch(`https://api.olamaps.io/places/v1/reverse-geocode?latlng=${lat},${lng}&api_key=${apiKey}`);
-        const data = await res.json();
-        
-        if (data.results && data.results.length > 0) {
-          const comp = data.results[0].address_components || [];
-          const getComp = (types) => {
-            const found = comp.find(c => types.some(t => c.types.includes(t)));
-            return found ? found.long_name : '';
-          };
-
-          locationDataUpdate.parsedAddress = {
-            village: getComp(['sublocality', 'neighborhood', 'route']) || getComp(['locality']) || '',
-            mandal: getComp(['administrative_area_level_3', 'sublocality_level_1', 'locality']) || '',
-            district: getComp(['administrative_area_level_2']) || '',
-            state: getComp(['administrative_area_level_1']) || '',
-            pincode: getComp(['postal_code']) || '',
-            formattedAddress: customFormattedAddress || data.results[0].formatted_address || ''
-          };
-        }
-      } catch (error) {
-        console.error("Ola Maps Reverse geocoding failed", error);
-      }
-    }
-    
-    onChange(locationDataUpdate);
-  };
 
   useEffect(() => {
     const timer = setTimeout(async () => {

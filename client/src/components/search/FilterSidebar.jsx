@@ -395,15 +395,40 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [],
 
       <div className="space-y-8 md:space-y-6">
         
-        {/* Locality Search */}
+        {/* Global Search */}
         <div>
-          <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Locality / City</h3>
+          <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Global Search</h3>
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search by area (e.g. Bandra)" 
+              placeholder="Search vendor, city, category..." 
+              value={searchParams.get('q') || ''}
+              onChange={(e) => {
+                const newParams = new URLSearchParams(searchParams);
+                if (e.target.value) newParams.set('q', e.target.value);
+                else newParams.delete('q');
+                setSearchParams(newParams);
+              }}
               className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 pl-9 pr-4 text-sm font-semibold text-gray-700 focus:outline-none focus:border-brand-primary transition-colors"
+            />
+          </div>
+        </div>
+
+        {/* Availability Date Filter */}
+        <div className="pt-4 border-t border-gray-100">
+          <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Event Date (Availability)</h3>
+          <div className="relative">
+            <input 
+              type="date" 
+              value={searchParams.get('date') || ''}
+              onChange={(e) => {
+                const newParams = new URLSearchParams(searchParams);
+                if (e.target.value) newParams.set('date', e.target.value);
+                else newParams.delete('date');
+                setSearchParams(newParams);
+              }}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-4 text-sm font-semibold text-gray-700 focus:outline-none focus:border-brand-primary transition-colors"
             />
           </div>
         </div>
@@ -476,7 +501,7 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [],
       </div>
       
       {isMobileOpen && (
-        <div className="sticky bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 mt-auto">
+        <div className="sticky bottom-0 left-0 right-0 p-4 pb-safe bg-white border-t border-gray-100 mt-auto">
           <button 
             className="w-full btn-liquid text-white py-4 rounded-xl font-black shadow-3d hover:shadow-3d-hover active:scale-95 transition-all text-lg"
             onClick={() => setIsMobileOpen(false)}

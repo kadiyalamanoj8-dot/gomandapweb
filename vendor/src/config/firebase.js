@@ -1,5 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getMessaging } from "firebase/messaging";
+import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC-ro9gGqJQpb-z1NcgEWmwi4XeosFfveg",
@@ -14,3 +16,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+export const messaging = typeof window !== 'undefined' ? getMessaging(app) : null;
+export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+
+export const requestNotificationPermission = async () => {
+  if (!messaging) return null;
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      const { getToken } = await import('firebase/messaging');
+      const token = await getToken(messaging);
+      return token;
+    }
+  } catch (error) {
+    console.error('Push notification permission denied', error);
+  }
+  return null;
+};

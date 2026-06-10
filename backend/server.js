@@ -46,6 +46,9 @@ app.use('/api/users', userRoutes);
 const leadRoutes = require('./routes/leadRoutes');
 app.use('/api/leads', leadRoutes);
 
+const bookingRoutes = require('./routes/bookingRoutes');
+app.use('/api/bookings', bookingRoutes);
+
 const PORT = process.env.PORT || 5000;
 
 // Auto-seed Admin

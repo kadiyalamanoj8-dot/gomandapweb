@@ -56,6 +56,27 @@ const vendorSchema = new mongoose.Schema({
   rating: { type: Number, default: 0 },
   reviewsCount: { type: Number, default: 0 },
 
+  // Booking & Service specifics
+  bookingSettings: {
+    maxCapacity: { type: Number, default: 1 },
+    availability: [{
+      date: { type: Date },
+      isBlocked: { type: Boolean, default: false },
+      reason: { type: String }
+    }],
+    monetizationModel: { type: String, enum: ['commission', 'subscription'], default: 'commission' },
+    commissionRate: { type: Number, default: 10 },
+    subscriptionExpiry: { type: Date }
+  },
+
+  // Pricing structure
+  pricing: {
+    standardPrice: { type: Number, default: 0 },
+    b2bPrice: { type: Number, default: 0 },
+    adminOverridePrice: { type: Number },
+    pricingUnit: { type: String, default: 'per_day' }
+  },
+
   // Deep Schema (Dynamic Fields)
   // We use Mixed type because different categories have different schemas
   deepFeatures: { type: mongoose.Schema.Types.Mixed, default: {} },

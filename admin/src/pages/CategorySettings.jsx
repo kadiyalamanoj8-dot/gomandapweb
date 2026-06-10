@@ -95,24 +95,22 @@ const CategorySettings = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [togglingCategory, setTogglingCategory] = useState(null);
   const [notification, setNotification] = useState(null);
-
   useEffect(() => {
+    async function fetchSettings() {
+      try {
+        const res = await fetch(`${API_BASE}/api/settings`);
+        const data = await res.json();
+        if (data.success) {
+          setDisabledCategories(data.data.disabledCategories || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch settings:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
     fetchSettings();
   }, []);
-
-  const fetchSettings = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/api/settings`);
-      const data = await res.json();
-      if (data.success) {
-        setDisabledCategories(data.data.disabledCategories || []);
-      }
-    } catch (err) {
-      console.error('Failed to fetch settings:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleToggle = async (categoryLabel) => {
     const currentlyEnabled = !disabledCategories.includes(categoryLabel);

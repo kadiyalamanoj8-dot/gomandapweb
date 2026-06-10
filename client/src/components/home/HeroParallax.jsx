@@ -71,15 +71,18 @@ const HeroParallax = () => {
   const [selectedLocation, setSelectedLocation] = useState(null);
 
   useEffect(() => {
-    if (!locationQuery || locationQuery.length < 3 || selectedLocation?.display_name.includes(locationQuery)) {
+    if (!locationQuery || locationQuery.length < 3 || selectedLocation?.description?.includes(locationQuery)) {
         setLocationResults([]);
         return;
     }
     const timer = setTimeout(async () => {
         try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationQuery)}&countrycodes=in&limit=5`);
+            const apiKey = import.meta.env.VITE_OLA_MAPS_API_KEY;
+            const res = await fetch(`https://api.olamaps.io/places/v1/autocomplete?input=${encodeURIComponent(locationQuery)}&api_key=${apiKey}`);
             const data = await res.json();
-            setLocationResults(data);
+            if (data.predictions) {
+              setLocationResults(data.predictions);
+            }
         } catch (e) {
             console.error(e);
         }
@@ -89,7 +92,7 @@ const HeroParallax = () => {
 
   const handleLocationSelect = (loc) => {
     setSelectedLocation(loc);
-    setLocationQuery(loc.display_name.split(',')[0]);
+    setLocationQuery(loc.structured_formatting?.main_text || loc.description.split(',')[0]);
     setLocationResults([]);
   };
 
@@ -98,11 +101,15 @@ const HeroParallax = () => {
       navigator.geolocation.getCurrentPosition(async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`);
+            const apiKey = import.meta.env.VITE_OLA_MAPS_API_KEY;
+            const res = await fetch(`https://api.olamaps.io/places/v1/reverse-geocode?latlng=${latitude},${longitude}&api_key=${apiKey}`);
             const data = await res.json();
-            const locName = data.address?.city || data.address?.town || data.address?.village || data.address?.county || data.address?.state_district || "Current Location";
-            setSelectedLocation({ lat: latitude, lon: longitude, display_name: data.display_name });
-            setLocationQuery(locName);
+            if (data.results && data.results.length > 0) {
+              const result = data.results[0];
+              const locName = result.address_components?.find(c => c.types.includes('locality'))?.short_name || result.name || "Current Location";
+              setSelectedLocation({ description: result.formatted_address });
+              setLocationQuery(locName);
+            }
             setLocationResults([]);
         } catch (error) {
             console.error(error);
@@ -236,8 +243,8 @@ const HeroParallax = () => {
                   <div key={i} onClick={() => handleLocationSelect(loc)} className="px-5 py-3.5 cursor-pointer flex items-center gap-3 hover:bg-white/10 active:bg-white/20 transition-colors border-b border-white/10 last:border-b-0">
                     <MapPin size={15} className="text-white/50 shrink-0" />
                     <div className="flex flex-col gap-0.5 min-w-0">
-                      <span className="text-white font-bold text-[15px] tracking-tight truncate">{loc.display_name.split(',')[0]}</span>
-                      <span className="text-white/50 text-[11px] truncate font-medium">{loc.display_name}</span>
+                      <span className="text-white font-bold text-[15px] tracking-tight truncate">{loc.structured_formatting?.main_text || loc.description?.split(',')[0]}</span>
+                      <span className="text-white/50 text-[11px] truncate font-medium">{loc.structured_formatting?.secondary_text || loc.description}</span>
                     </div>
                   </div>
                 ))}
@@ -303,10 +310,10 @@ const HeroParallax = () => {
         </div>
 
         {/* Mobile UI: Compact Bottom Pill (Airbnb Style) */}
-        <div className="md:hidden absolute bottom-[180px] w-full z-[200] px-4 pointer-events-auto">
+        <div className="md:hidden absolute bottom-[115px] w-full z-[200] px-4 pointer-events-auto">
           <button 
             onClick={() => setIsMobileSearchOpen(true)}
-            className="w-full bg-white/10 backdrop-blur-3xl shadow-[inset_0_2px_15px_rgba(255,255,255,0.3),0_20px_50px_rgba(0,0,0,0.7)] border border-white/20 border-t-white/40 rounded-[32px] py-4 px-6 flex items-center justify-between text-white active:scale-95 transition-transform"
+            className="w-full bg-white/5 backdrop-blur-md shadow-[inset_0_2px_15px_rgba(255,255,255,0.5),inset_0_-1px_10px_rgba(255,255,255,0.1),0_25px_50px_rgba(0,0,0,0.5)] border border-white/20 border-t-white/40 rounded-[32px] py-4 px-6 flex items-center justify-between text-white active:scale-95 transition-transform"
           >
             <div className="flex flex-col items-start text-left">
               <span className="font-extrabold text-[17px] tracking-tight text-white drop-shadow-md">Where to?</span>

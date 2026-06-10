@@ -184,7 +184,7 @@ const getApprovedVendors = async (req, res) => {
       return res.status(200).json(vendorCache.get(cacheKey));
     }
 
-    const { category, categories, inHouseCatering, inHousePhotography, inHouseDecorations, lat, lng, radiusInKm, locName } = req.query;
+    const { category, categories, inHouseCatering, inHousePhotography, inHouseDecorations, lat, lng, radiusInKm, locName, date, q } = req.query;
     
     // Fetch disabled categories from Settings to exclude them
     const settings = await Settings.findOne();
@@ -222,6 +222,15 @@ const getApprovedVendors = async (req, res) => {
       query.$text = { $search: locName };
     }
 
+    // Global Search (Advanced Search)
+    if (q) {
+      query.$or = [
+        { name: { $regex: q, $options: 'i' } },
+        { category: { $regex: q, $options: 'i' } },
+        { 'address.city': { $regex: q, $options: 'i' } }
+      ];
+    }
+
     // In-house services filtering (stored in deepFeatures)
     if (inHouseCatering === 'true') {
       query['deepFeatures.inHouseCatering'] = 'Yes';
@@ -240,6 +249,25 @@ const getApprovedVendors = async (req, res) => {
         query[`deepFeatures.${featureKey}`] = req.query[key];
       }
     });
+
+    // Date availability filtering
+    if (date) {
+      // We want to exclude vendors who have a blocked date matching the query date
+      // Note: This is a simplistic match. For production, date range queries are better.
+      const searchDate = new Date(date);
+      // Create a start and end of day to match the exact day
+      const startOfDay = new Date(searchDate.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(searchDate.setHours(23, 59, 59, 999));
+      
+      query['bookingSettings.availability'] = {
+        $not: {
+          $elemMatch: {
+            date: { $gte: startOfDay, $lte: endOfDay },
+            isBlocked: true
+          }
+        }
+      };
+    }
 
     const vendors = await Vendor.find(query).lean();
     const responseData = { success: true, count: vendors.length, data: vendors };
@@ -341,6 +369,59 @@ const updateLocationLock = async (req, res) => {
   }
 };
 
+// @desc    Update vendor settings (availability, pricing)
+// @route   PATCH /api/vendors/:id/settings
+// @access  Private/Vendor
+const updateVendorSettings = async (req, res) => {
+  try {
+    const { bookingSettings, pricing } = req.body;
+    
+    let updateFields = {};
+    if (bookingSettings) updateFields.bookingSettings = bookingSettings;
+    if (pricing) updateFields.pricing = pricing;
+
+    const vendor = await Vendor.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateFields },
+      { new: true }
+    );
+
+    if (!vendor) return res.status(404).json({ success: false, message: 'Vendor not found' });
+    vendorCache.flushAll();
+    res.status(200).json({ success: true, data: vendor });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+// @desc    Admin update vendor controls (monetization, featured, price override)
+// @route   PATCH /api/vendors/:id/admin-settings
+// @access  Private/Admin
+const updateAdminVendorSettings = async (req, res) => {
+  try {
+    const { monetizationModel, commissionRate, subscriptionExpiry, isFeatured, adminOverridePrice } = req.body;
+    
+    let updateFields = {};
+    if (monetizationModel) updateFields['bookingSettings.monetizationModel'] = monetizationModel;
+    if (commissionRate !== undefined) updateFields['bookingSettings.commissionRate'] = commissionRate;
+    if (subscriptionExpiry) updateFields['bookingSettings.subscriptionExpiry'] = subscriptionExpiry;
+    if (isFeatured !== undefined) updateFields.isFeatured = isFeatured;
+    if (adminOverridePrice !== undefined) updateFields['pricing.adminOverridePrice'] = adminOverridePrice;
+
+    const vendor = await Vendor.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateFields },
+      { new: true }
+    );
+
+    if (!vendor) return res.status(404).json({ success: false, message: 'Vendor not found' });
+    vendorCache.flushAll();
+    res.status(200).json({ success: true, data: vendor });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
 module.exports = {
   createDraft,
   syncVendorAuth,
@@ -350,5 +431,7 @@ module.exports = {
   getVendorById,
   getAllVendors,
   updateVendorStatus,
-  updateLocationLock
+  updateLocationLock,
+  updateVendorSettings,
+  updateAdminVendorSettings
 };

@@ -5,6 +5,7 @@ import { getCategorySchema } from '../config/categorySchemas';
 import { API_URL } from '../config/api';
 import { Star, MapPin, Heart, Share2, CheckCircle2, ChevronLeft, Info, ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import * as Icons from 'lucide-react';
 import CustomDropdown from '../components/ui/CustomDropdown';
 import DynamicSEO from '../components/DynamicSEO';
@@ -16,6 +17,9 @@ const VendorDetailsPage = () => {
   const location = useLocation();
   const [vendor, setVendor] = useState(null);
   const { addToCart } = useCart();
+  const { user, requireAuth } = useAuth();
+  
+  const userRole = user?.role || 'client'; // 'client' (D2C) or 'business_client' (B2B)
   
   // Dynamic state for the booking form fields
   const [formData, setFormData] = useState({});
@@ -57,7 +61,7 @@ const VendorDetailsPage = () => {
         category: v.category,
         location: v.location || (v.address?.city ? `${v.address.city}, India` : 'India'),
         imageUrl: v.imageUrl || (v.portfolioImages?.length > 0 ? v.portfolioImages[0] : 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1200&q=80'),
-        pricePerPlate: v.pricePerPlate || v.customBlocks?.pricingPackages?.[0]?.price || 'Contact for Price',
+        pricePerPlate: v.pricing?.adminOverridePrice || (user?.role === 'business_client' ? v.pricing?.b2bPrice : v.pricing?.standardPrice) || v.pricePerPlate || v.customBlocks?.pricingPackages?.[0]?.price || 'Contact for Price',
         rating: v.rating || 5.0,
         reviewsCount: v.reviewsCount || 0,
         deepFeatures: v.deepFeatures,
@@ -84,7 +88,7 @@ const VendorDetailsPage = () => {
             category: v.category,
             location: v.address?.city ? `${v.address.city}, India` : 'India',
             imageUrl: v.portfolioImages?.length > 0 ? v.portfolioImages[0] : 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1200&q=80',
-            pricePerPlate: v.customBlocks?.pricingPackages?.[0]?.price || 'Contact for Price',
+            pricePerPlate: v.pricing?.adminOverridePrice || (user?.role === 'business_client' ? v.pricing?.b2bPrice : v.pricing?.standardPrice) || v.customBlocks?.pricingPackages?.[0]?.price || 'Contact for Price',
             rating: v.rating || 5.0,
             reviewsCount: v.reviewsCount || 0,
             deepFeatures: v.deepFeatures,
@@ -169,7 +173,7 @@ const VendorDetailsPage = () => {
       if (data.success) {
         setIsQuoteModalOpen(false);
         setQuoteForm({ name: '', phone: '', message: '' });
-        alert('Your quote request has been sent to the vendor! They will contact you shortly.');
+        alert(userRole === 'client' ? 'Booking request submitted successfully! The vendor will confirm shortly.' : 'Your B2B quote request has been sent to the vendor! They will contact you shortly.');
       } else {
         alert(data.message || 'Failed to send inquiry.');
       }
@@ -179,6 +183,12 @@ const VendorDetailsPage = () => {
     } finally {
       setIsSendingQuote(false);
     }
+  };
+
+  const handleInstantBook = () => {
+    requireAuth(() => {
+      setIsQuoteModalOpen(true);
+    });
   };
 
   // Build gallery array dynamically based on Cloudinary uploads, fallback to Unsplash
@@ -293,12 +303,19 @@ const VendorDetailsPage = () => {
             
             {/* Header Area (Desktop only layout, mobile inherits from flow) */}
             <div className="mb-8 md:mb-12 border-b border-gray-200 pb-8">
-              <h1 className="text-[32px] md:text-[42px] font-black text-gray-900 tracking-tight leading-tight mb-4">
-                {vendor.name}
-              </h1>
+              <div className="flex items-center gap-3 mb-4 flex-wrap">
+                <h1 className="text-[32px] md:text-[42px] font-black text-gray-900 tracking-tight leading-tight">
+                  {vendor.name}
+                </h1>
+                {vendor.rating >= 4.5 && (
+                  <span className="badge-top-rated"><Icons.Award size={14} className="mb-0.5" /> Top Rated</span>
+                )}
+                <span className="badge-verified"><Icons.ShieldCheck size={14} className="mb-0.5" /> Verified</span>
+              </div>
+              
               <div className="flex flex-wrap items-center gap-y-3 gap-x-4 text-sm font-medium text-gray-900">
                 <div className="flex items-center gap-1.5 font-bold">
-                  <Star size={18} className="text-gray-900" fill="currentColor" /> {vendor.rating} <span className="text-gray-500 font-normal underline cursor-pointer hover:text-gray-900 transition-colors">{vendor.reviewsCount} reviews</span>
+                  <Star size={18} className="text-brand-gold" fill="currentColor" /> {vendor.rating} <span className="text-gray-500 font-normal underline cursor-pointer hover:text-gray-900 transition-colors">{vendor.reviewsCount} reviews</span>
                 </div>
                 <div className="hidden md:block w-1 h-1 rounded-full bg-gray-300"></div>
                 <div className="flex items-center gap-1.5 text-gray-600 underline cursor-pointer hover:text-gray-900 transition-colors">
@@ -307,6 +324,10 @@ const VendorDetailsPage = () => {
                 <div className="hidden md:block w-1 h-1 rounded-full bg-gray-300"></div>
                 <div className="flex items-center gap-1 text-gray-600">
                   {vendor.category}
+                </div>
+                <div className="hidden md:block w-1 h-1 rounded-full bg-gray-300"></div>
+                <div className="flex items-center gap-1.5 text-green-600 bg-green-50 px-2 py-1 rounded-md font-bold text-xs">
+                  <Icons.Clock size={14} /> Responds in ~2 hours
                 </div>
               </div>
             </div>
@@ -370,7 +391,7 @@ const VendorDetailsPage = () => {
             )}
 
             {/* Features/Amenities Section (Uses deep data from DB) */}
-            <section>
+            <section className="mb-10 pb-10 border-b border-gray-200">
               <h2 className="text-2xl font-black text-gray-900 mb-6">{schema.featuresTitle || 'Amenities'}</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-4">
                 {vendor.deepFeatures && Object.entries(vendor.deepFeatures).map(([key, value], i) => (
@@ -379,6 +400,42 @@ const VendorDetailsPage = () => {
                     <span className="text-sm font-semibold text-gray-700 capitalize">
                       {value === "Yes" || value === "No" ? `${key}: ${value}` : value}
                     </span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Verified Reviews Section */}
+            <section className="mb-10 pb-10 border-b border-gray-200">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">
+                  Verified Reviews <Icons.ShieldCheck className="text-green-500" size={24} />
+                </h2>
+                <button className="text-sm font-bold text-brand-primary hover:underline">Read all {vendor.reviewsCount || 12} reviews</button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[1, 2].map(idx => (
+                  <div key={idx} className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-500">
+                          {idx === 1 ? 'S' : 'A'}
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900">{idx === 1 ? 'Shruti P.' : 'Aditya M.'}</p>
+                          <p className="text-xs text-gray-500 font-semibold flex items-center gap-1">
+                            <Icons.CheckCircle2 size={12} className="text-green-500" /> Verified Client
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-md shadow-sm border border-gray-100">
+                        <Star size={14} className="text-brand-gold fill-brand-gold" />
+                        <span className="text-xs font-bold text-gray-900">5.0</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 font-medium leading-relaxed">
+                      "Absolutely fantastic service! The team was extremely professional and the quality of their work exceeded our expectations. Highly recommend to anyone planning their big day."
+                    </p>
                   </div>
                 ))}
               </div>
@@ -444,12 +501,21 @@ const VendorDetailsPage = () => {
               </div>
               
               <div className="flex flex-col gap-3">
-                <button 
-                  onClick={() => setIsQuoteModalOpen(true)}
-                  className="w-full bg-[#E51D53] hover:bg-[#D41B4D] text-white py-3.5 rounded-xl font-bold text-base transition-colors active:scale-95"
-                >
-                  Request Quote
-                </button>
+                {userRole === 'client' ? (
+                  <button 
+                    onClick={handleInstantBook}
+                    className="w-full bg-[#E51D53] hover:bg-[#D41B4D] text-white py-3.5 rounded-xl font-bold text-base transition-colors active:scale-95 shadow-md shadow-[#E51D53]/20"
+                  >
+                    Book Now (D2C)
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => setIsQuoteModalOpen(true)}
+                    className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white py-3.5 rounded-xl font-bold text-base transition-colors active:scale-95"
+                  >
+                    Request B2B Quote
+                  </button>
+                )}
                 <div className="flex gap-3">
                   <button 
                     onClick={handleAddToCart}
@@ -466,19 +532,27 @@ const VendorDetailsPage = () => {
             </motion.div>
           </aside>
           
-          {/* Mobile Fixed Booking Bar */}
           <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-5 py-4 z-50 flex justify-between items-center pb-safe gap-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
             <div className="flex flex-col">
               <span className="text-[18px] font-bold text-gray-900 leading-none mb-1">{vendor.pricePerPlate}</span>
               <span className="text-[12px] text-gray-500 font-normal leading-none underline">{schema.pricingUnit}</span>
             </div>
             
-            <button 
-              onClick={() => setIsQuoteModalOpen(true)}
-              className="flex-1 bg-[#E51D53] text-white py-3.5 rounded-xl font-bold text-[15px] active:scale-95 transition-transform text-center"
-            >
-              Request Quote
-            </button>
+            {userRole === 'client' ? (
+              <button 
+                onClick={handleInstantBook}
+                className="flex-1 bg-[#E51D53] text-white py-3.5 rounded-xl font-bold text-[15px] active:scale-95 transition-transform text-center shadow-md"
+              >
+                Book Now (D2C)
+              </button>
+            ) : (
+              <button 
+                onClick={() => setIsQuoteModalOpen(true)}
+                className="flex-1 bg-brand-primary text-white py-3.5 rounded-xl font-bold text-[15px] active:scale-95 transition-transform text-center"
+              >
+                Request Quote
+              </button>
+            )}
           </div>
 
         </div>

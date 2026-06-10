@@ -37,7 +37,11 @@ export const VendorProvider = ({ children }) => {
 
   const loginWithGoogle = async (googleToken) => {
     try {
-      const decoded = jwtDecode(googleToken);
+      const userinfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${googleToken}` }
+      });
+      if (!userinfoRes.ok) throw new Error("Invalid access token");
+      const decoded = await userinfoRes.json();
       
       const res = await fetch(`${API_URL}/api/vendors/auth/google`, {
         method: 'POST',

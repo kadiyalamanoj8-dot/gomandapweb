@@ -4,10 +4,28 @@ import { getCategorySchema } from '../config/categorySchemas';
 import LocationMapAdmin from './LocationMapAdmin';
 import ApplePicker from './ApplePicker';
 
-const VendorDetailsModal = ({ vendor, onClose, onUpdateStatus }) => {
+const VendorDetailsModal = ({ vendor, onClose, onUpdateStatus, onUpdateAdminSettings }) => {
   const [viewMode, setViewMode] = useState('admin'); // 'admin' | 'preview'
   const [feedbackField, setFeedbackField] = useState('');
   const [feedbackMessage, setFeedbackMessage] = useState('');
+
+  const [adminSettings, setAdminSettings] = useState({
+    monetizationModel: vendor.bookingSettings?.monetizationModel || 'commission',
+    commissionRate: vendor.bookingSettings?.commissionRate || 10,
+    isFeatured: vendor.isFeatured || false,
+    adminOverridePrice: vendor.pricing?.adminOverridePrice || ''
+  });
+
+  const handleSaveAdminSettings = () => {
+    if (onUpdateAdminSettings) {
+      onUpdateAdminSettings({
+        monetizationModel: adminSettings.monetizationModel,
+        commissionRate: Number(adminSettings.commissionRate),
+        isFeatured: adminSettings.isFeatured,
+        adminOverridePrice: adminSettings.adminOverridePrice ? Number(adminSettings.adminOverridePrice) : null
+      });
+    }
+  };
 
   const handleSendFeedback = () => {
     if (!feedbackField || !feedbackMessage) return alert("Select a field and enter a message");
@@ -154,6 +172,69 @@ const VendorDetailsModal = ({ vendor, onClose, onUpdateStatus }) => {
                       <div className="font-black text-brand-primary text-lg">{pkg.price}</div>
                     </div>
                   ))}
+                </div>
+              </section>
+
+              <section className="bg-brand-primary/5 p-5 rounded-2xl border border-brand-primary/20 space-y-4">
+                <h3 className="text-lg font-black text-brand-primary flex items-center gap-2 border-b border-brand-primary/20 pb-2">
+                  Admin Platform Controls
+                </h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Monetization Model</label>
+                    <select
+                      value={adminSettings.monetizationModel}
+                      onChange={(e) => setAdminSettings({ ...adminSettings, monetizationModel: e.target.value })}
+                      className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:border-brand-primary"
+                    >
+                      <option value="commission">Commission (%)</option>
+                      <option value="subscription">Subscription Flat Fee</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Commission Rate (%)</label>
+                    <input
+                      type="number"
+                      value={adminSettings.commissionRate}
+                      onChange={(e) => setAdminSettings({ ...adminSettings, commissionRate: e.target.value })}
+                      disabled={adminSettings.monetizationModel !== 'commission'}
+                      className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:border-brand-primary disabled:bg-gray-100 disabled:text-gray-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Highlight Vendor (Client App)</label>
+                    <button
+                      onClick={() => setAdminSettings({ ...adminSettings, isFeatured: !adminSettings.isFeatured })}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm font-bold transition-colors border ${adminSettings.isFeatured ? 'bg-brand-gold/10 text-brand-gold border-brand-gold/30' : 'bg-white text-gray-500 border-gray-200 hover:border-brand-gold/50'}`}
+                    >
+                      {adminSettings.isFeatured ? '⭐ Highlighted' : 'Not Highlighted'}
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Override Price (₹)</label>
+                    <input
+                      type="number"
+                      placeholder="Leave blank to use vendor price"
+                      value={adminSettings.adminOverridePrice}
+                      onChange={(e) => setAdminSettings({ ...adminSettings, adminOverridePrice: e.target.value })}
+                      className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:border-brand-primary"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    onClick={handleSaveAdminSettings}
+                    className="w-full py-2.5 bg-brand-primary text-white rounded-xl font-bold text-sm hover:bg-brand-primary/90 transition-colors shadow-sm"
+                  >
+                    Save Platform Settings
+                  </button>
                 </div>
               </section>
             </div>

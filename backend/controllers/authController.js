@@ -46,19 +46,32 @@ const authGoogle = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Google authentication token is missing' });
     }
 
-    // Verify token with Google
-    let ticket;
+    // Verify token with Google (Support both id_token and access_token)
+    let payload;
     try {
-      ticket = await googleClient.verifyIdToken({
+      // First try as id_token
+      const ticket = await googleClient.verifyIdToken({
         idToken: token,
         audience: process.env.GOOGLE_CLIENT_ID || '525881024479-s9c7umr8e5r5mrtqdld53o6o1mvar4l0.apps.googleusercontent.com',
       });
+      payload = ticket.getPayload();
     } catch (verifyError) {
-      console.error("Google Token Verification Failed:", verifyError.message);
-      return res.status(401).json({ success: false, message: 'Invalid Google token' });
+      // If it fails, try as access_token (from custom useGoogleLogin button)
+      try {
+        const fetch = (await import('node-fetch')).default || global.fetch;
+        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!response.ok) {
+          throw new Error('Invalid access token');
+        }
+        payload = await response.json();
+      } catch (accessErr) {
+        console.error("Google Token Verification Failed (both id_token and access_token):", verifyError.message, accessErr.message);
+        return res.status(401).json({ success: false, message: 'Invalid Google token' });
+      }
     }
     
-    const payload = ticket.getPayload();
     if (!payload || !payload.email) {
       return res.status(400).json({ success: false, message: 'Unable to extract email from Google token' });
     }

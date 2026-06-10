@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVendor } from '../../context/VendorContext';
 import { 
   LogOut, Eye, CheckCircle2, ChevronRight, Bell, Menu, X, 
   MapPin, TrendingUp, Sparkles, CalendarDays, Plus, Trash2 
 } from 'lucide-react';
+import * as Icons from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getCategorySchema } from '../../config/categorySchemas';
 import ProfileCard from '../../components/auth/ProfileCard';
@@ -30,7 +31,9 @@ const VendorDashboard = () => {
         phone: vendorProfile.contact?.phone || '',
         city: vendorProfile.address?.city || '',
         customBlocks: vendorProfile.customBlocks || { pricingPackages: [] },
-        deepFeatures: vendorProfile.deepFeatures || {}
+        deepFeatures: vendorProfile.deepFeatures || {},
+        bookingSettings: vendorProfile.bookingSettings || { maxCapacity: 1, availability: [] },
+        pricing: vendorProfile.pricing || { standardPrice: 0, b2bPrice: 0, pricingUnit: 'per_day' }
       });
       fetchInquiries();
     }
@@ -99,7 +102,9 @@ const VendorDashboard = () => {
         contact: { ...vendorProfile.contact, phone: editForm.phone },
         address: { ...vendorProfile.address, city: editForm.city },
         customBlocks: editForm.customBlocks,
-        deepFeatures: editForm.deepFeatures
+        deepFeatures: editForm.deepFeatures,
+        bookingSettings: editForm.bookingSettings,
+        pricing: editForm.pricing
       };
 
       const res = await fetch(`https://gomandap-api.onrender.com/api/vendors/draft/${vendorProfile._id}`, {
@@ -274,6 +279,120 @@ const VendorDashboard = () => {
               </div>
             </motion.div>
 
+            {/* Vibrant Data Widgets (Asymmetric layout) */}
+            <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+              
+              {/* Main Large Widget (Revenue) */}
+              <div className="lg:col-span-2 bg-gradient-to-br from-[#000000]/90 to-[#111111]/90 backdrop-blur-3xl p-8 md:p-10 rounded-[2.5rem] border border-brand-gold/30 shadow-[0_12px_40px_rgb(239,68,68,0.3)] relative overflow-hidden flex flex-col justify-between min-h-[260px] group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-brand-gold/40 to-brand-gold/40 rounded-full blur-[80px] transform translate-x-1/3 -translate-y-1/3 group-hover:opacity-80 transition-opacity"></div>
+                <div className="relative z-10 flex justify-between items-start">
+                  <div>
+                    <span className="text-lg font-bold text-brand-gold mb-1 block">Total Estimated Revenue</span>
+                    <span className="text-[13px] font-semibold text-white/50 uppercase tracking-widest">This Month</span>
+                  </div>
+                  <div className="w-14 h-14 rounded-full bg-black/30 border border-white/10 flex items-center justify-center backdrop-blur-md shadow-inner">
+                    <TrendingUp className="text-brand-gold" size={24} />
+                  </div>
+                </div>
+                <div className="relative z-10 mt-10 flex items-end gap-4">
+                  <span className="text-6xl md:text-8xl font-black tracking-tighter text-white drop-shadow-lg">₹3.2L</span>
+                  <span className="text-lg font-bold text-white/80 mb-3">+24%</span>
+                </div>
+              </div>
+
+              {/* Stacked Smaller Widgets */}
+              <div className="flex flex-col gap-6">
+                <div className="flex-1 bg-black/40 backdrop-blur-2xl p-6 rounded-[2rem] border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.5)] relative overflow-hidden group flex items-center justify-between">
+                   <div className="absolute -left-10 -top-10 w-32 h-32 bg-brand-gold/20 rounded-full blur-[50px] group-hover:bg-brand-gold/30 transition-colors"></div>
+                   <div className="relative z-10">
+                     <span className="text-sm font-bold text-white/60 uppercase tracking-wider block mb-1">Profile Views</span>
+                     <span className="text-4xl font-black text-white">2,481</span>
+                   </div>
+                   <div className="w-16 h-16 relative z-10">
+                     <img src="/images/3d_venue copy.webp" className="w-full h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" alt="Views" />
+                   </div>
+                </div>
+
+                <div className="flex-1 bg-black/40 backdrop-blur-2xl p-6 rounded-[2rem] border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.5)] relative overflow-hidden group flex items-center justify-between">
+                   <div className="absolute -left-10 -top-10 w-32 h-32 bg-brand-gold/20 rounded-full blur-[50px] group-hover:bg-brand-gold/30 transition-colors"></div>
+                   <div className="relative z-10">
+                     <span className="text-sm font-bold text-white/60 uppercase tracking-wider block mb-1">Active Leads</span>
+                     <span className="text-4xl font-black text-white">{inquiries.length || 0}</span>
+                   </div>
+                   <div className="w-16 h-16 relative z-10">
+                     <img src="/images/3d_invitation copy.webp" className="w-full h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" alt="Leads" />
+                   </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Ticket-style Leads Feed */}
+            <motion.div variants={itemVariants} className="mb-12">
+              <div className="flex justify-between items-center mb-6 px-2">
+                <h3 className="text-2xl font-black tracking-tight text-white drop-shadow-sm flex items-center gap-2">
+                  <CalendarDays className="text-brand-gold" /> Live Inquiries
+                </h3>
+                <button onClick={() => setActiveTab('bookings')} className="text-[15px] font-bold text-brand-gold hover:text-brand-gold flex items-center gap-1 transition-colors">
+                  View All <ChevronRight size={16} />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {inquiries.slice(0, 3).map((inquiry) => (
+                  <div key={inquiry._id} className="relative bg-gradient-to-r from-black/60 to-black/40 backdrop-blur-2xl rounded-3xl p-6 border border-white/10 shadow-xl overflow-hidden group hover:-translate-y-1 hover:shadow-[0_20px_40px_rgb(0,0,0,0.4)] transition-all duration-300">
+                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${inquiry.status === 'new' ? 'bg-brand-gold' : 'bg-brand-gold'}`}></div>
+                    <div className="absolute right-0 top-0 opacity-5 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
+                      <CalendarDays size={200} />
+                    </div>
+                    
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                      <div className="flex items-center gap-5">
+                        <div className={`w-14 h-14 rounded-2xl ${inquiry.status === 'new' ? 'bg-brand-gold/20 text-brand-gold border-brand-gold/30' : 'bg-brand-gold/20 text-brand-gold border-brand-gold/30'} flex items-center justify-center font-black text-xl border shadow-inner`}>
+                          {inquiry.clientName.charAt(0)}
+                        </div>
+                        <div>
+                          <h4 className="text-xl font-bold text-white mb-1">{inquiry.clientName}'s Inquiry</h4>
+                          <p className="text-sm font-medium text-white/60 flex items-center gap-2">
+                            <MapPin size={14} /> Contact: {inquiry.clientPhone}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between md:justify-end gap-8">
+                        <div className="text-left md:text-right">
+                          <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest mb-1">Event Date</p>
+                          <p className="text-lg font-bold text-white">{new Date(inquiry.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                        </div>
+                        <div className="h-10 w-px bg-white/10 hidden md:block"></div>
+                        <div className="text-left md:text-right">
+                          {inquiry.status === 'new' ? (
+                            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-brand-gold/20 text-brand-gold text-[13px] font-bold rounded-full border border-brand-gold/30">
+                              <span className="w-2 h-2 rounded-full bg-brand-gold animate-pulse"></span>
+                              New Lead
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-brand-gold/20 text-brand-gold text-[13px] font-bold rounded-full border border-brand-gold/30">
+                              Viewed
+                            </span>
+                          )}
+                        </div>
+                        <button onClick={() => setActiveTab('bookings')} className="px-6 py-3 bg-white text-black rounded-xl font-bold text-[15px] hover:bg-gray-200 transition-colors shadow-lg shadow-white/10">
+                          Respond
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {inquiries.length === 0 && (
+                  <div className="text-center py-12 bg-white/5 rounded-3xl border border-white/10 border-dashed">
+                    <p className="text-white/40 font-semibold mb-2">No live inquiries yet.</p>
+                    <p className="text-white/20 text-sm">Your new leads will appear here automatically.</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+
             {/* Visual Explanations / Onboarding (Horizontal Scroll) */}
             <motion.div variants={itemVariants} className="mb-12">
               <h3 className="text-2xl font-black text-white mb-6 drop-shadow-sm flex items-center gap-2">
@@ -341,120 +460,6 @@ const VendorDashboard = () => {
                   </div>
                 </div>
 
-              </div>
-            </motion.div>
-
-            {/* Vibrant Data Widgets (Asymmetric layout) */}
-            <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-              
-              {/* Main Large Widget (Revenue) */}
-              <div className="lg:col-span-2 bg-gradient-to-br from-[#000000]/90 to-[#111111]/90 backdrop-blur-3xl p-8 md:p-10 rounded-[2.5rem] border border-brand-gold/30 shadow-[0_12px_40px_rgb(239,68,68,0.3)] relative overflow-hidden flex flex-col justify-between min-h-[260px] group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-brand-gold/40 to-brand-gold/40 rounded-full blur-[80px] transform translate-x-1/3 -translate-y-1/3 group-hover:opacity-80 transition-opacity"></div>
-                <div className="relative z-10 flex justify-between items-start">
-                  <div>
-                    <span className="text-lg font-bold text-brand-gold mb-1 block">Total Estimated Revenue</span>
-                    <span className="text-[13px] font-semibold text-white/50 uppercase tracking-widest">This Month</span>
-                  </div>
-                  <div className="w-14 h-14 rounded-full bg-black/30 border border-white/10 flex items-center justify-center backdrop-blur-md shadow-inner">
-                    <TrendingUp className="text-brand-gold" size={24} />
-                  </div>
-                </div>
-                <div className="relative z-10 mt-10 flex items-end gap-4">
-                  <span className="text-6xl md:text-8xl font-black tracking-tighter text-white drop-shadow-lg">₹3.2L</span>
-                  <span className="text-lg font-bold text-white/80 mb-3">+24%</span>
-                </div>
-              </div>
-
-              {/* Stacked Smaller Widgets */}
-              <div className="flex flex-col gap-6">
-                <div className="flex-1 bg-black/40 backdrop-blur-2xl p-6 rounded-[2rem] border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.5)] relative overflow-hidden group flex items-center justify-between">
-                   <div className="absolute -left-10 -top-10 w-32 h-32 bg-brand-gold/20 rounded-full blur-[50px] group-hover:bg-brand-gold/30 transition-colors"></div>
-                   <div className="relative z-10">
-                     <span className="text-sm font-bold text-white/60 uppercase tracking-wider block mb-1">Profile Views</span>
-                     <span className="text-4xl font-black text-white">2,481</span>
-                   </div>
-                   <div className="w-16 h-16 relative z-10">
-                     <img src="/images/3d_venue copy.webp" className="w-full h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" alt="Views" />
-                   </div>
-                </div>
-
-                <div className="flex-1 bg-black/40 backdrop-blur-2xl p-6 rounded-[2rem] border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.5)] relative overflow-hidden group flex items-center justify-between">
-                   <div className="absolute -left-10 -top-10 w-32 h-32 bg-brand-gold/20 rounded-full blur-[50px] group-hover:bg-brand-gold/30 transition-colors"></div>
-                   <div className="relative z-10">
-                     <span className="text-sm font-bold text-white/60 uppercase tracking-wider block mb-1">Active Leads</span>
-                     <span className="text-4xl font-black text-white">{inquiries.length || 0}</span>
-                   </div>
-                   <div className="w-16 h-16 relative z-10">
-                     <img src="/images/3d_invitation copy.webp" className="w-full h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" alt="Leads" />
-                   </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Ticket-style Leads Feed */}
-            <motion.div variants={itemVariants}>
-              <div className="flex justify-between items-center mb-6 px-2">
-                <h3 className="text-2xl font-black tracking-tight text-white drop-shadow-sm flex items-center gap-2">
-                  <CalendarDays className="text-brand-gold" /> Live Inquiries
-                </h3>
-                <button className="text-[15px] font-bold text-brand-gold hover:text-brand-gold flex items-center gap-1 transition-colors">
-                  View All <ChevronRight size={16} />
-                </button>
-              </div>
-              
-              <div className="space-y-4">
-                {inquiries.slice(0, 3).map((inquiry) => (
-                  <div key={inquiry._id} className="relative bg-gradient-to-r from-black/60 to-black/40 backdrop-blur-2xl rounded-3xl p-6 border border-white/10 shadow-xl overflow-hidden group hover:-translate-y-1 hover:shadow-[0_20px_40px_rgb(0,0,0,0.4)] transition-all duration-300">
-                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${inquiry.status === 'new' ? 'bg-brand-gold' : 'bg-brand-gold'}`}></div>
-                    <div className="absolute right-0 top-0 opacity-5 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
-                      <CalendarDays size={200} />
-                    </div>
-                    
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-                      <div className="flex items-center gap-5">
-                        <div className={`w-14 h-14 rounded-2xl ${inquiry.status === 'new' ? 'bg-brand-gold/20 text-brand-gold border-brand-gold/30' : 'bg-brand-gold/20 text-brand-gold border-brand-gold/30'} flex items-center justify-center font-black text-xl border shadow-inner`}>
-                          {inquiry.clientName.charAt(0)}
-                        </div>
-                        <div>
-                          <h4 className="text-xl font-bold text-white mb-1">{inquiry.clientName}'s Inquiry</h4>
-                          <p className="text-sm font-medium text-white/60 flex items-center gap-2">
-                            <MapPin size={14} /> Contact: {inquiry.clientPhone}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between md:justify-end gap-8">
-                        <div className="text-left md:text-right">
-                          <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest mb-1">Event Date</p>
-                          <p className="text-lg font-bold text-white">{new Date(inquiry.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                        </div>
-                        <div className="h-10 w-px bg-white/10 hidden md:block"></div>
-                        <div className="text-left md:text-right">
-                          {inquiry.status === 'new' ? (
-                            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-brand-gold/20 text-brand-gold text-[13px] font-bold rounded-full border border-brand-gold/30">
-                              <span className="w-2 h-2 rounded-full bg-brand-gold animate-pulse"></span>
-                              New Lead
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-brand-gold/20 text-brand-gold text-[13px] font-bold rounded-full border border-brand-gold/30">
-                              Viewed
-                            </span>
-                          )}
-                        </div>
-                        <button onClick={() => setActiveTab('bookings')} className="px-6 py-3 bg-white text-black rounded-xl font-bold text-[15px] hover:bg-gray-200 transition-colors shadow-lg shadow-white/10">
-                          Respond
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {inquiries.length === 0 && (
-                  <div className="text-center py-12 bg-white/5 rounded-3xl border border-white/10 border-dashed">
-                    <p className="text-white/40 font-semibold mb-2">No live inquiries yet.</p>
-                    <p className="text-white/20 text-sm">Your new leads will appear here automatically.</p>
-                  </div>
-                )}
               </div>
             </motion.div>
 
@@ -576,6 +581,106 @@ const VendorDashboard = () => {
                 )}
               </div>
             )}
+
+            {/* Base Pricing & Calendar Settings */}
+            <div className="bg-white/5 p-6 md:p-8 rounded-[1.5rem] border border-white/10 shadow-inner mt-6 space-y-8">
+              
+              {/* Base Pricing Structure */}
+              <section>
+                <h3 className="text-lg font-black text-white mb-4">Base Pricing Structure</h3>
+                {isEditingProfile ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">Standard Price (D2C)</label>
+                      <input type="number" value={editForm.pricing.standardPrice} onChange={e => setEditForm({...editForm, pricing: {...editForm.pricing, standardPrice: Number(e.target.value)}})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-brand-gold font-bold text-sm focus:outline-none focus:border-brand-gold" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">B2B Price (Agencies)</label>
+                      <input type="number" value={editForm.pricing.b2bPrice} onChange={e => setEditForm({...editForm, pricing: {...editForm.pricing, b2bPrice: Number(e.target.value)}})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-brand-gold font-bold text-sm focus:outline-none focus:border-brand-gold" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">Pricing Unit</label>
+                      <select value={editForm.pricing.pricingUnit} onChange={e => setEditForm({...editForm, pricing: {...editForm.pricing, pricingUnit: e.target.value}})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white font-bold text-sm focus:outline-none focus:border-brand-gold">
+                        <option value="per_day" className="bg-gray-900">Per Day</option>
+                        <option value="per_event" className="bg-gray-900">Per Event</option>
+                        <option value="per_hour" className="bg-gray-900">Per Hour</option>
+                      </select>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-black/30 border border-white/10 rounded-2xl p-4">
+                      <span className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">Standard (D2C)</span>
+                      <span className="text-lg font-black text-white">₹{vendorProfile.pricing?.standardPrice || 0}</span>
+                    </div>
+                    <div className="bg-black/30 border border-white/10 rounded-2xl p-4">
+                      <span className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">B2B Price</span>
+                      <span className="text-lg font-black text-brand-gold">₹{vendorProfile.pricing?.b2bPrice || 0}</span>
+                    </div>
+                    <div className="bg-black/30 border border-white/10 rounded-2xl p-4">
+                      <span className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">Unit</span>
+                      <span className="text-lg font-black text-white capitalize">{vendorProfile.pricing?.pricingUnit?.replace('_', ' ') || 'Per Day'}</span>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              {/* Availability Calendar (Simplified) */}
+              <section className="pt-6 border-t border-white/10">
+                <h3 className="text-lg font-black text-white mb-4">Availability Calendar</h3>
+                {isEditingProfile ? (
+                  <div>
+                    <div className="flex gap-4 mb-4">
+                      <input 
+                        type="date" 
+                        id="blockDateInput"
+                        className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-brand-gold" 
+                      />
+                      <button 
+                        onClick={() => {
+                          const dateVal = document.getElementById('blockDateInput').value;
+                          if (!dateVal) return;
+                          setEditForm({
+                            ...editForm,
+                            bookingSettings: {
+                              ...editForm.bookingSettings,
+                              availability: [...(editForm.bookingSettings.availability || []), { date: new Date(dateVal), isBlocked: true }]
+                            }
+                          });
+                        }}
+                        className="px-4 py-2 bg-brand-gold/20 text-brand-gold rounded-xl font-bold text-sm hover:bg-brand-gold/30 transition-colors"
+                      >
+                        Block Date
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {editForm.bookingSettings?.availability?.map((av, i) => (
+                        <div key={i} className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm font-semibold">
+                          {new Date(av.date).toLocaleDateString()}
+                          <button onClick={() => {
+                            const newAv = [...editForm.bookingSettings.availability];
+                            newAv.splice(i, 1);
+                            setEditForm({...editForm, bookingSettings: {...editForm.bookingSettings, availability: newAv}});
+                          }} className="hover:text-red-300"><Trash2 size={14}/></button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {vendorProfile.bookingSettings?.availability?.length > 0 ? (
+                      vendorProfile.bookingSettings.availability.map((av, i) => (
+                        <div key={i} className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm font-semibold">
+                          Blocked: {new Date(av.date).toLocaleDateString()}
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-sm font-semibold text-white/40">No dates blocked. Fully available.</span>
+                    )}
+                  </div>
+                )}
+              </section>
+            </div>
 
             {/* Pricing Packages Editor */}
             <div className="bg-white/5 p-6 md:p-8 rounded-[1.5rem] border border-white/10 shadow-inner mt-6">

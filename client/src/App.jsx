@@ -15,8 +15,11 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { HelmetProvider } from 'react-helmet-async';
 import DynamicSEO from './components/DynamicSEO';
 import ErrorBoundary from './components/ErrorBoundary';
+import { Toaster } from 'react-hot-toast';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
+const LandingClient = lazy(() => import('./pages/LandingClient'));
+const InspirationBoard = lazy(() => import('./pages/InspirationBoard'));
 const SearchPage = lazy(() => import('./pages/SearchPage'));
 const VendorDetailsPage = lazy(() => import('./pages/VendorDetailsPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
@@ -28,7 +31,8 @@ const MOBILE_NO_FOOTER_ROUTES = ['/profile', '/saved'];
 
 function AppContent() {
   const location = useLocation();
-  const hideMobileFooter = MOBILE_NO_FOOTER_ROUTES.some(r => location.pathname === r) || location.pathname.startsWith('/vendor/');
+  const isVendorDetails = location.pathname.startsWith('/vendor/');
+  const hideMobileFooter = MOBILE_NO_FOOTER_ROUTES.some(r => location.pathname === r) || isVendorDetails;
 
   React.useEffect(() => {
     // Heavy assets that cause layout pop-in on first load
@@ -53,9 +57,10 @@ function AppContent() {
 
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden">
+      <Toaster position="bottom-center" />
       <DynamicSEO appTarget="client" pageName="global" />
       <SpatialNavbar />
-      <main className="flex-grow w-full">
+      <main className="flex-grow w-full pb-20 md:pb-0">
         <CartDrawer />
         <AnimatePresence mode="wait">
           <Suspense fallback={
@@ -66,6 +71,9 @@ function AppContent() {
             <ErrorBoundary>
               <Routes location={location} key={location.pathname}>
                 <Route path="/" element={<HomePage />} />
+                <Route path="/landing" element={<LandingClient />} />
+                <Route path="/explore" element={<HomePage />} />
+                <Route path="/inspiration" element={<InspirationBoard />} />
                 <Route path="/venues" element={<SearchPage />} />
                 <Route path="/vendors" element={<SearchPage />} />
                 <Route path="/search" element={<SearchPage />} />
@@ -83,7 +91,7 @@ function AppContent() {
       <div className={hideMobileFooter ? 'hidden md:block' : 'block'}>
         <Footer />
       </div>
-      <MobileBottomNav />
+      {!isVendorDetails && <MobileBottomNav />}
     </div>
   );
 }

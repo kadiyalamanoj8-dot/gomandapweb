@@ -532,12 +532,20 @@ const VendorLandingPage = () => {
           <h2 className="text-5xl md:text-[80px] font-black text-white tracking-tighter leading-tight mb-8">
             The future of <br/> Indian events is here.
           </h2>
-          <button 
-            onClick={() => navigate('/login')}
-            className="px-10 py-5 bg-brand-gold text-black rounded-full font-black text-xl hover:bg-[#FACC15] hover:scale-105 transition-all shadow-[0_0_50px_rgba(212,175,55,0.4)]"
-          >
-            Claim Your Spot Now
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+            <button 
+              onClick={() => navigate('/onboarding')}
+              className="px-10 py-5 bg-brand-gold text-black rounded-full font-black text-xl hover:bg-[#FACC15] hover:scale-105 transition-all shadow-[0_0_50px_rgba(212,175,55,0.4)]"
+            >
+              Start Fresh (100% Free)
+            </button>
+            <button 
+              onClick={() => navigate('/claim')}
+              className="px-10 py-5 bg-transparent border-2 border-brand-gold text-brand-gold rounded-full font-black text-xl hover:bg-brand-gold/10 hover:scale-105 transition-all"
+            >
+              Claim Pre-Made Profile
+            </button>
+          </div>
         </div>
       </section>
 

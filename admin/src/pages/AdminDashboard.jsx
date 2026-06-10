@@ -2,8 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
-import { Search, Filter, CheckCircle2, XCircle, Clock, Users, Store, TrendingUp, AlertTriangle, ChevronDown, LayoutTemplate } from 'lucide-react';
+import { Search, Filter, CheckCircle2, XCircle, Clock, Users, Store, TrendingUp, AlertTriangle, ChevronDown, LayoutTemplate, Calendar } from 'lucide-react';
 import VendorDetailsModal from '../components/VendorDetailsModal';
+import BookingInterventionModal from '../components/BookingInterventionModal';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://gomandap-api.onrender.com';
 
@@ -69,15 +70,12 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('vendors');
   const [vendors, setVendors] = useState([]);
   const [clients, setClients] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVendor, setSelectedVendor] = useState(null);
+  const [selectedBooking, setSelectedBooking] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-
-  useEffect(() => {
-    if (activeTab === 'vendors') fetchVendors();
-    if (activeTab === 'clients') fetchClients();
-  }, [activeTab]);
 
   const fetchVendors = async () => {
     setIsLoading(true);
@@ -109,6 +107,30 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchBookings = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await axios.get(`${API_URL}/api/bookings/admin`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setBookings(res.data.data || []);
+    } catch (error) {
+      toast.error('Failed to load bookings.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (activeTab === 'vendors') fetchVendors();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (activeTab === 'clients') fetchClients();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (activeTab === 'bookings') fetchBookings();
+  }, [activeTab]);
+
   const handleStatusUpdate = async (id, status, adminFeedback = null) => {
     const toastId = toast.loading('Updating vendor status...');
     try {
@@ -125,6 +147,47 @@ const AdminDashboard = () => {
       toast.success(status === 'approved' ? '✅ Vendor approved & published!' : '🔴 Vendor status updated.', { id: toastId });
     } catch (error) {
       toast.error('Failed to update vendor status.', { id: toastId });
+    }
+  };
+
+  const handleAdminSettingsUpdate = async (id, settingsPayload) => {
+    const toastId = toast.loading('Updating vendor settings...');
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await axios.patch(`${API_URL}/api/vendors/${id}/admin-settings`, settingsPayload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const updatedVendor = res.data.data;
+      setVendors(v => v.map(x => x._id === id ? { ...x, ...updatedVendor } : x));
+      if (selectedVendor?._id === id) {
+        setSelectedVendor({ ...selectedVendor, ...updatedVendor });
+      }
+      toast.success('✅ Vendor settings updated!', { id: toastId });
+    } catch (error) {
+      toast.error('Failed to update settings.', { id: toastId });
+    }
+  };
+
+  const handleBookingIntervention = async (id, payload) => {
+    const toastId = toast.loading('Applying intervention...');
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await axios.patch(`${API_URL}/api/bookings/${id}/admin`, payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const updatedBooking = res.data.data;
+      
+      // We need to re-fetch to get populated fields if needed, or just update state manually
+      fetchBookings();
+      setSelectedBooking(null);
+      
+      if (payload.processPayment) {
+        toast.success(`✅ Intervention applied & Financials routed!`, { id: toastId });
+      } else {
+        toast.success('✅ Intervention applied!', { id: toastId });
+      }
+    } catch (error) {
+      toast.error('Failed to apply intervention.', { id: toastId });
     }
   };
 
@@ -161,6 +224,24 @@ const AdminDashboard = () => {
     return clients.filter(c => c.phoneNumber?.includes(searchQuery));
   }, [clients, searchQuery]);
 
+  // Filtered bookings
+  const filteredBookings = useMemo(() => {
+    if (!searchQuery) return bookings;
+    return bookings.filter(b => 
+      b.vendorId?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      b.userId?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [bookings, searchQuery]);
+
+  // Booking Analytics
+  const bookingStats = useMemo(() => {
+    const total = bookings.length;
+    const revenue = bookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+    const platformFee = bookings.reduce((sum, b) => sum + (b.platformFee || 0), 0);
+    const pending = bookings.filter(b => b.status === 'pending').length;
+    return { total, revenue, platformFee, pending };
+  }, [bookings]);
+
   return (
     <div className="p-4 md:p-8 pb-24 md:pb-8">
       {/* Header */}
@@ -181,6 +262,12 @@ const AdminDashboard = () => {
             className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'clients' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
           >
             Clients
+          </button>
+          <button
+            onClick={() => { setActiveTab('bookings'); setSearchQuery(''); setStatusFilter('all'); }}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'bookings' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            Interventions
           </button>
         </div>
       </div>
@@ -278,8 +365,8 @@ const AdminDashboard = () => {
           {/* Desktop Table */}
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50/50 border-b border-gray-100">
+              <thead className="sticky top-0 z-10 bg-gray-50/90 backdrop-blur-md">
+                <tr className="border-b border-gray-200">
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Business</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Category</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Location</th>
@@ -359,8 +446,8 @@ const AdminDashboard = () => {
       {activeTab === 'clients' && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100">
+            <thead className="sticky top-0 z-10 bg-gray-50/90 backdrop-blur-md">
+              <tr className="border-b border-gray-200">
                 <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-widest">Client Info</th>
                 <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-widest">Total Logins</th>
                 <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-widest">Last Seen</th>
@@ -408,6 +495,92 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {/* Bookings & Interventions Tab */}
+      {activeTab === 'bookings' && (
+        <div className="space-y-6">
+          {/* Booking Analytics Stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard icon={Calendar} value={bookingStats.total} label="Total Bookings" color="bg-blue-100 text-blue-600" />
+            <StatCard icon={TrendingUp} value={`₹${bookingStats.revenue.toLocaleString()}`} label="Gross Volume" color="bg-green-100 text-green-600" />
+            <StatCard icon={Store} value={`₹${bookingStats.platformFee.toLocaleString()}`} label="Platform Revenue" color="bg-purple-100 text-purple-600" />
+            <StatCard icon={Clock} value={bookingStats.pending} label="Pending Actions" color="bg-amber-100 text-amber-600" />
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <table className="w-full text-left border-collapse">
+            <thead className="sticky top-0 z-10 bg-gray-50/90 backdrop-blur-md">
+              <tr className="border-b border-gray-200">
+                <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-widest">Transaction / IDs</th>
+                <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-widest">Client & Vendor</th>
+                <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-widest">Type & Value</th>
+                <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-widest">Status</th>
+                <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-widest text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {isLoading ? (
+                [1,2,3].map(i => <SkeletonRow key={i} />)
+              ) : filteredBookings.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="py-16 text-center">
+                    <Calendar size={40} className="mx-auto text-gray-300 mb-3" />
+                    <p className="font-bold text-gray-400">No bookings found.</p>
+                  </td>
+                </tr>
+              ) : filteredBookings.map(b => (
+                <tr key={b._id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="py-4 px-6">
+                    <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">ID: {b._id.slice(-6)}</div>
+                    <div className="text-sm font-bold text-gray-900">
+                      {new Date(b.bookingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="font-bold text-gray-900">{b.userId?.name || 'Unknown Client'}</div>
+                    <div className="text-xs text-gray-400 mt-0.5 font-semibold">to {b.vendorId?.name || 'Unknown Vendor'}</div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest mb-1 ${
+                      b.userRoleAtBooking === 'b2b' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {b.userRoleAtBooking}
+                    </span>
+                    <div className="text-sm font-bold text-gray-900">₹{b.totalAmount}</div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-black uppercase tracking-wider ${
+                      b.status === 'confirmed' ? 'bg-green-100 text-green-700' : 
+                      b.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                      b.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {b.status}
+                    </span>
+                    {b.paymentStatus === 'paid' && (
+                       <div className="text-[10px] text-green-600 font-bold mt-1">✓ PAID</div>
+                    )}
+                  </td>
+                  <td className="py-4 px-6 text-right">
+                    <button
+                      onClick={() => setSelectedBooking(b)}
+                      className="text-sm font-bold text-brand-primary bg-brand-primary/10 px-4 py-2 rounded-lg hover:bg-brand-primary/20 transition-colors"
+                    >
+                      Intervene
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+            {!isLoading && bookings.length > 0 && (
+              <div className="px-6 py-4 border-t border-gray-100 text-xs text-gray-400 font-semibold">
+                {filteredBookings.length} of {bookings.length} bookings
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Vendor Modal */}
       <AnimatePresence>
         {selectedVendor && (
@@ -415,6 +588,16 @@ const AdminDashboard = () => {
             vendor={selectedVendor}
             onClose={() => setSelectedVendor(null)}
             onUpdateStatus={(status, feedback) => handleStatusUpdate(selectedVendor._id, status, feedback)}
+            onUpdateAdminSettings={(payload) => handleAdminSettingsUpdate(selectedVendor._id, payload)}
+          />
+        )}
+        
+        {/* Booking Intervention Modal */}
+        {selectedBooking && (
+          <BookingInterventionModal 
+            booking={selectedBooking}
+            onClose={() => setSelectedBooking(null)}
+            onUpdate={(payload) => handleBookingIntervention(selectedBooking._id, payload)}
           />
         )}
       </AnimatePresence>

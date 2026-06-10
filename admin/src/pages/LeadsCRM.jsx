@@ -11,11 +11,8 @@ const LeadsCRM = () => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [sendingEmailId, setSendingEmailId] = useState(null);
 
-  useEffect(() => {
-    fetchLeads();
-  }, [filterStatus]);
 
-  const fetchLeads = async () => {
+  async function fetchLeads() {
     setLoading(true);
     try {
       const url = filterStatus === 'All' ? `${API_URL}/leads` : `${API_URL}/leads?status=${filterStatus}`;
