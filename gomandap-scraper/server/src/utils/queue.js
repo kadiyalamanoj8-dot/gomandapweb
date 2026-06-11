@@ -20,8 +20,8 @@ const memoryQueue = [];
 let isProcessing = false;
 let activeCount = 0;
 const os = require('os');
-// Moderate CPU utilization to prevent overloading system when running multiple browsers
-const CONCURRENCY = 1;
+// High CPU utilization (12 instances) to maximize speed without crashing Playwright/network
+const CONCURRENCY = 12; // Stable God Mode speed
 
 async function processQueue() {
   if (isProcessing) return;
@@ -38,8 +38,10 @@ async function processQueue() {
       const job = memoryQueue.shift();
       activeCount++;
       
+      const instanceId = Math.random().toString(36).substr(2, 5).toUpperCase();
+      
       // Fire and forget, but handle completion/error
-      processJob(job).finally(() => {
+      processJob(job, instanceId).finally(() => {
         activeCount--;
         // Trigger next process loop without blowing up stack
         setImmediate(processQueue);
@@ -54,26 +56,30 @@ async function processQueue() {
   isProcessing = false;
 }
 
-async function processJob(job) {
-  const { taskName, args } = job;
+async function processJob(job, instanceId) {
+  const { taskName, args, meta } = job;
   const fn = taskRegistry[taskName];
 
   if (!fn) {
-    globalDeps.logger(`[Queue Error] Task ${taskName} not registered.`);
+    globalDeps.logger(`[Instance-${instanceId} Error] Task ${taskName} not registered.`);
     return;
   }
 
-  globalDeps.logger(`\n[Queue] Processing ${taskName}...`);
+  globalDeps.logger(`\n[Instance-${instanceId}] Starting ${taskName}...`);
+  if (meta && globalDeps.emitActivePointEvent) {
+    globalDeps.emitActivePointEvent({ ...meta, instanceId });
+  }
+
   try {
     await fn(...args);
-    globalDeps.logger(`[Queue] Job ${taskName} completed.`);
+    globalDeps.logger(`[Instance-${instanceId}] Job ${taskName} completed successfully.`);
   } catch (err) {
-    globalDeps.logger(`[Queue Error] ${taskName} failed: ${err.message}`);
+    globalDeps.logger(`[Instance-${instanceId} Error] ${taskName} failed: ${err.message}`);
   }
 }
 
-async function addScrapeJob(taskName, args, priority = 10) {
-  memoryQueue.push({ taskName, args, priority });
+async function addScrapeJob(taskName, args, priority = 10, meta = null) {
+  memoryQueue.push({ taskName, args, priority, meta });
   // Sort descending if priority is important, but simple append is usually fine for this use case
   memoryQueue.sort((a, b) => b.priority - a.priority);
   

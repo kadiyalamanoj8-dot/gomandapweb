@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 // Engines
 const { scrapeGooglePlaces, setDeps: setPlacesDeps } = require('../scrapers/engine-google-places');
-const scrapeGoogleSerp = require('../scrapers/engine-google-serp');
+const { scrapeGoogleSerp, setDeps: setSerpDeps } = require('../scrapers/engine-google-serp');
 const { scrapeDuckDuckGoDork, setLogger: setDorkLogger } = require('../scrapers/engine-social-dork');
 const { scrapeJustDial, setDeps: setJDDeps } = require('../scrapers/engine-justdial');
 const { scrapeWeddingBazaar, setDeps: setWBDeps } = require('../scrapers/engine-weddingbazaar');
@@ -10,8 +10,10 @@ const { scrapeWeddingWire, setDeps: setWWDeps } = require('../scrapers/engine-we
 const { scrapeMandap, setDeps: setMandapDeps } = require('../scrapers/engine-mandap');
 const { scrapeBraveDork, setDeps: setBraveDeps } = require('../scrapers/engine-brave-dork');
 const { scrapeDeepseekAI, setDeps: setDeepseekDeps } = require('../scrapers/engine-deepseek');
+const { scrapeCrawleeDeep, setDeps: setCrawleeDeps } = require('../scrapers/engine-crawlee-deep');
+const { scrapePuppeteerIndiaMart, setDeps: setIndiaMartDeps } = require('../scrapers/engine-puppeteer-indiamart');
+const { scrapeScrapySpider, setDeps: setScrapyDeps } = require('../scrapers/engine-scrapy');
 
-const { getKeywordSynonyms } = require('../utils/aiParser');
 const { initQueue, registerTask, addScrapeJob, clearQueue } = require('../utils/queue');
 const { geocodeLocation } = require('../utils/olaMaps');
 
@@ -31,7 +33,7 @@ let addLog = console.log;
 let emitGridEvent = () => {};
 
 // Register tasks with BullMQ
-registerTask('scrapeGooglePlaces', async (q, cat, loc, aiKeywords, sessionId, centerLat, centerLng, radiusKm) => safeExecute(() => scrapeGooglePlaces(q, cat, loc, aiKeywords, sessionId, centerLat, centerLng, radiusKm), 'Google Places Scrape', addLog));
+registerTask('scrapeGooglePlaces', async (q, cat, loc, sessionId, centerLat, centerLng, radiusKm) => safeExecute(() => scrapeGooglePlaces(q, cat, loc, sessionId, centerLat, centerLng, radiusKm), 'Google Places Scrape', addLog));
 registerTask('scrapeGoogleSerp', async (q, cat, loc) => safeExecute(() => scrapeGoogleSerp(q, cat, loc), 'Google Serp Scrape', addLog));
 registerTask('scrapeJustDial', async (cat, loc) => safeExecute(() => scrapeJustDial(cat, loc), 'JustDial Scrape', addLog));
 registerTask('scrapeWeddingBazaar', async (cat, loc) => safeExecute(() => scrapeWeddingBazaar(cat, loc), 'WeddingBazaar Scrape', addLog));
@@ -40,6 +42,9 @@ registerTask('scrapeMandap', async (cat, loc) => safeExecute(() => scrapeMandap(
 registerTask('scrapeDuckDuckGoDork', async (domain, q, cat, loc) => safeExecute(() => scrapeDuckDuckGoDork(domain, q, cat, loc, globalAbortSignal), `DDG Dork ${domain}`, addLog));
 registerTask('scrapeBraveDork', async (domain, q, cat, loc) => safeExecute(() => scrapeBraveDork(domain, q, cat, loc), `Brave Dork ${domain}`, addLog));
 registerTask('scrapeDeepseekAI', async (q, cat, loc) => safeExecute(() => scrapeDeepseekAI(q, cat, loc), 'DeepSeek AI Scrape', addLog));
+registerTask('scrapeCrawleeDeep', async (url, vendorName, cat, loc) => safeExecute(() => scrapeCrawleeDeep(url, vendorName, cat, loc), 'Crawlee Deep Scrape', addLog));
+registerTask('scrapePuppeteerIndiaMart', async (cat, loc) => safeExecute(() => scrapePuppeteerIndiaMart(cat, loc), 'IndiaMart Stealth Scrape', addLog));
+registerTask('scrapeScrapySpider', async (cat, loc) => safeExecute(() => scrapeScrapySpider(cat, loc), 'Scrapy Python Spider', addLog));
 
 function setDeps(deps) {
   addLog = deps.logger;
@@ -53,6 +58,10 @@ function setDeps(deps) {
   if (setMandapDeps) setMandapDeps(deps);
   if (setBraveDeps) setBraveDeps(deps);
   if (setDeepseekDeps) setDeepseekDeps(deps);
+  if (setSerpDeps) setSerpDeps(deps);
+  if (setCrawleeDeps) setCrawleeDeps(deps);
+  if (setIndiaMartDeps) setIndiaMartDeps(deps);
+  if (setScrapyDeps) setScrapyDeps(deps);
   // Optional but safe to call if defined
   initQueue(deps);
 }
@@ -314,7 +323,7 @@ router.post('/omni', async (req, res) => {
       centerGeocoded = await geocodeLocation(baseLocation);
     }
 
-    // RADIUS JUMPING FOR GOOGLE MAPS
+    // RADIUS JUMPING FOR ALL ENGINES
     if (radius && parseInt(radius) > 0 && centerGeocoded && centerGeocoded.lat) {
       addLog(`[Radius Jumping] Center geocoded: ${centerGeocoded.formattedLocation} (${centerGeocoded.lat}, ${centerGeocoded.lng})`);
       const density = gridDensity ? parseInt(gridDensity) : 30;
@@ -328,24 +337,89 @@ router.post('/omni', async (req, res) => {
       addLog(`[Radius Jumping] Plotting grid points on map. Starting jobs in 2 seconds...`);
       await new Promise(r => setTimeout(r, 2000));
       
-      if (activeEngines.includes('maps') || activeEngines.includes('google')) {
-        const aiKeywords = await getKeywordSynonyms(matchedCategory, baseLocation);
-        for (const coord of gridCoords) {
-          // Construct strict coordinate-based search explicitly enforcing location
+      // Distribute jobs sequentially per coordinate to avoid overloading
+      for (const coord of gridCoords) {
+        const accurateLocation = `${baseLocation} (@${coord.lat},${coord.lng})`;
+        const meta = { lat: coord.lat, lng: coord.lng, locationName: accurateLocation };
+
+        if (activeEngines.includes('maps') || activeEngines.includes('google')) {
           const searchString = `${matchedCategory} near ${coord.lat},${coord.lng}`;
           const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}/@${coord.lat},${coord.lng},14z`;
-          
           addLog(`[Radius Jumping] Dispatching 360-dense query at distance ${coord.distanceFromCenter}km: ${searchUrl}`);
-          await addScrapeJob('scrapeGooglePlaces', [searchUrl, matchedCategory, `${baseLocation} (@${coord.lat},${coord.lng})`, aiKeywords, sessionId, centerGeocoded.lat, centerGeocoded.lng, parseInt(radius)]);
+          await addScrapeJob('scrapeGooglePlaces', [searchUrl, matchedCategory, accurateLocation, sessionId, centerGeocoded.lat, centerGeocoded.lng, parseInt(radius)], 10, meta);
         }
-        googleMapsJobsDispatched = true;
+
+        if (activeEngines.includes('google-web')) {
+          const searchString = `${matchedCategory} near ${coord.lat},${coord.lng}`;
+          addLog(`[Radius Jumping] Dispatching Universal Web Search at distance ${coord.distanceFromCenter}km for: ${searchString}`);
+          await addScrapeJob('scrapeGoogleSerp', [searchString, matchedCategory, accurateLocation]);
+        }
+
+        if (activeEngines.includes('justdial')) {
+          addLog(`[Radius Jumping] Dispatching JustDial Search at distance ${coord.distanceFromCenter}km`);
+          await addScrapeJob('scrapeJustDial', [matchedCategory, accurateLocation]);
+        }
+
+        if (activeEngines.includes('weddingbazaar')) {
+          addLog(`[Radius Jumping] Dispatching WeddingBazaar Search at distance ${coord.distanceFromCenter}km`);
+          await addScrapeJob('scrapeWeddingBazaar', [matchedCategory, accurateLocation]);
+        }
+
+        if (activeEngines.includes('indiamart')) {
+          addLog(`[Radius Jumping] Dispatching IndiaMart Stealth Search at distance ${coord.distanceFromCenter}km`);
+          await addScrapeJob('scrapePuppeteerIndiaMart', [matchedCategory, accurateLocation]);
+        }
       }
+      googleMapsJobsDispatched = true;
     }
 
-    // FREE GOOGLE WEB SERP
-    if (activeEngines.includes('google-web')) {
-      const searchString = `${matchedCategory} in ${baseLocation}`;
-      await addScrapeJob('scrapeGoogleSerp', [searchString, matchedCategory, baseLocation]);
+    // FALLBACKS & SINGLE RUNS (If Grid Search didn't trigger)
+    if (!googleMapsJobsDispatched) {
+      if (activeEngines.includes('maps') || activeEngines.includes('google')) {
+        let textLocations = [baseLocation || exactQuery];
+        if (radius && parseInt(radius) > 0 && baseLocation) {
+          addLog(`[AI Location Expansion Fallback] Finding nearby towns within ${radius}km for Google Maps fallback...`);
+          const nearby = await intelligentExtractor.generateNearbyLocations(baseLocation, parseInt(radius));
+          if (nearby && nearby.length > 0) textLocations = nearby;
+        }
+        
+        for (const loc of textLocations) {
+          let searchStr = exactQuery;
+          if (loc !== baseLocation && loc !== exactQuery && category) searchStr = `${category} in ${loc}`;
+          else if (loc !== baseLocation && loc !== exactQuery && !category) searchStr = `${exactQuery} in ${loc}`;
+          
+          const resolvedLocationData = await geocodeLocation(loc || searchStr);
+          const accurateLocation = resolvedLocationData && resolvedLocationData.lat ? resolvedLocationData.formattedLocation : loc;
+          addLog(`[Google Maps Fallback] Dispatching job for: "${searchStr}"`);
+          const searchStrFormatted = `${matchedCategory} near ${accurateLocation}`;
+          await addScrapeJob('scrapeGooglePlaces', [searchStrFormatted, matchedCategory, accurateLocation, sessionId, centerGeocoded ? centerGeocoded.lat : null, centerGeocoded ? centerGeocoded.lng : null, radius ? parseInt(radius) : null]);
+        }
+      }
+
+      if (activeEngines.includes('google-web')) {
+        const searchString = `${matchedCategory} in ${baseLocation}`;
+        await addScrapeJob('scrapeGoogleSerp', [searchString, matchedCategory, baseLocation]);
+      }
+
+      if (activeEngines.includes('justdial')) {
+        addLog(`[JustDial] Dispatching Background JS Engine for: "${matchedCategory} in ${baseLocation || 'India'}"`);
+        await addScrapeJob('scrapeJustDial', [matchedCategory, baseLocation || 'India']);
+      }
+
+      if (activeEngines.includes('weddingbazaar')) {
+        addLog(`[WeddingBazaar] Dispatching Background JS Engine for: "${matchedCategory} in ${baseLocation || 'India'}"`);
+        await addScrapeJob('scrapeWeddingBazaar', [matchedCategory, baseLocation || 'India']);
+      }
+
+      if (activeEngines.includes('indiamart')) {
+        addLog(`[IndiaMart Stealth] Dispatching Engine for: "${matchedCategory} in ${baseLocation || 'India'}"`);
+        await addScrapeJob('scrapePuppeteerIndiaMart', [matchedCategory, baseLocation || 'India']);
+      }
+
+      if (activeEngines.includes('scrapy')) {
+        addLog(`[Scrapy Engine] Dispatching Python Spider for: "${matchedCategory} in ${baseLocation || 'India'}"`);
+        await addScrapeJob('scrapeScrapySpider', [matchedCategory, baseLocation || 'India']);
+      }
     }
 
     // DeepSeek AI Scraper (uses AI text expansion of town names)
@@ -361,45 +435,14 @@ router.post('/omni', async (req, res) => {
       
       for (const loc of textLocations) {
         let searchStr = exactQuery;
-        if (loc !== baseLocation && loc !== exactQuery && category) {
-          searchStr = `${category} in ${loc}`;
-        } else if (loc !== baseLocation && loc !== exactQuery && !category) {
-          searchStr = `${exactQuery} in ${loc}`;
-        }
+        if (loc !== baseLocation && loc !== exactQuery && category) searchStr = `${category} in ${loc}`;
+        else if (loc !== baseLocation && loc !== exactQuery && !category) searchStr = `${exactQuery} in ${loc}`;
         addLog(`[DeepSeek AI] Dispatching job for: "${searchStr}"`);
         await addScrapeJob('scrapeDeepseekAI', [searchStr, matchedCategory, loc]);
       }
     }
 
-    // Fallback if Google Maps engine selected but geocoding or radius jumping failed/skipped
-    if ((activeEngines.includes('maps') || activeEngines.includes('google')) && !googleMapsJobsDispatched) {
-      let textLocations = [baseLocation || exactQuery];
-      if (radius && parseInt(radius) > 0 && baseLocation) {
-        addLog(`[AI Location Expansion Fallback] Finding nearby towns within ${radius}km for Google Maps fallback...`);
-        const nearby = await intelligentExtractor.generateNearbyLocations(baseLocation, parseInt(radius));
-        if (nearby && nearby.length > 0) {
-          textLocations = nearby;
-        }
-      }
-      
-      const aiKeywords = await getKeywordSynonyms(matchedCategory, baseLocation);
-      for (const loc of textLocations) {
-        let searchStr = exactQuery;
-        if (loc !== baseLocation && loc !== exactQuery && category) {
-          searchStr = `${category} in ${loc}`;
-        } else if (loc !== baseLocation && loc !== exactQuery && !category) {
-          searchStr = `${exactQuery} in ${loc}`;
-        }
-        
-        const resolvedLocationData = await geocodeLocation(loc || searchStr);
-        const accurateLocation = resolvedLocationData && resolvedLocationData.lat ? resolvedLocationData.formattedLocation : loc;
-        addLog(`[Google Maps Fallback] Dispatching job for: "${searchStr}"`);
-        const searchStrFormatted = `${matchedCategory} near ${accurateLocation}`;
-        await addScrapeJob('scrapeGooglePlaces', [searchStrFormatted, matchedCategory, accurateLocation, aiKeywords, sessionId, centerGeocoded ? centerGeocoded.lat : null, centerGeocoded ? centerGeocoded.lng : null, radius ? parseInt(radius) : null]);
-      }
-    }
-
-    // Social Media Dorks (Instagram, Facebook, LinkedIn)
+    // Social Media Dorks (Instagram, Facebook, LinkedIn) - Handled distinctly by python
     const socialPlatforms = ['instagram', 'facebook', 'linkedin'].filter(p => activeEngines.includes(p));
     if (socialPlatforms.length > 0) {
       addLog(`[Social Engines] Dispatching Python Social Dork for: ${socialPlatforms.join(', ')}`);
@@ -411,24 +454,12 @@ router.post('/omni', async (req, res) => {
         const apiKey = settings.nvidiaApiKey || 'none';
         
         require('child_process').exec(`python "${pythonScript}" --query "${safeQuery}" --category "${matchedCategory}" --location "${safeLoc}" --apikey "${apiKey}"`, (error, stdout, stderr) => {
-          if (!error) addLog(`[Python Social Engine] Finished: ${stdout}`);
+          if (!error && stdout.trim()) addLog(`[Python Social Engine] Finished: ${stdout.trim()}`);
         });
       }
     }
 
-    // JustDial Engine
-    if (activeEngines.includes('justdial')) {
-      addLog(`[JustDial] Dispatching Background JS Engine for: "${matchedCategory} in ${baseLocation || 'India'}"`);
-      await addScrapeJob('scrapeJustDial', [matchedCategory, baseLocation || 'India']);
-    }
-
-    // WeddingBazaar Engine
-    if (activeEngines.includes('weddingbazaar')) {
-      addLog(`[WeddingBazaar] Dispatching Background JS Engine for: "${matchedCategory} in ${baseLocation || 'India'}"`);
-      await addScrapeJob('scrapeWeddingBazaar', [matchedCategory, baseLocation || 'India']);
-    }
-
-    // Python Engine (Google Maps Default)
+    // Python Engine (Google Maps Default Fallback)
     if (activeEngines.includes('python')) {
       const searchStr = `${matchedCategory} in ${baseLocation || 'India'}`;
       addLog(`[Python Engine] Triggering background Maps script for: "${searchStr}"`);
@@ -438,7 +469,7 @@ router.post('/omni', async (req, res) => {
       const apiKey = settings.nvidiaApiKey || 'none';
       
       require('child_process').exec(`python "${pythonScript}" --query "${safeQuery}" --category "${matchedCategory}" --location "${safeLoc}" --apikey "${apiKey}"`, (error, stdout, stderr) => {
-        if (!error) addLog(`[Python Engine] Finished: ${stdout}`);
+        if (!error && stdout.trim()) addLog(`[Python Engine] Finished: ${stdout.trim()}`);
       });
     }
 
@@ -454,7 +485,6 @@ router.post('/batch', async (req, res) => {
 
   for (const t of tasks) {
     const engines = t.engines || ['maps', 'justdial', 'weddingbazaar'];
-    const aiKeywords = await getKeywordSynonyms(t.category);
     
     // Ola Maps Geocoding
     const resolvedData = await geocodeLocation(t.location);
@@ -463,6 +493,11 @@ router.post('/batch', async (req, res) => {
     
     // Exclusive DeepSeek AI Scraper
     await addScrapeJob('scrapeDeepseekAI', [q, t.category, accurateLocation]);
+
+    // Regular Engines
+    if (engines.includes('maps')) {
+      await addScrapeJob('scrapeGooglePlaces', [q, t.category, accurateLocation, 'legacy', null, null, null]);
+    }
   }
 
   res.json({ success: true, message: `Successfully queued ${tasks.length} bulk tasks in background memory queue.` });

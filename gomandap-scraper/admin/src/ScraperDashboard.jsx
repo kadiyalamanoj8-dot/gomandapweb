@@ -307,6 +307,7 @@ function ScraperDashboard({ user, onLogout }) {
   const [modelLoadingStatus, setModelLoadingStatus] = useState({ status: 'idle', progress: 0 });
   const [fuseInstances, setFuseInstances] = useState({ categories: null, locations: null });
   const [gridPoints, setGridPoints] = useState([]);
+  const [activePoints, setActivePoints] = useState([]); // Track currently searching points
   const prevVendorsCount = useRef(0);
   const terminalRef = useRef(null);
   const workerRef = useRef(null);
@@ -326,14 +327,28 @@ function ScraperDashboard({ user, onLogout }) {
       });
       es.addEventListener('vendor', (e) => {
         try {
-          // Vendor event received; refresh vendor list
-          fetchVendors();
+          // Vendor event received; append to current session instead of fetching all from DB
+          const newVendor = JSON.parse(e.data);
+          setVendors(prev => {
+            if (prev.some(v => v.id === newVendor.id || v.phone === newVendor.phone)) return prev;
+            return [newVendor, ...prev];
+          });
         } catch (err) { /* ignore */ }
       });
       es.addEventListener('grid_points', (e) => {
         try {
           const coords = JSON.parse(e.data);
           if (Array.isArray(coords)) setGridPoints(coords);
+        } catch (err) { /* ignore */ }
+      });
+      es.addEventListener('active_point', (e) => {
+        try {
+          const pt = JSON.parse(e.data);
+          setActivePoints(prev => {
+            // Keep the last 5 active points (or matching concurrency limit)
+            const filtered = prev.filter(p => p.instanceId !== pt.instanceId);
+            return [pt, ...filtered].slice(0, 20);
+          });
         } catch (err) { /* ignore */ }
       });
       es.onmessage = (e) => {
@@ -659,7 +674,12 @@ function ScraperDashboard({ user, onLogout }) {
       toast.success('All tasks terminated.');
       fetchJobs();
       setLoading(false);
-      setLogs(prev => [...prev, `[INFO] Master stop executed.`]);
+      
+      // Wipe everything clean for a fresh start
+      setLogs([`[INFO] Master stop executed. System wiped clean.`]);
+      setVendors([]);
+      setActivePoints([]);
+      setGridPoints([]);
     } catch (error) {
       toast.error('Failed to stop all tasks');
     }
@@ -718,7 +738,11 @@ function ScraperDashboard({ user, onLogout }) {
       });
     }
 
-    setLogs(prev => [...prev, `[PROCESS] Starting task: ${finalQuery}`]);
+    // Wipe everything clean for a fresh start
+    setLogs([`[PROCESS] Starting task: ${finalQuery}`]);
+    setVendors([]);
+    setActivePoints([]);
+    setGridPoints([]);
     
     try {
       setLoading(true);
@@ -966,6 +990,7 @@ function ScraperDashboard({ user, onLogout }) {
     selectedFolder, setSelectedFolder,
     // Model
     modelLoadingStatus,
+    activePoints,
     // Actions
     fetchVendors,
     startScrape,

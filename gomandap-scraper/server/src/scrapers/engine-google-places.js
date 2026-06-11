@@ -173,47 +173,8 @@ function isListingRelevantToQuery(name, pageText, category, exactQuery) {
   return true; 
 }
 
-function isListingRelevantToQueryGeneral(name, pageText, category, exactQuery, aiKeywords) {
-  const cleanQuery = (exactQuery || '').toLowerCase();
-  const cleanName = (name || '').toLowerCase();
-  const cleanText = (pageText || '').toLowerCase();
-
-  // Extract core keywords from query (excluding stop words)
-  const stopWords = ['in', 'and', 'or', 'for', 'at', 'service', 'services', 'near', 'guntur', 'andhra', 'pradesh', 'india', 'hyderabad', 'vijayawada', 'telangana'];
-  const queryTerms = cleanQuery.split(/[\s,]+/);
-  const coreQueryTerms = queryTerms.filter(w => w.length > 2 && !stopWords.includes(w));
-
-  // If the query is empty or too short, don't filter
-  if (coreQueryTerms.length === 0) return true;
-
-  // Check if the AI keywords matches the page text
-  if (aiKeywords && aiKeywords.length > 0) {
-    const matchedKeywords = aiKeywords.filter(kw => {
-      const lowerKw = kw.toLowerCase();
-      if (lowerKw.length <= 2) return false;
-      return cleanText.includes(lowerKw) || cleanName.includes(lowerKw);
-    });
-
-    if (matchedKeywords.length > 0) {
-      return true;
-    }
-  }
-
-  // Fallback check
-  const textMatchesQuery = coreQueryTerms.some(term => {
-    if (cleanText.includes(term)) return true;
-    if (term.endsWith('s') && cleanText.includes(term.slice(0, -1))) return true;
-    if (cleanName.includes(term)) return true;
-    return false;
-  });
-
-  // Since we are looking for intelligence, if AI keywords missed and text doesn't match, we reject!
-  if (!textMatchesQuery) {
-    // Soft fallback: if name contains category, allow it
-    if (category && cleanName.includes(category.toLowerCase().split(' ')[0])) return true;
-    return false;
-  }
-
+function isListingRelevantToQueryGeneral(name, pageText, category, exactQuery) {
+  // User requested to register EVERYTHING that flows through. We completely remove filtering.
   return true;
 }
 
@@ -235,8 +196,8 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [], sessionId = "legacy", centerLat = null, centerLng = null, radiusKm = null) {
-  addLog(`Starting Google Maps browser scrape for ${exactQuery} (AI Validation Keywords: ${aiKeywords.length})`);
+async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "legacy", centerLat = null, centerLng = null, radiusKm = null) {
+  addLog(`Starting Google Maps browser scrape for exact match: "${exactQuery}"`);
 
   // If Playwright not available (production/Render), skip browser scraping
   if (!chromium) {
@@ -260,7 +221,7 @@ async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [
     });
     page = await context.newPage();
 
-    // Abort image, font, and media (but NOT stylesheets, to allow correct layout/JS rendering on Google Maps)
+    // Abort image, font, and media for maximum speed, but allow stylesheets/other so Google Maps JS renders the feed correctly.
     await page.route('**/*', (route) => {
       const resourceType = route.request().resourceType();
       if (['image', 'media', 'font'].includes(resourceType)) {
@@ -324,11 +285,12 @@ async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [
         if (match) rating = parseFloat(match[1]);
       }
 
-      let coverImage = '';
+      let allImages = [];
       try {
-        const imgEl = page.locator('button[aria-label^="Photo of"] img, img[src*="googleusercontent.com/p/"]').first();
-        if (await imgEl.count() > 0) {
-          coverImage = await imgEl.getAttribute('src', { timeout: 2000 }) || '';
+        const imgLocators = await page.locator('button[aria-label^="Photo of"] img, img[src*="googleusercontent.com/p/"]').all().catch(()=>[]);
+        for (let j = 0; j < Math.min(imgLocators.length, 10); j++) {
+          const src = await imgLocators[j].getAttribute('src', { timeout: 500 }).catch(()=>null);
+          if (src && !src.includes('Avatar')) allImages.push(src);
         }
       } catch (e) {}
 
@@ -346,10 +308,9 @@ async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [
       }
 
       const combinedText = `${name} ${address}`;
-      if (!isListingRelevantToQueryGeneral(name, combinedText, category, exactQuery, aiKeywords)) {
-        addLog(`[Filter] Discarding irrelevant home/car/painter/salon listing: '${name}'`);
-      } else {
-        const mapsLink = page.url();
+      
+      // NO BOUNDARY OR LOCATION FILTERING - Save everything!
+      const mapsLink = page.url();
         const id = 'place_' + Date.now().toString() + Math.random().toString(36).substring(7);
 
         const pincodeMatch = address ? address.match(/\b\d{6}\b/) : null;
@@ -385,7 +346,7 @@ async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [
             facebook: enrichedData.facebook || '',
             facebookFollowers: enrichedData.facebookFollowers || '',
             website: website,
-            images: [coverImage, ...(enrichedData.images || [])].filter(Boolean),
+            images: [...allImages, ...(enrichedData.images || [])].filter(Boolean),
             qualityScore: leadScore,
             tier: determineTier(leadScore),
             operatingHours: '',
@@ -397,20 +358,19 @@ async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [
           dbAdapter.saveVendors(vendors);
           try { emitVendorEvent(newLead, 'inserted'); } catch (e) {}
           scrapedResults.push(newLead);
-          addLog(`Streamed new single vendor '${name}' to DB.`);
+          // Silently saving to DB, no log flooding
         }
-      }
     } else {
       // Case B: Search results list is loaded
       const scrollable = page.locator('div[role="feed"]');
       if (await scrollable.count() > 0) {
         addLog("Scrolling through search results feed... (Fast Mode)");
         
-        // Dynamic Fast Scroll - stop early to hit minimum 60
+        // Dynamic Fast Scroll - absolute minimum delays
         for(let i=0; i<30; i++) {
           if (globalAbortSignal.aborted) throw new Error('Master Stop Aborted');
-          await scrollable.evaluate(node => node.scrollBy(0, 5000));
-          await page.waitForTimeout(400); // 400ms is ultra fast
+          await scrollable.evaluate(node => node.scrollBy(0, 10000));
+          await page.waitForTimeout(150); // Ultra-fast hardware scroll speed
           const currentCount = await page.locator('a.hfpxzc').count();
           if (currentCount >= 65) {
             addLog(`Reached ${currentCount} cards quickly, stopping scroll.`);
@@ -466,11 +426,10 @@ async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [
             await card.click();
             
             // Wait for side panel details to appear. The title usually appears as an h1
-            await page.waitForSelector(`h1`, { timeout: 3000 }).catch(()=>{});
+            await page.waitForSelector(`h1`, { timeout: 1500 }).catch(()=>{});
             
-            // Dynamically wait for the phone number to lazy-load instead of a hardcoded 400ms timeout
-            await page.waitForSelector('button[data-item-id^="phone:tel:"], button[data-tooltip="Copy phone number"]', { timeout: 2500 }).catch(()=>{});
-            await page.waitForTimeout(400); // Small buffer for React state updates
+            // Ultra-fast phone detection without arbitrary waits
+            await page.waitForSelector('button[data-item-id^="phone:tel:"], button[data-tooltip="Copy phone number"]', { timeout: 1000 }).catch(()=>{});
 
             const addressEl = page.locator('[data-item-id="address"]').first();
             try {
@@ -519,10 +478,12 @@ async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [
               }
             } catch (err) {}
 
-            const imgEl = page.locator('button[aria-label^="Photo of"] img, img[src*="googleusercontent.com/p/"]').first();
+            let allImages = [];
             try {
-              if (await imgEl.count() > 0) {
-                coverImage = await imgEl.getAttribute('src', { timeout: 1000 }) || '';
+              const imgLocators = await page.locator('button[aria-label^="Photo of"] img, img[src*="googleusercontent.com/p/"]').all().catch(()=>[]);
+              for (let j = 0; j < Math.min(imgLocators.length, 10); j++) {
+                const src = await imgLocators[j].getAttribute('src', { timeout: 500 }).catch(()=>null);
+                if (src && !src.includes('Avatar')) allImages.push(src);
               }
             } catch (e) {}
 
@@ -567,7 +528,7 @@ async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [
               facebook: '',
               instagramFollowers: '',
               facebookFollowers: '',
-              images: [coverImage].filter(Boolean),
+              images: [...allImages, ...(enrichedData.images || [])].filter(Boolean),
               aiVerified,
               matchedKeywords,
               id: 'place_' + Date.now().toString() + Math.random().toString(36).substring(7)
@@ -575,18 +536,8 @@ async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [
 
             // STREAMING INSERTION TO DB
             const combinedText = `${place.name} ${place.address} ${place.operatingHours}`;
-            if (!isListingRelevantToQueryGeneral(place.name, combinedText, category, exactQuery, aiKeywords)) {
-              addLog(`[Filter] Discarding irrelevant home/car/painter/salon listing: '${place.name}'`);
-              continue;
-            }
-
-            if (centerLat !== null && centerLng !== null && radiusKm !== null && place.latitude && place.longitude) {
-              const distance = getDistanceKm(centerLat, centerLng, place.latitude, place.longitude);
-              if (distance > radiusKm) {
-                addLog(`[Boundary Filter] Discarding '${place.name}' - Out of bounds (${distance.toFixed(1)}km > ${radiusKm}km limit)`);
-                continue;
-              }
-            }
+            
+            // NO BOUNDARY OR LOCATION FILTERING - Save everything!
 
             const pincodeMatch = place.address ? place.address.match(/\b\d{6}\b/) : null;
             const pincode = pincodeMatch ? pincodeMatch[0] : '';
@@ -618,6 +569,7 @@ async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [
               scrapedResults.push(place);
               try { emitVendorEvent(place, 'inserted'); } catch (e) {}
               insertedInBatch++;
+              // Silently saving to DB, no log flooding
             } else {
               let existing = vendors[existingIndex];
               let updated = false;

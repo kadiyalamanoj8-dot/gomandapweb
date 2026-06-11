@@ -2,7 +2,14 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const { getBrowser } = require('./browserFactory');
 const db = require('../config/localDb');
-const { emitVendorEvent, addLog } = require('../../index'); // Assume these are exported or passed
+
+let addLog = console.log;
+let emitVendorEvent = () => {};
+
+function setDeps(deps) {
+  if (deps.logger) addLog = deps.logger;
+  if (deps.emitVendorEvent) emitVendorEvent = deps.emitVendorEvent;
+}
 
 // Helper: Extract emails and phones using regex
 function extractContactInfo(text) {
@@ -148,4 +155,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = scrapeGoogleSerp;
+module.exports = { scrapeGoogleSerp, setDeps };

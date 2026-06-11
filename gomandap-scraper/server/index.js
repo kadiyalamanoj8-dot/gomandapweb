@@ -61,6 +61,15 @@ function emitVendorEvent(vendorObj, action = 'inserted') {
     sseClients.forEach(res => {
       try { res.write('event: vendor\n'); res.write(`data: ${safe}\n\n`); } catch (e) {}
     });
+
+    // Automatically trigger Deep Crawl if contact info is missing
+    if (action === 'inserted' && vendorObj.website && (!vendorObj.phone || !vendorObj.email)) {
+      if (vendorObj.website.startsWith('http') && !vendorObj.website.includes('instagram.com') && !vendorObj.website.includes('facebook.com')) {
+        const { addScrapeJob } = require('./src/utils/queue');
+        addLog(`[Deep Scan System] Vendor ${vendorObj.name} lacks phone/email. Queuing deep crawl of ${vendorObj.website}`);
+        addScrapeJob('scrapeCrawleeDeep', [vendorObj.website, vendorObj.name, vendorObj.category, vendorObj.city]);
+      }
+    }
   } catch (e) { console.error('Failed to emit vendor SSE', e.message); }
 }
 
@@ -73,7 +82,20 @@ function emitGridEvent(gridCoords) {
   } catch (e) { console.error('Failed to emit grid SSE', e.message); }
 }
 
+function emitActivePointEvent(pointInfo) {
+  try {
+    const safe = JSON.stringify(pointInfo).replace(/\n/g, '\\n');
+    sseClients.forEach(res => {
+      try { res.write('event: active_point\n'); res.write(`data: ${safe}\n\n`); } catch (e) {}
+    });
+  } catch (e) { console.error('Failed to emit active_point SSE', e.message); }
+}
+
 // Database is now completely local and loads synchronously.
+
+// Initialize the job queue
+const { initQueue } = require('./src/utils/queue');
+initQueue({ logger: addLog, emitVendorEvent, emitActivePointEvent });
 
 // Global Abort Signal
 let globalAbortSignal = { aborted: false };

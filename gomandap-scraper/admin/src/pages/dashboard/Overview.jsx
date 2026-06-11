@@ -51,7 +51,8 @@ export default function OverviewPage() {
     handleCategoryChange, handleLocationChange,
     triggerPython, triggerCheerio, triggerMaps,
     vendors, activeJobs, grouped, pushToProd,
-    searchContainerRef, terminalRef, gridPoints
+    searchContainerRef, terminalRef, gridPoints, gridDensity, setGridDensity,
+    activePoints
   } = useScraper();
 
   const [showLog, setShowLog] = useState(false);
@@ -207,6 +208,17 @@ export default function OverviewPage() {
                     <option value={20}>20km</option>
                     <option value={50}>50km</option>
                     <option value={100}>100km</option>
+                  </select>
+                </div>
+
+                {/* Grid Density Select */}
+                <div className="flex items-center gap-2 border-l border-gray-200 px-4 py-4 md:py-0">
+                  <select value={gridDensity} onChange={e => setGridDensity(Number(e.target.value))}
+                    className="bg-transparent text-xs text-gray-600 font-semibold outline-none cursor-pointer pr-1">
+                    <option value={1}>1 Point</option>
+                    <option value={5}>5 Points</option>
+                    <option value={10}>10 Points</option>
+                    <option value={30}>30 Points</option>
                   </select>
                 </div>
 
@@ -488,7 +500,7 @@ export default function OverviewPage() {
 
         {/* ── LIVE MAP FEED ── */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 lg:col-span-2">
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-gray-900 flex items-center gap-2">
               <Map size={18} className="text-violet-500" /> Live Geographic Tracker
             </h2>
@@ -498,6 +510,35 @@ export default function OverviewPage() {
             </div>
           </div>
           
+          {/* Live Active Scanners Overlay HUD - Moved completely OUTSIDE the map to prevent Leaflet Z-Index hiding */}
+          <AnimatePresence>
+            {activePoints?.length > 0 && (
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                className="mb-4 w-full bg-white rounded-xl border border-amber-200 overflow-hidden shadow-sm">
+                <div className="bg-gradient-to-r from-yellow-500 to-amber-500 px-4 py-1.5 flex items-center justify-between">
+                  <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <Zap size={14} className="animate-pulse" /> Live Scanners ({activePoints.length} Instances)
+                  </span>
+                  <span className="flex h-2 w-2 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                  </span>
+                </div>
+                <div className="max-h-24 overflow-y-auto flex flex-wrap gap-2 p-2 bg-amber-50/30" style={{ scrollbarWidth: 'thin' }}>
+                  {activePoints.map((pt, i) => (
+                    <div key={i} className="bg-white border border-amber-100 rounded shadow-sm px-2.5 py-1.5 flex-grow min-w-[200px] max-w-[250px] hover:border-amber-300 transition-colors">
+                      <p className="text-xs font-bold text-gray-800 line-clamp-1">{pt.locationName}</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-[10px] text-amber-700 font-bold bg-amber-100 px-1.5 py-0.5 rounded">Worker {pt.instanceId}</p>
+                        <p className="text-[10px] text-gray-400 font-mono">{pt.lat.toFixed(4)}, {pt.lng.toFixed(4)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <div className="relative w-full h-[400px] rounded-xl overflow-hidden border border-gray-100">
             {mapVendors.length > 0 || gridPoints?.length > 0 ? (
               <MapContainer center={mapVendors.length > 0 ? [mapVendors[0].safeLat, mapVendors[0].safeLng] : [gridPoints[0].lat, gridPoints[0].lng]} zoom={11} style={{ width: '100%', height: '100%' }} zoomControl={false}>
@@ -511,6 +552,26 @@ export default function OverviewPage() {
                       <div className="text-xs p-1">
                         <p className="font-bold mb-1">{i === 0 ? 'Center Pin' : `Search Point ${i+1}`}</p>
                         <p className="text-gray-500">Radius Dist: {pt.distanceFromCenter}km</p>
+                      </div>
+                    </Popup>
+                  </CircleMarker>
+                ))}
+
+                {/* Render Blinking Active Points */}
+                {activePoints?.map((pt, i) => (
+                  <CircleMarker key={`active-${i}`} center={[pt.lat, pt.lng]} radius={10} 
+                    className="animate-ping"
+                    color="#eab308" fillColor="#eab308" fillOpacity={0.9} stroke={false}>
+                  </CircleMarker>
+                ))}
+                {activePoints?.map((pt, i) => (
+                  <CircleMarker key={`active-solid-${i}`} center={[pt.lat, pt.lng]} radius={6} 
+                    color="#ca8a04" fillColor="#fef08a" fillOpacity={1}>
+                    <Popup>
+                      <div className="text-xs p-1">
+                        <p className="font-bold text-yellow-700 mb-1">🔥 Active Scanner (Worker {pt.instanceId})</p>
+                        <p className="text-gray-600 mb-1">{pt.locationName}</p>
+                        <p className="text-gray-500 text-[10px] font-mono">{pt.lat.toFixed(5)}, {pt.lng.toFixed(5)}</p>
                       </div>
                     </Popup>
                   </CircleMarker>
