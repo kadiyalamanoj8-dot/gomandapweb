@@ -3,10 +3,10 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 
-const EMPLOYEES_FILE = path.join(__dirname, '../../../data', 'employees.json');
+const EMPLOYEES_FILE = path.join(__dirname, '../../data', 'employees.json');
 const getEmployees = () => fs.existsSync(EMPLOYEES_FILE) ? JSON.parse(fs.readFileSync(EMPLOYEES_FILE, 'utf-8')) : [];
 
-const ADMIN_FILE = path.join(__dirname, '../../../data', 'admin.json');
+const ADMIN_FILE = path.join(__dirname, '../../data', 'admin.json');
 const getAdminCredentials = () => fs.existsSync(ADMIN_FILE) ? JSON.parse(fs.readFileSync(ADMIN_FILE, 'utf-8')) : { username: 'admin', password: 'password123' };
 
 router.post('/login', (req, res) => {

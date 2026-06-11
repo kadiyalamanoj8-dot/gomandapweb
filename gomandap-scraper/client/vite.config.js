@@ -8,6 +8,10 @@ export default defineConfig({
     include: ['olamaps-web-sdk'],
   },
   define: {
+    'process.env': {},
     'import.meta.env.VITE_OLA_MAPS_API_KEY': JSON.stringify('H0NKbjwH3YFcVwyDZBpxtIlGsdrZsxXPjoX0yutE'),
   },
+  build: {
+    chunkSizeWarningLimit: 30000,
+  }
 })

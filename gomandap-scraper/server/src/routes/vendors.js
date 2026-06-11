@@ -1,12 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios');
-const StagingLead = require('../models/StagingLead');
+const dbAdapter = require('../config/dbAdapter');
+
+// Helper to save a single modified vendor
+const saveUpdatedVendor = (vendors, updated) => {
+  const idx = vendors.findIndex(v => v.id === updated.id);
+  if (idx !== -1) {
+    vendors[idx] = updated;
+  } else {
+    vendors.push(updated);
+  }
+  dbAdapter.saveVendors(vendors);
+};
 
 // API: Get all staging leads (vendors)
-router.get('/', async (req, res) => {
+router.get('/', (req, res) => {
   try {
-    const data = await StagingLead.find().sort({ scrapedAt: -1 }).lean();
+    let data = dbAdapter.getVendors() || [];
+    // Sort descending by scrapedAt
+    data.sort((a, b) => new Date(b.scrapedAt) - new Date(a.scrapedAt));
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
@@ -14,35 +26,47 @@ router.get('/', async (req, res) => {
 });
 
 // API: Update a vendor (verify/edit)
-router.put('/:id', async (req, res) => {
+router.put('/:id', (req, res) => {
   try {
-    const updated = await StagingLead.findOneAndUpdate(
-      { id: req.params.id }, 
-      { ...req.body, verified: true }, 
-      { new: true }
-    );
-    if (updated) res.json({ success: true, vendor: updated });
-    else res.status(404).json({ error: 'Vendor not found' });
+    const vendors = dbAdapter.getVendors();
+    const idx = vendors.findIndex(v => v.id === req.params.id);
+    
+    if (idx !== -1) {
+      const updated = { ...vendors[idx], ...req.body, verified: true };
+      vendors[idx] = updated;
+      dbAdapter.saveVendors(vendors);
+      res.json({ success: true, vendor: updated });
+    } else {
+      res.status(404).json({ error: 'Vendor not found' });
+    }
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
 });
 
 // API: Delete a vendor (reject)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', (req, res) => {
   try {
-    const deleted = await StagingLead.findOneAndDelete({ id: req.params.id });
-    if (deleted) res.json({ success: true, message: 'Deleted' });
-    else res.status(404).json({ error: 'Not found' });
+    const vendors = dbAdapter.getVendors();
+    const filtered = vendors.filter(v => v.id !== req.params.id);
+    
+    if (filtered.length !== vendors.length) {
+      dbAdapter.saveVendors(filtered);
+      res.json({ success: true, message: 'Deleted' });
+    } else {
+      res.status(404).json({ error: 'Not found' });
+    }
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
 });
 
 // API: Bulk delete unverified vendors
-router.post('/clear-unverified', async (req, res) => {
+router.post('/clear-unverified', (req, res) => {
   try {
-    await StagingLead.deleteMany({ verified: false });
+    const vendors = dbAdapter.getVendors();
+    const verifiedOnly = vendors.filter(v => v.verified === true);
+    dbAdapter.saveVendors(verifiedOnly);
     res.json({ success: true, message: 'Unverified vendors cleared' });
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
@@ -50,15 +74,20 @@ router.post('/clear-unverified', async (req, res) => {
 });
 
 // API: Assign leads to an employee
-router.post('/assign', async (req, res) => {
+router.post('/assign', (req, res) => {
   try {
     const { vendorIds, employeeId } = req.body;
     if (!vendorIds || !employeeId) return res.status(400).json({ error: 'Missing data' });
     
-    await StagingLead.updateMany(
-      { id: { $in: vendorIds } },
-      { $set: { assignedTo: employeeId, assignedAt: new Date() } }
-    );
+    const vendors = dbAdapter.getVendors();
+    vendorIds.forEach(vid => {
+      const v = vendors.find(x => x.id === vid);
+      if (v) {
+        v.assignedTo = employeeId;
+        v.assignedAt = new Date().toISOString();
+      }
+    });
+    dbAdapter.saveVendors(vendors);
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Assignment failed' });
@@ -66,38 +95,132 @@ router.post('/assign', async (req, res) => {
 });
 
 // API: Update CRM Status (used by employees)
-router.put('/:id/crm', async (req, res) => {
+router.put('/:id/crm', (req, res) => {
   try {
     const { crmStatus, notes } = req.body;
-    const updated = await StagingLead.findOneAndUpdate(
-      { id: req.params.id },
-      { $set: { crmStatus, crmNotes: notes, crmLastUpdated: new Date() } },
-      { new: true }
-    );
-    res.json({ success: true, vendor: updated });
+    const vendors = dbAdapter.getVendors();
+    const idx = vendors.findIndex(v => v.id === req.params.id);
+    
+    if (idx !== -1) {
+      vendors[idx].crmStatus = crmStatus;
+      vendors[idx].crmNotes = notes;
+      vendors[idx].crmLastUpdated = new Date().toISOString();
+      dbAdapter.saveVendors(vendors);
+      res.json({ success: true, vendor: vendors[idx] });
+    } else {
+      res.status(404).json({ error: 'Vendor not found' });
+    }
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// API: Mark Verified Leads as Pushed locally (detached from main Gomandap DB)
-router.post('/push', async (req, res) => {
+// API: Mark Verified Leads as Pushed locally
+router.post('/push', (req, res) => {
   try {
-    const verifiedVendors = await StagingLead.find({ verified: true, pushed: false }).lean();
+    const vendors = dbAdapter.getVendors();
+    let pushedCount = 0;
     
-    if (verifiedVendors.length === 0) {
+    vendors.forEach(v => {
+      if (v.verified === true && v.pushed !== true) {
+        v.pushed = true;
+        v.pushedAt = new Date().toISOString();
+        pushedCount++;
+      }
+    });
+    
+    if (pushedCount === 0) {
       return res.status(400).json({ error: 'No verified unpushed vendors found.' });
     }
 
-    // Now it operates as a standalone separate entity backend
-    await StagingLead.updateMany(
-      { id: { $in: verifiedVendors.map(v => v.id) } },
-      { $set: { pushed: true, pushedAt: new Date() } }
-    );
-    res.json({ success: true, pushed: verifiedVendors.length, message: "Leads successfully marked as pushed in standalone database." });
-
+    dbAdapter.saveVendors(vendors);
+    res.json({ success: true, pushed: pushedCount, message: "Leads successfully marked as pushed in standalone database." });
   } catch (error) {
     res.status(500).json({ error: 'Push failed: ' + error.message });
+  }
+});
+
+// API: Clear all vendors (scraped data)
+router.post('/clear-all', (req, res) => {
+  try {
+    dbAdapter.saveVendors([]);
+    res.json({ success: true, message: 'All scraped vendors cleared' });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+const cheerio = require('cheerio');
+
+// Deep dork helper function to fetch phone numbers
+async function dorkPhoneNumbers(vendorName, city) {
+  const query = `"${vendorName}" ${city} contact number phone`;
+  try {
+    const res = await require('axios').get(`https://html.duckduckgo.com/html/`, {
+      params: { q: query },
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      },
+      timeout: 8000
+    });
+
+    const html = res.data;
+    const $ = cheerio.load(html);
+    const bodyText = $('body').text();
+
+    // Indian mobile phone regex
+    const phoneRegex = /(?:\+91|0)?[ -]?[6789]\d{9}\b|(?:\d{3,5}[ -]\d{6,8})\b/g;
+    const matches = bodyText.match(phoneRegex) || [];
+    
+    // Clean and filter duplicates
+    const cleanPhones = [...new Set(matches.map(p => p.replace(/\s+/g, '').replace(/-/g, '')))]
+      .filter(p => p.replace(/\D/g, '').length >= 10);
+      
+    return cleanPhones;
+  } catch (error) {
+    console.error(`[Deep Phone Dork] Failed for ${vendorName}:`, error.message);
+    return [];
+  }
+}
+
+// API: Trigger Deep Phone Lookup for a single lead
+router.post('/:id/deep-lookup', async (req, res) => {
+  try {
+    const vendors = dbAdapter.getVendors();
+    const idx = vendors.findIndex(v => v.id === req.params.id);
+    
+    if (idx === -1) {
+      return res.status(404).json({ error: 'Vendor not found' });
+    }
+
+    const vendor = vendors[idx];
+    console.log(`[Deep Phone Lookup] Triggered for vendor: ${vendor.name} in ${vendor.city}`);
+    
+    const phones = await dorkPhoneNumbers(vendor.name, vendor.city || '');
+    if (phones && phones.length > 0) {
+      const foundPhone = phones[0];
+      let formattedPhone = foundPhone;
+      if (foundPhone.length === 10) {
+        formattedPhone = `+91 ${foundPhone}`;
+      } else if (foundPhone.startsWith('0') && foundPhone.length === 11) {
+        formattedPhone = `+91 ${foundPhone.substring(1)}`;
+      }
+      
+      vendor.phone = formattedPhone;
+      
+      if (vendor.qualityScore) {
+        vendor.qualityScore = Math.min(100, vendor.qualityScore + 30);
+      }
+      
+      vendors[idx] = vendor;
+      dbAdapter.saveVendors(vendors);
+      
+      return res.json({ success: true, phone: formattedPhone, vendor });
+    } else {
+      return res.status(404).json({ error: 'No phone numbers resolved via web search.' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Server error: ' + error.message });
   }
 });
 

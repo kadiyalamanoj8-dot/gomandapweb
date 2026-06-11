@@ -13,7 +13,7 @@ if (fs.existsSync(backendEnvPath)) {
 }
 
 // Configs
-const connectDB = require('./src/config/database');
+const localDb = require('./src/config/localDb');
 
 // Routes
 const authRoutes = require('./src/routes/auth');
@@ -55,8 +55,7 @@ function emitVendorEvent(vendorObj, action = 'inserted') {
   } catch (e) { console.error('Failed to emit vendor SSE', e.message); }
 }
 
-// Initialize Database
-connectDB();
+// Database is now completely local and loads synchronously.
 
 // Global Abort Signal
 let globalAbortSignal = { aborted: false };
@@ -92,6 +91,7 @@ app.get('/api/logs/stream', (req, res) => {
 // Fallback error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
+  require('fs').appendFileSync('error_crash.log', err.stack + '\\n');
   res.status(500).json({ error: 'Internal Server Error' });
 });
 

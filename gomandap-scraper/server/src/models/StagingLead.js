@@ -31,7 +31,11 @@ const stagingLeadSchema = new mongoose.Schema({
   qualityScore: { type: Number, default: 0 },
   tier: { type: String, default: 'Basic' },
   operatingHours: { type: String },
-  topReviews: [{ type: String }]
+  topReviews: [{ type: String }],
+  aiCategory: { type: String },
+  businessSummary: { type: String },
+  pricingInfo: { type: String },
+  images: [{ type: String }]
 });
 
 // Create index for fast duplicate checks

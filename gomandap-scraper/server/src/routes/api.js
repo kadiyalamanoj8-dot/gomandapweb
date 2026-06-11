@@ -62,13 +62,22 @@ router.get('/location/search', async (req, res) => {
   if (!query) return res.json([]);
 
   try {
-    const fakeIP = getRandomIP();
-    const response = await axiosWithProxy(`https://nominatim.openstreetmap.org/search`, {
+    // 1. INSTANT LOCAL SEARCH (0ms)
+    const localResults = locationSearch.search(query, { prefix: true, fuzzy: 0.2 });
+    if (localResults && localResults.length > 0) {
+      const formatted = localResults.slice(0, 8).map(item => ({
+        name: item.name,
+        display: `${item.name}${item.district && item.district !== item.name ? ', ' + item.district : ''}`,
+        type: item.type
+      }));
+      return res.json(formatted);
+    }
+
+    // 2. FALLBACK TO OSM NOMINATIM (Network Delay)
+    const response = await require('axios').get(`https://nominatim.openstreetmap.org/search`, {
       params: { q: query, format: 'json', addressdetails: 1, limit: 5, countrycodes: 'in' },
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-        'X-Forwarded-For': fakeIP,
-        'X-Real-IP': fakeIP
+        'User-Agent': 'GomandapScraper/1.0 (contact@gomandap.com)',
       },
       timeout: 5000 
     });

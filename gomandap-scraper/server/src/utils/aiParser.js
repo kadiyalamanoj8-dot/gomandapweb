@@ -25,16 +25,43 @@ async function getKeywordSynonyms(category) {
     const words = res.data.slice(0, 8).map(w => w.word);
     
     const coreTerms = category.split(/[\s&/]+/).filter(w => w.length > 3);
-    const combined = [...new Set([...words, ...coreTerms, category])];
+    let combined = [...new Set([...words, ...coreTerms, category])];
     
     // Fallback dictionary for Indian context
     if (category.toLowerCase().includes('mandap') || category.toLowerCase().includes('banquet') || category.toLowerCase().includes('hall')) {
       combined.push('kalyana', 'mandapamu', 'function', 'shadi', 'khana', 'convention', 'arena');
     }
+
+    // Specialize decoration categories for wedding/events, weeding out interior/car/painting terms
+    if (category.toLowerCase().includes('decor')) {
+      combined = combined.filter(w => {
+        const lower = w.toLowerCase();
+        return !lower.includes('interior') && 
+               !lower.includes('house') && 
+               !lower.includes('painter') && 
+               !lower.includes('painting') && 
+               !lower.includes('car') && 
+               !lower.includes('furniture') && 
+               !lower.includes('design') &&
+               !lower.includes('paperhanger') &&
+               !lower.includes('curtain') &&
+               !lower.includes('mattress');
+      });
+      // Add strong wedding/event decoration markers
+      combined.push(
+        'event decoration', 'wedding decor', 'flower decoration', 
+        'stage decor', 'mandap decoration', 'party decor', 
+        'balloon decoration', 'lights and decoration', 'marriage decorators'
+      );
+    }
     
     return combined;
   } catch (error) {
-    return [category, ...category.split(' ')];
+    let fallback = [category, ...category.split(' ')];
+    if (category.toLowerCase().includes('decor')) {
+      fallback.push('event decoration', 'wedding decor', 'flower decoration', 'stage decor', 'mandap decoration');
+    }
+    return fallback;
   }
 }
 

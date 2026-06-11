@@ -10,7 +10,10 @@ class PipelineSingleton {
 
     static async getInstance(progress_callback = null) {
         if (this.instance === null) {
-            this.instance = pipeline(this.task, this.model, { progress_callback });
+            this.instance = pipeline(this.task, this.model, { 
+                progress_callback,
+                dtype: 'q8' // Blazing fast 8-bit quantized model (22MB vs 90MB), universally supported via WASM
+            });
         }
         return this.instance;
     }
@@ -35,7 +38,7 @@ let knowledgeEmbeddings = [];
 self.addEventListener('message', async (event) => {
     let extractor = await PipelineSingleton.getInstance(x => {
         // Send loading progress back to UI
-        self.postMessage(x);
+        self.postMessage({ status: 'progress', ...x });
     });
 
     const { action, text, id, knowledgeBase } = event.data;
@@ -43,6 +46,7 @@ self.addEventListener('message', async (event) => {
     // 1. Build knowledge base embeddings
     if (action === 'build_index' && knowledgeBase) {
         knowledgeEmbeddings = [];
+        
         for (let i = 0; i < knowledgeBase.length; i++) {
             const item = knowledgeBase[i];
             const output = await extractor(item.text, { pooling: 'mean', normalize: true });

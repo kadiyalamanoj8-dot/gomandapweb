@@ -1,5 +1,5 @@
 const { launchStealthBrowser } = require('./browserFactory');
-const StagingLead = require('../models/StagingLead');
+const dbAdapter = require('../config/dbAdapter');
 const { verifyWithAI } = require('../utils/aiParser');
 
 // Shared logging utility callback
@@ -88,24 +88,23 @@ async function scrapeDuckDuckGoDork(platformDomain, exactQuery, category, locati
       const follMatch = snippet.match(/([\d.,]+[KkMm]?)\s*\+?\s*(?:followers?|likes?|subscribers?)/i);
       const followers = follMatch ? follMatch[1] : '';
 
-      const existing = await StagingLead.findOne({ 
-        $or: [
-          { instagram: profileUrl }, 
-          { facebook: profileUrl },
-          { pinterest: profileUrl },
-          { youtube: profileUrl },
-          { linkedin: profileUrl },
-          { name: cleanName }
-        ] 
-      });
+      const vendors = dbAdapter.getVendors();
+      const existing = vendors.find(v => 
+        v.instagram === profileUrl || 
+        v.facebook === profileUrl || 
+        v.pinterest === profileUrl || 
+        v.youtube === profileUrl || 
+        v.linkedin === profileUrl || 
+        v.name === cleanName
+      );
       
       if (!existing) {
-        await StagingLead.create({
+        const newLead = {
           id: `dork_${Date.now()}_${Math.random().toString(36).substring(7)}`,
           name: cleanName,
           category: category,
           city: location,
-          scrapedAt: new Date(),
+          scrapedAt: new Date().toISOString(),
           verified: false,
           pushed: false,
           qualityScore: followers ? 25 : (phone ? 15 : 8),
@@ -117,7 +116,9 @@ async function scrapeDuckDuckGoDork(platformDomain, exactQuery, category, locati
           pinterest: platformDomain.includes('pinterest') ? profileUrl : '',
           youtube: platformDomain.includes('youtube') ? profileUrl : '',
           linkedin: platformDomain.includes('linkedin') ? profileUrl : '',
-        });
+        };
+        vendors.push(newLead);
+        dbAdapter.saveVendors(vendors);
         addLog(`[Bing Dork Engine] ✓ ${platformName}: "${cleanName}"${followers ? ` (${followers})` : ''}${phone ? ` 📞${phone}` : ''}`);
         totalInserted++;
       }

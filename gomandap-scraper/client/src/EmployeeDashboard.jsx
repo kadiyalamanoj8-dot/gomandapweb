@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { LogOut, Phone, MessageCircle, MapPin, Search, Calendar, ChevronDown, CheckCircle2, XCircle, Clock, Save, User } from 'lucide-react';
+import { 
+  LogOut, Phone, MessageCircle, MapPin, Search, 
+  CheckCircle2, XCircle, Clock, Save, User, 
+  FolderOpen, Map, Mail, ExternalLink, Globe
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_URL } from './apiConfig';
 
@@ -17,10 +21,13 @@ export default function EmployeeDashboard({ user, onLogout }) {
   const [activeLeadId, setActiveLeadId] = useState(null);
   const [crmNotes, setCrmNotes] = useState('');
 
+  // Map state
+  const mapRef = useRef(null);
+
   async function fetchAssignedLeads() {
     try {
       const res = await axios.get(`${API_URL}/vendors`);
-      // Filter leads specifically assigned to this telecaller
+      // Filter leads specifically assigned to this user
       const assigned = res.data.filter(v => v.assignedTo === user.id).reverse();
       
       setLeads(assigned);
@@ -36,10 +43,7 @@ export default function EmployeeDashboard({ user, onLogout }) {
   }
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchAssignedLeads();
-    }, 0);
-    return () => clearTimeout(timer);
+    fetchAssignedLeads();
   }, []);
 
   const updateLeadStatus = async (id, status) => {
@@ -60,14 +64,14 @@ export default function EmployeeDashboard({ user, onLogout }) {
   const handleWhatsApp = (lead) => {
     let cleanPhone = lead.phone.replace(/[^0-9]/g, '');
     if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
-    const msg = `Hi ${lead.name} team! We are inviting premium venues to list on Gomandap.com. Are you the right person to speak with?`;
+    const msg = `Hi ${lead.name} team! We are reaching out regarding your business. Are you the right person to speak with?`;
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   const filteredLeads = leads.filter(l => 
     (activeCategory === 'All' || l.category === activeCategory) &&
-    (l.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-     l.city.toLowerCase().includes(searchTerm.toLowerCase()))
+    (l.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+     l.city?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const stats = {
@@ -79,115 +83,112 @@ export default function EmployeeDashboard({ user, onLogout }) {
   };
 
   const getStatusColor = (status) => {
-    if (status === 'Interested') return 'bg-green-100 text-green-700 border-green-200';
-    if (status === 'Callback') return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-    if (status === 'Not Interested') return 'bg-red-100 text-red-700 border-red-200';
-    return 'bg-blue-50 text-blue-600 border-blue-100'; // New
+    if (status === 'Interested') return 'bg-green-50 text-green-600 border-green-200';
+    if (status === 'Callback') return 'bg-amber-50 text-amber-600 border-amber-200';
+    if (status === 'Not Interested') return 'bg-red-50 text-red-500 border-red-200';
+    return 'bg-blue-50 text-blue-600 border-blue-200'; // New
   };
 
+  // Determine map center based on first visible lead with coords
+  const mapCenter = filteredLeads.find(l => l.lat && l.lng);
+
   return (
-    <div 
-      className="min-h-screen text-slate-800 font-sans pb-20 relative overflow-hidden"
-      style={{
-        backgroundImage: 'url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
-      }}
-    >
-      <div className="absolute inset-0 bg-white/40 backdrop-blur-3xl"></div>
+    <div className="min-h-screen bg-[#f7f8fa] text-gray-900 font-sans flex flex-col">
       
-      {/* HEADER & PROFILE */}
-      <nav className="bg-white/60 border-b border-white/40 sticky top-0 z-50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
-          
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <img src={`https://ui-avatars.com/api/?name=${user.name}&background=0D8ABC&color=fff&rounded=true`} alt="Avatar" className="w-12 h-12 rounded-full shadow-lg border-2 border-white" />
-              <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+      {/* ── HEADER ── */}
+      <nav className="bg-white border-b border-gray-100 z-50 shadow-sm sticky top-0">
+        <div className="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <MapPin size={16} className="text-white" strokeWidth={2.5} />
             </div>
             <div>
-              <h1 className="text-xl font-black text-slate-900 tracking-tight">{user.name}</h1>
-              <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">{user.location} Territory | Sales Rep</p>
+              <span className="text-xl font-black tracking-tight text-gray-900">OmniLead<span className="text-violet-600">.</span></span>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest -mt-0.5">CRM Pipeline</p>
             </div>
           </div>
           
-          <button onClick={onLogout} className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-red-500 hover:text-white hover:shadow-lg rounded-xl transition-all">
-            <LogOut size={16} /> Logout
-          </button>
+          <div className="flex items-center gap-6">
+            <div className="hidden sm:flex items-center gap-3 text-right">
+              <div>
+                <p className="text-sm font-bold text-gray-900">{user.name}</p>
+                <p className="text-xs text-gray-500">{user.location} Territory</p>
+              </div>
+              <img src={`https://ui-avatars.com/api/?name=${user.name}&background=ede9fe&color=7c3aed`} alt="Avatar" className="w-10 h-10 rounded-full border border-violet-100" />
+            </div>
+            <div className="w-px h-8 bg-gray-200 hidden sm:block"></div>
+            <button onClick={onLogout} className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors">
+              <LogOut size={16} /> Logout
+            </button>
+          </div>
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
+      {/* ── MAIN CONTENT (SPLIT SCREEN) ── */}
+      <main className="flex-1 flex overflow-hidden max-w-[1600px] mx-auto w-full">
         
-        {/* LEFT SIDEBAR: Stats & Filter */}
-        <div className="lg:col-span-3 space-y-6">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Pipeline Stats</h2>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                <span className="font-bold text-slate-600">Total Assigned</span>
-                <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-black">{stats.total}</span>
+        {/* LEFT PANEL: Leads List & Stats */}
+        <div className="w-full lg:w-[450px] xl:w-[500px] flex flex-col bg-white border-r border-gray-100 relative z-10 flex-shrink-0 overflow-y-auto">
+          
+          {/* Stats Bar */}
+          <div className="p-5 border-b border-gray-100 bg-gray-50/50">
+            <div className="grid grid-cols-4 gap-2 text-center">
+              <div className="bg-white rounded-xl p-2 border border-gray-100 shadow-sm">
+                <p className="text-xs font-bold text-gray-400 uppercase">Assigned</p>
+                <p className="text-lg font-black text-gray-900">{stats.total}</p>
               </div>
-              <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                <span className="font-bold text-slate-600">To Call (New)</span>
-                <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-sm font-black">{stats.new}</span>
+              <div className="bg-white rounded-xl p-2 border border-gray-100 shadow-sm">
+                <p className="text-xs font-bold text-gray-400 uppercase">New</p>
+                <p className="text-lg font-black text-blue-600">{stats.new}</p>
               </div>
-              <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                <span className="font-bold text-slate-600">Interested</span>
-                <span className="bg-green-50 text-green-600 px-3 py-1 rounded-full text-sm font-black">{stats.interested}</span>
+              <div className="bg-white rounded-xl p-2 border border-gray-100 shadow-sm">
+                <p className="text-xs font-bold text-gray-400 uppercase">Interested</p>
+                <p className="text-lg font-black text-green-600">{stats.interested}</p>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-slate-600">Follow-up</span>
-                <span className="bg-yellow-50 text-yellow-600 px-3 py-1 rounded-full text-sm font-black">{stats.callback}</span>
+              <div className="bg-white rounded-xl p-2 border border-gray-100 shadow-sm">
+                <p className="text-xs font-bold text-gray-400 uppercase">Follow-up</p>
+                <p className="text-lg font-black text-amber-600">{stats.callback}</p>
               </div>
             </div>
           </div>
 
-          {/* Workspaces / Categories */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Workspaces</h2>
-            <div className="flex flex-col gap-2">
+          {/* Search & Filter */}
+          <div className="p-5 border-b border-gray-100 space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <input 
+                type="text" 
+                placeholder="Search leads by name or city..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-100 rounded-xl py-2.5 pl-10 pr-4 focus:outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-50 text-sm font-medium transition-all"
+              />
+            </div>
+            
+            <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
               {categories.map(cat => (
                 <button 
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`text-left px-4 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-between ${activeCategory === cat ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${activeCategory === cat ? 'bg-violet-600 text-white border-violet-600' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}`}
                 >
-                  <span className="truncate pr-4">{cat}</span>
-                  {cat !== 'All' && <span className={`text-xs px-2 py-0.5 rounded-full ${activeCategory === cat ? 'bg-white/20' : 'bg-white border border-slate-200'}`}>
-                    {leads.filter(l => l.category === cat).length}
-                  </span>}
+                  {cat}
                 </button>
               ))}
             </div>
           </div>
-        </div>
 
-        {/* MAIN FEED */}
-        <div className="lg:col-span-9 space-y-6">
-          
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input 
-              type="text" 
-              placeholder="Search leads by name or city..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="w-full bg-white border-2 border-slate-200 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-bold text-slate-700 shadow-sm"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Leads Feed */}
+          <div className="flex-1 p-5 space-y-4">
             {loading ? (
-              <div className="col-span-full py-20 text-center text-slate-400 font-bold">Loading CRM Data...</div>
+              <div className="py-20 text-center text-gray-400 font-semibold">Loading assignments...</div>
             ) : filteredLeads.length === 0 ? (
-              <div className="col-span-full py-20 text-center bg-white rounded-2xl border border-slate-200">
-                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
-                  <User className="text-slate-300" size={24} />
+              <div className="py-20 text-center">
+                <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-gray-100">
+                  <User className="text-gray-400" size={20} />
                 </div>
-                <h3 className="font-black text-slate-700 text-lg">No leads in this workspace</h3>
-                <p className="text-sm text-slate-500 mt-1">Select a different category or wait for admin assignment.</p>
+                <h3 className="font-bold text-gray-900">No leads found</h3>
+                <p className="text-xs text-gray-500 mt-1">Try adjusting your filters.</p>
               </div>
             ) : (
               <AnimatePresence>
@@ -195,109 +196,92 @@ export default function EmployeeDashboard({ user, onLogout }) {
                   <motion.div 
                     key={lead.id}
                     layout
-                    initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                    className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col"
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-violet-200 transition-all overflow-hidden flex flex-col group"
                   >
-                    <div className="p-5 flex-1">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex-1 pr-4">
-                          <h3 className="font-black text-slate-900 text-lg leading-tight mb-1">{lead.name}</h3>
-                          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{lead.category}</span>
+                    <div className="p-4 relative">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="pr-4">
+                          <h3 className="font-black text-gray-900 text-sm leading-tight group-hover:text-violet-700 transition-colors">{lead.name}</h3>
+                          <p className="text-xs text-gray-500 mt-0.5">{lead.category}</p>
                         </div>
-                        <span className={`shrink-0 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md border ${getStatusColor(lead.crmStatus || 'New')}`}>
+                        <span className={`shrink-0 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border ${getStatusColor(lead.crmStatus || 'New')}`}>
                           {lead.crmStatus || 'New'}
                         </span>
                       </div>
                       
-                      <div className="flex items-center gap-1.5 text-sm font-medium text-slate-600 mt-3">
-                        <MapPin size={16} className="text-slate-400" /> <span className="truncate">{lead.address || lead.city}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-1.5 text-sm font-medium text-slate-600 mt-1.5">
-                        <Phone size={16} className="text-slate-400" /> <span className="font-mono">{lead.phone}</span>
-                      </div>
-                      
-                      {lead.email && (
-                        <div className="flex items-center gap-1.5 text-sm font-medium text-blue-600 mt-1">
-                          ✉️ <span>{lead.email}</span>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
+                          <MapPin size={12} className="text-gray-400" /> <span className="truncate">{lead.address || lead.city}</span>
                         </div>
-                      )}
-                      
-                      {lead.instagram && (
-                        <div className="flex items-center gap-1.5 text-sm font-medium text-pink-600 mt-1">
-                          <a href={lead.instagram} target="_blank" rel="noreferrer" className="hover:underline">📸 View Instagram</a>
-                        </div>
-                      )}
-                      
-                      {lead.operatingHours && (
-                        <div className="flex items-center gap-1.5 text-sm font-medium text-green-600 mt-1">
-                          🕒 <span>{lead.operatingHours}</span>
-                        </div>
-                      )}
-
-                      {lead.topReviews && lead.topReviews.length > 0 && (
-                        <div className="mt-3">
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Top Reviews</p>
-                          <div className="space-y-1">
-                            {lead.topReviews.map((rev, i) => (
-                              <p key={i} className="text-xs text-slate-500 italic line-clamp-2">"{rev}"</p>
-                            ))}
+                        {lead.phone && (
+                          <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
+                            <Phone size={12} className="text-gray-400" /> <span className="font-semibold">{lead.phone}</span>
                           </div>
-                        </div>
-                      )}
+                        )}
+                        {lead.email && (
+                          <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
+                            <Mail size={12} className="text-gray-400" /> <span>{lead.email}</span>
+                          </div>
+                        )}
+                      </div>
 
                       {lead.crmNotes && (
-                        <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm text-slate-600 italic">
+                        <div className="mt-3 p-2.5 bg-yellow-50/50 rounded-lg border border-yellow-100 text-xs text-yellow-800 italic">
                           "{lead.crmNotes}"
                         </div>
                       )}
                     </div>
                     
-                    {/* Actions Panel */}
-                    <div className="border-t border-slate-100 bg-slate-50">
+                    {/* Actions Area */}
+                    <div className="border-t border-gray-100 bg-gray-50">
                       {activeLeadId === lead.id ? (
-                        <div className="p-4 space-y-4">
+                        <div className="p-3">
                           <textarea 
                             value={crmNotes}
                             onChange={(e) => setCrmNotes(e.target.value)}
-                            placeholder="Add call notes..."
-                            className="w-full bg-white border border-slate-200 rounded-lg p-3 text-sm focus:outline-none focus:border-blue-500"
-                            rows={3}
+                            placeholder="Add notes about this lead..."
+                            className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-50 mb-3"
+                            rows={2}
                           />
                           <div className="grid grid-cols-2 gap-2">
-                            <button onClick={() => updateLeadStatus(lead.id, 'Interested')} className="flex items-center justify-center gap-1 bg-green-100 text-green-700 py-2 rounded-lg font-bold text-sm hover:bg-green-200">
-                              <CheckCircle2 size={16}/> Interested
+                            <button onClick={() => updateLeadStatus(lead.id, 'Interested')} className="flex items-center justify-center gap-1.5 bg-green-50 hover:bg-green-100 text-green-700 py-2 rounded-xl text-xs font-bold transition-colors border border-green-100">
+                              <CheckCircle2 size={14}/> Interested
                             </button>
-                            <button onClick={() => updateLeadStatus(lead.id, 'Callback')} className="flex items-center justify-center gap-1 bg-yellow-100 text-yellow-700 py-2 rounded-lg font-bold text-sm hover:bg-yellow-200">
-                              <Clock size={16}/> Callback
+                            <button onClick={() => updateLeadStatus(lead.id, 'Callback')} className="flex items-center justify-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 py-2 rounded-xl text-xs font-bold transition-colors border border-amber-100">
+                              <Clock size={14}/> Callback
                             </button>
-                            <button onClick={() => updateLeadStatus(lead.id, 'Not Interested')} className="flex items-center justify-center gap-1 bg-red-100 text-red-700 py-2 rounded-lg font-bold text-sm hover:bg-red-200">
-                              <XCircle size={16}/> Rejected
+                            <button onClick={() => updateLeadStatus(lead.id, 'Not Interested')} className="flex items-center justify-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-xl text-xs font-bold transition-colors border border-red-100">
+                              <XCircle size={14}/> Rejected
                             </button>
-                            <button onClick={() => setActiveLeadId(null)} className="flex items-center justify-center gap-1 bg-slate-200 text-slate-600 py-2 rounded-lg font-bold text-sm hover:bg-slate-300">
+                            <button onClick={() => setActiveLeadId(null)} className="flex items-center justify-center gap-1.5 bg-white hover:bg-gray-100 text-gray-600 py-2 rounded-xl text-xs font-bold transition-colors border border-gray-200">
                               Cancel
                             </button>
                           </div>
                         </div>
                       ) : (
-                        <div className="flex divide-x divide-slate-200">
-                          <button 
-                            onClick={() => handleCall(lead.phone)}
-                            className="flex-1 py-4 flex items-center justify-center gap-2 font-bold text-blue-600 hover:bg-blue-50 transition-colors"
-                          >
-                            <Phone size={18} /> Call
-                          </button>
-                          <button 
-                            onClick={() => handleWhatsApp(lead)}
-                            className="flex-1 py-4 flex items-center justify-center gap-2 font-bold text-[#25D366] hover:bg-[#25D366]/10 transition-colors"
-                          >
-                            <MessageCircle size={18} /> WhatsApp
-                          </button>
+                        <div className="flex divide-x divide-gray-100">
+                          {lead.phone && (
+                            <>
+                              <button 
+                                onClick={() => handleCall(lead.phone)}
+                                className="flex-1 py-3 flex items-center justify-center gap-1.5 font-bold text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors text-xs"
+                              >
+                                <Phone size={14} /> Call
+                              </button>
+                              <button 
+                                onClick={() => handleWhatsApp(lead)}
+                                className="flex-1 py-3 flex items-center justify-center gap-1.5 font-bold text-[#25D366] hover:bg-green-50 transition-colors text-xs"
+                              >
+                                <MessageCircle size={14} /> WhatsApp
+                              </button>
+                            </>
+                          )}
                           <button 
                             onClick={() => { setActiveLeadId(lead.id); setCrmNotes(lead.crmNotes || ''); }}
-                            className="flex-1 py-4 flex items-center justify-center gap-2 font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                            className="flex-1 py-3 flex items-center justify-center gap-1.5 font-bold text-violet-600 hover:bg-violet-50 transition-colors text-xs"
                           >
-                            <Save size={18} /> Update
+                            <Save size={14} /> Update
                           </button>
                         </div>
                       )}
@@ -306,6 +290,37 @@ export default function EmployeeDashboard({ user, onLogout }) {
                 ))}
               </AnimatePresence>
             )}
+          </div>
+        </div>
+
+        {/* RIGHT PANEL: Interactive Map */}
+        <div className="hidden lg:block flex-1 bg-gray-100 relative">
+          <div className="absolute inset-0 z-0">
+            <iframe
+              ref={mapRef}
+              title="Leads Map"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              src={`https://www.openstreetmap.org/export/embed.html?bbox=68.0%2C8.0%2C97.4%2C37.6&layer=mapnik`}
+              allowFullScreen
+            />
+          </div>
+          
+          {/* Floating Map Overlay */}
+          <div className="absolute top-6 right-6 z-10 w-72 bg-white/95 backdrop-blur-md p-5 rounded-2xl shadow-xl border border-gray-100">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-violet-50 rounded-xl flex items-center justify-center text-violet-600">
+                <Globe size={20} />
+              </div>
+              <div>
+                <p className="font-black text-gray-900 text-sm">Territory Map</p>
+                <p className="text-xs text-gray-500">Geographic distribution</p>
+              </div>
+            </div>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              This map displays all leads assigned to you. Plan your outreach geographically to maximize efficiency.
+            </p>
           </div>
         </div>
 

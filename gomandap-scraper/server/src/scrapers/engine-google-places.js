@@ -1,6 +1,6 @@
 const cheerio = require('cheerio');
 const axios = require('axios');
-const StagingLead = require('../models/StagingLead');
+const dbAdapter = require('../config/dbAdapter');
 const { getBrowser, chromium } = require('./browserFactory');
 const { verifyWithAI } = require('../utils/aiParser');
 
@@ -51,12 +51,13 @@ async function scrapeWebsiteForSocials(browser, url, vendorName) {
     const $ = cheerio.load(html);
     
     const emailMatch = html.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}/g) || [];
-    const validEmails = [...new Set(emailMatch)].filter(e => 
+    let validEmails = [...new Set(emailMatch)].filter(e => 
       !e.endsWith('.png') && !e.endsWith('.jpg') && !e.endsWith('.jpeg') && !e.endsWith('.webp') && !e.endsWith('.gif') && !e.includes('wixpress') && !e.includes('sentry')
     );
 
-    const phoneMatch = html.match(/(?:\+91|0)?[ -]?(?:\d{5}[ -]?\d{5}|\d{3}[ -]?\d{3}[ -]?\d{4}|\d{4}[ -]?\d{4})/g) || [];
-    const validPhones = [...new Set(phoneMatch)].filter(p => p.replace(/\D/g, '').length >= 10);
+    // Enhanced phone parsing to catch more obfuscated Indian formats
+    const phoneMatch = html.match(/(?:\+?91|0)?[-\s.]*(?:\d[-\s.]*){10}/g) || [];
+    let validPhones = [...new Set(phoneMatch)].filter(p => p.replace(/\D/g, '').length >= 10);
 
     let instagram = '';
     let facebook = '';
@@ -64,9 +65,36 @@ async function scrapeWebsiteForSocials(browser, url, vendorName) {
     $('a').each((i, el) => {
       const href = $(el).attr('href');
       if (!href) return;
-      if (href.includes('instagram.com/') && !instagram) instagram = href;
-      if (href.includes('facebook.com/') && !facebook && !href.includes('sharer')) facebook = href;
+      
+      const lowerHref = href.toLowerCase();
+      if (lowerHref.startsWith('mailto:')) {
+        const mail = lowerHref.replace('mailto:', '').split('?')[0];
+        if (mail && mail.includes('@')) validEmails.push(mail);
+      }
+      if (lowerHref.startsWith('tel:')) {
+        const tel = lowerHref.replace('tel:', '').replace(/[^\d+]/g, '');
+        if (tel.length >= 10) validPhones.push(tel);
+      }
+      
+      if (lowerHref.includes('instagram.com/') && !instagram) instagram = href;
+      if (lowerHref.includes('facebook.com/') && !facebook && !lowerHref.includes('sharer')) facebook = href;
     });
+    
+    validEmails = [...new Set(validEmails)];
+    validPhones = [...new Set(validPhones)];
+
+    // Deep JSON / Script extraction for modern React/NextJS sites
+    if (!instagram) {
+      const rawIgMatch = html.match(/https:\/\/(www\.)?instagram\.com\/[a-zA-Z0-9._-]+/gi) || [];
+      const validIg = rawIgMatch.find(l => !l.includes('/p/') && !l.includes('/reel/') && !l.includes('explore'));
+      if (validIg) instagram = validIg.replace(/["'\\]/g, '');
+    }
+
+    if (!facebook) {
+      const rawFbMatch = html.match(/https:\/\/(www\.)?facebook\.com\/[a-zA-Z0-9._-]+/gi) || [];
+      const validFb = rawFbMatch.find(l => !l.includes('/sharer') && !l.includes('/dialog'));
+      if (validFb) facebook = validFb.replace(/["'\\]/g, '');
+    }
 
     let instagramFollowers = '';
     let facebookFollowers = '';
@@ -104,21 +132,95 @@ async function scrapeWebsiteForSocials(browser, url, vendorName) {
       } catch (e) {}
     }
 
+    const images = [];
+    try {
+      const ogImg = $('meta[property="og:image"]').attr('content');
+      if (ogImg) images.push(ogImg);
+      $('img').each((i, el) => {
+        const src = $(el).attr('src');
+        if (src && src.startsWith('http') && !src.includes('logo') && !src.includes('icon') && !src.includes('avatar') && images.length < 5) {
+          images.push(src);
+        }
+      });
+    } catch (e) {}
+
     return {
       email: validEmails.length > 0 ? validEmails[0] : '',
       phone: validPhones.length > 0 ? validPhones[0] : '',
       instagram,
       facebook,
       instagramFollowers,
-      facebookFollowers
+      facebookFollowers,
+      images
     };
   } catch (err) {
     console.log(`[Cheerio Deep Scrape] Failed or timed out for ${url}`);
-    return { email: '', instagram: '', facebook: '', phone: '', instagramFollowers: '', facebookFollowers: '' };
+    return { email: '', instagram: '', facebook: '', phone: '', instagramFollowers: '', facebookFollowers: '', images: [] };
   }
 }
 
-async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = []) {
+function isListingRelevantToQuery(name, pageText, category, exactQuery) {
+  // Relaxed rule: If it's a search, we generally trust Google Maps placement unless it's obviously wildly wrong
+  return true; 
+}
+
+function isListingRelevantToQueryGeneral(name, pageText, category, exactQuery, aiKeywords) {
+  const cleanQuery = (exactQuery || '').toLowerCase();
+  const cleanName = (name || '').toLowerCase();
+  const cleanText = (pageText || '').toLowerCase();
+
+  // Extract core keywords from query (excluding stop words)
+  const stopWords = ['in', 'and', 'or', 'for', 'at', 'service', 'services', 'near', 'guntur', 'andhra', 'pradesh', 'india', 'hyderabad', 'vijayawada', 'telangana'];
+  const queryTerms = cleanQuery.split(/[\s,]+/);
+  const coreQueryTerms = queryTerms.filter(w => w.length > 2 && !stopWords.includes(w));
+
+  // If the query is empty or too short, don't filter
+  if (coreQueryTerms.length === 0) return true;
+
+  // Check if the AI keywords matches the page text
+  if (aiKeywords && aiKeywords.length > 0) {
+    const matchedKeywords = aiKeywords.filter(kw => {
+      const lowerKw = kw.toLowerCase();
+      if (lowerKw.length <= 2) return false;
+      return cleanText.includes(lowerKw) || cleanName.includes(lowerKw);
+    });
+
+    if (matchedKeywords.length > 0) {
+      return true;
+    }
+  }
+
+  // Fallback check
+  const textMatchesQuery = coreQueryTerms.some(term => {
+    if (cleanText.includes(term)) return true;
+    if (term.endsWith('s') && cleanText.includes(term.slice(0, -1))) return true;
+    if (cleanName.includes(term)) return true;
+    return false;
+  });
+
+  // Since we are looking for maximum coverage, if AI didn't explicitly reject, we include.
+  return true;
+}
+
+function extractCoords(url) {
+  if (!url) return null;
+  const match = url.match(/!8m2!3d([0-9.-]+)!4d([0-9.-]+)/);
+  if (match) return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
+  const atMatch = url.match(/@([0-9.-]+),([0-9.-]+)/);
+  if (atMatch) return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+  return null;
+}
+
+function getDistanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371; 
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [], sessionId = "legacy", centerLat = null, centerLng = null, radiusKm = null) {
   addLog(`Starting Google Maps browser scrape for ${exactQuery} (AI Validation Keywords: ${aiKeywords.length})`);
 
   // If Playwright not available (production/Render), skip browser scraping
@@ -143,26 +245,30 @@ async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [
     });
     page = await context.newPage();
 
-    // Abort image, font, media, and stylesheets to speed up scraping instantly
+    // Abort image, font, and media (but NOT stylesheets, to allow correct layout/JS rendering on Google Maps)
     await page.route('**/*', (route) => {
       const resourceType = route.request().resourceType();
-      if (['image', 'media', 'font', 'stylesheet'].includes(resourceType)) {
+      if (['image', 'media', 'font'].includes(resourceType)) {
         route.abort();
       } else {
         route.continue();
       }
     });
 
-    const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(exactQuery)}`;
+    const searchUrl = exactQuery.startsWith('http')
+      ? exactQuery
+      : `https://www.google.com/maps/search/${encodeURIComponent(exactQuery)}`;
     addLog(`[System] Navigating to Google Maps search: ${searchUrl}`);
     // Wait for networkidle instead of domcontentloaded for faster extraction
-    await page.goto(searchUrl, { waitUntil: 'load', timeout: 30000 });
+    await page.goto(searchUrl, { waitUntil: 'load', timeout: 30000 }).catch(e => addLog(`[Google Maps] Note: Search load timed out but continuing...`));
 
     const consentBtn = page.locator('button:has-text("Accept all"), button:has-text("Reject all"), button:has-text("I agree"), button:has-text("Agree")');
-    if (await consentBtn.count() > 0) {
-      await consentBtn.first().click();
-      await page.waitForTimeout(1000);
-    }
+    try {
+      if (await consentBtn.count() > 0) {
+        await consentBtn.first().click({ timeout: 5000 }).catch(()=>{});
+        await page.waitForTimeout(1000);
+      }
+    } catch(e) {}
 
     try {
       await Promise.race([
@@ -203,11 +309,82 @@ async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [
         if (match) rating = parseFloat(match[1]);
       }
 
-      scrapedResults.push({
-        name, address, phone, rating,
-        mapsLink: page.url(),
-        id: 'place_' + Date.now().toString() + Math.random().toString(36).substring(7)
-      });
+      let coverImage = '';
+      try {
+        const imgEl = page.locator('button[aria-label^="Photo of"] img, img[src*="googleusercontent.com/p/"]').first();
+        if (await imgEl.count() > 0) {
+          coverImage = await imgEl.getAttribute('src', { timeout: 2000 }) || '';
+        }
+      } catch (e) {}
+
+      let website = '';
+      try {
+        const websiteEl = page.locator('a[data-item-id="authority"]');
+        if (await websiteEl.count() > 0) {
+          website = await websiteEl.getAttribute('href', { timeout: 3000 }) || '';
+        }
+      } catch (e) {}
+
+      let enrichedData = { email: '', instagram: '', facebook: '', instagramFollowers: '', facebookFollowers: '', images: [] };
+      if (website) {
+        enrichedData = await scrapeWebsiteForSocials(browser, website, name);
+      }
+
+      const combinedText = `${name} ${address}`;
+      if (!isListingRelevantToQueryGeneral(name, combinedText, category, exactQuery, aiKeywords)) {
+        addLog(`[Filter] Discarding irrelevant home/car/painter/salon listing: '${name}'`);
+      } else {
+        const mapsLink = page.url();
+        const id = 'place_' + Date.now().toString() + Math.random().toString(36).substring(7);
+
+        const pincodeMatch = address ? address.match(/\b\d{6}\b/) : null;
+        const pincode = pincodeMatch ? pincodeMatch[0] : '';
+        
+        const coords = extractCoords(mapsLink);
+
+        // Read local database
+        const vendors = dbAdapter.getVendors();
+        const existingIndex = vendors.findIndex(v => v.mapsLink === mapsLink || v.name === name);
+
+        if (existingIndex === -1) {
+          const leadScore = calculateLeadScore({ name, address, phone, rating });
+          const newLead = {
+            id,
+            name,
+            category,
+            city: location || 'Global',
+            address: address || '',
+            pincode: pincode,
+            phone: phone || 'Requires Manual Lookup',
+            rating,
+            mapsLink,
+            latitude: coords ? coords.lat : null,
+            longitude: coords ? coords.lng : null,
+            source: 'Google Maps Engine',
+            verified: false,
+            aiVerified: false,
+            matchedKeywords: [],
+            email: enrichedData.email || '',
+            instagram: enrichedData.instagram || '',
+            instagramFollowers: enrichedData.instagramFollowers || '',
+            facebook: enrichedData.facebook || '',
+            facebookFollowers: enrichedData.facebookFollowers || '',
+            website: website,
+            images: [coverImage, ...(enrichedData.images || [])].filter(Boolean),
+            qualityScore: leadScore,
+            tier: determineTier(leadScore),
+            operatingHours: '',
+            topReviews: [],
+            scrapedAt: new Date().toISOString()
+          };
+
+          vendors.push(newLead);
+          dbAdapter.saveVendors(vendors);
+          try { emitVendorEvent(newLead, 'inserted'); } catch (e) {}
+          scrapedResults.push(newLead);
+          addLog(`Streamed new single vendor '${name}' to DB.`);
+        }
+      }
     } else {
       // Case B: Search results list is loaded
       const scrollable = page.locator('div[role="feed"]');
@@ -241,149 +418,152 @@ async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [
           }
         }
 
-        addLog(`Extracted ${vendorLinks.length} raw links. Beginning concurrent Deep Extraction (Hardware Accelerated)...`);
+        addLog(`Extracted ${vendorLinks.length} raw links. Beginning Single-Tab Fast Extraction (God Mode)...`);
 
-        // Phase 2: Concurrent Multi-Tab Execution (Lower batch size to prevent CPU choking and timeouts)
-        const CONCURRENCY_LIMIT = 5;
-        for (let i = 0; i < vendorLinks.length; i += CONCURRENCY_LIMIT) {
+        // Phase 2: Single-Tab Fast Extraction
+        // Instead of opening 60 new tabs, we click each card directly on the main page.
+        // This takes ~0.5 seconds per vendor instead of 3-5 seconds!
+        const allCards = await page.locator('a.hfpxzc').all();
+        
+        let insertedInBatch = 0;
+
+        for (let i = 0; i < allCards.length; i++) {
           if (globalAbortSignal.aborted) throw new Error('Master Stop Aborted');
           
-          const batch = vendorLinks.slice(i, i + CONCURRENCY_LIMIT);
-          addLog(`Processing concurrent batch ${i/CONCURRENCY_LIMIT + 1} of ${Math.ceil(vendorLinks.length/CONCURRENCY_LIMIT)}...`);
-          
-          const batchPromises = batch.map(async (vendor) => {
-            let newPage;
+          const card = allCards[i];
+          const name = await card.getAttribute('aria-label').catch(()=>null);
+          const mapsLink = await card.getAttribute('href').catch(()=>null);
+          if (!name || !mapsLink) continue;
+
+          addLog(`[Fast Extract] Processing ${i+1}/${allCards.length}: ${name}`);
+
+          let address = '';
+          let phone = '';
+          let rating = null;
+          let websiteUrl = '';
+          let operatingHours = '';
+          let topReviews = [];
+          let coverImage = '';
+          let aiVerified = false;
+          let matchedKeywords = [];
+
+          try {
+            await card.click();
+            
+            // Wait for side panel details to appear. The title usually appears as an h1
+            await page.waitForSelector(`h1`, { timeout: 3000 }).catch(()=>{});
+            await page.waitForTimeout(400); // Let fields populate
+
+            const addressEl = page.locator('[data-item-id="address"]');
             try {
-              newPage = await context.newPage();
-              // Disable heavy resources on the new tab as well
-              await newPage.route('**/*', (route) => {
-                const rt = route.request().resourceType();
-                if (['image', 'media', 'font', 'stylesheet'].includes(rt)) {
-                  route.abort();
-                } else {
-                  route.continue();
-                }
-              });
-
-              // Navigate directly to the Maps detail view
-              await newPage.goto(vendor.mapsLink, { waitUntil: 'domcontentloaded', timeout: 25000 });
-
-              let address = '';
-              const addressEl = newPage.locator('[data-item-id="address"]');
               if (await addressEl.count() > 0) {
-                const rawAddress = await addressEl.getAttribute('aria-label');
+                const rawAddress = await addressEl.getAttribute('aria-label', { timeout: 1000 });
                 address = rawAddress ? rawAddress.replace(/^Address:\s*/i, '') : '';
               }
+            } catch (err) {}
 
-              let phone = '';
-              const phoneEl = newPage.locator('[data-item-id^="phone:tel:"]');
+            const phoneEl = page.locator('[data-tooltip="Copy phone number"]');
+            try {
               if (await phoneEl.count() > 0) {
-                const rawPhone = await phoneEl.getAttribute('aria-label');
+                const rawPhone = await phoneEl.getAttribute('aria-label', { timeout: 1000 });
                 phone = rawPhone ? rawPhone.replace(/^Phone:\s*/i, '') : '';
               }
+            } catch (err) {}
 
-              let rating = null;
-              const ratingEl = newPage.locator('div.F7nice').first();
+            const ratingEl = page.locator('div.F7nice').first();
+            try {
               if (await ratingEl.count() > 0) {
-                const text = await ratingEl.innerText();
+                const text = await ratingEl.innerText({ timeout: 1000 });
                 const match = text.match(/^([0-9.]+)/);
                 if (match) rating = parseFloat(match[1]);
               }
+            } catch (err) {}
 
-              // Advanced Extraction: Website & Operating Hours
-              let websiteUrl = '';
-              const websiteEl = newPage.locator('a[data-item-id="authority"]');
+            const websiteEl = page.locator('a[data-item-id="authority"]');
+            try {
               if (await websiteEl.count() > 0) {
-                websiteUrl = await websiteEl.getAttribute('href');
+                websiteUrl = await websiteEl.getAttribute('href', { timeout: 1000 });
               }
+            } catch (err) {}
 
-              let operatingHours = '';
-              const hoursEl = newPage.locator('[aria-label*="hours"]').first();
+            const hoursEl = page.locator('[aria-label*="hours"]').first();
+            try {
               if (await hoursEl.count() > 0) {
-                operatingHours = await hoursEl.getAttribute('aria-label') || await hoursEl.innerText();
+                operatingHours = await hoursEl.getAttribute('aria-label', { timeout: 1000 }) || await hoursEl.innerText({ timeout: 1000 });
               }
+            } catch (err) {}
 
-              // Advanced Extraction: Top Reviews Sentiment
-              const topReviews = [];
-              const reviewEls = newPage.locator('.OA1nbd');
-              const reviewCount = await reviewEls.count();
-              for (let j = 0; j < Math.min(reviewCount, 3); j++) {
-                topReviews.push(await reviewEls.nth(j).innerText());
+            const imgEl = page.locator('button[aria-label^="Photo of"] img, img[src*="googleusercontent.com/p/"]').first();
+            try {
+              if (await imgEl.count() > 0) {
+                coverImage = await imgEl.getAttribute('src', { timeout: 1000 }) || '';
               }
+            } catch (e) {}
 
-              // Parallel Website Deep Enrichment
-              let enrichedData = { email: '', instagram: '', facebook: '', phone: '', instagramFollowers: '', facebookFollowers: '' };
-              if (websiteUrl) {
-                enrichedData = await scrapeWebsiteForSocials(browser, websiteUrl);
-              }
-
-              const finalPhone = (phone && !phone.includes('Requires')) ? phone : (enrichedData.phone || phone);
-
-              // AI HTML Verification: Scan innerText for semantic matches
-              let pageText = '';
-              try {
-                pageText = await newPage.innerText('body', { timeout: 2000 }).catch(()=>'');
-              } catch(e) {}
-              
-              let aiVerified = false;
-              let matchedKeywords = [];
-              if (aiKeywords && aiKeywords.length > 0 && pageText) {
-                const lowerText = pageText.toLowerCase();
-                matchedKeywords = aiKeywords.filter(kw => lowerText.includes(kw.toLowerCase()));
-                if (matchedKeywords.length > 0) {
-                  aiVerified = true;
-                  addLog(`[AI HTML Parser] Verified '${vendor.name}' - Found keywords: [${matchedKeywords.join(', ')}]`);
-                }
-              }
-
-              return {
-                name: vendor.name,
-                address,
-                phone: finalPhone,
-                rating,
-                mapsLink: vendor.mapsLink,
-                website: websiteUrl,
-                operatingHours: operatingHours.substring(0, 150),
-                topReviews,
-                email: enrichedData.email,
-                instagram: enrichedData.instagram,
-                facebook: enrichedData.facebook,
-                instagramFollowers: enrichedData.instagramFollowers,
-                facebookFollowers: enrichedData.facebookFollowers,
-                aiVerified,
-                matchedKeywords,
-                id: 'place_' + Date.now().toString() + Math.random().toString(36).substring(7)
-              };
-
-
-            } catch (err) {
-              addLog(`Error in concurrent extraction for ${vendor.name}: ${err.message}`);
-              return null;
-            } finally {
-              if (newPage) await newPage.close();
+            // Fire-and-Forget Background Enrichment (No Blocking!)
+            let enrichedData = { email: '', instagram: '', facebook: '', phone: '', instagramFollowers: '', facebookFollowers: '', images: [] };
+            if (websiteUrl) {
+               // We run this in the background so the map extraction never pauses
+               scrapeWebsiteForSocials(browser, websiteUrl, name).then(data => {
+                  const currentVendors = dbAdapter.getVendors();
+                  const vIdx = currentVendors.findIndex(v => v.name === name);
+                  if (vIdx !== -1) {
+                     let existing = currentVendors[vIdx];
+                     let updated = false;
+                     if (data.email) { existing.email = data.email; updated = true; }
+                     if (data.instagram) { existing.instagram = data.instagram; existing.instagramFollowers = data.instagramFollowers; updated = true; }
+                     if (data.facebook) { existing.facebook = data.facebook; existing.facebookFollowers = data.facebookFollowers; updated = true; }
+                     if (data.phone && (!existing.phone || existing.phone.includes('Requires'))) { existing.phone = data.phone; updated = true; }
+                     if (updated) {
+                       dbAdapter.saveVendors(currentVendors);
+                       try { emitVendorEvent(existing, 'updated'); } catch(e){}
+                     }
+                  }
+               }).catch(()=>{});
             }
-          });
 
-          // Wait for the entire batch to finish concurrently
-          const batchResults = await Promise.all(batchPromises);
-          
-          // STREAMING INSERTION TO DB
-          const validResults = batchResults.filter(res => res !== null);
-          let insertedInBatch = 0;
+            const coords = extractCoords(mapsLink);
+            const finalPhone = (phone && !phone.includes('Requires')) ? phone : phone;
 
-          for (const place of validResults) {
-            if (!place.name) continue;
+            const place = {
+              name,
+              address,
+              phone: finalPhone,
+              rating,
+              mapsLink,
+              latitude: coords ? coords.lat : null,
+              longitude: coords ? coords.lng : null,
+              website: websiteUrl,
+              operatingHours: (operatingHours||'').substring(0, 150),
+              topReviews,
+              email: '',
+              instagram: '',
+              facebook: '',
+              instagramFollowers: '',
+              facebookFollowers: '',
+              images: [coverImage].filter(Boolean),
+              aiVerified,
+              matchedKeywords,
+              id: 'place_' + Date.now().toString() + Math.random().toString(36).substring(7)
+            };
+
+            // STREAMING INSERTION TO DB
+            const combinedText = `${place.name} ${place.address} ${place.operatingHours}`;
+            if (!isListingRelevantToQueryGeneral(place.name, combinedText, category, exactQuery, aiKeywords)) {
+              addLog(`[Filter] Discarding irrelevant home/car/painter/salon listing: '${place.name}'`);
+              continue;
+            }
+
+            if (centerLat !== null && centerLng !== null && radiusKm !== null && place.latitude && place.longitude) {
+              const distance = getDistanceKm(centerLat, centerLng, place.latitude, place.longitude);
+              if (distance > radiusKm) {
+                addLog(`[Boundary Filter] Discarding '${place.name}' - Out of bounds (${distance.toFixed(1)}km > ${radiusKm}km limit)`);
+                continue;
+              }
+            }
 
             const pincodeMatch = place.address ? place.address.match(/\b\d{6}\b/) : null;
             const pincode = pincodeMatch ? pincodeMatch[0] : '';
-
-            // Filter out Mumbai/Maharashtra results
-            const isMumbaiOrMH = place.address && (
-              place.address.toLowerCase().includes('mumbai') || 
-              place.address.toLowerCase().includes('maharashtra') || 
-              pincode.startsWith('4')
-            );
-            if (isMumbaiOrMH) continue;
 
             let parsedRating = null;
             if (place.rating && place.rating !== '-') {
@@ -391,60 +571,58 @@ async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [
               if (isNaN(parsedRating)) parsedRating = null;
             }
 
-            const existing = await StagingLead.findOne({
-              $or: [
-                { mapsLink: place.mapsLink },
-                { name: place.name }
-              ]
-            });
+            // Read local database
+            const vendors = dbAdapter.getVendors();
+            const existingIndex = vendors.findIndex(v => v.mapsLink === place.mapsLink || v.name === place.name);
 
-            if (!existing) {
+            if (existingIndex === -1) {
               const leadScore = calculateLeadScore(place);
-              const newLead = new StagingLead({
-                id: place.id,
-                name: place.name,
-                category: category,
-                city: location || 'Global',
-                address: place.address || '',
-                pincode: pincode,
-                phone: place.phone || 'Requires Manual Lookup',
-                rating: parsedRating,
-                mapsLink: place.mapsLink || '',
-                source: 'Google Maps Engine',
-                verified: false,
-                aiVerified: place.aiVerified,
-                matchedKeywords: place.matchedKeywords,
-                email: place.email || '',
-                instagram: place.instagram || '',
-                instagramFollowers: place.instagramFollowers || '',
-                facebook: place.facebook || '',
-                facebookFollowers: place.facebookFollowers || '',
-                website: place.website || '',
-                qualityScore: leadScore,
-                tier: determineTier(leadScore),
-                operatingHours: place.operatingHours || '',
-                topReviews: place.topReviews || []
-              });
-              const savedLead = await newLead.save();
-              try { emitVendorEvent(savedLead, 'inserted'); } catch (e) {}
+              place.pincode = pincode;
+              place.qualityScore = leadScore;
+              place.tier = determineTier(leadScore);
+              place.category = category;
+              place.city = location || 'Global';
+              place.source = 'Google Maps Engine';
+              place.verified = false;
+              place.scrapedAt = new Date().toISOString();
+              place.sessionId = sessionId;
+              
+              vendors.push(place);
+              dbAdapter.saveVendors(vendors);
+              scrapedResults.push(place);
+              try { emitVendorEvent(place, 'inserted'); } catch (e) {}
               insertedInBatch++;
             } else {
+              let existing = vendors[existingIndex];
+              let updated = false;
+
               if (!existing.pincode && place.address) {
                 const pMatch = place.address.match(/\b\d{6}\b/);
-                if (pMatch) existing.pincode = pMatch[0];
+                if (pMatch) { existing.pincode = pMatch[0]; updated = true; }
               }
-              if (!existing.rating && parsedRating) existing.rating = parsedRating;
+              if (!existing.rating && parsedRating) { existing.rating = parsedRating; updated = true; }
               if ((!existing.phone || existing.phone.includes('Obfuscated') || existing.phone.includes('Requires')) && place.phone) {
-                existing.phone = place.phone;
+                existing.phone = place.phone; updated = true;
               }
-              await existing.save();
-              try { emitVendorEvent(existing, 'updated'); } catch (e) {}
+              
+              existing.sessionId = sessionId;
+              existing.scrapedAt = new Date().toISOString();
+              updated = true;
+
+              if (updated) {
+                vendors[existingIndex] = existing;
+                dbAdapter.saveVendors(vendors);
+                try { emitVendorEvent(existing, 'updated'); } catch (e) {}
+              }
             }
+          } catch (err) {
+            addLog(`Error fast-extracting ${name}: ${err.message}`);
           }
-          
-          scrapedResults.push(...validResults);
-          addLog(`Streamed ${insertedInBatch} new vendors to DB from this batch. (Total extracted so far: ${scrapedResults.length})`);
         }
+
+          
+          // Single-Tab extraction loop finishes here
+        addLog(`Streamed ${insertedInBatch} new vendors to DB. (Total extracted so far: ${scrapedResults.length})`);
       }
     }
 

@@ -1,0 +1,355 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Search, Play, Square, RefreshCw, ArrowRight, MapPin, Camera,
+  MessageCircle, Globe, Database, Briefcase, Image, Clock,
+  Trash2, X, Activity, ChevronDown, Check, XCircle, Download,
+  FolderOpen, Filter, Send, Settings, TrendingUp, Zap, Target
+} from 'lucide-react';
+import { useScraper } from '../../context/ScraperContext';
+
+export default function OverviewPage() {
+  const {
+    loading, logs, sseStatus, logLevel, setLogLevel,
+    omniQuery, setOmniQuery, searchRadius, setSearchRadius,
+    enabledEngines, setEnabledEngines,
+    startScrape, handleMasterStop,
+    stagingVendorsWithPhones, stagingVendorsNoPhones, liveVendors, verifiedCount,
+    modelLoadingStatus, suggestions, showSuggestions, setShowSuggestions,
+    suggestionIndex, searchHistory, setSearchHistory,
+    showDirectory, setShowDirectory, knowledge,
+    searchContainerRef, terminalRef,
+    handleSearchChange, handleKeyDown,
+    grouped, activeJobs, vendors, pushToProd,
+  } = useScraper();
+
+  const [showLog, setShowLog] = useState(false);
+
+  const PLATFORMS = [
+    { id: 'maps', label: 'Maps & Location', icon: <MapPin size={14} />, desc: 'Google Maps & local directories' },
+    { id: 'instagram', label: 'Instagram', icon: <Camera size={14} />, desc: 'Business profiles & contacts' },
+    { id: 'facebook', label: 'Facebook', icon: <MessageCircle size={14} />, desc: 'Pages and business listings' },
+    { id: 'justdial', label: 'Justdial', icon: <Globe size={14} />, desc: 'India\'s top business directory' },
+    { id: 'linkedin', label: 'LinkedIn', icon: <Briefcase size={14} />, desc: 'Professional & B2B leads' },
+    { id: 'firebase', label: 'Cloud Sync', icon: <Database size={14} />, desc: 'Sync with live database' },
+  ];
+
+  const totalLeads = vendors?.length || 0;
+  const withPhone = stagingVendorsWithPhones?.length || 0;
+  const noPhone = stagingVendorsNoPhones?.length || 0;
+  const live = liveVendors?.length || 0;
+
+  return (
+    <div className="min-h-full bg-[#f7f8fa]">
+
+      {/* ── PAGE HEADER ── */}
+      <div className="bg-white border-b border-gray-100 px-8 py-6">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-black text-gray-900">Lead Scraper</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Search and extract verified business contacts from multiple sources</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {loading && (
+              <button onClick={handleMasterStop}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 transition-all">
+                <XCircle size={15} /> Stop All
+              </button>
+            )}
+            <button onClick={pushToProd} disabled={verifiedCount === 0}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
+                verifiedCount > 0
+                  ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700 shadow-lg shadow-violet-200'
+                  : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
+              }`}>
+              <Send size={15} /> Push to Live {verifiedCount > 0 && `(${verifiedCount})`}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-8 py-8 space-y-8">
+
+        {/* ── STATS ROW ── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: 'Total Leads', value: totalLeads, icon: <Database size={18} />, color: 'violet', change: '+' + (activeJobs.length > 0 ? 'collecting' : '0') },
+            { label: 'With Phone', value: withPhone, icon: <TrendingUp size={18} />, color: 'green', change: Math.round(totalLeads > 0 ? withPhone / totalLeads * 100 : 0) + '% rate' },
+            { label: 'No Contact', value: noPhone, icon: <Target size={18} />, color: 'amber', change: 'recovery pending' },
+            { label: 'Live in DB', value: live, icon: <Zap size={18} />, color: 'blue', change: verifiedCount + ' pending push' },
+          ].map((stat, i) => {
+            const bg = { violet: 'bg-violet-50 text-violet-600', green: 'bg-green-50 text-green-600', amber: 'bg-amber-50 text-amber-600', blue: 'bg-blue-50 text-blue-600' };
+            const num = { violet: 'text-violet-700', green: 'text-green-700', amber: 'text-amber-700', blue: 'text-blue-700' };
+            return (
+              <div key={i} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{stat.label}</p>
+                  <div className={`p-2 rounded-xl ${bg[stat.color]}`}>{stat.icon}</div>
+                </div>
+                <p className={`text-3xl font-black ${num[stat.color]}`}>{stat.value.toLocaleString()}</p>
+                <p className="text-xs text-gray-400 mt-1">{stat.change}</p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ── SEARCH BOX ── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-6 py-5 border-b border-gray-50">
+            <h2 className="font-bold text-gray-900 flex items-center gap-2">
+              <Search size={18} className="text-violet-500" /> Intelligent Search
+            </h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Type a business type and city. AI semantic search is{' '}
+              {modelLoadingStatus?.status === 'ready'
+                ? <span className="text-green-500 font-semibold">active ✓</span>
+                : modelLoadingStatus?.status === 'loading'
+                  ? <span className="text-amber-500 font-semibold">loading ({Math.round(modelLoadingStatus.progress || 0)}%)...</span>
+                  : <span className="text-gray-400">standby</span>
+              }
+            </p>
+          </div>
+
+          <div className="p-6">
+            {/* Search input */}
+            <form onSubmit={startScrape} ref={searchContainerRef} className="relative mb-6">
+              <div className={`flex items-center gap-3 border-2 rounded-2xl px-5 py-4 transition-all bg-gray-50 ${loading ? 'border-violet-300 bg-violet-50/30' : 'border-gray-200 focus-within:border-violet-400 focus-within:bg-white focus-within:shadow-lg focus-within:shadow-violet-50'}`}>
+                <Search size={20} className={`flex-shrink-0 ${loading ? 'text-violet-500' : 'text-gray-400'}`} />
+                <input
+                  type="text"
+                  value={omniQuery}
+                  onChange={e => handleSearchChange(e.target.value)}
+                  onFocus={() => {
+                    if (omniQuery.trim().length === 0 && searchHistory?.length > 0) {
+                      setShowSuggestions(true);
+                    }
+                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder="e.g. 'Wedding Photographers in Hyderabad' or 'Banquet Halls in Delhi'"
+                  className="flex-1 bg-transparent outline-none text-gray-900 placeholder-gray-400 text-base font-medium"
+                />
+                {omniQuery && !loading && (
+                  <button type="button" onClick={() => { setOmniQuery(''); }} className="text-gray-300 hover:text-gray-500 transition-colors">
+                    <X size={16} />
+                  </button>
+                )}
+                <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
+                  <MapPin size={14} className="text-gray-400" />
+                  <select value={searchRadius} onChange={e => setSearchRadius(Number(e.target.value))}
+                    className="bg-transparent text-xs text-gray-600 font-semibold outline-none cursor-pointer pr-1">
+                    <option value={10}>10km</option>
+                    <option value={20}>20km</option>
+                    <option value={50}>50km</option>
+                    <option value={100}>100km</option>
+                  </select>
+                </div>
+                <button type="submit" disabled={loading || !omniQuery}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${
+                    loading ? 'bg-violet-100 text-violet-400 cursor-not-allowed'
+                    : omniQuery ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-200 hover:opacity-90'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}>
+                  {loading ? <RefreshCw size={15} className="animate-spin" /> : <ArrowRight size={15} />}
+                  {loading ? 'Extracting...' : 'Extract'}
+                </button>
+              </div>
+
+              {/* Loading progress bar */}
+              {loading && (
+                <div className="absolute -bottom-1 left-0 right-0 h-1 bg-violet-100 rounded-full overflow-hidden">
+                  <motion.div className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full"
+                    animate={{ x: ['-100%', '200%'] }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                    style={{ width: '50%' }} />
+                </div>
+              )}
+
+              {/* Suggestions dropdown */}
+              <AnimatePresence>
+                {showSuggestions && suggestions?.length > 0 && (
+                  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+                    className="absolute top-full mt-2 left-0 right-0 bg-white border border-gray-100 rounded-2xl shadow-xl shadow-gray-100 overflow-hidden z-50">
+                    {suggestions.map((s, idx) => {
+                      const isHistory = searchHistory?.includes(s) && omniQuery.trim().length === 0;
+                      return (
+                        <div key={idx}
+                          className={`px-5 py-3 flex items-center gap-3 cursor-pointer text-sm border-b border-gray-50 last:border-0 transition-colors ${suggestionIndex === idx ? 'bg-violet-50 text-violet-700' : 'hover:bg-gray-50 text-gray-700'}`}
+                          onClick={() => {
+                            setOmniQuery(s);
+                            setShowSuggestions(false);
+                            if (!s.endsWith(' in ')) setTimeout(() => startScrape(null, s), 50);
+                          }}>
+                          {isHistory ? <Clock size={14} className="text-gray-300" /> : <Search size={14} className="text-gray-300" />}
+                          <span className="font-medium">{s}</span>
+                        </div>
+                      );
+                    })}
+                    {omniQuery.trim().length === 0 && searchHistory?.length > 0 && (
+                      <div className="px-5 py-2.5 text-xs text-red-400 hover:text-red-600 cursor-pointer flex items-center gap-2 border-t border-gray-50 bg-gray-50/50"
+                        onClick={() => { setSearchHistory([]); localStorage.removeItem('gomandap_search_history'); setShowSuggestions(false); }}>
+                        <Trash2 size={12} /> Clear Search History
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </form>
+
+            {/* Platform selectors */}
+            <div className="mb-4">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Search Sources</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {PLATFORMS.map(platform => {
+                  const isEnabled = enabledEngines?.includes(platform.id);
+                  return (
+                    <button key={platform.id} type="button"
+                      onClick={() => setEnabledEngines(prev => prev?.includes(platform.id) ? prev.filter(e => e !== platform.id) : [...(prev || []), platform.id])}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all border text-left ${
+                        isEnabled
+                          ? 'bg-violet-50 text-violet-700 border-violet-200 shadow-sm shadow-violet-50'
+                          : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-gray-200 hover:bg-gray-100'
+                      }`}>
+                      <div className={`p-1.5 rounded-lg ${isEnabled ? 'bg-violet-100' : 'bg-gray-100'}`}>
+                        {platform.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold truncate">{platform.label}</p>
+                        <p className="text-[10px] opacity-60 truncate">{platform.desc}</p>
+                      </div>
+                      {isEnabled && <Check size={14} className="ml-auto text-violet-500 flex-shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Browse directory */}
+            {knowledge && (
+              <div>
+                <button type="button" onClick={() => setShowDirectory(!showDirectory)}
+                  className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-gray-700 transition-colors">
+                  <FolderOpen size={13} />
+                  {showDirectory ? 'Hide' : 'Browse'} Categories & Locations
+                  <ChevronDown size={13} className={`transition-transform ${showDirectory ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {showDirectory && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                      className="mt-4 grid grid-cols-2 gap-6 overflow-hidden">
+                      <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Categories</p>
+                        <div className="h-40 overflow-y-auto flex flex-wrap gap-1.5 content-start pr-2">
+                          {knowledge.categories?.map((c, i) => (
+                            <button key={i} type="button"
+                              onClick={() => { setOmniQuery(c + ' in '); setShowDirectory(false); searchContainerRef.current?.querySelector('input')?.focus(); }}
+                              className="text-xs px-2.5 py-1.5 bg-gray-50 hover:bg-violet-50 hover:text-violet-700 border border-gray-100 hover:border-violet-200 rounded-lg text-gray-600 transition-all font-medium">
+                              {c}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Top Cities</p>
+                        <div className="h-40 overflow-y-auto flex flex-wrap gap-1.5 content-start pr-2">
+                          {knowledge.locations?.filter(l => l.type === 'district').map((l, i) => (
+                            <button key={i} type="button"
+                              onClick={() => { setOmniQuery(omniQuery.includes('in') ? omniQuery.split('in')[0] + 'in ' + l.name : `Businesses in ${l.name}`); setShowDirectory(false); }}
+                              className="text-xs px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-100 rounded-lg transition-all font-medium">
+                              {l.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── ACTIVITY LOG (Admin Only) ── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <button onClick={() => setShowLog(!showLog)}
+            className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${sseStatus === 'open' ? 'bg-green-400 animate-pulse' : sseStatus === 'connecting' ? 'bg-amber-400' : 'bg-red-400'}`} />
+                <Activity size={16} className="text-gray-500" />
+                <span className="font-bold text-gray-700">Service Activity Log</span>
+              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider
+                bg-gray-50 text-gray-400 border-gray-100">
+                Admin Only
+              </span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ${
+                sseStatus === 'open' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-500 border-red-100'
+              }`}>
+                {sseStatus?.toUpperCase()}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <select value={logLevel} onChange={e => setLogLevel(e.target.value)}
+                onClick={e => e.stopPropagation()}
+                className="text-xs bg-gray-50 border border-gray-100 rounded-lg px-2 py-1 text-gray-500 font-medium outline-none">
+                <option value="ALL">All Levels</option>
+                <option value="INFO">Info</option>
+                <option value="WARN">Warn</option>
+                <option value="ERROR">Error</option>
+                <option value="DEBUG">Debug</option>
+              </select>
+              <ChevronDown size={16} className={`text-gray-400 transition-transform ${showLog ? 'rotate-180' : ''}`} />
+            </div>
+          </button>
+
+          <AnimatePresence>
+            {showLog && (
+              <motion.div initial={{ height: 0 }} animate={{ height: 320 }} exit={{ height: 0 }}
+                className="overflow-hidden border-t border-gray-100">
+                <div ref={terminalRef} className="h-80 overflow-y-auto p-5 font-mono text-[11px] leading-loose bg-gray-950 text-gray-300"
+                  style={{ scrollbarWidth: 'thin', scrollbarColor: '#374151 transparent' }}>
+                  {logs?.length === 0
+                    ? <span className="text-gray-600">No logs yet. Start a scrape to see activity.</span>
+                    : [...(logs || [])].filter(l => !logLevel || logLevel === 'ALL' || l.includes(`[${logLevel}]`)).slice(-200).reverse().map((log, i) => {
+                        const isError = log.includes('[ERROR]');
+                        const isWarn = log.includes('[WARN]');
+                        const isInfo = log.includes('[INFO]');
+                        return (
+                          <div key={i} className={`break-words py-0.5 border-b border-gray-900 ${isError ? 'text-red-400' : isWarn ? 'text-amber-400' : isInfo ? 'text-green-400' : 'text-gray-400'}`}>
+                            <span className="text-gray-600 mr-2">{new Date().toLocaleTimeString('en-US', { hour12: false })}</span>
+                            {log}
+                          </div>
+                        );
+                      })
+                  }
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* ── QUICK STATS BY CATEGORY ── */}
+        {Object.keys(grouped || {}).length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-bold text-gray-900">Category Breakdown</h2>
+              <a href="/app/leads" className="text-xs font-semibold text-violet-600 hover:text-violet-700 flex items-center gap-1">
+                View All Leads <ArrowRight size={12} />
+              </a>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {Object.entries(grouped).slice(0, 8).map(([cat, items]) => (
+                <div key={cat} className="p-4 rounded-xl bg-gray-50 border border-gray-100 hover:border-violet-200 hover:bg-violet-50/30 transition-all">
+                  <p className="text-xs font-semibold text-gray-600 truncate" title={cat}>{cat}</p>
+                  <p className="text-2xl font-black text-gray-900 mt-1">{items.length}</p>
+                  <p className="text-[10px] text-gray-400">{items.filter(v => v.verified).length} verified</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+

@@ -3,7 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 
-const EMPLOYEES_FILE = path.join(__dirname, '../../../data', 'employees.json');
+const EMPLOYEES_FILE = path.join(__dirname, '../../data', 'employees.json');
 
 const getEmployees = () => {
   if (!fs.existsSync(EMPLOYEES_FILE)) return [];

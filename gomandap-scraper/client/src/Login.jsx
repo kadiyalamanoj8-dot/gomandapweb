@@ -88,14 +88,23 @@ export default function Login({ onLogin }) {
         transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
         className="relative w-full max-w-md bg-white/5 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-3xl p-10 will-change-transform"
       >
-        <div className="flex flex-col items-center mb-8">
+        <div className="absolute top-6 left-6">
+          <button 
+            onClick={() => window.location.href = '/'}
+            className="text-white/50 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium"
+          >
+            ← Back to Home
+          </button>
+        </div>
+
+        <div className="flex flex-col items-center mb-8 mt-4">
           <motion.div 
             initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring" }}
             className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mb-6 shadow-xl shadow-blue-500/20"
           >
             <Shield className="text-white" size={36} />
           </motion.div>
-          <h1 className="text-3xl font-black text-white tracking-tight">Gomandap Portal</h1>
+          <h1 className="text-3xl font-black text-white tracking-tight">OmniLead AI</h1>
           <p className="text-white/60 text-sm mt-2 font-medium">Enterprise Intelligence System</p>
         </div>
 
