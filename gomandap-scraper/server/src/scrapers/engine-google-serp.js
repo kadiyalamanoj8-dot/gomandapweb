@@ -1,0 +1,151 @@
+const axios = require('axios');
+const cheerio = require('cheerio');
+const { getBrowser } = require('./browserFactory');
+const db = require('../config/localDb');
+const { emitVendorEvent, addLog } = require('../../index'); // Assume these are exported or passed
+
+// Helper: Extract emails and phones using regex
+function extractContactInfo(text) {
+  const emails = [];
+  const phones = [];
+  
+  if (!text) return { emails, phones };
+
+  // Email regex
+  const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi;
+  const foundEmails = text.match(emailRegex) || [];
+  foundEmails.forEach(e => {
+    if (!emails.includes(e.toLowerCase()) && !e.includes('.png') && !e.includes('.jpg')) {
+      emails.push(e.toLowerCase());
+    }
+  });
+
+  // Indian Phone Number regex (+91, 0, or just 10 digits)
+  const phoneRegex = /(?:\+91|0)?[ -]?\d{4}[ -]?\d{3}[ -]?\d{3}|(?:\+91|0)?[ -]?\d{5}[ -]?\d{5}/g;
+  const foundPhones = text.match(phoneRegex) || [];
+  foundPhones.forEach(p => {
+    const cleanPhone = p.replace(/\D/g, '');
+    if (cleanPhone.length >= 10 && cleanPhone.length <= 12) {
+      if (!phones.includes(cleanPhone)) {
+        phones.push(cleanPhone);
+      }
+    }
+  });
+
+  return { emails, phones };
+}
+
+async function scrapeGoogleSerp(query, category, location) {
+  addLog(`[Universal Web Search] Starting organic web search for: "${query}"`);
+  
+  let browser = null;
+  let context = null;
+  
+  try {
+    const factory = await getBrowser(false);
+    browser = factory.browser;
+    context = factory.context;
+    
+    const page = await context.newPage();
+    
+    // Navigate to Google
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}&num=20`;
+    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    
+    // Wait for search results
+    await page.waitForSelector('#search', { timeout: 10000 });
+    
+    // Extract organic results
+    const results = await page.evaluate(() => {
+      const links = [];
+      const resultDivs = document.querySelectorAll('#search div.g');
+      
+      resultDivs.forEach(div => {
+        const aTag = div.querySelector('a');
+        const h3 = div.querySelector('h3');
+        const descDiv = div.querySelector('div[style="-webkit-line-clamp:2"]');
+        
+        if (aTag && h3) {
+          const href = aTag.getAttribute('href');
+          // Filter out google's own links or irrelevant links
+          if (href && href.startsWith('http') && !href.includes('google.com')) {
+            links.push({
+              title: h3.innerText,
+              url: href,
+              description: descDiv ? descDiv.innerText : ''
+            });
+          }
+        }
+      });
+      return links;
+    });
+    
+    addLog(`[Universal Web Search] Found ${results.length} organic search results for "${query}". Extracting contact info...`);
+    
+    // Close browser as we will use fast Cheerio for deep scanning
+    await browser.close();
+    browser = null;
+    
+    // Concurrently fetch and scan websites
+    const scanPromises = results.map(async (result) => {
+      try {
+        const response = await axios.get(result.url, { 
+          timeout: 10000,
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+        });
+        
+        const $ = cheerio.load(response.data);
+        // Remove scripts and styles before extracting text to reduce noise
+        $('script, style, noscript').remove();
+        const bodyText = $('body').text();
+        
+        const { emails, phones } = extractContactInfo(bodyText);
+        
+        const vendorObj = {
+          name: result.title,
+          category: category,
+          city: location || 'Unknown',
+          address: result.description,
+          phone: phones.length > 0 ? `+91 ${phones[0].slice(-10)}` : null,
+          email: emails.length > 0 ? emails[0] : null,
+          website: result.url,
+          source: 'Universal Web',
+          verified: false,
+          pushed: false
+        };
+        
+        if (vendorObj.phone || vendorObj.email) {
+          db.addVendor(vendorObj);
+          if (typeof emitVendorEvent === 'function') emitVendorEvent(vendorObj);
+          addLog(`[Universal Web Search] Extracted contact info from ${result.url}: ${vendorObj.phone || 'No Phone'}, ${vendorObj.email || 'No Email'}`);
+        }
+        
+      } catch (err) {
+        // Many sites will block axios or timeout, we just ignore and continue
+      }
+    });
+    
+    await Promise.allSettled(scanPromises);
+    addLog(`[Universal Web Search] Finished processing organic results for "${query}"`);
+    
+  } catch (error) {
+    addLog(`[Universal Web Search ERROR] Failed to scrape: ${error.message}`);
+    if (browser) await browser.close();
+  }
+}
+
+// Support command line execution
+if (require.main === module) {
+  const query = process.argv[2] || "Photographers in Delhi";
+  const category = process.argv[3] || "Photographers";
+  const location = process.argv[4] || "Delhi";
+  
+  // Mock addLog and db for standalone execution
+  global.addLog = console.log;
+  scrapeGoogleSerp(query, category, location).then(() => {
+    console.log("Standalone execution completed.");
+    process.exit(0);
+  });
+}
+
+module.exports = scrapeGoogleSerp;

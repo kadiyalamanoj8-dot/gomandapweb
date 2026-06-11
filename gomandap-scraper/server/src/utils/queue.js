@@ -21,7 +21,7 @@ let isProcessing = false;
 let activeCount = 0;
 const os = require('os');
 // Moderate CPU utilization to prevent overloading system when running multiple browsers
-const CONCURRENCY = 4;
+const CONCURRENCY = 1;
 
 async function processQueue() {
   if (isProcessing) return;

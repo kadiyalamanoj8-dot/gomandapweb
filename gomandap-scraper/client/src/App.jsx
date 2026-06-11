@@ -12,6 +12,11 @@ import OverviewPage from './pages/dashboard/Overview';
 import LeadsPage from './pages/dashboard/Leads';
 import AutomationsPage from './pages/dashboard/Automations';
 import SettingsPage from './pages/dashboard/Settings';
+import UsersPage from './pages/dashboard/Users';
+import Marketplace from './pages/Marketplace';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import PhoneScraper from './pages/products/PhoneScraper';
 
 export default function App() {
   const [user, setUser] = useState(() => {
@@ -46,6 +51,10 @@ export default function App() {
         {/* Public pages */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/products/phone-scraper" element={<PhoneScraper />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
         <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/app/overview" replace />} />
 
         {/* Protected dashboard — ScraperDashboard wraps DashboardLayout which renders <Outlet /> */}
@@ -61,6 +70,7 @@ export default function App() {
           <Route path="overview" element={<OverviewPage />} />
           <Route path="leads" element={<LeadsPage />} />
           <Route path="automations" element={<AutomationsPage />} />
+          {user?.role === 'admin' && <Route path="users" element={<UsersPage />} />}
           {user?.role === 'admin' && <Route path="settings" element={<SettingsPage />} />}
           <Route path="*" element={<Navigate to="overview" replace />} />
         </Route>

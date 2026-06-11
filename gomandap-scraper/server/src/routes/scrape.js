@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 // Engines
 const { scrapeGooglePlaces, setDeps: setPlacesDeps } = require('../scrapers/engine-google-places');
+const scrapeGoogleSerp = require('../scrapers/engine-google-serp');
 const { scrapeDuckDuckGoDork, setLogger: setDorkLogger } = require('../scrapers/engine-social-dork');
 const { scrapeJustDial, setDeps: setJDDeps } = require('../scrapers/engine-justdial');
 const { scrapeWeddingBazaar, setDeps: setWBDeps } = require('../scrapers/engine-weddingbazaar');
@@ -27,9 +28,11 @@ async function safeExecute(fn, name = 'Operation', logger = console.log) {
 let batchProgress = { total: 0, completed: 0, currentTask: '', isActive: false };
 let globalAbortSignal = { aborted: false };
 let addLog = console.log;
+let emitGridEvent = () => {};
 
 // Register tasks with BullMQ
 registerTask('scrapeGooglePlaces', async (q, cat, loc, aiKeywords, sessionId, centerLat, centerLng, radiusKm) => safeExecute(() => scrapeGooglePlaces(q, cat, loc, aiKeywords, sessionId, centerLat, centerLng, radiusKm), 'Google Places Scrape', addLog));
+registerTask('scrapeGoogleSerp', async (q, cat, loc) => safeExecute(() => scrapeGoogleSerp(q, cat, loc), 'Google Serp Scrape', addLog));
 registerTask('scrapeJustDial', async (cat, loc) => safeExecute(() => scrapeJustDial(cat, loc), 'JustDial Scrape', addLog));
 registerTask('scrapeWeddingBazaar', async (cat, loc) => safeExecute(() => scrapeWeddingBazaar(cat, loc), 'WeddingBazaar Scrape', addLog));
 registerTask('scrapeWeddingWire', async (cat, loc) => safeExecute(() => scrapeWeddingWire(cat, loc), 'WeddingWire Scrape', addLog));
@@ -41,6 +44,7 @@ registerTask('scrapeDeepseekAI', async (q, cat, loc) => safeExecute(() => scrape
 function setDeps(deps) {
   addLog = deps.logger;
   globalAbortSignal = deps.abortSignal;
+  if (deps.emitGridEvent) emitGridEvent = deps.emitGridEvent;
   if (setPlacesDeps) setPlacesDeps(deps);
   if (setDorkLogger) setDorkLogger(deps.logger);
   if (setJDDeps) setJDDeps(deps);
@@ -121,11 +125,70 @@ router.post('/firebase', async (req, res) => {
   res.json({ success: true, message: 'Firebase scrape initiated' });
 });
 
+// MANUAL SCRAPER TRIGGERS (Restored as requested)
+const { exec } = require('child_process');
+const path = require('path');
+
+router.post('/python', async (req, res) => {
+  const { query, location } = req.body;
+  if (!query) return res.status(400).json({ error: 'Query required' });
+  
+  // Python trigger logic with properly escaped arguments
+  const pythonScript = path.join(__dirname, '../scrapers/engine-python.py');
+  const safeQuery = query.replace(/"/g, '\\"');
+  const safeLoc = (location || '').replace(/"/g, '\\"');
+  
+  const { getSettings } = require('../config/settingsManager');
+  const settings = getSettings();
+  const apiKey = settings.nvidiaApiKey || 'none';
+  
+  addLog(`[System] Triggering manual Python Engine for: "${safeQuery}" in "${safeLoc}"`);
+  
+  const cmd = `python "${pythonScript}" --query "${safeQuery}" --category "${safeQuery}" --location "${safeLoc}" --apikey "${apiKey}"`;
+  
+  exec(cmd, (error, stdout, stderr) => {
+    if (error) {
+      addLog(`[ERROR] Python engine failed: ${error.message}`);
+      return;
+    }
+    addLog(`[INFO] Python engine stdout: ${stdout}`);
+    if (stderr) addLog(`[WARN] Python engine stderr: ${stderr}`);
+  });
+  
+  res.json({ success: true, message: 'Python script triggered successfully' });
+});
+
+router.post('/maps', async (req, res) => {
+  const { query, category, location, radius } = req.body;
+  if (!query) return res.status(400).json({ error: 'Query required' });
+  
+  addLog(`[Google Maps] Manual scrape triggered for: "${query}"`);
+  addScrapeJob('scrapeGooglePlaces', [query, category, location, [], 'manual-maps', null, null, radius || 10]);
+  res.json({ success: true, message: 'Google Maps scrape initiated' });
+});
+
+router.post('/cheerio', async (req, res) => {
+  const { engine, category, location } = req.body; // engine could be 'justdial' or 'weddingbazaar'
+  if (!category || !location) return res.status(400).json({ error: 'Category and location required for directory scrapers' });
+  
+  if (engine === 'justdial') {
+    addLog(`[JustDial] Manual scrape triggered for: "${category} in ${location}"`);
+    addScrapeJob('scrapeJustDial', [category, location]);
+  } else if (engine === 'weddingbazaar') {
+    addLog(`[WeddingBazaar] Manual scrape triggered for: "${category} in ${location}"`);
+    addScrapeJob('scrapeWeddingBazaar', [category, location]);
+  } else {
+    return res.status(400).json({ error: 'Invalid cheerio engine specified' });
+  }
+  
+  res.json({ success: true, message: `${engine} scrape initiated` });
+});
+
 router.get('/keywords', async (req, res) => {
   try {
     const { category } = req.query;
     if (!category) return res.status(400).json({ error: 'Category required' });
-    const keywords = await getKeywordSynonyms(category);
+    const keywords = await getKeywordSynonyms(category, req.query.location || '');
     res.json(keywords);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch keywords' });
@@ -165,33 +228,50 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-function generateGridCoordinates(centerLat, centerLng, radiusKm) {
-  // Dense 360-degree radial grid generation
+function generateGridCoordinates(centerLat, centerLng, radiusKm, pointCount = 30) {
   const coords = [{ lat: parseFloat(centerLat.toFixed(5)), lng: parseFloat(centerLng.toFixed(5)), distanceFromCenter: 0 }];
-  
-  // Create rings to cover the area densely in 360 degrees (total 25 points including center)
-  const rings = [
-    { distance: radiusKm * 0.3, points: 6 },
-    { distance: radiusKm * 0.6, points: 8 },
-    { distance: radiusKm * 0.9, points: 10 }
-  ];
+  if (pointCount <= 1) return coords;
 
-  rings.forEach(ring => {
+  const pointsToDistribute = pointCount - 1;
+  let rings = [];
+
+  if (pointsToDistribute <= 8) {
+    // Single ring
+    rings.push({ distanceRatio: 0.5, points: pointsToDistribute });
+  } else if (pointsToDistribute <= 20) {
+    // Two rings
+    const innerPoints = Math.floor(pointsToDistribute * 0.4);
+    const outerPoints = pointsToDistribute - innerPoints;
+    rings.push({ distanceRatio: 0.4, points: innerPoints });
+    rings.push({ distanceRatio: 0.8, points: outerPoints });
+  } else {
+    // Three rings
+    const innerPoints = Math.floor(pointsToDistribute * 0.2);
+    const middlePoints = Math.floor(pointsToDistribute * 0.35);
+    const outerPoints = pointsToDistribute - innerPoints - middlePoints;
+    rings.push({ distanceRatio: 0.33, points: innerPoints });
+    rings.push({ distanceRatio: 0.66, points: middlePoints });
+    rings.push({ distanceRatio: 1.0, points: outerPoints });
+  }
+  
+  for (const ring of rings) {
+    const ringDistance = radiusKm * ring.distanceRatio;
+    const angleStep = 360 / ring.points;
+    
     for (let i = 0; i < ring.points; i++) {
-      const angle = (i * 360) / ring.points;
+      const angle = i * angleStep;
       const angleRad = angle * Math.PI / 180;
       
-      // 1 degree lat = ~111km
-      const ptLat = centerLat + (ring.distance * Math.cos(angleRad)) / 111;
-      const ptLng = centerLng + (ring.distance * Math.sin(angleRad)) / (111 * Math.cos(centerLat * Math.PI / 180));
+      const ptLat = centerLat + (ringDistance * Math.cos(angleRad)) / 111;
+      const ptLng = centerLng + (ringDistance * Math.sin(angleRad)) / (111 * Math.cos(centerLat * Math.PI / 180));
       
       coords.push({
         lat: parseFloat(ptLat.toFixed(5)),
         lng: parseFloat(ptLng.toFixed(5)),
-        distanceFromCenter: parseFloat(ring.distance.toFixed(2))
+        distanceFromCenter: parseFloat(ringDistance.toFixed(2))
       });
     }
-  });
+  }
 
   return coords.sort((a, b) => a.distanceFromCenter - b.distanceFromCenter);
 }
@@ -206,7 +286,7 @@ router.post('/stop', async (req, res) => {
 
 // OMNI SEARCH API
 router.post('/omni', async (req, res) => {
-  const { query, category, location, radius, enabledEngines, sessionId } = req.body;
+  const { query, category, location, radius, gridDensity, enabledEngines, sessionId } = req.body;
   const activeEngines = enabledEngines || ['deepseek-ai', 'maps'];
 
   if (!query) {
@@ -237,11 +317,19 @@ router.post('/omni', async (req, res) => {
     // RADIUS JUMPING FOR GOOGLE MAPS
     if (radius && parseInt(radius) > 0 && centerGeocoded && centerGeocoded.lat) {
       addLog(`[Radius Jumping] Center geocoded: ${centerGeocoded.formattedLocation} (${centerGeocoded.lat}, ${centerGeocoded.lng})`);
-      const gridCoords = generateGridCoordinates(centerGeocoded.lat, centerGeocoded.lng, parseInt(radius));
+      const density = gridDensity ? parseInt(gridDensity) : 30;
+      const gridCoords = generateGridCoordinates(centerGeocoded.lat, centerGeocoded.lng, parseInt(radius), density);
       addLog(`[Radius Jumping] Generated ${gridCoords.length} grid viewports covering ${radius}km radius.`);
       
+      // Emit the grid coordinates to the frontend to visualize them on the map
+      try { emitGridEvent(gridCoords); } catch (e) {}
+      
+      // Give the user 2 seconds to view the grid points on the map
+      addLog(`[Radius Jumping] Plotting grid points on map. Starting jobs in 2 seconds...`);
+      await new Promise(r => setTimeout(r, 2000));
+      
       if (activeEngines.includes('maps') || activeEngines.includes('google')) {
-        const aiKeywords = await getKeywordSynonyms(matchedCategory);
+        const aiKeywords = await getKeywordSynonyms(matchedCategory, baseLocation);
         for (const coord of gridCoords) {
           // Construct strict coordinate-based search explicitly enforcing location
           const searchString = `${matchedCategory} near ${coord.lat},${coord.lng}`;
@@ -252,6 +340,12 @@ router.post('/omni', async (req, res) => {
         }
         googleMapsJobsDispatched = true;
       }
+    }
+
+    // FREE GOOGLE WEB SERP
+    if (activeEngines.includes('google-web')) {
+      const searchString = `${matchedCategory} in ${baseLocation}`;
+      await addScrapeJob('scrapeGoogleSerp', [searchString, matchedCategory, baseLocation]);
     }
 
     // DeepSeek AI Scraper (uses AI text expansion of town names)
@@ -288,7 +382,7 @@ router.post('/omni', async (req, res) => {
         }
       }
       
-      const aiKeywords = await getKeywordSynonyms(matchedCategory);
+      const aiKeywords = await getKeywordSynonyms(matchedCategory, baseLocation);
       for (const loc of textLocations) {
         let searchStr = exactQuery;
         if (loc !== baseLocation && loc !== exactQuery && category) {
@@ -303,6 +397,49 @@ router.post('/omni', async (req, res) => {
         const searchStrFormatted = `${matchedCategory} near ${accurateLocation}`;
         await addScrapeJob('scrapeGooglePlaces', [searchStrFormatted, matchedCategory, accurateLocation, aiKeywords, sessionId, centerGeocoded ? centerGeocoded.lat : null, centerGeocoded ? centerGeocoded.lng : null, radius ? parseInt(radius) : null]);
       }
+    }
+
+    // Social Media Dorks (Instagram, Facebook, LinkedIn)
+    const socialPlatforms = ['instagram', 'facebook', 'linkedin'].filter(p => activeEngines.includes(p));
+    if (socialPlatforms.length > 0) {
+      addLog(`[Social Engines] Dispatching Python Social Dork for: ${socialPlatforms.join(', ')}`);
+      for (const platform of socialPlatforms) {
+        const dorkStr = `site:${platform}.com ${matchedCategory} in ${baseLocation || 'India'}`;
+        const pythonScript = require('path').join(__dirname, '../scrapers/engine-python-social.py');
+        const safeQuery = dorkStr.replace(/"/g, '\\"');
+        const safeLoc = (baseLocation || 'India').replace(/"/g, '\\"');
+        const apiKey = settings.nvidiaApiKey || 'none';
+        
+        require('child_process').exec(`python "${pythonScript}" --query "${safeQuery}" --category "${matchedCategory}" --location "${safeLoc}" --apikey "${apiKey}"`, (error, stdout, stderr) => {
+          if (!error) addLog(`[Python Social Engine] Finished: ${stdout}`);
+        });
+      }
+    }
+
+    // JustDial Engine
+    if (activeEngines.includes('justdial')) {
+      addLog(`[JustDial] Dispatching Background JS Engine for: "${matchedCategory} in ${baseLocation || 'India'}"`);
+      await addScrapeJob('scrapeJustDial', [matchedCategory, baseLocation || 'India']);
+    }
+
+    // WeddingBazaar Engine
+    if (activeEngines.includes('weddingbazaar')) {
+      addLog(`[WeddingBazaar] Dispatching Background JS Engine for: "${matchedCategory} in ${baseLocation || 'India'}"`);
+      await addScrapeJob('scrapeWeddingBazaar', [matchedCategory, baseLocation || 'India']);
+    }
+
+    // Python Engine (Google Maps Default)
+    if (activeEngines.includes('python')) {
+      const searchStr = `${matchedCategory} in ${baseLocation || 'India'}`;
+      addLog(`[Python Engine] Triggering background Maps script for: "${searchStr}"`);
+      const pythonScript = require('path').join(__dirname, '../scrapers/engine-python.py');
+      const safeQuery = matchedCategory.replace(/"/g, '\\"');
+      const safeLoc = (baseLocation || '').replace(/"/g, '\\"');
+      const apiKey = settings.nvidiaApiKey || 'none';
+      
+      require('child_process').exec(`python "${pythonScript}" --query "${safeQuery}" --category "${matchedCategory}" --location "${safeLoc}" --apikey "${apiKey}"`, (error, stdout, stderr) => {
+        if (!error) addLog(`[Python Engine] Finished: ${stdout}`);
+      });
     }
 
   } catch (err) {

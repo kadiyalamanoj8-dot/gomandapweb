@@ -224,4 +224,65 @@ router.post('/:id/deep-lookup', async (req, res) => {
   }
 });
 
+// API: Public Marketplace (Masked & Limited)
+router.get('/public', (req, res) => {
+  try {
+    const { q, category, location, limit = 30 } = req.query;
+    let vendors = dbAdapter.getVendors() || [];
+    
+    // Filter by category/location if provided
+    if (category) {
+      vendors = vendors.filter(v => v.category?.toLowerCase().includes(category.toLowerCase()));
+    }
+    if (location) {
+      vendors = vendors.filter(v => v.city?.toLowerCase().includes(location.toLowerCase()));
+    }
+    
+    // Sort descending by scrapedAt
+    vendors.sort((a, b) => new Date(b.scrapedAt) - new Date(a.scrapedAt));
+    
+    // Limit to 30 for Freemium
+    const limitedVendors = vendors.slice(0, parseInt(limit));
+    
+    // Mask contact details
+    const maskedVendors = limitedVendors.map(v => {
+      let maskedPhone = v.phone;
+      if (maskedPhone && maskedPhone.length > 5) {
+        maskedPhone = maskedPhone.substring(0, 6) + '*** ****';
+      } else {
+        maskedPhone = 'Phone hidden';
+      }
+      
+      let maskedEmail = v.email;
+      if (maskedEmail && maskedEmail.includes('@')) {
+        const [user, domain] = maskedEmail.split('@');
+        maskedEmail = user.substring(0, 3) + '***@' + domain;
+      }
+
+      return {
+        ...v,
+        phone: maskedPhone,
+        email: maskedEmail,
+        website: 'Premium Only'
+      };
+    });
+
+    res.json({ totalFound: vendors.length, results: maskedVendors });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// API: Submit Public Lead
+router.post('/lead', (req, res) => {
+  try {
+    const { vendorId, userName, userPhone, userEmail, message } = req.body;
+    // Real implementation would save this lead to the DB
+    console.log(`[New Lead] For vendor ${vendorId}: ${userName} (${userPhone})`);
+    res.json({ success: true, message: 'Lead submitted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;

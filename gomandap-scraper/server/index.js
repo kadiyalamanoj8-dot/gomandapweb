@@ -12,6 +12,14 @@ if (fs.existsSync(backendEnvPath)) {
   require('dotenv').config();
 }
 
+// Global Exception Handlers to prevent Playwright crashes
+process.on('uncaughtException', (err) => {
+  console.error('[Global] Uncaught Exception:', err.message);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[Global] Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 // Configs
 const localDb = require('./src/config/localDb');
 
@@ -22,6 +30,7 @@ const { scrapeRouter, setDeps } = require('./src/routes/scrape');
 const vendorsRoutes = require('./src/routes/vendors');
 const employeesRoutes = require('./src/routes/employees');
 const uploadRoutes = require('./src/routes/upload');
+const publicUsersRoutes = require('./src/routes/publicUsers');
 
 const app = express();
 app.use(cors());
@@ -55,6 +64,15 @@ function emitVendorEvent(vendorObj, action = 'inserted') {
   } catch (e) { console.error('Failed to emit vendor SSE', e.message); }
 }
 
+function emitGridEvent(gridCoords) {
+  try {
+    const safe = JSON.stringify(gridCoords).replace(/\n/g, '\\n');
+    sseClients.forEach(res => {
+      try { res.write('event: grid_points\n'); res.write(`data: ${safe}\n\n`); } catch (e) {}
+    });
+  } catch (e) { console.error('Failed to emit grid SSE', e.message); }
+}
+
 // Database is now completely local and loads synchronously.
 
 // Global Abort Signal
@@ -62,12 +80,13 @@ let globalAbortSignal = { aborted: false };
 
 // Inject dependencies into routers
 setLogGetter(() => systemLogs);
-setDeps({ logger: addLog, abortSignal: globalAbortSignal, emitVendorEvent });
+setDeps({ logger: addLog, abortSignal: globalAbortSignal, emitVendorEvent, emitGridEvent });
 
 // Apply Routes
 app.use('/api/auth', authRoutes);
 app.use('/api', apiRouter);
 app.use('/api/scrape', scrapeRouter);
+app.use('/api/public', publicUsersRoutes);
 app.use('/api/vendors', vendorsRoutes);
 app.use('/api/employees', employeesRoutes);
 app.use('/api/upload', uploadRoutes);

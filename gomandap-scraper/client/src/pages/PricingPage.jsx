@@ -1,11 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Check, ArrowLeft, Zap, Sparkles, Building2 } from 'lucide-react';
+import { Check, ArrowLeft, Zap, Sparkles, Building2, Loader2 } from 'lucide-react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { API_URL } from '../../apiConfig';
 
 export default function PricingPage() {
   const navigate = useNavigate();
   const [isAnnual, setIsAnnual] = useState(false);
+  const [publicUser, setPublicUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('gomandap_public_user')); } catch { return null; }
+  });
+  
+  const [processingTier, setProcessingTier] = useState(null);
+
+  const handleSubscribe = async (tierName) => {
+    if (!publicUser) {
+      toast('Please sign in to subscribe.', { icon: '🔒' });
+      navigate('/marketplace');
+      return;
+    }
+    
+    setProcessingTier(tierName);
+    
+    try {
+      // Dummy Checkout Simulation
+      const res = await axios.post(`${API_URL}/public/checkout/dummy`, {
+        userId: publicUser.id,
+        tier: tierName
+      });
+      
+      if (res.data.success) {
+        setPublicUser(res.data.user);
+        localStorage.setItem('gomandap_public_user', JSON.stringify(res.data.user));
+        toast.success(`Successfully upgraded to ${tierName}!`);
+        setTimeout(() => navigate('/marketplace'), 2000);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Payment failed');
+    }
+    
+    setProcessingTier(null);
+  };
 
   return (
     <div className="min-h-screen bg-[#fafafa] text-[#1a1a2e] overflow-x-hidden font-sans relative selection:bg-purple-200">
@@ -41,8 +78,17 @@ export default function PricingPage() {
         >
           <ArrowLeft size={18} /> Back to OmniLead
         </button>
-        <div className="flex gap-4">
-          <button onClick={() => navigate('/login')} className="text-gray-600 hover:text-purple-600 font-medium px-4 py-2">Login</button>
+        <div className="flex gap-4 items-center">
+          {publicUser ? (
+            <div className="flex items-center gap-3">
+              <div className="text-right hidden md:block">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Current Plan</p>
+                <p className="text-sm font-black text-purple-600">{publicUser.subscriptionTier || 'Free'}</p>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => navigate('/marketplace')} className="text-gray-600 hover:text-purple-600 font-medium px-4 py-2">Login</button>
+          )}
           <button className="px-5 py-2 text-sm font-bold bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/30">
             Request Demo
           </button>
@@ -87,27 +133,31 @@ export default function PricingPage() {
           
           {/* Silver */}
           <PricingCard 
-            title="Silver"
+            title="Weekly Pro"
             price={isAnnual ? "33.16" : "40.83"}
-            billingText={isAnnual ? "$398 billed upon purchase" : "$490 billed upon purchase"}
+            billingText={isAnnual ? "$398 billed upon purchase" : "Billed weekly"}
+            onSubscribe={() => handleSubscribe('Weekly Pro')}
+            isProcessing={processingTier === 'Weekly Pro'}
             features={[
-              { text: "Scheduling", icon: <Check size={16} className="text-purple-500" /> },
-              { text: "Automation credits (Monthly renewing quota)", value: "4500" },
-              { text: "Simultaneous running workflows", value: "10" }
+              { text: "500 Lead Credits", value: "500" },
+              { text: "DeepSeek AI Parsing", icon: <Check size={16} className="text-purple-500" /> },
+              { text: "CSV Export Capability", icon: <Check size={16} className="text-purple-500" /> }
             ]}
           />
 
           {/* Gold (Highlighted) */}
           <PricingCard 
-            title="Gold"
+            title="Monthly Enterprise"
             price={isAnnual ? "67.50" : "82.50"}
-            billingText={isAnnual ? "$810 billed upon purchase" : "$990 billed upon purchase"}
+            billingText={isAnnual ? "$810 billed upon purchase" : "Billed monthly"}
             isPopular={true}
+            onSubscribe={() => handleSubscribe('Monthly Enterprise')}
+            isProcessing={processingTier === 'Monthly Enterprise'}
             features={[
-              { text: "All the benefits of Silver, plus:", isHeading: true },
-              { text: "Automation credits (Monthly renewing quota)", value: "10000", isHighlighted: true },
-              { text: "Simultaneous running workflows", value: "Unlimited" },
+              { text: "All the benefits of Weekly Pro, plus:", isHeading: true },
+              { text: "Lead Credits", value: "3000", isHighlighted: true },
               { text: "DeepSeek Semantic Verification", icon: <Check size={16} className="text-purple-500" /> },
+              { text: "Priority Phone Support", icon: <Check size={16} className="text-purple-500" /> },
             ]}
           />
 
@@ -137,13 +187,13 @@ export default function PricingPage() {
   );
 }
 
-function PricingCard({ title, price, billingText, features, isPopular = false }) {
+function PricingCard({ title, price, billingText, features, isPopular = false, onSubscribe, isProcessing }) {
   return (
     <div className={`bg-white rounded-2xl border ${isPopular ? 'border-purple-400 shadow-2xl shadow-purple-500/20 md:-mt-6 z-10' : 'border-gray-100 shadow-xl shadow-gray-200/50 mt-4 md:mt-0'} relative flex flex-col h-full`}>
       
       {isPopular && (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#dfb22b] text-white text-xs font-bold px-8 py-2 rounded-sm clip-banner shadow-lg">
-          Stackable
+          Most Popular
         </div>
       )}
 
@@ -155,8 +205,12 @@ function PricingCard({ title, price, billingText, features, isPopular = false })
           <span className="text-xl font-bold text-gray-500 mt-auto mb-2">/mo</span>
         </div>
         
-        <button className={`w-full mt-6 py-3 px-4 rounded-lg font-bold transition-all ${isPopular ? 'text-purple-600 bg-white border-2 border-purple-200 hover:border-purple-600' : 'text-purple-600 bg-white border-2 border-purple-200 hover:border-purple-600'}`}>
-          Subscribe
+        <button 
+          onClick={onSubscribe}
+          disabled={isProcessing}
+          className={`w-full flex items-center justify-center gap-2 mt-6 py-3 px-4 rounded-lg font-bold transition-all ${isPopular ? 'text-purple-600 bg-white border-2 border-purple-200 hover:border-purple-600' : 'text-purple-600 bg-white border-2 border-purple-200 hover:border-purple-600'}`}
+        >
+          {isProcessing ? <Loader2 size={16} className="animate-spin" /> : 'Subscribe'}
         </button>
         <p className="text-xs text-gray-400 mt-4 font-medium">{billingText}</p>
       </div>

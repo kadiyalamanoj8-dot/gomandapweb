@@ -77,6 +77,15 @@ function getEmployees() {
 }
 function saveEmployees(data) { fs.writeFileSync(employeesFile, JSON.stringify(data, null, 2)); }
 
+// --- PUBLIC USERS ---
+const publicUsersFile = path.join(dataDir, 'public_users.json');
+if (!fs.existsSync(publicUsersFile)) fs.writeFileSync(publicUsersFile, JSON.stringify([]));
+
+function getPublicUsers() {
+  try { return JSON.parse(fs.readFileSync(publicUsersFile, 'utf-8')); } catch (e) { return []; }
+}
+function savePublicUsers(data) { fs.writeFileSync(publicUsersFile, JSON.stringify(data, null, 2)); }
+
 module.exports = {
   getUsers,
   saveUsers,
@@ -86,5 +95,7 @@ module.exports = {
   deleteVendor,
   updateVendorsBatch,
   getEmployees,
-  saveEmployees
+  saveEmployees,
+  getPublicUsers,
+  savePublicUsers
 };

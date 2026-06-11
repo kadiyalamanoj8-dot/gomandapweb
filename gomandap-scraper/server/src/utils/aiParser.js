@@ -19,7 +19,7 @@ async function loadAIModel() {
 // Kick off loading immediately so it's ready before first scrape
 loadAIModel();
 
-async function getKeywordSynonyms(category) {
+async function getKeywordSynonyms(category, location = '') {
   try {
     const res = await require('axios').get(`https://api.datamuse.com/words?ml=${encodeURIComponent(category)}`);
     const words = res.data.slice(0, 8).map(w => w.word);
@@ -27,9 +27,19 @@ async function getKeywordSynonyms(category) {
     const coreTerms = category.split(/[\s&/]+/).filter(w => w.length > 3);
     let combined = [...new Set([...words, ...coreTerms, category])];
     
-    // Fallback dictionary for Indian context
-    if (category.toLowerCase().includes('mandap') || category.toLowerCase().includes('banquet') || category.toLowerCase().includes('hall')) {
-      combined.push('kalyana', 'mandapamu', 'function', 'shadi', 'khana', 'convention', 'arena');
+    const lowerLocation = location.toLowerCase();
+    const isSouthIndia = lowerLocation.includes('andhra') || lowerLocation.includes('telangana') || lowerLocation.includes('hyderabad') || lowerLocation.includes('guntur') || lowerLocation.includes('vijayawada') || lowerLocation.includes('chennai') || lowerLocation.includes('tamil nadu') || lowerLocation.includes('kerala') || lowerLocation.includes('karnataka') || lowerLocation.includes('bangalore');
+    const isNorthIndia = lowerLocation.includes('delhi') || lowerLocation.includes('mumbai') || lowerLocation.includes('punjab') || lowerLocation.includes('haryana') || lowerLocation.includes('up') || lowerLocation.includes('uttar pradesh') || lowerLocation.includes('rajasthan');
+
+    // Wedding / Hall Region Intelligence
+    if (category.toLowerCase().includes('mandap') || category.toLowerCase().includes('banquet') || category.toLowerCase().includes('hall') || category.toLowerCase().includes('wedding')) {
+      if (isSouthIndia) {
+        combined.push('kalyana', 'mandapamu', 'kalyanamandapam', 'function hall', 'pelli', 'muhurtham');
+      } else if (isNorthIndia) {
+        combined.push('shadi', 'khana', 'banquets', 'vivah', 'marriage palace', 'bhavan');
+      } else {
+        combined.push('convention', 'arena', 'marriage hall');
+      }
     }
 
     // Specialize decoration categories for wedding/events, weeding out interior/car/painting terms

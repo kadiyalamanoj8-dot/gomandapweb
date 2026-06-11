@@ -50,6 +50,20 @@ router.get('/regions', (req, res) => {
   res.json(getRegions());
 });
 
+router.get('/suggest', async (req, res) => {
+  try {
+    const q = req.query.q || '';
+    if (!q) return res.json([]);
+    const response = await require('axios').get(`https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(q)}`, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+    });
+    // Response format: [ "query", ["sugg1", "sugg2"] ]
+    res.json(response.data[1] || []);
+  } catch (error) {
+    res.json([]);
+  }
+});
+
 router.get('/knowledge', (req, res) => {
   res.json({
     categories: CATEGORIES,

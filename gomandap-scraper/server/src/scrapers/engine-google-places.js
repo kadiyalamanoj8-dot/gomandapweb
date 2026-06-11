@@ -55,9 +55,18 @@ async function scrapeWebsiteForSocials(browser, url, vendorName) {
       !e.endsWith('.png') && !e.endsWith('.jpg') && !e.endsWith('.jpeg') && !e.endsWith('.webp') && !e.endsWith('.gif') && !e.includes('wixpress') && !e.includes('sentry')
     );
 
-    // Enhanced phone parsing to catch more obfuscated Indian formats
-    const phoneMatch = html.match(/(?:\+?91|0)?[-\s.]*(?:\d[-\s.]*){10}/g) || [];
-    let validPhones = [...new Set(phoneMatch)].filter(p => p.replace(/\D/g, '').length >= 10);
+    // We no longer scan the entire raw HTML for 10-digit strings because it hallucinates UNIX timestamps (e.g. 1608662146)
+    let validPhones = [];
+    
+    // Strict text-node scanning for contextual phone numbers (e.g. "Phone: 9876543210" or "Call +91-9876543210")
+    const phoneContextRegex = /(?:phone|tel|call|whatsapp|mob|mobile)[\s:.-]*((?:\+\d{1,4}[\s-]?)?(?:\(\d{1,4}\)[\s-]?)?(?:\d{1,4}[\s-]?){2,4}\d{2,4})/gi;
+    let match;
+    while ((match = phoneContextRegex.exec(html)) !== null) {
+      const digits = match[1].replace(/\D/g, '');
+      if (digits.length >= 8 && digits.length <= 15) {
+        validPhones.push(match[1].trim());
+      }
+    }
 
     let instagram = '';
     let facebook = '';
@@ -198,7 +207,13 @@ function isListingRelevantToQueryGeneral(name, pageText, category, exactQuery, a
     return false;
   });
 
-  // Since we are looking for maximum coverage, if AI didn't explicitly reject, we include.
+  // Since we are looking for intelligence, if AI keywords missed and text doesn't match, we reject!
+  if (!textMatchesQuery) {
+    // Soft fallback: if name contains category, allow it
+    if (category && cleanName.includes(category.toLowerCase().split(' ')[0])) return true;
+    return false;
+  }
+
   return true;
 }
 
@@ -452,9 +467,12 @@ async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [
             
             // Wait for side panel details to appear. The title usually appears as an h1
             await page.waitForSelector(`h1`, { timeout: 3000 }).catch(()=>{});
-            await page.waitForTimeout(400); // Let fields populate
+            
+            // Dynamically wait for the phone number to lazy-load instead of a hardcoded 400ms timeout
+            await page.waitForSelector('button[data-item-id^="phone:tel:"], button[data-tooltip="Copy phone number"]', { timeout: 2500 }).catch(()=>{});
+            await page.waitForTimeout(400); // Small buffer for React state updates
 
-            const addressEl = page.locator('[data-item-id="address"]');
+            const addressEl = page.locator('[data-item-id="address"]').first();
             try {
               if (await addressEl.count() > 0) {
                 const rawAddress = await addressEl.getAttribute('aria-label', { timeout: 1000 });
@@ -462,13 +480,21 @@ async function scrapeGooglePlaces(exactQuery, category, location, aiKeywords = [
               }
             } catch (err) {}
 
-            const phoneEl = page.locator('[data-tooltip="Copy phone number"]');
+            // Fix: Use .first() to prevent Playwright Strict Mode violation, and support multiple common selectors
+            const phoneEl = page.locator('button[data-item-id^="phone:tel:"], [aria-label^="Phone:"], [aria-label^="phone:"], [data-tooltip*="phone"]').first();
             try {
               if (await phoneEl.count() > 0) {
-                const rawPhone = await phoneEl.getAttribute('aria-label', { timeout: 1000 });
-                phone = rawPhone ? rawPhone.replace(/^Phone:\s*/i, '') : '';
+                let rawPhone = await phoneEl.getAttribute('aria-label', { timeout: 1000 });
+                if (!rawPhone) {
+                    // Fallback to text content if aria-label is missing
+                    rawPhone = await phoneEl.innerText({ timeout: 1000 });
+                }
+                phone = rawPhone ? rawPhone.replace(/^Phone:\s*/i, '').trim() : '';
+                if (phone) addLog(`[Extracted] Phone for ${name}: ${phone}`);
               }
-            } catch (err) {}
+            } catch (err) {
+               addLog(`[Warning] Phone extraction error for ${name}: ${err.message}`);
+            }
 
             const ratingEl = page.locator('div.F7nice').first();
             try {
