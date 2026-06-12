@@ -276,6 +276,8 @@ const [vendors, setVendors] = useState([]);
   const [categoryQuery, setCategoryQuery] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
   const [activeInput, setActiveInput] = useState(null);
+  const activeInputRef = useRef(activeInput);
+  useEffect(() => { activeInputRef.current = activeInput; }, [activeInput]);
   const [searchScope, setSearchScope] = useState('full');
   const [searchHistory, setSearchHistory] = useState(() => {
     try { return JSON.parse(localStorage.getItem('gomandap_search_history') || '[]'); } catch { return []; }
@@ -445,7 +447,7 @@ const [vendors, setVendors] = useState([]);
           }
         }
 
-        const currentQueryLower = ((msg.prefix || '') + (msg.text || '')).toLowerCase();
+        const currentQueryLower = (activeInputRef.current === 'category' ? categoryQuery : locationQuery).toLowerCase();
         let historyData = [];
         try {
           historyData = JSON.parse(localStorage.getItem('gomandap_search_history') || '[]');
@@ -455,11 +457,13 @@ const [vendors, setVendors] = useState([]);
         
         const matchingHistory = historyData.filter(h => h.toLowerCase().includes(currentQueryLower) && currentQueryLower.length > 0);
 
-        setSuggestions(prev => {
-          // Merge history, exact fuzzy matches (prev), and semantic AI matches
-          return [...new Set([...matchingHistory, ...prev, ...topSuggestions])].slice(0, 10);
-        });
-        setShowSuggestions(true);
+        if (activeInputRef.current === 'category') {
+          setSuggestions(prev => {
+            // Merge history, exact fuzzy matches (prev), and semantic AI matches
+            return [...new Set([...matchingHistory, ...prev, ...topSuggestions])].slice(0, 10);
+          });
+          setShowSuggestions(true);
+        }
       }
     });
 
