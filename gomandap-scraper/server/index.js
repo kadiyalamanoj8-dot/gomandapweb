@@ -152,6 +152,6 @@ app.use((err, req, res, next) => {
 
 // Always use 5002 internally since it is proxied by the main backend
 const PORT = 5002;
-app.listen(PORT, '127.0.0.1', () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Gomandap Omni Scraper backend running on port ${PORT}`);
 });
