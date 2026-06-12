@@ -78,35 +78,51 @@ router.get('/location/search', async (req, res) => {
   try {
     // 1. INSTANT LOCAL SEARCH (0ms)
     const localResults = locationSearch.search(query, { prefix: true, fuzzy: 0.2 });
+    let formattedLocal = [];
     if (localResults && localResults.length > 0) {
-      const formatted = localResults.slice(0, 8).map(item => ({
+      formattedLocal = localResults.slice(0, 5).map(item => ({
         name: item.name,
-        display: `${item.name}${item.district && item.district !== item.name ? ', ' + item.district : ''}`,
+        display: `${item.name}${item.district && item.district !== item.name ? ', ' + item.district : ''} (AP)`,
         type: item.type
       }));
-      return res.json(formatted);
     }
 
     // 2. FALLBACK TO OSM NOMINATIM (Network Delay)
-    const response = await require('axios').get(`https://nominatim.openstreetmap.org/search`, {
-      params: { q: query, format: 'json', addressdetails: 1, limit: 5, countrycodes: 'in' },
-      headers: {
-        'User-Agent': 'GomandapScraper/1.0 (contact@gomandap.com)',
-      },
-      timeout: 5000 
-    });
+    let parsedLocations = [];
+    try {
+      const response = await require('axios').get(`https://nominatim.openstreetmap.org/search`, {
+        params: { q: query, format: 'json', addressdetails: 1, limit: 5, countrycodes: 'in' },
+        headers: {
+          'User-Agent': 'GomandapScraper/1.0 (contact@gomandap.com)',
+        },
+        timeout: 5000 
+      });
 
-    const parsedLocations = response.data.map(item => ({
-      name: item.name,
-      display: item.display_name,
-      type: item.type,
-      lat: item.lat,
-      lon: item.lon
-    })).filter(loc => loc.name);
+      parsedLocations = response.data.map(item => ({
+        name: item.name,
+        display: item.display_name,
+        type: item.type,
+        lat: item.lat,
+        lon: item.lon
+      })).filter(loc => loc.name);
+    } catch (osmError) {
+      console.error('Nominatim Proxy Error:', osmError.message);
+    }
 
-    res.json(parsedLocations);
+    // Merge and deduplicate
+    const combined = [...formattedLocal, ...parsedLocations];
+    const unique = [];
+    const seen = new Set();
+    for (const item of combined) {
+      const key = item.name.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(item);
+      }
+    }
+
+    res.json(unique);
   } catch (error) {
-    console.error('Nominatim Proxy Error:', error.message);
     res.json([]);
   }
 });
