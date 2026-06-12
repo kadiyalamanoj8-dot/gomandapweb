@@ -288,7 +288,7 @@ async function getSubLocations(locationName) {
     saveLocationsMemory(memory);
   }
   
-  return results || [locationName];
+  return (results || [locationName]).filter(Boolean);
 }
 
 function getDistanceKm(lat1, lon1, lat2, lon2) {
@@ -414,7 +414,7 @@ router.post('/omni', async (req, res) => {
       addLog(`[Hyper-Local AI] Analyzing geographical scope for: ${baseLocation}`);
       const initialBreakdown = await getSubLocations(baseLocation);
       
-      if (initialBreakdown.length === 1 && initialBreakdown[0].toLowerCase() === baseLocation.toLowerCase()) {
+      if (initialBreakdown.length === 1 && initialBreakdown[0] && initialBreakdown[0].toLowerCase() === baseLocation.toLowerCase()) {
          addLog(`[Hyper-Local AI] '${baseLocation}' is already highly specific. Searching directly.`);
          targets.push(baseLocation);
       } else {
@@ -422,12 +422,12 @@ router.post('/omni', async (req, res) => {
          
          if (strategy === 'full') {
            // For each sub-region (e.g. Mandal or City), dive ONE level deeper to get Villages/Colonies
-           for (const subRegion of initialBreakdown) {
+           for (const subRegion of initialBreakdown.filter(Boolean)) {
               addLog(`[Hyper-Local AI] Learning villages/colonies for: ${subRegion}...`);
               const deepLocalities = await getSubLocations(`${subRegion}, ${baseLocation}`);
               
               // Format semantic strings targeting the local area precisely
-              if (deepLocalities.length === 1 && deepLocalities[0].toLowerCase() === `${subRegion}, ${baseLocation}`.toLowerCase()) {
+              if (deepLocalities.length === 1 && deepLocalities[0] && deepLocalities[0].toLowerCase() === `${subRegion}, ${baseLocation}`.toLowerCase()) {
                   targets.push(`${subRegion}, ${baseLocation}`);
               } else {
                   for (const loc of deepLocalities) {
@@ -437,7 +437,7 @@ router.post('/omni', async (req, res) => {
            }
          } else {
            // Strategy is 'mandal' - stop at the Mandal level to save time
-           for (const subRegion of initialBreakdown) {
+           for (const subRegion of initialBreakdown.filter(Boolean)) {
               targets.push(`${subRegion}, ${baseLocation}`);
            }
          }

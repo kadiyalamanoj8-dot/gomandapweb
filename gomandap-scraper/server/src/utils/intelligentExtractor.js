@@ -190,7 +190,7 @@ async function generateLocalities(broadLocation) {
 
         // MATCH DISTRICT: Return top 20 Mandals
         if (dist.district.toLowerCase() === searchName) {
-          const mandals = dist.subDistricts.map(sd => sd.subDistrict);
+          const mandals = dist.subDistricts.map(sd => sd.subDistrict).filter(Boolean);
           // Shuffle slightly or take top 20
           return mandals.slice(0, 20);
         }
@@ -199,7 +199,7 @@ async function generateLocalities(broadLocation) {
           // MATCH MANDAL: Return top 20 Villages
           if (sub.subDistrict.toLowerCase() === searchName) {
             if (sub.villages && sub.villages.length > 0) {
-              return sub.villages.slice(0, 20);
+              return sub.villages.filter(Boolean).slice(0, 20);
             } else {
               return [broadLocation];
             }
