@@ -21,6 +21,17 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+// Component to automatically fit bounds to the markers
+const MapBounds = ({ vendors }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (vendors && vendors.length > 0) {
+      const bounds = L.latLngBounds(vendors.map(v => [v.safeLat, v.safeLng]));
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+    }
+  }, [vendors, map]);
+  return null;
+};
 const STATUS_COLORS = {
   New: 'bg-gray-100 text-gray-600 border-gray-200',
   Contacted: 'bg-blue-50 text-blue-600 border-blue-100',
@@ -60,17 +71,6 @@ export default function LeadsPage() {
     .map(v => ({...v, safeLat: v.lat || v.latitude, safeLng: v.lng || v.longitude}))
     .slice(0, 500);
 
-  // Component to automatically fit bounds to the markers
-  const MapBounds = ({ vendors }) => {
-    const map = useMap();
-    useEffect(() => {
-      if (vendors.length > 0) {
-        const bounds = L.latLngBounds(vendors.map(v => [v.safeLat, v.safeLng]));
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
-      }
-    }, [vendors, map]);
-    return null;
-  };
 
   const getCityFromFilter = () => selectedCity !== 'All' ? selectedCity : 'India';
 
@@ -448,9 +448,13 @@ export default function LeadsPage() {
               className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
               <div className="p-6 border-b border-gray-100 flex items-start justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-100 to-indigo-100 flex items-center justify-center text-violet-600 font-black text-2xl">
-                    {selectedVendor.name?.[0] || '?'}
-                  </div>
+                  {(selectedVendor.avatar || (selectedVendor.images && selectedVendor.images.length > 0)) ? (
+                    <img src={selectedVendor.avatar || selectedVendor.images[0]} alt={selectedVendor.name} className="w-16 h-16 rounded-2xl object-cover shadow-sm border border-gray-100 flex-shrink-0" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-100 to-indigo-100 flex items-center justify-center text-violet-600 font-black text-2xl">
+                      {selectedVendor.name?.[0] || '?'}
+                    </div>
+                  )}
                   <div>
                     <h3 className="font-black text-gray-900 text-lg">{selectedVendor.name}</h3>
                     <p className="text-sm text-gray-500">{selectedVendor.category} · {selectedVendor.city}</p>
@@ -541,10 +545,14 @@ function VendorCard({ vendor, employees, onVerify, onDelete, onAssign, onClick }
   return (
     <div onClick={onClick}
       className="group bg-white rounded-2xl border border-gray-100 hover:border-violet-200 hover:shadow-lg hover:shadow-violet-50/50 transition-all p-4 cursor-pointer">
-      <div className="flex items-center gap-4">
-        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-50 to-indigo-100 flex items-center justify-center text-violet-600 font-black text-lg flex-shrink-0">
-          {vendor.name?.[0] || '?'}
-        </div>
+      <div className="flex gap-4">
+        {(vendor.avatar || (vendor.images && vendor.images.length > 0)) ? (
+          <img src={vendor.avatar || vendor.images[0]} alt={vendor.name} className="w-14 h-14 rounded-2xl object-cover shadow-sm border border-gray-100 flex-shrink-0" />
+        ) : (
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-50 to-indigo-100 flex items-center justify-center text-violet-600 font-black text-xl flex-shrink-0">
+            {vendor.name?.[0] || '?'}
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="font-bold text-gray-900 truncate">{vendor.name}</p>

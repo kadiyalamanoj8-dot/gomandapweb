@@ -63,7 +63,6 @@ export default function OverviewPage() {
     { id: 'instagram', label: 'Instagram', icon: <Camera size={14} />, desc: 'Business profiles & contacts' },
     { id: 'google-web', label: 'Universal Web Search', icon: <Globe size={14} />, desc: 'Global organic web scraper' },
     { id: 'justdial', label: 'Justdial', icon: <Globe size={14} />, desc: 'India\'s top business directory' },
-    { id: 'linkedin', label: 'LinkedIn', icon: <Briefcase size={14} />, desc: 'Professional & B2B leads' },
     { id: 'firebase', label: 'Cloud Sync', icon: <Database size={14} />, desc: 'Sync with live database' },
   ];
 
@@ -225,27 +224,7 @@ export default function OverviewPage() {
                   )}
                 </div>
 
-                {/* Radius Select */}
-                <div className="flex items-center gap-2 border-l border-gray-200 px-4 py-4 md:py-0">
-                  <select value={searchRadius} onChange={e => setSearchRadius(Number(e.target.value))}
-                    className="bg-transparent text-xs text-gray-600 font-semibold outline-none cursor-pointer pr-1">
-                    <option value={10}>10km</option>
-                    <option value={20}>20km</option>
-                    <option value={50}>50km</option>
-                    <option value={100}>100km</option>
-                  </select>
-                </div>
 
-                {/* Grid Density Select */}
-                <div className="flex items-center gap-2 border-l border-gray-200 px-4 py-4 md:py-0">
-                  <select value={gridDensity} onChange={e => setGridDensity(Number(e.target.value))}
-                    className="bg-transparent text-xs text-gray-600 font-semibold outline-none cursor-pointer pr-1">
-                    <option value={1}>1 Point</option>
-                    <option value={5}>5 Points</option>
-                    <option value={10}>10 Points</option>
-                    <option value={30}>30 Points</option>
-                  </select>
-                </div>
 
                 {/* Extract Button */}
                 <div className="p-2 w-full md:w-auto">

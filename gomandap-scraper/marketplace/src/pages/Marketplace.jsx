@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,6 +8,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { API_URL } from '../apiConfig';
 import IntelligentSearchBar from '../components/IntelligentSearchBar';
+import Fuse from 'fuse.js';
 
 // Fix for default Leaflet icon in React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -59,14 +60,31 @@ export default function Marketplace() {
   const [liveLogs, setLiveLogs] = useState([]);
   const [demoEventSource, setDemoEventSource] = useState(null);
 
-  useEffect(() => {
-    fetchVendors();
-    // Keep local inputs in sync if URL changes
-    setLocalCategory(categoryParam);
-    setLocalLocation(locationParam);
-  }, [categoryParam, locationParam]);
+  // Search Bar Requirements
+  const [fuseInstances, setFuseInstances] = useState({ categories: null, locations: null });
+  const workerRef = useRef(null);
 
-  const fetchVendors = async () => {
+  async function fetchKnowledge() {
+    try {
+      const res = await axios.get(`${API_URL}/knowledge`);
+      
+      const docs = [];
+      res.data.categories.forEach(c => docs.push({ text: c, type: 'category' }));
+      res.data.locations.forEach(l => docs.push({ text: l.name, type: 'location' }));
+      
+      const catFuse = new Fuse(res.data.categories, { includeScore: true, threshold: 0.4 });
+      const locFuse = new Fuse(res.data.locations.map(l => l.name), { includeScore: true, threshold: 0.4 });
+      setFuseInstances({ categories: catFuse, locations: locFuse });
+      
+      if (workerRef.current) {
+        workerRef.current.postMessage({ action: 'build_index', knowledgeBase: docs });
+      }
+    } catch (error) {
+      console.error('Failed to fetch knowledge base for search bar', error);
+    }
+  };
+
+  async function fetchVendors() {
     setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/vendors/public`, {
@@ -95,6 +113,21 @@ export default function Marketplace() {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    // Initialize Semantic Worker
+    workerRef.current = new Worker(new URL('../semanticWorker.js', import.meta.url));
+    
+    fetchKnowledge();
+    fetchVendors();
+    // Keep local inputs in sync if URL changes
+    setLocalCategory(categoryParam);
+    setLocalLocation(locationParam);
+
+    return () => {
+      if (workerRef.current) workerRef.current.terminate();
+    };
+  }, [categoryParam, locationParam]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -335,6 +368,8 @@ export default function Marketplace() {
                   omniQuery={omniQuery}
                   setOmniQuery={setOmniQuery}
                   apiUrl={API_URL}
+                  fuseInstances={fuseInstances}
+                  workerRef={workerRef}
                 />
               </div>
             </div>
@@ -342,42 +377,7 @@ export default function Marketplace() {
           </div>
         </div>
 
-        {/* Live Terminal Overlay */}
-        {liveTerminal && (
-          <div className="mb-8 bg-gray-900 p-5 rounded-3xl shadow-xl overflow-hidden relative">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
-                <span className="text-white text-sm font-bold font-mono uppercase tracking-widest">Live Extraction Terminal</span>
-              </div>
-              <button onClick={() => setLiveTerminal(false)} className="text-gray-500 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 transition">
-                <X size={16} />
-              </button>
-            </div>
-            <div className="bg-black/60 rounded-2xl p-4 h-64 overflow-y-auto font-mono text-xs md:text-sm text-green-400 border border-white/10 shadow-inner" id="demo-terminal">
-              {liveLogs.map((log, i) => (
-                <div key={i} className="mb-1 opacity-90 hover:opacity-100 break-words">{log}</div>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {/* SaaS CTA Banner */}
-        <div className="mb-8 bg-gradient-to-r from-violet-900 to-indigo-900 rounded-3xl px-8 py-5 flex flex-col md:flex-row items-center justify-between shadow-xl relative overflow-hidden">
-           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-           <div className="flex items-center gap-4 relative z-10 mb-4 md:mb-0">
-             <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
-               <Zap size={24} className="text-yellow-400" fill="currentColor" />
-             </div>
-             <div>
-               <h3 className="text-white font-bold text-lg md:text-xl">Want to run your own extractions?</h3>
-               <p className="text-violet-200 text-sm md:text-base">Subscribe to the OmniLead AI Engine for $99/mo.</p>
-             </div>
-           </div>
-           <button onClick={() => navigate('/pricing')} className="relative z-10 w-full md:w-auto bg-white text-indigo-900 text-sm font-black px-6 py-3 rounded-xl hover:scale-105 transition shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-             Get Scraper Access
-           </button>
-        </div>
+
 
         <div className="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>

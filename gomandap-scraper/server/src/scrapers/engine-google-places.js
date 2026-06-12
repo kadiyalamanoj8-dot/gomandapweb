@@ -250,9 +250,11 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
         const imgLocators = await page.locator('button[aria-label^="Photo of"] img, img[src*="googleusercontent.com/p/"]').all().catch(()=>[]);
         for (let j = 0; j < Math.min(imgLocators.length, 10); j++) {
           const src = await imgLocators[j].getAttribute('src', { timeout: 500 }).catch(()=>null);
-          if (src && !src.includes('Avatar')) allImages.push(src);
+          if (src) allImages.push(src);
         }
       } catch (e) {}
+      
+      const avatar = allImages.length > 0 ? allImages[0] : '';
 
       let website = '';
       try {
@@ -324,6 +326,7 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
             facebookFollowers: enrichedData.facebookFollowers || '',
             website: website,
             images: [...allImages, ...(enrichedData.images || [])].filter(Boolean),
+            avatar: avatar,
             qualityScore: leadScore,
             tier: determineTier(leadScore),
             operatingHours: '',
@@ -479,9 +482,11 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
               const imgLocators = await page.locator('button[aria-label^="Photo of"] img, img[src*="googleusercontent.com/p/"]').all().catch(()=>[]);
               for (let j = 0; j < Math.min(imgLocators.length, 10); j++) {
                 const src = await imgLocators[j].getAttribute('src', { timeout: 500 }).catch(()=>null);
-                if (src && !src.includes('Avatar')) allImages.push(src);
+                if (src) allImages.push(src);
               }
             } catch (e) {}
+            
+            const avatar = allImages.length > 0 ? allImages[0] : '';
 
             // Fire-and-Forget Background Enrichment (No Blocking!)
             let enrichedData = { email: '', instagram: '', facebook: '', phone: '', instagramFollowers: '', facebookFollowers: '', images: [] };
@@ -523,6 +528,7 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
               instagramFollowers: '',
               facebookFollowers: '',
               images: [...allImages, ...(enrichedData.images || [])].filter(Boolean),
+              avatar: avatar,
               aiVerified,
               matchedKeywords,
               id: 'place_' + Date.now().toString() + Math.random().toString(36).substring(7)

@@ -1,68 +1,27 @@
 {
-  "requestsFinished": 0,
-  "requestsFailed": 1,
-  "requestsRetries": 1,
-  "requestsFailedPerMinute": 17,
-  "requestsFinishedPerMinute": 0,
-  "requestMinDurationMillis": null,
-  "requestMaxDurationMillis": 0,
-  "requestTotalFailedDurationMillis": 12,
-  "requestTotalFinishedDurationMillis": 0,
-  "crawlerStartedAt": "2026-06-12T18:53:32.249Z",
-  "crawlerFinishedAt": "2026-06-12T18:53:35.493Z",
-  "statsPersistedAt": "2026-06-12T18:53:35.493Z",
-  "crawlerRuntimeMillis": 3413,
-  "crawlerLastStartTimestamp": 1781290412080,
+  "requestsFinished": 1,
+  "requestsFailed": 0,
+  "requestsRetries": 0,
+  "requestsFailedPerMinute": 0,
+  "requestsFinishedPerMinute": 16,
+  "requestMinDurationMillis": 2180,
+  "requestMaxDurationMillis": 2180,
+  "requestTotalFailedDurationMillis": 0,
+  "requestTotalFinishedDurationMillis": 2180,
+  "crawlerStartedAt": "2026-06-12T19:41:56.520Z",
+  "crawlerFinishedAt": "2026-06-12T19:42:00.199Z",
+  "statsPersistedAt": "2026-06-12T19:42:00.199Z",
+  "crawlerRuntimeMillis": 3741,
+  "crawlerLastStartTimestamp": 1781293316458,
   "requestRetryHistogram": [
-    null,
-    null,
-    null,
     1
   ],
   "statsId": 0,
-  "requestAvgFailedDurationMillis": 12,
-  "requestAvgFinishedDurationMillis": null,
-  "requestTotalDurationMillis": 12,
+  "requestAvgFailedDurationMillis": null,
+  "requestAvgFinishedDurationMillis": 2180,
+  "requestTotalDurationMillis": 2180,
   "requestsTotal": 1,
   "requestsWithStatusCode": {},
-  "errors": {
-    "file:///C:/Users/manoj/OneDrive/Desktop/Gomandapweb/gomandap-scraper/server/node_modules/got/dist/source/core/index.js:868:107": {
-      "ENOTFOUND": {
-        "RequestError": {
-          "getaddrinfo ENOTFOUND www.themstories.com": {
-            "count": 1
-          }
-        }
-      }
-    },
-    "node:dns:122:26": {
-      "ENOTFOUND": {
-        "Error": {
-          "getaddrinfo ENOTFOUND www.themstories.com": {
-            "count": 1
-          }
-        }
-      }
-    }
-  },
-  "retryErrors": {
-    "file:///C:/Users/manoj/OneDrive/Desktop/Gomandapweb/gomandap-scraper/server/node_modules/got/dist/source/core/index.js:868:107": {
-      "ENOTFOUND": {
-        "RequestError": {
-          "getaddrinfo ENOTFOUND www.themstories.com": {
-            "count": 3
-          }
-        }
-      }
-    },
-    "node:dns:122:26": {
-      "ENOTFOUND": {
-        "Error": {
-          "getaddrinfo ENOTFOUND www.themstories.com": {
-            "count": 3
-          }
-        }
-      }
-    }
-  }
+  "errors": {},
+  "retryErrors": {}
 }

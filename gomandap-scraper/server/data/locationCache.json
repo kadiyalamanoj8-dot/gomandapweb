@@ -1254,5 +1254,45 @@
     "state": "Andhra Pradesh",
     "country": "India",
     "postcode": "522008"
+  },
+  "16.30,80.46": {
+    "village": "Lalapet",
+    "mandal": "Guntur",
+    "district": "Guntur",
+    "state": "Andhra Pradesh",
+    "country": "India",
+    "postcode": "522001"
+  },
+  "16.31,80.41": {
+    "village": "Pattabhipuram",
+    "mandal": "Guntur",
+    "district": "Guntur",
+    "state": "Andhra Pradesh",
+    "country": "India",
+    "postcode": "522001"
+  },
+  "16.28,80.45": {
+    "village": "Lalapet",
+    "mandal": "Guntur",
+    "district": "Guntur",
+    "state": "Andhra Pradesh",
+    "country": "India",
+    "postcode": "522001"
+  },
+  "16.31,80.45": {
+    "village": "Mallikarjunpet",
+    "mandal": "Guntur",
+    "district": "Guntur",
+    "state": "Andhra Pradesh",
+    "country": "India",
+    "postcode": "522001"
+  },
+  "16.33,80.42": {
+    "village": "Nalanda Nagar",
+    "mandal": "Guntur",
+    "district": "Guntur",
+    "state": "Andhra Pradesh",
+    "country": "India",
+    "postcode": "522001"
   }
 }

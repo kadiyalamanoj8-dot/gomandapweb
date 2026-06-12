@@ -553,7 +553,7 @@ router.post('/omni', async (req, res) => {
           const accurateLocation = resolvedLocationData && resolvedLocationData.lat ? resolvedLocationData.formattedLocation : loc;
           addLog(`[Google Maps Fallback] Dispatching job for: "${searchStr}"`);
           const searchStrFormatted = `${matchedCategory} near ${accurateLocation}`;
-          await addScrapeJob('scrapeGooglePlaces', [searchStrFormatted, matchedCategory, accurateLocation, sessionId, centerGeocoded ? centerGeocoded.lat : null, centerGeocoded ? centerGeocoded.lng : null, radius ? parseInt(radius) : null]);
+          await addScrapeJob('scrapeGooglePlaces', [searchStrFormatted, matchedCategory, accurateLocation, sessionId, resolvedLocationData ? resolvedLocationData.lat : null, resolvedLocationData ? resolvedLocationData.lng : null, radius ? parseInt(radius) : null]);
         }
       }
 

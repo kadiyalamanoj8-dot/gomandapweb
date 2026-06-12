@@ -1,9 +1,0 @@
-{
-	"id": "BglLrFDhAU7aOBE",
-	"json": "{\"id\":\"BglLrFDhAU7aOBE\",\"url\":\"http://www.firstlovestudios.com/\",\"loadedUrl\":\"http://www.firstlovestudios.com/\",\"uniqueKey\":\"http://www.firstlovestudios.com\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"state\":4}},\"handledAt\":\"2026-06-12T18:53:55.109Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "http://www.firstlovestudios.com",
-	"url": "http://www.firstlovestudios.com/"
-}
