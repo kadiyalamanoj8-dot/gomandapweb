@@ -25,6 +25,16 @@ router.get('/', (req, res) => {
   }
 });
 
+// API: Get all out-of-bounds leads
+router.get('/out-of-bounds', (req, res) => {
+  try {
+    let data = dbAdapter.getOutOfBounds() || [];
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // API: Update a vendor (verify/edit)
 router.put('/:id', (req, res) => {
   try {

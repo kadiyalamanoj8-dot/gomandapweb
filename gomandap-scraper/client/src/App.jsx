@@ -13,6 +13,7 @@ import LeadsPage from './pages/dashboard/Leads';
 import AutomationsPage from './pages/dashboard/Automations';
 import SettingsPage from './pages/dashboard/Settings';
 import UsersPage from './pages/dashboard/Users';
+import OutOfBoundsPage from './pages/dashboard/OutOfBounds';
 import Marketplace from './pages/Marketplace';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
@@ -51,7 +52,21 @@ export default function App() {
         {/* Public pages */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/marketplace" element={<Marketplace />} />
+        {/* Public marketplace clone of admin panel */}
+        <Route path="/marketplace/*" element={
+          <ScraperDashboard 
+            user={{ role: 'admin', name: 'Public User', email: 'public@marketplace.com' }} 
+            onLogout={() => {}} 
+          />
+        }>
+          <Route index element={<Navigate to="overview" replace />} />
+          <Route path="overview" element={<OverviewPage />} />
+          <Route path="leads" element={<LeadsPage />} />
+          <Route path="out-of-bounds" element={<OutOfBoundsPage />} />
+          <Route path="automations" element={<AutomationsPage />} />
+          <Route path="*" element={<Navigate to="overview" replace />} />
+        </Route>
+
         <Route path="/products/phone-scraper" element={<PhoneScraper />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
@@ -69,6 +84,7 @@ export default function App() {
           <Route index element={<Navigate to="overview" replace />} />
           <Route path="overview" element={<OverviewPage />} />
           <Route path="leads" element={<LeadsPage />} />
+          <Route path="out-of-bounds" element={<OutOfBoundsPage />} />
           <Route path="automations" element={<AutomationsPage />} />
           {user?.role === 'admin' && <Route path="users" element={<UsersPage />} />}
           {user?.role === 'admin' && <Route path="settings" element={<SettingsPage />} />}

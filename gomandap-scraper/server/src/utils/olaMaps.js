@@ -38,12 +38,13 @@ async function geocodeLocation(locationQuery) {
         return {
           formattedLocation: bestMatch.display_name,
           lat: parseFloat(bestMatch.lat),
-          lng: parseFloat(bestMatch.lon)
+          lng: parseFloat(bestMatch.lon),
+          boundingbox: bestMatch.boundingbox ? bestMatch.boundingbox.map(parseFloat) : null
         };
       }
       
       console.warn(`[OSM Geocoding] No coordinates found for "${locationQuery}"`);
-      return { formattedLocation: locationQuery.trim(), lat: null, lng: null };
+      return { formattedLocation: locationQuery.trim(), lat: null, lng: null, boundingbox: null };
       
     } catch (err) {
       attempts++;
@@ -52,7 +53,7 @@ async function geocodeLocation(locationQuery) {
         console.log(`[OSM Geocoding] Retrying in 2 seconds...`);
         await sleep(2000);
       } else {
-        return { formattedLocation: locationQuery.trim(), lat: null, lng: null };
+        return { formattedLocation: locationQuery.trim(), lat: null, lng: null, boundingbox: null };
       }
     }
   }

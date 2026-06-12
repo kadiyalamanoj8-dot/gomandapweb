@@ -18,7 +18,7 @@ const TAB_ITEMS = [
 ];
 
 export default function SettingsPage() {
-  const { searchRadius, setSearchRadius, employees, fetchEmployees, handleFileUpload, onLogout } = useScraper();
+  const { employees, fetchEmployees, handleFileUpload, onLogout } = useScraper();
   const [activeTab, setActiveTab] = useState('general');
   const [showPw, setShowPw] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -112,22 +112,7 @@ export default function SettingsPage() {
             {/* GENERAL */}
             {activeTab === 'general' && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-                <Section title="Scraping Configuration" desc="Control how the extraction engine behaves">
-                  <div className="space-y-5">
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">
-                        Search Radius: <span className="text-violet-600">{searchRadius} km</span>
-                      </label>
-                      <p className="text-xs text-gray-400 mb-3">0 = exact city only. Higher values expand the geographic boundary for map searches.</p>
-                      <input type="range" min="0" max="100" step="10" value={searchRadius}
-                        onChange={e => setSearchRadius(Number(e.target.value))}
-                        className="w-full accent-violet-600" />
-                      <div className="flex justify-between text-xs text-gray-400 mt-1">
-                        <span>0km (Exact)</span><span>50km</span><span>100km</span>
-                      </div>
-                    </div>
-                  </div>
-                </Section>
+
 
                 <Section title="Bulk Target Injection" desc="Upload a CSV to queue multiple extraction jobs at once">
                   <div>

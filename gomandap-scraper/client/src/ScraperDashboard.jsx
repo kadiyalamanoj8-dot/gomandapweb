@@ -184,6 +184,14 @@ function VendorCard({ vendor, index, employees, onVerify, onDelete, onAssign }) 
                       <span>{vendor.operatingHours}</span>
                     </div>
                   )}
+
+                  {vendor.images && vendor.images.length > 0 && (
+                    <div className="flex overflow-x-auto gap-2 pb-2 mt-2" style={{ scrollbarWidth: 'thin' }}>
+                      {vendor.images.map((img, idx) => (
+                        <img key={idx} src={img} alt="Scraped thumbnail" className="h-20 w-auto rounded-lg object-cover border border-white/10" />
+                      ))}
+                    </div>
+                  )}
                   
                   {/* Actions */}
                   {!vendor.pushed && (
@@ -265,16 +273,62 @@ function FolderCard({ category, vendors, onClick, onExport, isActive, onSettings
           </p>
         </div>
       </div>
+      {/* ── MANUAL INTERVENTION MODAL ── */}
+      {manualIntervention && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200">
+            <div className="p-6 bg-gradient-to-r from-slate-900 to-slate-800 text-white flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                <Globe className="text-white" size={20} />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">{manualIntervention.platform} Verification</h3>
+                <p className="text-slate-300 text-sm opacity-90">Manual input required in browser</p>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-6">
+                <div className="flex gap-3">
+                  <Activity className="text-amber-500 shrink-0 mt-0.5" size={18} />
+                  <div>
+                    <p className="text-sm font-medium text-amber-900">Browser Paused</p>
+                    <p className="text-xs text-amber-700 mt-1">Please check your Chrome browser window. Solve any captchas, log in, or complete the required steps for {manualIntervention.platform}.</p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-sm text-slate-600 mb-6 font-medium text-center">Are you ready to continue scraping?</p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => handleResolveIntervention('no')}
+                  className="flex-1 px-4 py-3 bg-white border-2 border-slate-200 hover:border-red-200 hover:bg-red-50 text-slate-700 hover:text-red-600 rounded-xl font-bold transition-all"
+                >
+                  No, Abort
+                </button>
+                <button 
+                  onClick={() => handleResolveIntervention('yes')}
+                  className="flex-1 px-4 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-bold shadow-lg shadow-violet-200 transition-all flex items-center justify-center gap-2"
+                >
+                  <Check size={18} /> Yes, Continue
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
 
 function ScraperDashboard({ user, onLogout }) {
   const [vendors, setVendors] = useState([]);
+  const [outOfBoundsVendors, setOutOfBoundsVendors] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [categoryQuery, setCategoryQuery] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
+  
+  const [manualIntervention, setManualIntervention] = useState(null); // { platform: string, active: boolean }
   const [activeInput, setActiveInput] = useState(null);
   const [searchHistory, setSearchHistory] = useState(() => {
     try { return JSON.parse(localStorage.getItem('gomandap_search_history') || '[]'); } catch { return []; }
@@ -327,6 +381,15 @@ function ScraperDashboard({ user, onLogout }) {
           // Vendor event received; refresh vendor list
           fetchVendors();
         } catch (err) { /* ignore */ }
+      });
+      es.addEventListener('out-of-bounds', (e) => {
+        try { fetchVendors(); } catch (err) {}
+      });
+      es.addEventListener('intervention', (e) => {
+        try { 
+          const payload = JSON.parse(e.data);
+          setManualIntervention(payload.active ? payload : null);
+        } catch (err) {}
       });
       es.onmessage = (e) => {
         try {
@@ -631,8 +694,12 @@ function ScraperDashboard({ user, onLogout }) {
 
   async function fetchVendors() {
     try {
-      const res = await axios.get(`${API_URL}/vendors`);
-      setVendors(res.data);
+      const [vRes, oobRes] = await Promise.all([
+        axios.get(`${API_URL}/vendors`),
+        axios.get(`${API_URL}/vendors/out-of-bounds`)
+      ]);
+      setVendors(vRes.data);
+      setOutOfBoundsVendors(oobRes.data);
       setBackendConnected(true);
     } catch (error) { 
       console.error('Failed to fetch vendors', error);
@@ -689,6 +756,19 @@ function ScraperDashboard({ user, onLogout }) {
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleResolveIntervention = async (action) => {
+    if (!manualIntervention) return;
+    try {
+      await axios.post(`${API_URL}/scrape/resolve-intervention`, {
+        platform: manualIntervention.platform,
+        action
+      });
+      setManualIntervention(null);
+    } catch (err) {
+      toast.error('Failed to resolve intervention');
+    }
   };
 
   const startScrape = async (e) => {
@@ -943,6 +1023,7 @@ function ScraperDashboard({ user, onLogout }) {
     // Vendor lists (computed)
     stagingVendorsWithPhones,
     stagingVendorsNoPhones,
+    outOfBoundsVendors,
     liveVendors,
     verifiedCount,
     grouped,

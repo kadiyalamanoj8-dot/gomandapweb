@@ -67,6 +67,21 @@ function setDeps(deps) {
 }
 
 const { getSettings, updateSettings } = require('../config/settingsManager');
+const { resolveIntervention } = require('../utils/manualIntervention');
+
+router.post('/resolve-intervention', (req, res) => {
+  const { platform, action } = req.body;
+  if (!platform || !action) return res.status(400).json({ error: 'Missing platform or action' });
+  
+  const shouldContinue = action === 'yes';
+  const resolved = resolveIntervention(platform, shouldContinue);
+  
+  if (resolved) {
+    res.json({ success: true, message: `Intervention for ${platform} resolved as ${action}` });
+  } else {
+    res.status(404).json({ error: `No pending intervention for ${platform}` });
+  }
+});
 
 router.get('/settings', (req, res) => {
   const settings = getSettings();
@@ -207,6 +222,14 @@ router.get('/keywords', async (req, res) => {
 // PRE-FLIGHT GEOGRAPHIC SCOPE API
 const intelligentExtractor = require('../utils/intelligentExtractor');
 const { parseNaturalLanguageQuery } = require('../utils/queryParser');
+const geoAI = require('../utils/geoAI');
+
+router.post('/parse-location', async (req, res) => {
+  const { query } = req.body;
+  if (!query) return res.status(400).json({ error: 'Query required' });
+  const parsed = await geoAI.parseSearchQuery(query);
+  res.json(parsed);
+});
 
 router.post('/preflight', async (req, res) => {
   const { location } = req.body;
@@ -225,6 +248,49 @@ router.post('/preflight', async (req, res) => {
 });
 
 // Helper: Calculate distance in kilometers using the Haversine formula
+const fs = require('fs');
+
+// Permanent AI Geographical Memory
+const LOCATIONS_MEMORY_FILE = path.join(__dirname, '../../db/locations_memory.json');
+
+function getLocationsMemory() {
+  if (fs.existsSync(LOCATIONS_MEMORY_FILE)) {
+    try {
+      return JSON.parse(fs.readFileSync(LOCATIONS_MEMORY_FILE, 'utf-8'));
+    } catch(e) { return {}; }
+  }
+  return {};
+}
+
+function saveLocationsMemory(data) {
+  try {
+    if (!fs.existsSync(path.dirname(LOCATIONS_MEMORY_FILE))) {
+      fs.mkdirSync(path.dirname(LOCATIONS_MEMORY_FILE), { recursive: true });
+    }
+    fs.writeFileSync(LOCATIONS_MEMORY_FILE, JSON.stringify(data, null, 2));
+  } catch(e) { console.error("Failed to save locations memory:", e); }
+}
+
+async function getSubLocations(locationName) {
+  const memory = getLocationsMemory();
+  const key = locationName.toLowerCase().trim();
+  
+  if (memory[key] && memory[key].length > 0) {
+    return memory[key];
+  }
+  
+  // Not in memory, fetch it!
+  console.log(`[Geographic AI] Memory miss for "${locationName}". Learning sub-locations from AI...`);
+  const results = await intelligentExtractor.generateLocalities(locationName);
+  
+  if (results && results.length > 0) {
+    memory[key] = results;
+    saveLocationsMemory(memory);
+  }
+  
+  return results || [locationName];
+}
+
 function getDistanceKm(lat1, lon1, lat2, lon2) {
   const R = 6371; // Earth's radius in km
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -237,52 +303,70 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-function generateGridCoordinates(centerLat, centerLng, radiusKm, pointCount = 30) {
-  const coords = [{ lat: parseFloat(centerLat.toFixed(5)), lng: parseFloat(centerLng.toFixed(5)), distanceFromCenter: 0 }];
-  if (pointCount <= 1) return coords;
+// ──────────────────────────────────────────────────────────────────────────────
+// PHYLLOTAXIS GOLDEN ANGLE GRID (Best-in-class 360° coverage algorithm)
+// Uses the same math as sunflower seeds and NASA radar arrays.
+// Golden Angle ≈ 137.5077° ensures ZERO clustering and ZERO blind spots.
+// ──────────────────────────────────────────────────────────────────────────────
+function generateGridCoordinates(centerLat, centerLng, radiusKm, pointCount = 20, boundingbox = null) {
+  const GOLDEN_ANGLE_DEG = 137.50776405003785; // 360° / φ²
+  const coords = [];
 
-  const pointsToDistribute = pointCount - 1;
-  let rings = [];
-
-  if (pointsToDistribute <= 8) {
-    // Single ring
-    rings.push({ distanceRatio: 0.5, points: pointsToDistribute });
-  } else if (pointsToDistribute <= 20) {
-    // Two rings
-    const innerPoints = Math.floor(pointsToDistribute * 0.4);
-    const outerPoints = pointsToDistribute - innerPoints;
-    rings.push({ distanceRatio: 0.4, points: innerPoints });
-    rings.push({ distanceRatio: 0.8, points: outerPoints });
-  } else {
-    // Three rings
-    const innerPoints = Math.floor(pointsToDistribute * 0.2);
-    const middlePoints = Math.floor(pointsToDistribute * 0.35);
-    const outerPoints = pointsToDistribute - innerPoints - middlePoints;
-    rings.push({ distanceRatio: 0.33, points: innerPoints });
-    rings.push({ distanceRatio: 0.66, points: middlePoints });
-    rings.push({ distanceRatio: 1.0, points: outerPoints });
-  }
+  // Bounding box format from Nominatim: [south, north, west, east]
+  let minLat, maxLat, minLng, maxLng;
+  let useBoundary = false;
   
-  for (const ring of rings) {
-    const ringDistance = radiusKm * ring.distanceRatio;
-    const angleStep = 360 / ring.points;
-    
-    for (let i = 0; i < ring.points; i++) {
-      const angle = i * angleStep;
-      const angleRad = angle * Math.PI / 180;
-      
-      const ptLat = centerLat + (ringDistance * Math.cos(angleRad)) / 111;
-      const ptLng = centerLng + (ringDistance * Math.sin(angleRad)) / (111 * Math.cos(centerLat * Math.PI / 180));
-      
-      coords.push({
-        lat: parseFloat(ptLat.toFixed(5)),
-        lng: parseFloat(ptLng.toFixed(5)),
-        distanceFromCenter: parseFloat(ringDistance.toFixed(2))
-      });
-    }
+  if (boundingbox && boundingbox.length === 4 && radiusKm >= 100) {
+    minLat = boundingbox[0];
+    maxLat = boundingbox[1];
+    minLng = boundingbox[2];
+    maxLng = boundingbox[3];
+    useBoundary = true;
+    addLog(`[Grid Generator] Advanced Mode: Constraining ${pointCount} points strictly within Bounding Box [${minLat}, ${maxLat}, ${minLng}, ${maxLng}]`);
   }
 
-  return coords.sort((a, b) => a.distanceFromCenter - b.distanceFromCenter);
+  // Point 0: always the search center
+  coords.push({
+    lat: parseFloat(centerLat.toFixed(6)),
+    lng: parseFloat(centerLng.toFixed(6)),
+    distanceFromCenter: 0,
+    ring: 0,
+    angle: 0
+  });
+
+  const totalOuterPoints = Math.max(pointCount - 1, 1);
+
+  for (let i = 1; i <= totalOuterPoints; i++) {
+    // Phyllotaxis formula: uniform spiral outward
+    const t = i / totalOuterPoints;
+    const distKm = Math.sqrt(t) * radiusKm; // √t gives inner-dense, outer-sparse
+    const angleDeg = i * GOLDEN_ANGLE_DEG;
+    const angleRad = (angleDeg % 360) * Math.PI / 180;
+
+    // Convert polar → geographic lat/lng
+    const ptLat = centerLat + (distKm * Math.cos(angleRad)) / 111.0;
+    const ptLng = centerLng + (distKm * Math.sin(angleRad)) / (111.0 * Math.cos(centerLat * Math.PI / 180));
+
+    // Advanced: If bounding box exists, discard points outside the district!
+    if (useBoundary) {
+      if (ptLat < minLat || ptLat > maxLat || ptLng < minLng || ptLng > maxLng) {
+        continue; // Skip this point, it's outside the district!
+      }
+    }
+
+    // Determine which concentric ring this point belongs to (for UI coloring)
+    const ring = t < 0.34 ? 1 : t < 0.67 ? 2 : 3;
+
+    coords.push({
+      lat: parseFloat(ptLat.toFixed(6)),
+      lng: parseFloat(ptLng.toFixed(6)),
+      distanceFromCenter: parseFloat(distKm.toFixed(2)),
+      ring,
+      angle: parseFloat((angleDeg % 360).toFixed(1))
+    });
+  }
+
+  return coords;
 }
 
 // STOP SCRAPING API
@@ -306,6 +390,7 @@ router.post('/omni', async (req, res) => {
   const exactQuery = query;
   const matchedCategory = category || query; 
   let baseLocation = location || ""; 
+  const strategy = req.body.strategy || 'mandal'; // ALWAYS default to AI Location Intelligence
 
   // Reset Abort Signal for fresh run
   globalAbortSignal.aborted = false;
@@ -317,61 +402,137 @@ router.post('/omni', async (req, res) => {
   try {
     let googleMapsJobsDispatched = false;
 
-    // Resolve Highly Accurate Location via Ola Maps API for center
-    let centerGeocoded = null;
-    if (baseLocation) {
-      centerGeocoded = await geocodeLocation(baseLocation);
-    }
+    // 1. RESOLVE LOCATIONS (Support State -> District -> Mandal Expansion)
+    let centerLocations = [];
+    let allGridCoords = [];
+    const bl = baseLocation.toLowerCase();
 
-    // RADIUS JUMPING FOR ALL ENGINES
-    if (radius && parseInt(radius) > 0 && centerGeocoded && centerGeocoded.lat) {
-      addLog(`[Radius Jumping] Center geocoded: ${centerGeocoded.formattedLocation} (${centerGeocoded.lat}, ${centerGeocoded.lng})`);
-      const density = gridDensity ? parseInt(gridDensity) : 30;
-      const gridCoords = generateGridCoordinates(centerGeocoded.lat, centerGeocoded.lng, parseInt(radius), density);
-      addLog(`[Radius Jumping] Generated ${gridCoords.length} grid viewports covering ${radius}km radius.`);
+    if (strategy === 'mandal' || strategy === 'full') {
+      let targets = [];
       
-      // Emit the grid coordinates to the frontend to visualize them on the map
-      try { emitGridEvent(gridCoords); } catch (e) {}
+      // Fully Dynamic AI Semantic Expansion
+      addLog(`[Hyper-Local AI] Analyzing geographical scope for: ${baseLocation}`);
+      const initialBreakdown = await getSubLocations(baseLocation);
       
-      // Give the user 2 seconds to view the grid points on the map
-      addLog(`[Radius Jumping] Plotting grid points on map. Starting jobs in 2 seconds...`);
-      await new Promise(r => setTimeout(r, 2000));
+      if (initialBreakdown.length === 1 && initialBreakdown[0].toLowerCase() === baseLocation.toLowerCase()) {
+         addLog(`[Hyper-Local AI] '${baseLocation}' is already highly specific. Searching directly.`);
+         targets.push(baseLocation);
+      } else {
+         addLog(`[Hyper-Local AI] '${baseLocation}' expanded into ${initialBreakdown.length} sub-regions. Diving deeper into each...`);
+         
+         if (strategy === 'full') {
+           // For each sub-region (e.g. Mandal or City), dive ONE level deeper to get Villages/Colonies
+           for (const subRegion of initialBreakdown) {
+              addLog(`[Hyper-Local AI] Learning villages/colonies for: ${subRegion}...`);
+              const deepLocalities = await getSubLocations(`${subRegion}, ${baseLocation}`);
+              
+              // Format semantic strings targeting the local area precisely
+              if (deepLocalities.length === 1 && deepLocalities[0].toLowerCase() === `${subRegion}, ${baseLocation}`.toLowerCase()) {
+                  targets.push(`${subRegion}, ${baseLocation}`);
+              } else {
+                  for (const loc of deepLocalities) {
+                     targets.push(`${loc}, ${subRegion}, ${baseLocation}`);
+                  }
+              }
+           }
+         } else {
+           // Strategy is 'mandal' - stop at the Mandal level to save time
+           for (const subRegion of initialBreakdown) {
+              targets.push(`${subRegion}, ${baseLocation}`);
+           }
+         }
+      }
       
-      // Distribute jobs sequentially per coordinate to avoid overloading
-      for (const coord of gridCoords) {
-        const accurateLocation = `${baseLocation} (@${coord.lat},${coord.lng})`;
-        const meta = { lat: coord.lat, lng: coord.lng, locationName: accurateLocation };
+      addLog(`[Hyper-Local AI] Master expansion complete! Generated ${targets.length} highly-targeted semantic localities to search sequentially.`);
 
-        if (activeEngines.includes('maps') || activeEngines.includes('google')) {
-          const searchString = `${matchedCategory} near ${coord.lat},${coord.lng}`;
-          const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}/@${coord.lat},${coord.lng},14z`;
-          addLog(`[Radius Jumping] Dispatching 360-dense query at distance ${coord.distanceFromCenter}km: ${searchUrl}`);
-          await addScrapeJob('scrapeGooglePlaces', [searchUrl, matchedCategory, accurateLocation, sessionId, centerGeocoded.lat, centerGeocoded.lng, parseInt(radius)], 10, meta);
-        }
-
-        if (activeEngines.includes('google-web')) {
-          const searchString = `${matchedCategory} near ${coord.lat},${coord.lng}`;
-          addLog(`[Radius Jumping] Dispatching Universal Web Search at distance ${coord.distanceFromCenter}km for: ${searchString}`);
-          await addScrapeJob('scrapeGoogleSerp', [searchString, matchedCategory, accurateLocation]);
-        }
-
-        if (activeEngines.includes('justdial')) {
-          addLog(`[Radius Jumping] Dispatching JustDial Search at distance ${coord.distanceFromCenter}km`);
-          await addScrapeJob('scrapeJustDial', [matchedCategory, accurateLocation]);
-        }
-
-        if (activeEngines.includes('weddingbazaar')) {
-          addLog(`[Radius Jumping] Dispatching WeddingBazaar Search at distance ${coord.distanceFromCenter}km`);
-          await addScrapeJob('scrapeWeddingBazaar', [matchedCategory, accurateLocation]);
-        }
-
-        if (activeEngines.includes('indiamart')) {
-          addLog(`[Radius Jumping] Dispatching IndiaMart Stealth Search at distance ${coord.distanceFromCenter}km`);
-          await addScrapeJob('scrapePuppeteerIndiaMart', [matchedCategory, accurateLocation]);
+      // Geocode all targets and treat each ONE as a SINGLE grid point to prevent freezing map
+      for (const t of targets) {
+        addLog(`[Mandal Expansion] Resolving coordinates for: ${t}`);
+        const geo = await geocodeLocation(t);
+        if (geo && geo.lat) {
+          allGridCoords.push({
+            lat: parseFloat(geo.lat.toFixed(6)),
+            lng: parseFloat(geo.lng.toFixed(6)),
+            distanceFromCenter: 0,
+            ring: 0,
+            angle: 0,
+            centerLoc: t
+          });
+          // Also add to centerLocations for JustDial grouping later
+          centerLocations.push({ ...geo, queryLoc: t });
         }
       }
-      googleMapsJobsDispatched = true;
+    } else {
+      // Normal Single Target
+      if (baseLocation) {
+        const geo = await geocodeLocation(baseLocation);
+        if (geo && geo.lat) centerLocations.push({ ...geo, queryLoc: baseLocation });
+      }
     }
+
+    // RADIUS JUMPING FOR ALL RESOLVED CENTERS (Only if strategy isn't mandal)
+    if (strategy !== 'mandal' && centerLocations.length > 0 && radius && parseInt(radius) > 0) {
+      const density = gridDensity ? parseInt(gridDensity) : 30;
+      for (const center of centerLocations) {
+        addLog(`[Radius Jumping] Center geocoded: ${center.formattedLocation} (${center.lat}, ${center.lng})`);
+        const gridCoords = generateGridCoordinates(center.lat, center.lng, parseInt(radius), density, center.boundingbox);
+        gridCoords.forEach(c => allGridCoords.push({ ...c, centerLoc: center.queryLoc }));
+      }
+    }
+
+    if (allGridCoords.length > 0) {
+        addLog(`[Grid Generator] Generated ${allGridCoords.length} total search points.`);
+      
+        // Emit the grid coordinates to the frontend to visualize them on the map
+        try { emitGridEvent(allGridCoords); } catch (e) {}
+        
+        // Give the user 2 seconds to view the grid points on the map
+        addLog(`[Radius Jumping] Plotting grid points on map. Starting jobs in 2 seconds...`);
+        await new Promise(r => setTimeout(r, 2000));
+        
+        // Distribute jobs sequentially per coordinate to avoid overloading
+        for (const coord of allGridCoords) {
+          const accurateLocation = coord.centerLoc;
+          const meta = { lat: coord.lat, lng: coord.lng, locationName: accurateLocation };
+
+          if (activeEngines.includes('maps') || activeEngines.includes('google')) {
+            let searchString;
+            if (strategy === 'mandal') {
+              // Hyper-Local Strategy: Strict semantic match WITHOUT coordinates forcing Google's hand.
+              searchString = `${matchedCategory} in ${accurateLocation}`;
+              // DO NOT pass coordinates or radius for 'mandal' strategy to ensure semantic keyword parsing
+              addLog(`[Hyper-Local] Dispatching STRICT SEMANTIC query: ${searchString}`);
+              const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}`;
+              await addScrapeJob('scrapeGooglePlaces', [searchUrl, matchedCategory, accurateLocation, sessionId, null, null, null, strategy], 10, meta);
+            } else {
+              if (strategy === 'strict') {
+                searchString = `${matchedCategory} in ${accurateLocation} near ${coord.lat},${coord.lng}`;
+              } else {
+                searchString = `${matchedCategory} near ${coord.lat},${coord.lng}`;
+              }
+              const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}/@${coord.lat},${coord.lng},14z`;
+              addLog(`[Radius Jumping] [${strategy}] Dispatching query at distance ${coord.distanceFromCenter}km from ${accurateLocation}`);
+              await addScrapeJob('scrapeGooglePlaces', [searchUrl, matchedCategory, accurateLocation, sessionId, coord.lat, coord.lng, parseInt(radius), strategy], 10, meta);
+            }
+          }
+
+          if (activeEngines.includes('google-web')) {
+            const searchString = `${matchedCategory} in ${accurateLocation}`;
+            addLog(`[Radius Jumping] Dispatching Universal Web Search for: ${searchString}`);
+            await addScrapeJob('scrapeGoogleSerp', [searchString, matchedCategory, accurateLocation]);
+          }
+        }
+
+        // Dispatch JustDial ONCE per unique baseLocation/District (It ignores coordinates anyway)
+        if (activeEngines.includes('justdial')) {
+          const uniqueLocs = [...new Set(centerLocations.map(c => c.queryLoc))];
+          for (const loc of uniqueLocs) {
+            addLog(`[Radius Jumping] Dispatching JustDial Search globally for ${loc}`);
+            await addScrapeJob('scrapeJustDial', [matchedCategory, loc]);
+          }
+        }
+        googleMapsJobsDispatched = true;
+      }
 
     // FALLBACKS & SINGLE RUNS (If Grid Search didn't trigger)
     if (!googleMapsJobsDispatched) {
@@ -402,75 +563,14 @@ router.post('/omni', async (req, res) => {
       }
 
       if (activeEngines.includes('justdial')) {
-        addLog(`[JustDial] Dispatching Background JS Engine for: "${matchedCategory} in ${baseLocation || 'India'}"`);
-        await addScrapeJob('scrapeJustDial', [matchedCategory, baseLocation || 'India']);
-      }
-
-      if (activeEngines.includes('weddingbazaar')) {
-        addLog(`[WeddingBazaar] Dispatching Background JS Engine for: "${matchedCategory} in ${baseLocation || 'India'}"`);
-        await addScrapeJob('scrapeWeddingBazaar', [matchedCategory, baseLocation || 'India']);
+        addLog(`[Radius Jumping] Dispatching JustDial Search globally for ${baseLocation}`);
+        await addScrapeJob('scrapeJustDial', [matchedCategory, baseLocation]);
       }
 
       if (activeEngines.includes('indiamart')) {
-        addLog(`[IndiaMart Stealth] Dispatching Engine for: "${matchedCategory} in ${baseLocation || 'India'}"`);
-        await addScrapeJob('scrapePuppeteerIndiaMart', [matchedCategory, baseLocation || 'India']);
+        addLog(`[Manual Login Engine] Dispatching Native IndiaMart Scraper for ${matchedCategory} in ${baseLocation}`);
+        await addScrapeJob('scrapePuppeteerIndiaMart', [matchedCategory, baseLocation]);
       }
-
-      if (activeEngines.includes('scrapy')) {
-        addLog(`[Scrapy Engine] Dispatching Python Spider for: "${matchedCategory} in ${baseLocation || 'India'}"`);
-        await addScrapeJob('scrapeScrapySpider', [matchedCategory, baseLocation || 'India']);
-      }
-    }
-
-    // DeepSeek AI Scraper (uses AI text expansion of town names)
-    if (activeEngines.includes('deepseek-ai')) {
-      let textLocations = [baseLocation || exactQuery];
-      if (radius && parseInt(radius) > 0 && baseLocation) {
-        addLog(`[AI Location Expansion] Finding nearby towns within ${radius}km for DeepSeek...`);
-        const nearby = await intelligentExtractor.generateNearbyLocations(baseLocation, parseInt(radius));
-        if (nearby && nearby.length > 0) {
-          textLocations = nearby;
-        }
-      }
-      
-      for (const loc of textLocations) {
-        let searchStr = exactQuery;
-        if (loc !== baseLocation && loc !== exactQuery && category) searchStr = `${category} in ${loc}`;
-        else if (loc !== baseLocation && loc !== exactQuery && !category) searchStr = `${exactQuery} in ${loc}`;
-        addLog(`[DeepSeek AI] Dispatching job for: "${searchStr}"`);
-        await addScrapeJob('scrapeDeepseekAI', [searchStr, matchedCategory, loc]);
-      }
-    }
-
-    // Social Media Dorks (Instagram, Facebook, LinkedIn) - Handled distinctly by python
-    const socialPlatforms = ['instagram', 'facebook', 'linkedin'].filter(p => activeEngines.includes(p));
-    if (socialPlatforms.length > 0) {
-      addLog(`[Social Engines] Dispatching Python Social Dork for: ${socialPlatforms.join(', ')}`);
-      for (const platform of socialPlatforms) {
-        const dorkStr = `site:${platform}.com ${matchedCategory} in ${baseLocation || 'India'}`;
-        const pythonScript = require('path').join(__dirname, '../scrapers/engine-python-social.py');
-        const safeQuery = dorkStr.replace(/"/g, '\\"');
-        const safeLoc = (baseLocation || 'India').replace(/"/g, '\\"');
-        const apiKey = settings.nvidiaApiKey || 'none';
-        
-        require('child_process').exec(`python "${pythonScript}" --query "${safeQuery}" --category "${matchedCategory}" --location "${safeLoc}" --apikey "${apiKey}"`, (error, stdout, stderr) => {
-          if (!error && stdout.trim()) addLog(`[Python Social Engine] Finished: ${stdout.trim()}`);
-        });
-      }
-    }
-
-    // Python Engine (Google Maps Default Fallback)
-    if (activeEngines.includes('python')) {
-      const searchStr = `${matchedCategory} in ${baseLocation || 'India'}`;
-      addLog(`[Python Engine] Triggering background Maps script for: "${searchStr}"`);
-      const pythonScript = require('path').join(__dirname, '../scrapers/engine-python.py');
-      const safeQuery = matchedCategory.replace(/"/g, '\\"');
-      const safeLoc = (baseLocation || '').replace(/"/g, '\\"');
-      const apiKey = settings.nvidiaApiKey || 'none';
-      
-      require('child_process').exec(`python "${pythonScript}" --query "${safeQuery}" --category "${matchedCategory}" --location "${safeLoc}" --apikey "${apiKey}"`, (error, stdout, stderr) => {
-        if (!error && stdout.trim()) addLog(`[Python Engine] Finished: ${stdout.trim()}`);
-      });
     }
 
   } catch (err) {

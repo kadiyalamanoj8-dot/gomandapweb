@@ -19,9 +19,8 @@ function registerTask(name, fn) {
 const memoryQueue = [];
 let isProcessing = false;
 let activeCount = 0;
-const os = require('os');
-// High CPU utilization (12 instances) to maximize speed without crashing Playwright/network
-const CONCURRENCY = 12; // Stable God Mode speed
+// Capped at 1 for ultra-stable sequential scraping as requested by the user
+const CONCURRENCY = 1;
 
 async function processQueue() {
   if (isProcessing) return;
@@ -71,7 +70,15 @@ async function processJob(job, instanceId) {
   }
 
   try {
-    await fn(...args);
+    const timeoutMs = 180000; // 3 minutes hard limit
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(`Job timed out after ${timeoutMs}ms`)), timeoutMs);
+    });
+
+    await Promise.race([
+      fn(...args),
+      timeoutPromise
+    ]);
     globalDeps.logger(`[Instance-${instanceId}] Job ${taskName} completed successfully.`);
   } catch (err) {
     globalDeps.logger(`[Instance-${instanceId} Error] ${taskName} failed: ${err.message}`);

@@ -1,6 +1,8 @@
 const cheerio = require('cheerio');
 const axios = require('axios');
+const path = require('path');
 const dbAdapter = require('../config/dbAdapter');
+const geoAI = require('../utils/geoAI');
 const { getBrowser, chromium } = require('./browserFactory');
 const { verifyWithAI } = require('../utils/aiParser');
 
@@ -99,48 +101,6 @@ async function scrapeWebsiteForSocials(browser, url, vendorName) {
       if (validIg) instagram = validIg.replace(/["'\\]/g, '');
     }
 
-    if (!facebook) {
-      const rawFbMatch = html.match(/https:\/\/(www\.)?facebook\.com\/[a-zA-Z0-9._-]+/gi) || [];
-      const validFb = rawFbMatch.find(l => !l.includes('/sharer') && !l.includes('/dialog'));
-      if (validFb) facebook = validFb.replace(/["'\\]/g, '');
-    }
-
-    let instagramFollowers = '';
-    let facebookFollowers = '';
-
-    if (instagram) {
-      try {
-        const igRes = await axiosWithProxy(instagram, { timeout: 4000, headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)' } }, 2);
-        const igHtml = igRes && igRes.data ? igRes.data : igRes;
-        const igMeta = cheerio.load(igHtml)('meta[property="og:description"]').attr('content');
-        if (igMeta) {
-          const match = igMeta.match(/([\d.,]+[KkMm]?)\s+Followers/i);
-          if (match) {
-            instagramFollowers = match[1];
-            addLog(`[Deep Scrape] Found Instagram for ${vendorName || 'vendor'}: ${instagramFollowers} Followers`);
-          }
-        }
-      } catch (e) {}
-    }
-
-    if (facebook) {
-      try {
-        // Prefer mbasic Facebook for lightweight HTML
-        let fbUrl = facebook;
-        try { const _u = new URL(fbUrl); fbUrl = `https://mbasic.facebook.com${_u.pathname}${_u.search || ''}`; } catch(e) {}
-        const fbRes = await axiosWithProxy(fbUrl, { timeout: 5000, headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)' } }, 2);
-        const fbHtml = fbRes && fbRes.data ? fbRes.data : fbRes;
-        const fbMeta = cheerio.load(fbHtml)('meta[property="og:description"]').attr('content');
-        if (fbMeta) {
-          const match = fbMeta.match(/([\d.,]+[KkMm]?)\s+(?:likes|followers)/i);
-          if (match) {
-            facebookFollowers = match[1];
-            addLog(`[Deep Scrape] Found Facebook for ${vendorName || 'vendor'}: ${facebookFollowers}`);
-          }
-        }
-      } catch (e) {}
-    }
-
     const images = [];
     try {
       const ogImg = $('meta[property="og:image"]').attr('content');
@@ -156,10 +116,10 @@ async function scrapeWebsiteForSocials(browser, url, vendorName) {
     return {
       email: validEmails.length > 0 ? validEmails[0] : '',
       phone: validPhones.length > 0 ? validPhones[0] : '',
-      instagram,
-      facebook,
-      instagramFollowers,
-      facebookFollowers,
+      instagram: '',
+      facebook: '',
+      instagramFollowers: '',
+      facebookFollowers: '',
       images
     };
   } catch (err) {
@@ -196,7 +156,7 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "legacy", centerLat = null, centerLng = null, radiusKm = null) {
+async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "legacy", centerLat = null, centerLng = null, radiusKm = null, strategy = 'broad') {
   addLog(`Starting Google Maps browser scrape for exact match: "${exactQuery}"`);
 
   // If Playwright not available (production/Render), skip browser scraping
@@ -309,15 +269,32 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
 
       const combinedText = `${name} ${address}`;
       
-      // NO BOUNDARY OR LOCATION FILTERING - Save everything!
+      const coords = extractCoords(page.url());
+      if (centerLat !== null && centerLng !== null && radiusKm !== null && coords && strategy === 'strict') {
+        const distance = getDistanceKm(centerLat, centerLng, coords.lat, coords.lng);
+        if (distance > radiusKm) {
+          addLog(`[Boundary Filter] Saving '${name}' to Out of Bounds Folder (${distance.toFixed(1)}km > ${radiusKm}km limit)`);
+          
+          const leadScore = calculateLeadScore({ name, address, phone: null, rating: null });
+          const oobLead = {
+            id: 'place_' + Date.now().toString() + Math.random().toString(36).substring(7),
+            name, category, city: location || 'Global', address: address || '', 
+            phone: '', rating: '', mapsLink: page.url(), 
+            latitude: coords.lat, longitude: coords.lng, source: 'Google Maps (Out of Bounds)',
+            outOfBoundsDistance: distance.toFixed(1)
+          };
+          dbAdapter.saveOutOfBoundsVendor(oobLead);
+          try { emitVendorEvent(oobLead, 'out-of-bounds'); } catch (e) {}
+          return;
+        }
+      }
+
       const mapsLink = page.url();
         const id = 'place_' + Date.now().toString() + Math.random().toString(36).substring(7);
 
         const pincodeMatch = address ? address.match(/\b\d{6}\b/) : null;
         const pincode = pincodeMatch ? pincodeMatch[0] : '';
         
-        const coords = extractCoords(mapsLink);
-
         // Read local database
         const vendors = dbAdapter.getVendors();
         const existingIndex = vendors.findIndex(v => v.mapsLink === mapsLink || v.name === name);
@@ -371,8 +348,9 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
           if (globalAbortSignal.aborted) throw new Error('Master Stop Aborted');
           await scrollable.evaluate(node => node.scrollBy(0, 10000));
           await page.waitForTimeout(150); // Ultra-fast hardware scroll speed
+          await page.waitForTimeout(150); // Ultra-fast hardware scroll speed
           const currentCount = await page.locator('a.hfpxzc').count();
-          if (currentCount >= 65) {
+          if (currentCount >= 120) {
             addLog(`Reached ${currentCount} cards quickly, stopping scroll.`);
             break;
           }
@@ -439,16 +417,34 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
               }
             } catch (err) {}
 
-            // Fix: Use .first() to prevent Playwright Strict Mode violation, and support multiple common selectors
-            const phoneEl = page.locator('button[data-item-id^="phone:tel:"], [aria-label^="Phone:"], [aria-label^="phone:"], [data-tooltip*="phone"]').first();
+            // Fix: Check for all possible phone selectors and extract the exact tel: link if available
+            const phoneEls = await page.locator('button[data-item-id^="phone:tel:"], button[data-tooltip*="phone"], button[aria-label^="Phone:"], button[aria-label^="phone:"]').all();
+            
             try {
-              if (await phoneEl.count() > 0) {
-                let rawPhone = await phoneEl.getAttribute('aria-label', { timeout: 1000 });
-                if (!rawPhone) {
-                    // Fallback to text content if aria-label is missing
-                    rawPhone = await phoneEl.innerText({ timeout: 1000 });
+              if (phoneEls.length > 0) {
+                // Try to find one with data-item-id="phone:tel:..."
+                for (const el of phoneEls) {
+                  const dataId = await el.getAttribute('data-item-id', { timeout: 1000 }).catch(() => null);
+                  if (dataId && dataId.startsWith('phone:tel:')) {
+                    phone = dataId.replace('phone:tel:', '').trim();
+                    break;
+                  }
                 }
-                phone = rawPhone ? rawPhone.replace(/^Phone:\s*/i, '').trim() : '';
+                
+                // Fallback to aria-label
+                if (!phone) {
+                  const rawPhone = await phoneEls[0].getAttribute('aria-label', { timeout: 1000 }).catch(() => null);
+                  phone = rawPhone ? rawPhone.replace(/^Phone:\s*/i, '').trim() : '';
+                }
+
+                // Fallback to innerText
+                if (!phone) {
+                  const rawText = await phoneEls[0].innerText({ timeout: 1000 }).catch(() => null);
+                  if (rawText && rawText.match(/\d{4}/)) {
+                    phone = rawText.trim();
+                  }
+                }
+
                 if (phone) addLog(`[Extracted] Phone for ${name}: ${phone}`);
               }
             } catch (err) {
@@ -498,8 +494,6 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
                      let existing = currentVendors[vIdx];
                      let updated = false;
                      if (data.email) { existing.email = data.email; updated = true; }
-                     if (data.instagram) { existing.instagram = data.instagram; existing.instagramFollowers = data.instagramFollowers; updated = true; }
-                     if (data.facebook) { existing.facebook = data.facebook; existing.facebookFollowers = data.facebookFollowers; updated = true; }
                      if (data.phone && (!existing.phone || existing.phone.includes('Requires'))) { existing.phone = data.phone; updated = true; }
                      if (updated) {
                        dbAdapter.saveVendors(currentVendors);
@@ -536,8 +530,30 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
 
             // STREAMING INSERTION TO DB
             const combinedText = `${place.name} ${place.address} ${place.operatingHours}`;
-            
-            // NO BOUNDARY OR LOCATION FILTERING - Save everything!
+
+            // Apply boundary filter ONLY if strategy is strict
+            if (centerLat !== null && centerLng !== null && radiusKm !== null && place.latitude && place.longitude && strategy === 'strict') {
+              const distance = getDistanceKm(centerLat, centerLng, place.latitude, place.longitude);
+              if (distance > radiusKm) {
+                addLog(`[Boundary Filter] Saving '${place.name}' to Out of Bounds Folder (${distance.toFixed(1)}km > ${radiusKm}km limit)`);
+                place.outOfBoundsDistance = distance.toFixed(1);
+                place.source = 'Google Maps (Out of Bounds)';
+                dbAdapter.saveOutOfBoundsVendor(place);
+                continue;
+              }
+            }
+
+            // Strict Address Text Filter (Bypass if Broad Strategy)
+            if (strategy === 'strict') {
+              const cleanCityName = location ? location.split(' (@')[0].trim().toLowerCase() : '';
+              if (place.address && cleanCityName) {
+                const addrLower = place.address.toLowerCase();
+                if (!addrLower.includes(cleanCityName)) {
+                  addLog(`[Strict Filter] Discarding '${place.name}' - Address does not contain '${cleanCityName}'`);
+                  continue;
+                }
+              }
+            }
 
             const pincodeMatch = place.address ? place.address.match(/\b\d{6}\b/) : null;
             const pincode = pincodeMatch ? pincodeMatch[0] : '';
@@ -563,6 +579,20 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
               place.verified = false;
               place.scrapedAt = new Date().toISOString();
               place.sessionId = sessionId;
+              place.strategy = strategy; // Store strategy so UI knows how to group folders
+              
+              // Apply GeoAI reverse geocoding for deep location folders
+              if (place.latitude && place.longitude) {
+                try {
+                  const locationInfo = await geoAI.reverseGeocode(place.latitude, place.longitude);
+                  if (locationInfo) {
+                    place.village = locationInfo.village;
+                    place.mandal = locationInfo.mandal;
+                    place.district = locationInfo.district;
+                    place.state = locationInfo.state;
+                  }
+                } catch(e) { }
+              }
               
               vendors.push(place);
               dbAdapter.saveVendors(vendors);

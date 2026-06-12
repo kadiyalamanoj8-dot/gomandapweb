@@ -3,11 +3,13 @@ const path = require('path');
 
 const dataDir = path.join(__dirname, '../../data');
 const vendorsFile = path.join(dataDir, 'scraped_vendors.json');
+const outOfBoundsFile = path.join(dataDir, 'out_of_bounds.json');
 const usersFile = path.join(dataDir, 'users.json');
 
 // Ensure files exist
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 if (!fs.existsSync(vendorsFile)) fs.writeFileSync(vendorsFile, JSON.stringify([]));
+if (!fs.existsSync(outOfBoundsFile)) fs.writeFileSync(outOfBoundsFile, JSON.stringify([]));
 if (!fs.existsSync(usersFile)) {
   // Default Admin User for testing the SaaS
   const defaultUsers = [{
@@ -68,6 +70,30 @@ function saveVendors(data) {
   fs.writeFileSync(vendorsFile, JSON.stringify(data, null, 2));
 }
 
+// --- OUT OF BOUNDS ---
+function getOutOfBounds() {
+  try { return JSON.parse(fs.readFileSync(outOfBoundsFile, 'utf-8')); } catch (e) { return []; }
+}
+function saveOutOfBounds(data) { fs.writeFileSync(outOfBoundsFile, JSON.stringify(data, null, 2)); }
+function saveOutOfBoundsVendor(vendor) {
+  const all = getOutOfBounds();
+  // Deduplicate by ID, MapsLink, or exact Name to prevent duplicates during grid scraping
+  const idx = all.findIndex(v => 
+    v.id === vendor.id || 
+    (v.mapsLink && vendor.mapsLink && v.mapsLink === vendor.mapsLink) || 
+    (v.name && vendor.name && v.name === vendor.name)
+  );
+  
+  if (idx !== -1) {
+    // Preserve the original ID so UI updates work correctly
+    vendor.id = all[idx].id;
+    all[idx] = { ...all[idx], ...vendor };
+  } else {
+    all.push(vendor);
+  }
+  fs.writeFileSync(outOfBoundsFile, JSON.stringify(all, null, 2));
+}
+
 // --- EMPLOYEES (Legacy Support) ---
 const employeesFile = path.join(dataDir, 'employees.json');
 if (!fs.existsSync(employeesFile)) fs.writeFileSync(employeesFile, JSON.stringify([]));
@@ -97,5 +123,8 @@ module.exports = {
   getEmployees,
   saveEmployees,
   getPublicUsers,
-  savePublicUsers
+  savePublicUsers,
+  getOutOfBounds,
+  saveOutOfBounds,
+  saveOutOfBoundsVendor
 };

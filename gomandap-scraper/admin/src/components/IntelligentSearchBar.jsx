@@ -336,16 +336,19 @@ export default function IntelligentSearchBar({
           </button>
         )}
         <div className="absolute right-2 flex items-center gap-2 z-20">
-          <select
-            value={searchRadius}
-            onChange={(e) => setSearchRadius(Number(e.target.value))}
-            className="bg-white/5 text-white/70 text-sm py-1.5 px-2 rounded-md border border-white/10 focus:outline-none focus:border-white/30 appearance-none cursor-pointer"
-          >
-            <option value={0}>Exact City</option>
-            <option value={20}>+20km Radius</option>
-            <option value={50}>+50km Radius</option>
-            <option value={100}>+100km Radius</option>
-          </select>
+          <div className="flex flex-col items-center gap-0.5">
+            <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest leading-none">{searchRadius}km</span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="5"
+              value={searchRadius}
+              onChange={(e) => setSearchRadius(Number(e.target.value))}
+              className="w-20 h-1 rounded-lg appearance-none cursor-pointer accent-cyan-400 bg-white/10"
+              title={`Search Radius: ${searchRadius}km`}
+            />
+          </div>
           <button
             type="submit"
             className={`p-2.5 rounded-lg transition-colors shadow-sm ${loading ? "bg-white/10 text-white/30 cursor-not-allowed" : "bg-white text-black hover:bg-white/90"}`}

@@ -202,6 +202,31 @@ router.post('/deep-extract', async (req, res) => {
   }
 });
 
+// 7. Public: Trigger a Demo Scrape
+router.post('/demo-scrape', async (req, res) => {
+  try {
+    const { category, location, radius, density, strategy } = req.body;
+    if (!category || !location) return res.status(400).json({ error: 'Missing category or location' });
+
+    const { addScrapeJob } = require('../utils/queue');
+    const searchString = `${category} in ${location}`;
+    const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}`;
+    const sessionId = `demo_${Date.now()}`;
+    
+    console.log(`[Public Demo] Starting live AI scrape for: ${searchString} | Strategy: ${strategy || 'mandal'} | Radius: ${radius || 15}km`);
+    
+    // addScrapeJob signature: async (type, args)
+    // For 'scrapeGooglePlaces': [url, category, location, sessionId, centerLat, centerLng, radius, strategy]
+    // The scraper internally uses grid density inside the worker if strategy is broad/strict.
+    // For now we pass radius and strategy.
+    await addScrapeJob('scrapeGooglePlaces', [searchUrl, category, location, sessionId, null, null, radius || 15, strategy || 'mandal']);
+    
+    res.json({ success: true, message: 'Demo scrape started successfully!', sessionId });
+  } catch (error) {
+    res.status(500).json({ error: 'Demo failed: ' + error.message });
+  }
+});
+
 // Helper to fetch and return real vendor info
 function fetchAndReturnRealVendor(vendorId, res) {
   const vendors = dbAdapter.getVendors();

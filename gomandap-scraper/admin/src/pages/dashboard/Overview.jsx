@@ -48,6 +48,7 @@ export default function OverviewPage() {
     categoryQuery, setCategoryQuery,
     locationQuery, setLocationQuery,
     activeInput, setActiveInput,
+    searchScope, setSearchScope,
     handleCategoryChange, handleLocationChange,
     triggerPython, triggerCheerio, triggerMaps,
     vendors, activeJobs, grouped, pushToProd,
@@ -150,6 +151,30 @@ export default function OverviewPage() {
           </div>
 
           <div className="p-6">
+            {/* Search Scope Toggle */}
+            <div className="mb-6 flex justify-center">
+              <div className="inline-flex bg-gray-100 p-1.5 rounded-xl">
+                {[
+                  { id: 'exact', label: 'City Only' },
+                  { id: 'mandal', label: 'Mandals Level' },
+                  { id: 'full', label: 'Full Data (Villages)' }
+                ].map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setSearchScope(s.id)}
+                    className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
+                      searchScope === s.id
+                        ? 'bg-white text-violet-600 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Search input */}
             <form onSubmit={startScrape} ref={searchContainerRef} className="relative mb-6">
               <div className={`flex flex-col md:flex-row items-center gap-0 border-2 rounded-2xl bg-gray-50 transition-all ${loading ? 'border-violet-300 bg-violet-50/30' : 'border-gray-200 focus-within:border-violet-400 focus-within:bg-white focus-within:shadow-lg focus-within:shadow-violet-50'}`}>

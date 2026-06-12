@@ -25,7 +25,9 @@ export default function OverviewPage() {
     omniQuery, setOmniQuery, searchRadius, setSearchRadius,
     enabledEngines, setEnabledEngines,
     startScrape, handleMasterStop,
-    stagingVendorsWithPhones, stagingVendorsNoPhones, liveVendors, verifiedCount,
+    stagingVendorsWithPhones, stagingVendorsNoPhones,
+    outOfBoundsVendors,
+    liveVendors, verifiedCount,
     modelLoadingStatus, suggestions, showSuggestions, setShowSuggestions,
     suggestionIndex, searchHistory, setSearchHistory,
     showDirectory, setShowDirectory, knowledge,
@@ -37,13 +39,15 @@ export default function OverviewPage() {
     triggerPython, triggerCheerio, triggerMaps
   } = useScraper();
 
-  const [showLog, setShowLog] = useState(false);
+  const [showLog, setShowLog] = useState(true);
 
   const PLATFORMS = [
     { id: 'maps', label: 'Maps & Location', icon: <MapPin size={14} />, desc: 'Google Maps & local directories' },
     { id: 'instagram', label: 'Instagram', icon: <Camera size={14} />, desc: 'Business profiles & contacts' },
     { id: 'google-web', label: 'Universal Web Search', icon: <Globe size={14} />, desc: 'Global organic web scraper' },
     { id: 'justdial', label: 'Justdial', icon: <Globe size={14} />, desc: 'India\'s top business directory' },
+    { id: 'facebook', label: 'Facebook', icon: <Briefcase size={14} />, desc: 'Manual Login FB Scraper' },
+    { id: 'indiamart', label: 'IndiaMart', icon: <Globe size={14} />, desc: 'Manual Login B2B Directory' },
     { id: 'linkedin', label: 'LinkedIn', icon: <Briefcase size={14} />, desc: 'Professional & B2B leads' },
     { id: 'firebase', label: 'Cloud Sync', icon: <Database size={14} />, desc: 'Sync with live database' },
   ];
@@ -99,6 +103,65 @@ export default function OverviewPage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-8 py-8 space-y-8">
+        {/* ── ACTIVITY LOG (Admin Only) ── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <button onClick={() => setShowLog(!showLog)}
+            className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${sseStatus === 'open' ? 'bg-green-400 animate-pulse' : sseStatus === 'connecting' ? 'bg-amber-400' : 'bg-red-400'}`} />
+                <Activity size={16} className="text-gray-500" />
+                <span className="font-bold text-gray-700">Service Activity Log</span>
+              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider
+                bg-gray-50 text-gray-400 border-gray-100">
+                Admin Only
+              </span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ${
+                sseStatus === 'open' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-500 border-red-100'
+              }`}>
+                {sseStatus?.toUpperCase()}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <select value={logLevel} onChange={e => setLogLevel(e.target.value)}
+                onClick={e => e.stopPropagation()}
+                className="text-xs bg-gray-50 border border-gray-100 rounded-lg px-2 py-1 text-gray-500 font-medium outline-none">
+                <option value="ALL">All Levels</option>
+                <option value="INFO">Info</option>
+                <option value="WARN">Warn</option>
+                <option value="ERROR">Error</option>
+                <option value="DEBUG">Debug</option>
+              </select>
+              <ChevronDown size={16} className={`text-gray-400 transition-transform ${showLog ? 'rotate-180' : ''}`} />
+            </div>
+          </button>
+
+          <AnimatePresence>
+            {showLog && (
+              <motion.div initial={{ height: 0 }} animate={{ height: 320 }} exit={{ height: 0 }}
+                className="overflow-hidden border-t border-gray-100">
+                <div ref={terminalRef} className="h-80 overflow-y-auto p-5 font-mono text-[11px] leading-loose bg-gray-950 text-gray-300"
+                  style={{ scrollbarWidth: 'thin', scrollbarColor: '#374151 transparent' }}>
+                  {logs?.length === 0
+                    ? <span className="text-gray-600">No logs yet. Start a scrape to see activity.</span>
+                    : [...(logs || [])].filter(l => !logLevel || logLevel === 'ALL' || l.includes(`[${logLevel}]`)).slice(-200).reverse().map((log, i) => {
+                        const isError = log.includes('[ERROR]');
+                        const isWarn = log.includes('[WARN]');
+                        const isInfo = log.includes('[INFO]');
+                        return (
+                          <div key={i} className={`break-words py-0.5 border-b border-gray-900 ${isError ? 'text-red-400' : isWarn ? 'text-amber-400' : isInfo ? 'text-green-400' : 'text-gray-400'}`}>
+                            <span className="text-gray-600 mr-2">{new Date().toLocaleTimeString('en-US', { hour12: false })}</span>
+                            {log}
+                          </div>
+                        );
+                      })
+                  }
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* ── STATS ROW ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -377,65 +440,7 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* ── ACTIVITY LOG (Admin Only) ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <button onClick={() => setShowLog(!showLog)}
-            className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${sseStatus === 'open' ? 'bg-green-400 animate-pulse' : sseStatus === 'connecting' ? 'bg-amber-400' : 'bg-red-400'}`} />
-                <Activity size={16} className="text-gray-500" />
-                <span className="font-bold text-gray-700">Service Activity Log</span>
-              </div>
-              <span className="text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider
-                bg-gray-50 text-gray-400 border-gray-100">
-                Admin Only
-              </span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ${
-                sseStatus === 'open' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-500 border-red-100'
-              }`}>
-                {sseStatus?.toUpperCase()}
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <select value={logLevel} onChange={e => setLogLevel(e.target.value)}
-                onClick={e => e.stopPropagation()}
-                className="text-xs bg-gray-50 border border-gray-100 rounded-lg px-2 py-1 text-gray-500 font-medium outline-none">
-                <option value="ALL">All Levels</option>
-                <option value="INFO">Info</option>
-                <option value="WARN">Warn</option>
-                <option value="ERROR">Error</option>
-                <option value="DEBUG">Debug</option>
-              </select>
-              <ChevronDown size={16} className={`text-gray-400 transition-transform ${showLog ? 'rotate-180' : ''}`} />
-            </div>
-          </button>
 
-          <AnimatePresence>
-            {showLog && (
-              <motion.div initial={{ height: 0 }} animate={{ height: 320 }} exit={{ height: 0 }}
-                className="overflow-hidden border-t border-gray-100">
-                <div ref={terminalRef} className="h-80 overflow-y-auto p-5 font-mono text-[11px] leading-loose bg-gray-950 text-gray-300"
-                  style={{ scrollbarWidth: 'thin', scrollbarColor: '#374151 transparent' }}>
-                  {logs?.length === 0
-                    ? <span className="text-gray-600">No logs yet. Start a scrape to see activity.</span>
-                    : [...(logs || [])].filter(l => !logLevel || logLevel === 'ALL' || l.includes(`[${logLevel}]`)).slice(-200).reverse().map((log, i) => {
-                        const isError = log.includes('[ERROR]');
-                        const isWarn = log.includes('[WARN]');
-                        const isInfo = log.includes('[INFO]');
-                        return (
-                          <div key={i} className={`break-words py-0.5 border-b border-gray-900 ${isError ? 'text-red-400' : isWarn ? 'text-amber-400' : isInfo ? 'text-green-400' : 'text-gray-400'}`}>
-                            <span className="text-gray-600 mr-2">{new Date().toLocaleTimeString('en-US', { hour12: false })}</span>
-                            {log}
-                          </div>
-                        );
-                      })
-                  }
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
 
         {/* ── LIVE VENDORS FEED ── */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
@@ -450,16 +455,16 @@ export default function OverviewPage() {
           </div>
           
           <div className="space-y-3">
-            {stagingVendorsWithPhones.length === 0 && stagingVendorsNoPhones.length === 0 ? (
+            {stagingVendorsWithPhones.length === 0 && stagingVendorsNoPhones.length === 0 && outOfBoundsVendors.length === 0 ? (
               <p className="text-sm text-gray-500">No leads extracted yet. Start a scrape!</p>
             ) : (
-              [...stagingVendorsWithPhones, ...stagingVendorsNoPhones]
+              [...stagingVendorsWithPhones, ...stagingVendorsNoPhones, ...outOfBoundsVendors.map(v => ({ ...v, isOutOfBounds: true }))]
                 .sort((a, b) => new Date(b.scrapedAt || 0) - new Date(a.scrapedAt || 0))
                 .slice(0, 5) // Show top 5 recent
                 .map((v, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 rounded-xl border border-gray-50 bg-gray-50 hover:bg-white hover:shadow-sm transition-all">
+                  <div key={idx} className={`flex items-center justify-between p-3 rounded-xl border ${v.isOutOfBounds ? 'border-red-100 bg-red-50 hover:bg-red-100/50' : 'border-gray-50 bg-gray-50 hover:bg-white'} hover:shadow-sm transition-all`}>
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center font-bold">
+                      <div className={`w-8 h-8 rounded-lg ${v.isOutOfBounds ? 'bg-red-200 text-red-700' : 'bg-violet-100 text-violet-600'} flex items-center justify-center font-bold`}>
                         {v.name?.[0] || '?'}
                       </div>
                       <div>
@@ -467,11 +472,15 @@ export default function OverviewPage() {
                         <p className="text-[10px] text-gray-500">{v.category} · {v.city}</p>
                       </div>
                     </div>
-                    {v.phone && (
+                    {v.isOutOfBounds ? (
+                      <span className="px-2 py-1 bg-red-100 text-red-700 text-[10px] font-bold rounded-md flex items-center gap-1">
+                        Out of Bounds ({v.outOfBoundsDistance}km)
+                      </span>
+                    ) : v.phone ? (
                       <span className="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-md">
                         {v.phone}
                       </span>
-                    )}
+                    ) : null}
                   </div>
                 ))
             )}

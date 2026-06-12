@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Settings, LogOut, Menu, X,
-  Activity, ChevronRight, Bell, Search, Zap
+  Activity, ChevronRight, Bell, Search, Zap, MapPin
 } from 'lucide-react';
 
 export default function DashboardLayout({ user, onLogout }) {
@@ -21,6 +21,7 @@ export default function DashboardLayout({ user, onLogout }) {
     { to: '/app/leads', icon: <Users size={18} />, label: 'Leads Pipeline', desc: 'View & manage leads' },
     { to: '/app/automations', icon: <Zap size={18} />, label: 'Automations', desc: 'Workflows & phone scraper' },
     ...(isAdmin ? [
+      { to: '/app/locations', icon: <MapPin size={18} />, label: 'Location Intel', desc: 'AI Geographic Memory' },
       { to: '/app/users', icon: <Users size={18} />, label: 'Users & Credits', desc: 'Manage public marketplace users' },
       { to: '/app/settings', icon: <Settings size={18} />, label: 'Settings', desc: 'Admin configuration' }
     ] : []),

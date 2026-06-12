@@ -26,7 +26,7 @@ const STEALTH_USER_AGENTS = [
 
 const fs = require('fs');
 
-async function launchStealthBrowser(useProxy = true, executablePath = null) {
+async function launchStealthBrowser(useProxy = true, executablePath = null, isHeadless = true) {
   if (!chromium) throw new Error('Playwright Chromium not available on this server.');
 
   const userAgent = STEALTH_USER_AGENTS[Math.floor(Math.random() * STEALTH_USER_AGENTS.length)];
@@ -56,8 +56,17 @@ async function launchStealthBrowser(useProxy = true, executablePath = null) {
     '--enable-accelerated-2d-canvas'
   ];
 
+  const path = require('path');
+  const os = require('os');
+  // Use a dedicated, isolated profile for background scraping so it doesn't lock the user's main Chrome!
+  const userDataDir = path.join(os.homedir(), '.gomandap_scraper_profile_playwright');
+
+  // We DO NOT connect to the user's CDP here. 
+  // Massive grid scraping on Google Maps should happen silently in the background.
+  // Only Puppeteer engines (JustDial/IndiaMart) use the user's live CDP browser.
+  
   const launchOptions = {
-    headless: true,
+    headless: isHeadless,
     args: launchArgs,
     ...(proxyConfig ? { proxy: proxyConfig } : {})
   };
@@ -79,9 +88,11 @@ async function launchStealthBrowser(useProxy = true, executablePath = null) {
     }
   }
   
+  // Launch a standard, isolated headless browser instance.
+  // This prevents "browser has been closed" and directory locking issues under heavy concurrency.
   const browser = await chromium.launch(launchOptions);
-
-  return { browser, userAgent, fakeIP };
+  
+  return { browser, userAgent, fakeIP, isPersistent: false };
 }
 
 async function launchBraveBrowser(useProxy = true) {

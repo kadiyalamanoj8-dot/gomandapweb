@@ -270,12 +270,13 @@ function FolderCard({ category, vendors, onClick, onExport, isActive, onSettings
 }
 
 function ScraperDashboard({ user, onLogout }) {
-  const [vendors, setVendors] = useState([]);
+const [vendors, setVendors] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [categoryQuery, setCategoryQuery] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
   const [activeInput, setActiveInput] = useState(null);
+  const [searchScope, setSearchScope] = useState('full');
   const [searchHistory, setSearchHistory] = useState(() => {
     try { return JSON.parse(localStorage.getItem('gomandap_search_history') || '[]'); } catch { return []; }
   });
@@ -295,8 +296,6 @@ function ScraperDashboard({ user, onLogout }) {
   const [sseStatus, setSseStatus] = useState('disconnected'); // disconnected | connecting | open | error
   const [logLevel, setLogLevel] = useState('ALL'); // ALL | INFO | WARN | ERROR | DEBUG
   const eventSourceRef = useRef(null);
-  const [searchRadius, setSearchRadius] = useState(10);
-  const [gridDensity, setGridDensity] = useState(30);
   const [enabledEngines, setEnabledEngines] = useState(['maps', 'instagram', 'facebook', 'youtube', 'pinterest', 'linkedin']);
   
   const [activeJobs, setActiveJobs] = useState([]);
@@ -750,8 +749,7 @@ function ScraperDashboard({ user, onLogout }) {
         query: finalQuery,
         category: parsedCat,
         location: parsedLoc,
-        radius: searchRadius,
-        gridDensity: gridDensity,
+        strategy: searchScope,
         enabledEngines: enabledEngines
       });
       toast.success('Omni-scrape started! Stream processing engaged.', { icon: '🚀' });
@@ -959,8 +957,8 @@ function ScraperDashboard({ user, onLogout }) {
     categoryQuery, setCategoryQuery,
     locationQuery, setLocationQuery,
     activeInput, setActiveInput,
+    searchScope, setSearchScope,
     handleCategoryChange, handleLocationChange,
-    searchRadius, setSearchRadius,
     enabledEngines, setEnabledEngines,
     suggestions, setSuggestions,
     showSuggestions, setShowSuggestions,
@@ -1012,8 +1010,6 @@ function ScraperDashboard({ user, onLogout }) {
     searchContainerRef,
     terminalRef,
     gridPoints,
-    gridDensity,
-    setGridDensity,
     // Auth
     onLogout,
     user,

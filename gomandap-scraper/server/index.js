@@ -31,6 +31,7 @@ const vendorsRoutes = require('./src/routes/vendors');
 const employeesRoutes = require('./src/routes/employees');
 const uploadRoutes = require('./src/routes/upload');
 const publicUsersRoutes = require('./src/routes/publicUsers');
+const locationsRoutes = require('./src/routes/locations');
 
 const app = express();
 app.use(cors());
@@ -82,6 +83,16 @@ function emitGridEvent(gridCoords) {
   } catch (e) { console.error('Failed to emit grid SSE', e.message); }
 }
 
+function emitInterventionEvent(platformName, isActive) {
+  try {
+    const payload = { platform: platformName, active: isActive };
+    const safe = JSON.stringify(payload).replace(/\n/g, '\\n');
+    sseClients.forEach(res => {
+      try { res.write('event: intervention\n'); res.write(`data: ${safe}\n\n`); } catch (e) {}
+    });
+  } catch (e) { console.error('Failed to emit intervention SSE', e.message); }
+}
+
 function emitActivePointEvent(pointInfo) {
   try {
     const safe = JSON.stringify(pointInfo).replace(/\n/g, '\\n');
@@ -102,7 +113,9 @@ let globalAbortSignal = { aborted: false };
 
 // Inject dependencies into routers
 setLogGetter(() => systemLogs);
-setDeps({ logger: addLog, abortSignal: globalAbortSignal, emitVendorEvent, emitGridEvent });
+setDeps({ logger: addLog, abortSignal: globalAbortSignal, emitVendorEvent, emitGridEvent, emitActivePointEvent, emitInterventionEvent });
+const { setInterventionEmitter } = require('./src/utils/manualIntervention');
+setInterventionEmitter(emitInterventionEvent);
 
 // Apply Routes
 app.use('/api/auth', authRoutes);
@@ -112,6 +125,7 @@ app.use('/api/public', publicUsersRoutes);
 app.use('/api/vendors', vendorsRoutes);
 app.use('/api/employees', employeesRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/locations', locationsRoutes);
 
 // Log Streaming Route
 app.get('/api/logs/stream', (req, res) => {

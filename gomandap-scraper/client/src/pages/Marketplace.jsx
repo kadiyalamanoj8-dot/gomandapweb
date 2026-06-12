@@ -44,6 +44,11 @@ export default function Marketplace() {
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState([20.5937, 78.9629]); // Default India
 
+  // Live AI Demo State
+  const [liveTerminal, setLiveTerminal] = useState(false);
+  const [liveLogs, setLiveLogs] = useState([]);
+  const [demoEventSource, setDemoEventSource] = useState(null);
+
   useEffect(() => {
     fetchVendors();
   }, [category, location]);
@@ -89,6 +94,62 @@ export default function Marketplace() {
       }
     } catch (e) { alert("Failed to login/signup"); }
   };
+
+  const startLiveDemo = async () => {
+    try {
+      setLiveTerminal(true);
+      setLiveLogs(['[System] Initializing OmniLead AI Engine...', '[Geographic AI] Resolving semantic locations...']);
+      
+      const res = await axios.post(`${API_URL}/public/demo-scrape`, { category, location });
+      if (res.data.success) {
+        // Connect to SSE for live logs
+        const es = new EventSource(`${API_URL}/logs/stream`);
+        setDemoEventSource(es);
+        
+        es.onmessage = (event) => {
+          if (event.lastEventId === 'init' || event.type === 'init') return;
+          try {
+            const parsed = JSON.parse(event.data);
+            if (Array.isArray(parsed)) {
+               // Initial logs dump
+            }
+          } catch(e) {
+            // It's a raw string log
+            setLiveLogs(prev => [...prev.slice(-40), event.data]);
+          }
+        };
+
+        es.addEventListener('vendor', (event) => {
+           try {
+             const data = JSON.parse(event.data);
+             if (data.action === 'inserted' || data.action === 'updated') {
+                // Instantly show on marketplace with blurred contact
+                const newVendor = { ...data.vendor, isRevealed: false };
+                setVendors(prev => [newVendor, ...prev.filter(v => v.id !== newVendor.id)]);
+                setTotalFound(prev => prev + 1);
+                if (newVendor.latitude && newVendor.longitude) {
+                   setMapCenter([parseFloat(newVendor.latitude), parseFloat(newVendor.longitude)]);
+                }
+             }
+           } catch(e) {}
+        });
+      }
+    } catch (e) {
+      alert("Demo initialization failed: " + (e.response?.data?.error || e.message));
+      setLiveTerminal(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (demoEventSource) demoEventSource.close();
+    };
+  }, [demoEventSource]);
+
+  useEffect(() => {
+    const el = document.getElementById('demo-terminal');
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [liveLogs]);
 
   const handleReveal = async (vendor) => {
     if (!publicUser) {
@@ -172,14 +233,59 @@ export default function Marketplace() {
         
         {/* Left Pane: List */}
         <div className="w-full md:w-[55%] lg:w-[50%] flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-100">
-            <h1 className="text-2xl font-extrabold text-gray-900 leading-tight">
-              {category ? category : 'All Vendors'} {location ? `in ${location}` : ''}
-            </h1>
-            <p className="text-sm text-gray-500 mt-1 font-medium">
-              Showing top {vendors.length} results of {totalFound > 30 ? '500+' : totalFound} found
-            </p>
+          
+          {/* SaaS CTA Banner */}
+          <div className="bg-gradient-to-r from-violet-900 to-indigo-900 px-6 py-4 flex items-center justify-between shadow-inner">
+             <div className="flex items-center gap-3">
+               <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
+                 <Zap size={20} className="text-yellow-400" fill="currentColor" />
+               </div>
+               <div>
+                 <h3 className="text-white font-bold text-sm">Want to run your own extractions?</h3>
+                 <p className="text-violet-200 text-xs">Subscribe to the OmniLead AI Engine for $99/mo.</p>
+               </div>
+             </div>
+             <button onClick={() => navigate('/pricing')} className="bg-white text-indigo-900 text-xs font-black px-4 py-2 rounded-lg hover:bg-gray-50 transition shadow-lg shadow-white/10">
+               Get Access
+             </button>
           </div>
+
+          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-extrabold text-gray-900 leading-tight">
+                {category ? category : 'All Vendors'} {location ? `in ${location}` : ''}
+              </h1>
+              <p className="text-sm text-gray-500 mt-1 font-medium">
+                Showing top {vendors.length} results of {totalFound > 30 ? '500+' : totalFound} found
+              </p>
+            </div>
+            {vendors.length > 0 && (
+              <button onClick={() => setPaywallOpen(true)} className="flex items-center gap-2 bg-green-50 text-green-700 border border-green-200 px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-100 transition">
+                <span>Export CSV</span>
+                <Lock size={14} className="text-green-600" />
+              </button>
+            )}
+          </div>
+
+          {/* Live Terminal Overlay */}
+          {liveTerminal && (
+            <div className="bg-gray-900 p-4 border-b border-gray-800">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                  <span className="text-white text-xs font-bold font-mono uppercase tracking-widest">Live Extraction Terminal</span>
+                </div>
+                <button onClick={() => setLiveTerminal(false)} className="text-gray-500 hover:text-white">
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="bg-black/50 rounded-xl p-3 h-48 overflow-y-auto font-mono text-[10px] sm:text-xs text-green-400 border border-white/5 shadow-inner" id="demo-terminal">
+                {liveLogs.map((log, i) => (
+                  <div key={i} className="mb-1 opacity-90 hover:opacity-100 break-words">{log}</div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="p-6 flex-1 bg-gray-50/50">
             {loading ? (
@@ -193,9 +299,15 @@ export default function Marketplace() {
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Search size={24} className="text-gray-400" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900">No results found</h3>
-                <p className="text-gray-500 mt-1 text-sm">Try adjusting your search criteria</p>
-                <button onClick={() => navigate('/')} className="mt-4 text-violet-600 font-bold hover:underline">New Search</button>
+                <h3 className="text-lg font-bold text-gray-900">No results found in Database</h3>
+                <p className="text-gray-500 mt-1 text-sm mb-6">Our database doesn't have these leads yet.</p>
+                <button 
+                  onClick={startLiveDemo}
+                  className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-black px-6 py-3 rounded-xl shadow-lg shadow-violet-600/20 hover:scale-105 transition flex items-center gap-2 mx-auto"
+                >
+                  <Zap size={18} fill="currentColor" /> Run Live AI Extraction
+                </button>
+                <p className="text-xs text-gray-400 mt-4">Watch the OmniLead Engine scrape the web in real-time.</p>
               </div>
             ) : (
               <div className="flex flex-col gap-5">

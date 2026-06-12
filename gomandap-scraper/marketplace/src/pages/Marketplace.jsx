@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Phone, Mail, Star, ShieldCheck, Lock, Search, X, CheckCircle, Navigation } from 'lucide-react';
+import { MapPin, Phone, Mail, Star, ShieldCheck, Lock, Search, X, CheckCircle, Navigation, Zap, RefreshCw, ArrowRight } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { API_URL } from '../apiConfig';
+import IntelligentSearchBar from '../components/IntelligentSearchBar';
 
 // Fix for default Leaflet icon in React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -49,7 +50,14 @@ export default function Marketplace() {
   const [authForm, setAuthForm] = useState({ email: '', name: '' });
   
   const [paywallOpen, setPaywallOpen] = useState(false);
+  const [searchScope, setSearchScope] = useState('full'); // 'exact', 'mandal', 'full'
+  const [omniQuery, setOmniQuery] = useState(categoryParam && locationParam ? `${categoryParam} in ${locationParam}` : (categoryParam || locationParam));
   const [mapCenter, setMapCenter] = useState([20.5937, 78.9629]); // Default India
+
+  // Live AI Demo State
+  const [liveTerminal, setLiveTerminal] = useState(false);
+  const [liveLogs, setLiveLogs] = useState([]);
+  const [demoEventSource, setDemoEventSource] = useState(null);
 
   useEffect(() => {
     fetchVendors();
@@ -104,6 +112,73 @@ export default function Marketplace() {
       }
     } catch (e) { alert("Failed to login/signup"); }
   };
+
+  const startLiveDemo = async () => {
+    try {
+      setLiveTerminal(true);
+      setLiveLogs(['[System] Initializing OmniLead AI Engine...', '[Geographic AI] Resolving semantic locations...']);
+      
+      // Extract category and location from query if possible
+      let parsedCat = omniQuery;
+      let parsedLoc = "";
+      const match = omniQuery.match(/\s+(in|near|at|around)\s+/i);
+      if (match) {
+        parsedCat = omniQuery.substring(0, match.index).trim();
+        parsedLoc = omniQuery.substring(match.index + match[0].length).trim();
+      }
+
+      const res = await axios.post(`${API_URL}/scrape/omni`, { 
+        query: omniQuery,
+        category: parsedCat, 
+        location: parsedLoc,
+        strategy: searchScope,
+        enabledEngines: ['maps']
+      });
+      if (res.data.success) {
+        // Connect to SSE for live logs
+        const es = new EventSource(`${API_URL}/logs/stream`);
+        setDemoEventSource(es);
+        
+        es.onmessage = (event) => {
+          if (event.lastEventId === 'init' || event.type === 'init') return;
+          try {
+            const parsed = JSON.parse(event.data);
+            if (Array.isArray(parsed)) {}
+          } catch(e) {
+            setLiveLogs(prev => [...prev.slice(-40), event.data]);
+          }
+        };
+
+        es.addEventListener('vendor', (event) => {
+           try {
+             const data = JSON.parse(event.data);
+             if (data.action === 'inserted' || data.action === 'updated') {
+                const newVendor = { ...data.vendor, isRevealed: false };
+                setVendors(prev => [newVendor, ...prev.filter(v => v.id !== newVendor.id)]);
+                setTotalFound(prev => prev + 1);
+                if (newVendor.latitude && newVendor.longitude) {
+                   setMapCenter([parseFloat(newVendor.latitude), parseFloat(newVendor.longitude)]);
+                }
+             }
+           } catch(e) {}
+        });
+      }
+    } catch (e) {
+      alert("Demo initialization failed: " + (e.response?.data?.error || e.message));
+      setLiveTerminal(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (demoEventSource) demoEventSource.close();
+    };
+  }, [demoEventSource]);
+
+  useEffect(() => {
+    const el = document.getElementById('demo-terminal');
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [liveLogs]);
 
   const handleReveal = async (vendor) => {
     if (!publicUser) {
@@ -160,32 +235,6 @@ export default function Marketplace() {
             <span className="font-bold text-xl tracking-tight text-gray-900">Gomandap</span>
           </div>
           
-          {/* Interactive Search Bar */}
-          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-2xl w-full">
-            <div className="flex items-center border border-gray-300 rounded-full px-2 py-1.5 bg-gray-50 shadow-inner focus-within:bg-white focus-within:border-violet-400 focus-within:ring-2 focus-within:ring-violet-100 transition-all">
-              <Search size={16} className="text-gray-400 ml-3 mr-2 shrink-0" />
-              <input 
-                type="text" 
-                placeholder="What? (e.g. Photographers)" 
-                value={localCategory}
-                onChange={(e) => setLocalCategory(e.target.value)}
-                className="flex-1 bg-transparent border-none outline-none text-sm text-gray-900 font-medium placeholder-gray-400 w-full"
-              />
-              <span className="mx-2 text-gray-300 shrink-0">|</span>
-              <MapPin size={16} className="text-gray-400 mr-2 shrink-0" />
-              <input 
-                type="text" 
-                placeholder="Where? (e.g. Hyderabad)" 
-                value={localLocation}
-                onChange={(e) => setLocalLocation(e.target.value)}
-                className="flex-1 bg-transparent border-none outline-none text-sm text-gray-900 font-medium placeholder-gray-400 w-full"
-              />
-              <button type="submit" className="bg-violet-600 text-white rounded-full px-4 py-1.5 text-sm font-bold hover:bg-violet-700 transition-colors ml-2 shrink-0">
-                Search
-              </button>
-            </div>
-          </form>
-
           <div className="flex items-center gap-4 shrink-0">
             {publicUser ? (
               <div className="flex items-center gap-3">
@@ -239,13 +288,112 @@ export default function Marketplace() {
       {/* ── MAIN CONTENT (SCROLLABLE GRID) ── */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12">
         
-        <div className="mb-8">
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">
-            {categoryParam ? categoryParam : 'All Vendors'} {locationParam ? `in ${locationParam}` : ''}
-          </h1>
-          <p className="text-gray-500 mt-2 font-medium">
-            Showing top {vendors.length} results of {totalFound > 30 ? '500+' : totalFound} found
-          </p>
+        {/* ── ADVANCED SEARCH BAR ── */}
+        <div className="bg-white rounded-3xl border border-gray-200 shadow-xl overflow-hidden mb-12">
+          <div className="px-8 py-6 border-b border-gray-50 bg-gray-50/50">
+            <h2 className="font-black text-xl text-gray-900 flex items-center gap-2">
+              <Search size={22} className="text-violet-500" /> Advanced AI Extraction
+            </h2>
+            <p className="text-sm text-gray-500 mt-1 font-medium">
+              Take full control of the OmniLead Engine. Set your scope, radius, and strategy to extract the exact leads you want.
+            </p>
+          </div>
+
+          <div className="p-8">
+            {/* Search Scope Toggle */}
+            <div className="mb-6 flex justify-center">
+              <div className="inline-flex bg-gray-100 p-1.5 rounded-xl">
+                {[
+                  { id: 'exact', label: 'City Only' },
+                  { id: 'mandal', label: 'Mandals Level' },
+                  { id: 'full', label: 'Full Data (Villages)' }
+                ].map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => setSearchScope(s.id)}
+                    className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
+                      searchScope === s.id
+                        ? 'bg-white text-violet-600 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Unified Intelligent Search Input */}
+            <div className="flex justify-center mb-8">
+              <div className="w-full relative shadow-2xl rounded-2xl bg-gray-900 overflow-visible">
+                <IntelligentSearchBar 
+                  onSearch={(q) => startLiveDemo()}
+                  loading={liveTerminal}
+                  onStop={() => setLiveTerminal(false)}
+                  searchRadius={0}
+                  setSearchRadius={() => {}}
+                  omniQuery={omniQuery}
+                  setOmniQuery={setOmniQuery}
+                  apiUrl={API_URL}
+                />
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Live Terminal Overlay */}
+        {liveTerminal && (
+          <div className="mb-8 bg-gray-900 p-5 rounded-3xl shadow-xl overflow-hidden relative">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                <span className="text-white text-sm font-bold font-mono uppercase tracking-widest">Live Extraction Terminal</span>
+              </div>
+              <button onClick={() => setLiveTerminal(false)} className="text-gray-500 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 transition">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="bg-black/60 rounded-2xl p-4 h-64 overflow-y-auto font-mono text-xs md:text-sm text-green-400 border border-white/10 shadow-inner" id="demo-terminal">
+              {liveLogs.map((log, i) => (
+                <div key={i} className="mb-1 opacity-90 hover:opacity-100 break-words">{log}</div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* SaaS CTA Banner */}
+        <div className="mb-8 bg-gradient-to-r from-violet-900 to-indigo-900 rounded-3xl px-8 py-5 flex flex-col md:flex-row items-center justify-between shadow-xl relative overflow-hidden">
+           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+           <div className="flex items-center gap-4 relative z-10 mb-4 md:mb-0">
+             <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
+               <Zap size={24} className="text-yellow-400" fill="currentColor" />
+             </div>
+             <div>
+               <h3 className="text-white font-bold text-lg md:text-xl">Want to run your own extractions?</h3>
+               <p className="text-violet-200 text-sm md:text-base">Subscribe to the OmniLead AI Engine for $99/mo.</p>
+             </div>
+           </div>
+           <button onClick={() => navigate('/pricing')} className="relative z-10 w-full md:w-auto bg-white text-indigo-900 text-sm font-black px-6 py-3 rounded-xl hover:scale-105 transition shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+             Get Scraper Access
+           </button>
+        </div>
+
+        <div className="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+              {categoryParam ? categoryParam : 'All Vendors'} {locationParam ? `in ${locationParam}` : ''}
+            </h1>
+            <p className="text-gray-500 mt-2 font-medium">
+              Showing top {vendors.length} results of {totalFound > 30 ? '500+' : totalFound} found
+            </p>
+          </div>
+          {vendors.length > 0 && (
+            <button onClick={() => setPaywallOpen(true)} className="flex items-center gap-2 bg-green-50 text-green-700 border border-green-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-green-100 transition shadow-sm">
+              <span>Export CSV</span>
+              <Lock size={14} className="text-green-600" />
+            </button>
+          )}
         </div>
 
         {loading ? (
@@ -255,12 +403,19 @@ export default function Marketplace() {
             ))}
           </div>
         ) : vendors.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-gray-200 shadow-sm">
-            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
-              <Search size={24} className="text-gray-400" />
+          <div className="text-center py-24 bg-white rounded-3xl border border-gray-200 shadow-sm max-w-3xl mx-auto">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-gray-100">
+              <Search size={32} className="text-gray-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900">No results found</h3>
-            <p className="text-gray-500 mt-2">Try adjusting your search criteria or location.</p>
+            <h3 className="text-2xl font-bold text-gray-900">No results found in Database</h3>
+            <p className="text-gray-500 mt-2 mb-8 text-base">Our database doesn't have these leads yet.</p>
+            <button 
+              onClick={startLiveDemo}
+              className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-black px-8 py-4 rounded-xl shadow-xl shadow-violet-600/30 hover:scale-105 transition-all flex items-center gap-3 mx-auto text-lg"
+            >
+              <Zap size={20} fill="currentColor" /> Run Live AI Extraction
+            </button>
+            <p className="text-sm text-gray-400 mt-5 font-medium">Watch the OmniLead Engine scrape the web in real-time.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

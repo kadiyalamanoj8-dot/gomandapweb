@@ -6,7 +6,7 @@ export default defineConfig({
   server: { port: 5174 },
   plugins: [react()],
   optimizeDeps: {
-    include: ['olamaps-web-sdk'],
+    include: ['olamaps-web-sdk', 'react-window', 'react-virtualized-auto-sizer'],
   },
   define: {
     'process.env': {},

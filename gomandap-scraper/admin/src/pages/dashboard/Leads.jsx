@@ -9,6 +9,8 @@ import {
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { FixedSizeList as ListWindow } from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
 import { useScraper } from '../../context/ScraperContext';
 
 // Fix Leaflet's default icon path issues
@@ -39,7 +41,8 @@ export default function LeadsPage() {
     employees, activeJobs, loading, handleUpdateJob,
     selectedFolder, setSelectedFolder,
     selectedJobCategory, setSelectedJobCategory,
-    grouped: groupedData
+    grouped: groupedData,
+    outOfBoundsVendors
   } = useScraper();
 
   const [view, setView] = useState('folders'); // 'folders' | 'list' | 'map'
@@ -47,15 +50,15 @@ export default function LeadsPage() {
   const mapRef = useRef(null);
 
   const tabs = [
-    { id: 'staging-phones', label: 'Ready Leads', count: stagingVendorsWithPhones?.length || 0, color: 'green' },
-    { id: 'staging-nophones', label: 'No Contact', count: stagingVendorsNoPhones?.length || 0, color: 'amber' },
+    { id: 'staging', label: 'Extracted Leads', count: (stagingVendorsWithPhones?.length || 0) + (stagingVendorsNoPhones?.length || 0), color: 'green' },
+    { id: 'out-of-bounds', label: 'Out of Bounds', count: outOfBoundsVendors?.length || 0, color: 'gray' },
     { id: 'pushed', label: 'Live Database', count: liveVendors?.length || 0, color: 'violet' },
   ];
 
   const mapVendors = (filteredVendors || [])
     .filter(v => (v.lat && v.lng) || (v.latitude && v.longitude))
     .map(v => ({...v, safeLat: v.lat || v.latitude, safeLng: v.lng || v.longitude}))
-    .slice(0, 50);
+    .slice(0, 500);
 
   // Component to automatically fit bounds to the markers
   const MapBounds = ({ vendors }) => {
@@ -117,6 +120,7 @@ export default function LeadsPage() {
               green: active ? 'bg-green-50 text-green-700 border border-green-100' : 'hover:bg-gray-50 text-gray-500',
               amber: active ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'hover:bg-gray-50 text-gray-500',
               violet: active ? 'bg-violet-50 text-violet-700 border border-violet-100' : 'hover:bg-gray-50 text-gray-500',
+              gray: active ? 'bg-gray-100 text-gray-700 border border-gray-200' : 'hover:bg-gray-50 text-gray-500',
             };
             return (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -215,18 +219,42 @@ export default function LeadsPage() {
 
         {/* LIST VIEW */}
         {view === 'list' && (
-          <div className="space-y-3">
+          <div className="flex-1 h-[70vh] bg-white rounded-2xl border border-gray-100 p-2 shadow-sm">
             {(filteredVendors || []).length === 0 ? (
-              <div className="py-20 flex flex-col items-center text-gray-400">
+              <div className="py-20 flex flex-col items-center text-gray-400 h-full justify-center">
                 <Database size={40} className="mb-4 opacity-20" />
                 <p className="font-bold">No leads to display</p>
               </div>
             ) : (
-              (filteredVendors || []).map((vendor, idx) => (
-                <VendorCard key={vendor.id || idx} vendor={vendor} employees={employees || []}
-                  onVerify={handleVerify} onDelete={handleDelete} onAssign={handleAssign}
-                  onClick={() => setSelectedVendor(vendor)} />
-              ))
+              <AutoSizer>
+                {({ height, width }) => (
+                  <ListWindow
+                    height={height}
+                    itemCount={(filteredVendors || []).length}
+                    itemSize={130} // Approximate height of a VendorCard + padding
+                    width={width}
+                    itemData={filteredVendors || []}
+                    className="scrollbar-thin scrollbar-thumb-gray-200"
+                  >
+                    {({ index, style, data }) => {
+                      const vendor = data[index];
+                      return (
+                        <div style={style} className="pr-3 pb-3">
+                          <VendorCard
+                            key={vendor.id || index}
+                            vendor={vendor}
+                            employees={employees || []}
+                            onVerify={handleVerify}
+                            onDelete={handleDelete}
+                            onAssign={handleAssign}
+                            onClick={() => setSelectedVendor(vendor)}
+                          />
+                        </div>
+                      );
+                    }}
+                  </ListWindow>
+                )}
+              </AutoSizer>
             )}
           </div>
         )}
@@ -354,18 +382,57 @@ export default function LeadsPage() {
                 </div>
               </div>
               {/* List */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-3" style={{ scrollbarWidth: 'thin' }}>
-                {(groupedData?.[selectedFolder] || []).map((vendor, idx) => (
-                  <VendorCard key={vendor.id || idx} vendor={vendor} employees={employees || []}
-                    onVerify={handleVerify} onDelete={handleDelete} onAssign={handleAssign}
-                    onClick={() => setSelectedVendor(vendor)} />
-                ))}
-                {(groupedData?.[selectedFolder] || []).length === 0 && (
-                  <div className="py-16 text-center text-gray-400">
-                    <FolderOpen size={40} className="mx-auto mb-4 opacity-20" />
-                    <p>No leads in this folder</p>
-                  </div>
-                )}
+              <div className="flex-1 overflow-y-auto p-5" style={{ scrollbarWidth: 'thin' }}>
+                {(() => {
+                  const folderVendors = groupedData?.[selectedFolder] || [];
+                  const withContact = folderVendors.filter(v => v.phone && v.phone.length > 5 && !v.phone.includes('Requires'));
+                  const noContact = folderVendors.filter(v => !v.phone || v.phone.length <= 5 || v.phone.includes('Requires'));
+
+                  if (folderVendors.length === 0) {
+                    return (
+                      <div className="py-16 text-center text-gray-400">
+                        <FolderOpen size={40} className="mx-auto mb-4 opacity-20" />
+                        <p>No leads in this folder</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-8">
+                      {withContact.length > 0 && (
+                        <div>
+                          <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-3">
+                            <span className="w-2 h-2 rounded-full bg-green-500"></span> 
+                            With Contact Details ({withContact.length})
+                          </h3>
+                          <div className="space-y-3">
+                            {withContact.map((vendor, idx) => (
+                              <VendorCard key={vendor.id || idx} vendor={vendor} employees={employees || []}
+                                onVerify={handleVerify} onDelete={handleDelete} onAssign={handleAssign}
+                                onClick={() => setSelectedVendor(vendor)} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {noContact.length > 0 && (
+                        <div>
+                          <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-3">
+                            <span className="w-2 h-2 rounded-full bg-amber-500"></span> 
+                            Without Contact Details ({noContact.length})
+                          </h3>
+                          <div className="space-y-3">
+                            {noContact.map((vendor, idx) => (
+                              <VendorCard key={vendor.id || idx} vendor={vendor} employees={employees || []}
+                                onVerify={handleVerify} onDelete={handleDelete} onAssign={handleAssign}
+                                onClick={() => setSelectedVendor(vendor)} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </motion.div>
           </div>
@@ -399,10 +466,24 @@ export default function LeadsPage() {
                   <X size={18} />
                 </button>
               </div>
-              <div className="p-6 space-y-3">
-                {selectedVendor.phone && (
-                  <ContactRow icon={<Phone size={15} />} label="Phone" value={selectedVendor.phone} color="green" />
+              <div className="p-6 space-y-4">
+                
+                {/* Images Carousel / Grid */}
+                {selectedVendor.images && selectedVendor.images.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Vendor Photos</p>
+                    <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
+                      {selectedVendor.images.map((img, i) => (
+                        <img key={i} src={img} alt={`Vendor ${i}`} className="h-24 w-24 object-cover rounded-xl border border-gray-100 flex-shrink-0 shadow-sm" />
+                      ))}
+                    </div>
+                  </div>
                 )}
+
+                <div className="space-y-3">
+                  {selectedVendor.phone && (
+                    <ContactRow icon={<Phone size={15} />} label="Phone" value={selectedVendor.phone} color="green" />
+                  )}
                 {selectedVendor.email && (
                   <ContactRow icon={<Mail size={15} />} label="Email" value={selectedVendor.email} color="blue" />
                 )}
@@ -418,6 +499,7 @@ export default function LeadsPage() {
                     <Globe size={15} /> Open in Maps <ExternalLink size={12} className="ml-auto" />
                   </a>
                 )}
+                </div>
               </div>
               <div className="px-6 pb-6 flex gap-3">
                 <button onClick={() => { handleVerify(selectedVendor.id, !selectedVendor.verified); setSelectedVendor(null); }}
@@ -474,6 +556,20 @@ function VendorCard({ vendor, employees, onVerify, onDelete, onAssign, onClick }
             {vendor.city && <span className="text-xs text-gray-400 flex items-center gap-0.5"><MapPin size={9} />{vendor.city}</span>}
             {vendor.rating && <span className="text-xs text-amber-500 flex items-center gap-0.5"><Star size={9} />{vendor.rating}</span>}
           </div>
+          
+          {/* Inline Images display for VendorCard */}
+          {vendor.images && vendor.images.length > 0 && (
+            <div className="mt-2 flex items-center gap-1.5 overflow-hidden">
+              {vendor.images.slice(0, 4).map((img, i) => (
+                <img key={i} src={img} alt="" className="h-8 w-8 object-cover rounded-md border border-gray-100 shadow-sm" />
+              ))}
+              {vendor.images.length > 4 && (
+                <div className="h-8 w-8 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-400">
+                  +{vendor.images.length - 4}
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {vendor.phone && (

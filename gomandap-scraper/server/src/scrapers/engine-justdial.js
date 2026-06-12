@@ -1,5 +1,9 @@
-const { launchStealthBrowser } = require('./browserFactory');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
+
 const dbAdapter = require('../config/dbAdapter');
+const { injectManualLoginUI } = require('../utils/manualIntervention');
 
 let deps = {
   logger: console.log,
@@ -12,121 +16,154 @@ function setDeps(newDeps) {
 }
 
 async function scrapeJustDial(category, location) {
-  deps.logger(`[JustDial Engine] Starting scrape for ${category} in ${location}`);
-  const searchUrl = `https://www.justdial.com/${location.split(',')[0].trim()}/${category.replace(/ /g, '-')}`;
+  deps.logger(`[JustDial Puppeteer] Starting scrape for ${category} in ${location}`);
+  let searchUrl = `https://www.justdial.com/${location.split(',')[0].trim()}/${category.replace(/ /g, '-')}`;
+  if (category.startsWith('http')) {
+    searchUrl = category;
+  }
   
-  deps.logger(`[JustDial Engine] Navigating to: ${searchUrl}`);
+  deps.logger(`[JustDial Puppeteer] Target URL: ${searchUrl}`);
   
+  const path = require('path');
+  const os = require('os');
+  const userDataDir = 'C:\\Users\\manoj\\AppData\\Local\\Google\\Chrome\\User Data';
+
   let browser = null;
-  let context = null;
-
+  let isCDP = false;
   try {
-    const launched = await launchStealthBrowser(true); 
-    browser = launched.browser;
+    try {
+      browser = await puppeteer.connect({ browserURL: 'http://localhost:9222', defaultViewport: null });
+      deps.logger('[JustDial Puppeteer] Successfully connected to existing Chrome via CDP.');
+      isCDP = true;
+    } catch (err) {
+      deps.logger('[JustDial Puppeteer] Could not connect to CDP on 9222. Launching new fallback browser.');
+      const path = require('path');
+      const os = require('os');
+      const fallbackUserDataDir = path.join(os.homedir(), '.gomandap_puppeteer_fallback');
+      browser = await puppeteer.launch({
+        headless: false,
+        userDataDir: fallbackUserDataDir,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--start-maximized']
+      });
+    }
 
-    context = await browser.newContext({
-      viewport: { width: 1280 + Math.floor(Math.random()*100), height: 800 + Math.floor(Math.random()*100) },
-      userAgent: launched.userAgent
-    });
-    const page = await context.newPage();
-
-    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await page.waitForTimeout(5000);
-
-    const finalUrl = page.url().toLowerCase();
-    const mandalSegment = location.split(',')[0].trim().toLowerCase().replace(/ /g, '-');
-    const districtSegment = location.includes(',') ? location.split(',')[1].trim().toLowerCase().replace(/ /g, '-') : '';
+    const pages = await browser.pages();
+    const page = pages.length > 0 ? pages[0] : await browser.newPage();
     
-    const isMandalMatched = finalUrl.includes(mandalSegment);
-    const isDistrictMatched = districtSegment && finalUrl.includes(districtSegment);
-
-    if (!isMandalMatched && !isDistrictMatched) {
-      deps.logger(`[JustDial Warning] Redirected to unrelated city page. Skipping.`);
-      return;
-    }
-
-    let html = await page.content();
-    if (html.includes('<body></body>') || html.length < 500) {
-      throw new Error("JustDial persistently blocked this request. Try again later.");
-    }
-
-    for (let i = 0; i < 5; i++) {
-      if (deps.abortSignal.aborted) break;
-      await page.evaluate(() => window.scrollBy(0, window.innerHeight));
-      await page.waitForTimeout(1000);
-    }
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
     
-    if (deps.abortSignal.aborted) return;
+    deps.logger(`[JustDial Puppeteer] Direct navigation to: ${searchUrl}`);
+    try {
+      await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    } catch(e) {
+      deps.logger(`[JustDial Puppeteer] goto timed out, but continuing.`);
+    }
 
-    const results = await page.$$eval('.resultbox', nodes => {
-      return nodes.map(node => {
-        const nameEl = node.querySelector('.resultbox_title_anchor, .resultbox_title, h2');
-        const name = nameEl ? nameEl.innerText.trim() : null;
-        const addressEl = node.querySelector('.resultbox_address, address');
-        const address = addressEl ? addressEl.innerText.trim() : null;
-        const ratingEl = node.querySelector('.resultbox_totalrate');
-        const rating = ratingEl ? ratingEl.innerText.trim() : null;
-        const phoneEl = node.querySelector('.callNowAnchor, .callbutton');
-        const phone = phoneEl ? phoneEl.innerText.trim() : 'Requires Manual Lookup';
-        return { name, address, rating, phone };
-      }).filter(v => v.name);
-    });
+    // Attempt to dismiss login modals if any
+    try {
+      const closeSelectors = ['.jdicon-close', '.login-close', '.modal-close', 'button[aria-label="Close"]'];
+      for (const sel of closeSelectors) {
+        const el = await page.$(sel);
+        if (el) {
+          await page.evaluate(btn => btn.click(), el);
+        }
+      }
+    } catch(e) {}
 
-    deps.logger(`[JustDial Engine] Found ${results.length} raw results.`);
     let newCount = 0;
     
-    const vendors = dbAdapter.getVendors();
-    for (const v of results) {
-      if (deps.abortSignal.aborted) break;
-      // Robust Dedup by Phone & Name
-      let existing = vendors.find(x => x.name === v.name && x.city === location);
-      if (!existing && v.phone && v.phone !== 'Requires Manual Lookup') {
-        const normalizedInputPhone = v.phone.replace(/\D/g, '');
-        existing = vendors.find(x => x.phone && x.phone.replace(/\D/g, '') === normalizedInputPhone);
-      }
+    const extractRoutine = async () => {
+      let currentNewCount = 0;
+      try {
+        const results = await page.evaluate(() => {
+          const cards = document.querySelectorAll('.resultbox_info');
+          const data = [];
+          cards.forEach(card => {
+            const nameEl = card.querySelector('.resultbox_title_anchor');
+            const name = nameEl ? nameEl.innerText.trim() : '';
+            const rawPhoneEl = card.querySelector('.callcontent');
+            let rawPhone = rawPhoneEl ? rawPhoneEl.innerText.trim() : '';
+            
+            const ratingEl = card.querySelector('.resultbox_totalrating');
+            const rating = ratingEl ? ratingEl.innerText.trim() : '';
 
-      if (!existing) {
-        let parsedRating = null;
-        if (v.rating && v.rating !== '-') {
-          parsedRating = parseFloat(v.rating);
-          if (isNaN(parsedRating)) parsedRating = null;
+            const addrEl = card.querySelector('.resultbox_address');
+            const address = addrEl ? addrEl.innerText.trim() : '';
+
+            if (name) {
+              data.push({ name, rawPhone, rating, address });
+            }
+          });
+          return data;
+        });
+
+        const vendors = await dbAdapter.getVendors();
+
+        for (const res of results) {
+          if (deps.abortSignal.aborted) break;
+          
+          let phone = res.rawPhone.replace(/[^0-9+]/g, '');
+          if (phone && !phone.startsWith('+91')) {
+            phone = '+91' + phone.slice(-10);
+          }
+
+          const existing = vendors.find(v => v.name.toLowerCase() === res.name.toLowerCase() || (phone && v.phone === phone));
+          if (!existing) {
+            const vendorObj = {
+              name: res.name,
+              category: category,
+              city: location.split(',')[0].trim(),
+              address: res.address,
+              phone: phone || 'Requires Manual Reveal',
+              rating: res.rating,
+              source: 'JustDial',
+              verified: false
+            };
+            const inserted = await dbAdapter.addVendor(vendorObj);
+            deps.emitVendorEvent(inserted);
+            currentNewCount++;
+          }
         }
-        const pincodeMatch = v.address ? v.address.match(/\b\d{6}\b/) : null;
         
-        let normalizedPhone = v.phone;
-        if (normalizedPhone && normalizedPhone !== 'Requires Manual Lookup') {
-          // Keep only digits
-          normalizedPhone = normalizedPhone.replace(/\D/g, '');
-        }
-
-        const created = {
-          id: Date.now().toString() + Math.random().toString(36).substring(7),
-          name: v.name,
-          category: category,
-          city: location,
-          address: v.address || `Located in ${location}`,
-          pincode: pincodeMatch ? pincodeMatch[0] : '',
-          phone: normalizedPhone || 'Requires Manual Lookup',
-          rating: parsedRating,
-          source: 'JustDial',
-          scrapedAt: new Date().toISOString()
-        };
-        vendors.push(created);
-        dbAdapter.saveVendors(vendors);
-        try { deps.emitVendorEvent(created, 'inserted'); } catch (e) {}
-        newCount++;
+      } catch (e) {
+        deps.logger(`[JustDial Puppeteer Error in Extractor] ${e.message}`);
       }
+      return currentNewCount;
+    };
+
+    deps.logger('[JustDial Puppeteer] Auto-scrolling and extracting data...');
+    let previousHeight = 0;
+    let retries = 0;
+    let loopCount = 0;
+
+    while (!deps.abortSignal.aborted && retries < 5 && loopCount < 15) {
+      loopCount++;
+      const extractedThisRound = await extractRoutine();
+      newCount += extractedThisRound;
+      
+      const newHeight = await page.evaluate('document.body.scrollHeight');
+      await page.evaluate('window.scrollTo(0, document.body.scrollHeight)');
+      await new Promise(r => setTimeout(r, 2000)); // Wait for lazy load
+      
+      if (newHeight === previousHeight || extractedThisRound === 0) {
+        retries++;
+      } else {
+        retries = 0;
+      }
+      previousHeight = newHeight;
     }
-    deps.logger(`[JustDial Engine] Complete. Inserted ${newCount} new vendors.`);
+    
+    deps.logger(`[JustDial Puppeteer] Extraction complete. Added ${newCount} new vendors.`);
+
   } catch (error) {
-    deps.logger(`[JustDial Error] ${error.message}`);
+    deps.logger(`[JustDial Puppeteer Error] ${error.message}`);
   } finally {
-    try { if (context) await context.close(); } catch(e){}
-    try { if (browser) await browser.close(); } catch(e){}
+    if (!isCDP && browser) {
+      await browser.close().catch(e=>console.log("Could not close browser", e));
+    } else if (isCDP && browser) {
+      browser.disconnect();
+    }
   }
 }
 
-module.exports = {
-  scrapeJustDial,
-  setDeps
-};
+module.exports = { scrapeJustDial, setDeps };
