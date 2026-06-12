@@ -3,7 +3,16 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  server: { port: 5174 },
+  server: { 
+    port: 5174,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5002',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  },
   plugins: [react()],
   optimizeDeps: {
     include: ['olamaps-web-sdk', 'react-window', 'react-virtualized-auto-sizer'],
