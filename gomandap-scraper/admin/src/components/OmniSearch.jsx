@@ -145,8 +145,8 @@ export default function OmniSearch({
         // 3. Assemble Suggestions
         if (loc) {
            // Let's suggest multiple categories with the top location
-           const allCatMatches = fuseRef.current.categories?.search(cat).map(r => r.item) || [];
-           const catsToSuggest = [...new Set([topCat, ...allCatMatches.slice(0, 3)])].filter(Boolean);
+           const allCatMatches = fuseRef.current.categories?.search(cat).map(r => r.item) || knowledge.categories || [];
+           const catsToSuggest = [...new Set([topCat, ...allCatMatches])].filter(Boolean);
 
            if (bestLocByString !== loc) {
              catsToSuggest.forEach(c => {
@@ -156,7 +156,7 @@ export default function OmniSearch({
              const locMatches = fuseRef.current.locations?.search(loc).map(r => r.item) || [];
              if (locMatches.length > 0) {
                 catsToSuggest.forEach(c => {
-                  locMatches.slice(0, 2).forEach(m => {
+                  locMatches.slice(0, 5).forEach(m => { // still limit loc combos slightly to prevent combinatorial explosion
                      sugs.push({ type: 'ai', text: `${c} in ${m}`, parsedCat: c, parsedLoc: m });
                   });
                 });
@@ -169,7 +169,9 @@ export default function OmniSearch({
         } else {
            // No location typed yet. Just Category.
            const allCatMatches = fuseRef.current.categories?.search(cat).map(r => r.item) || [];
-           const catsToSuggest = [...new Set([topCat, ...allCatMatches.slice(0, 4)])].filter(Boolean);
+           // If no match, just show all categories
+           const fallbackCats = allCatMatches.length > 0 ? allCatMatches : (knowledge.categories || []);
+           const catsToSuggest = [...new Set([topCat, ...fallbackCats])].filter(Boolean);
            
            catsToSuggest.forEach(c => {
              sugs.push({ type: 'category', text: `${c} in...`, parsedCat: c, parsedLoc: '' });
@@ -210,10 +212,13 @@ export default function OmniSearch({
       }
     };
     
-    fetchResults();
+    const timer = setTimeout(() => {
+      fetchResults();
+    }, 150);
     
     return () => {
       isActive = false;
+      clearTimeout(timer);
     };
   }, [query, history, knowledge, oramaReady]);
 
@@ -263,14 +268,14 @@ export default function OmniSearch({
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="flex items-center justify-between w-full max-w-2xl mx-auto bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-white/50 transition-all group"
+        className="flex items-center justify-between w-full max-w-2xl mx-auto bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-xl px-4 py-3 text-gray-500 transition-all group shadow-sm"
       >
         <div className="flex items-center gap-3">
-          <Search size={18} className="text-white/40 group-hover:text-violet-400 transition-colors" />
+          <Search size={18} className="text-gray-400 group-hover:text-violet-500 transition-colors" />
           <span className="text-sm font-medium">Search anything (e.g., Photographers in Guntur)...</span>
         </div>
-        <div className="flex items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
-          <kbd className="bg-black/30 px-2 py-1 rounded text-xs border border-white/10">Cmd K</kbd>
+        <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+          <kbd className="bg-white px-2 py-1 rounded text-xs border border-gray-200 shadow-sm font-sans font-bold">Cmd K</kbd>
         </div>
       </button>
 

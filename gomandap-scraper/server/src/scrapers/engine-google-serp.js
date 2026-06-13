@@ -1,7 +1,19 @@
 const axios = require('axios');
+const axiosRetry = require('axios-retry').default;
+const { HttpsProxyAgent } = require('https-proxy-agent');
 const cheerio = require('cheerio');
 const { getBrowser } = require('./browserFactory');
+const { getProxyList } = require('./proxyManager');
 const db = require('../config/localDb');
+
+// Configure robust retry logic for Cheerio
+axiosRetry(axios, { 
+  retries: 3, 
+  retryDelay: axiosRetry.exponentialDelay,
+  retryCondition: (error) => {
+    return axiosRetry.isNetworkOrIdempotentRequestError(error) || error.response?.status === 429 || error.response?.status >= 500;
+  }
+});
 
 let addLog = console.log;
 let emitVendorEvent = () => {};
@@ -94,12 +106,39 @@ async function scrapeGoogleSerp(query, category, location) {
     browser = null;
     
     // Concurrently fetch and scan websites
+    const proxyList = getProxyList();
+    
     const scanPromises = results.map(async (result) => {
       try {
-        const response = await axios.get(result.url, { 
-          timeout: 10000,
-          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
-        });
+        const USER_AGENTS = [
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0'
+        ];
+        const randomUA = USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+        
+        let axiosConfig = { 
+          timeout: 15000,
+          headers: { 
+            'User-Agent': randomUA,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Sec-Ch-Ua': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+            'Sec-Ch-Ua-Mobile': '?0',
+            'Sec-Ch-Ua-Platform': '"Windows"',
+            'Upgrade-Insecure-Requests': '1',
+            'DNT': '1'
+          }
+        };
+
+        if (proxyList && proxyList.length > 0) {
+          const rawProxy = proxyList[Math.floor(Math.random() * proxyList.length)];
+          try {
+            axiosConfig.httpsAgent = new HttpsProxyAgent(rawProxy);
+          } catch(e) {}
+        }
+
+        const response = await axios.get(result.url, axiosConfig);
         
         const $ = cheerio.load(response.data);
         // Remove scripts and styles before extracting text to reduce noise

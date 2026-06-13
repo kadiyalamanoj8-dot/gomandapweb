@@ -21,15 +21,15 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Component to automatically fit bounds to the markers
-const MapBounds = ({ vendors }) => {
+const MapBounds = ({ vendors, autoCenter }) => {
   const map = useMap();
   useEffect(() => {
+    if (!autoCenter) return;
     if (vendors && vendors.length > 0) {
       const bounds = L.latLngBounds(vendors.map(v => [v.safeLat, v.safeLng]));
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
     }
-  }, [vendors, map]);
+  }, [vendors, map, autoCenter]);
   return null;
 };
 const STATUS_COLORS = {
@@ -58,6 +58,18 @@ export default function LeadsPage() {
 
   const [view, setView] = useState('folders'); // 'folders' | 'list' | 'map'
   const [selectedVendor, setSelectedVendor] = useState(null);
+
+  useEffect(() => {
+    const preCategory = localStorage.getItem('gomandap_active_category');
+    if (preCategory) {
+      // Find the folder key that matches this category (since folders are "Category in City")
+      // Actually, if we want to view all leads for this category, we might just set search filter?
+      // Wait, folders are exact keys of groupedData. If the user clicked "Photographers", they might want to see all Photographers.
+      setSearchFilter(preCategory);
+      setView('list'); // Show list view with search filter applied
+      localStorage.removeItem('gomandap_active_category');
+    }
+  }, [setSearchFilter]);
   const mapRef = useRef(null);
 
   const tabs = [
@@ -66,12 +78,13 @@ export default function LeadsPage() {
     { id: 'pushed', label: 'Live Database', count: liveVendors?.length || 0, color: 'violet' },
   ];
 
-  const mapVendors = (filteredVendors || [])
+  const rawMapVendors = (filteredVendors || [])
     .filter(v => (v.lat && v.lng) || (v.latitude && v.longitude))
     .map(v => ({...v, safeLat: v.lat || v.latitude, safeLng: v.lng || v.longitude}))
     .slice(0, 500);
 
-
+  const mapVendors = React.useDeferredValue(rawMapVendors);
+  const [autoCenter, setAutoCenter] = useState(true);
   const getCityFromFilter = () => selectedCity !== 'All' ? selectedCity : 'India';
 
   return (
@@ -283,22 +296,37 @@ export default function LeadsPage() {
             </div>
 
             {/* react-leaflet MapContainer */}
-            <div className="relative w-full h-[480px]">
+            <div className="relative w-full h-[480px] group">
+              {/* Custom Map Controls */}
+              <div className="absolute top-4 right-4 z-[400] flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={() => setAutoCenter(true)} className="bg-white p-2 rounded-xl shadow-lg border border-gray-100 text-violet-600 hover:bg-violet-50 hover:scale-105 transition-all" title="Recenter Map">
+                  <MapPin size={20} />
+                </button>
+              </div>
+
               {mapVendors.length > 0 ? (
-                <MapContainer center={[mapVendors[0].safeLat, mapVendors[0].safeLng]} zoom={11} style={{ width: '100%', height: '100%' }} zoomControl={false}>
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
-                  <MapBounds vendors={mapVendors} />
-                  {mapVendors.map((vendor, i) => (
-                    <Marker key={i} position={[vendor.safeLat, vendor.safeLng]}>
-                      <Popup>
-                        <div className="text-xs p-1">
-                          <p className="font-bold text-gray-900 mb-1">{vendor.name}</p>
-                          <p className="text-gray-500 mb-1">{vendor.category}</p>
-                          {vendor.phone && <p className="text-green-600 font-semibold">{vendor.phone}</p>}
-                        </div>
-                      </Popup>
-                    </Marker>
-                  ))}
+                <MapContainer 
+                  center={[mapVendors[0].safeLat, mapVendors[0].safeLng]} 
+                  zoom={11} 
+                  style={{ width: '100%', height: '100%' }} 
+                  zoomControl={false}
+                  onMoveStart={() => setAutoCenter(false)}
+                >
+                  <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" attribution='&copy; CARTO' />
+                  <MapBounds vendors={mapVendors} autoCenter={autoCenter} />
+                  <MarkerClusterGroup chunkedLoading maxClusterRadius={40}>
+                    {mapVendors.map((vendor, i) => (
+                      <Marker key={i} position={[vendor.safeLat, vendor.safeLng]}>
+                        <Popup>
+                          <div className="text-xs p-1">
+                            <p className="font-bold text-gray-900 mb-1">{vendor.name}</p>
+                            <p className="text-gray-500 mb-1">{vendor.category}</p>
+                            {vendor.phone && <p className="text-green-600 font-semibold">{vendor.phone}</p>}
+                          </div>
+                        </Popup>
+                      </Marker>
+                    ))}
+                  </MarkerClusterGroup>
                 </MapContainer>
               ) : (
                 <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
@@ -397,39 +425,44 @@ export default function LeadsPage() {
                     );
                   }
 
+                  const folderVendorsList = [...withContact, ...noContact];
                   return (
-                    <div className="space-y-8">
-                      {withContact.length > 0 && (
-                        <div>
-                          <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-3">
-                            <span className="w-2 h-2 rounded-full bg-green-500"></span> 
-                            With Contact Details ({withContact.length})
-                          </h3>
-                          <div className="space-y-3">
-                            {withContact.map((vendor, idx) => (
-                              <VendorCard key={vendor.id || idx} vendor={vendor} employees={employees || []}
-                                onVerify={handleVerify} onDelete={handleDelete} onAssign={handleAssign}
-                                onClick={() => setSelectedVendor(vendor)} />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {noContact.length > 0 && (
-                        <div>
-                          <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-3">
-                            <span className="w-2 h-2 rounded-full bg-amber-500"></span> 
-                            Without Contact Details ({noContact.length})
-                          </h3>
-                          <div className="space-y-3">
-                            {noContact.map((vendor, idx) => (
-                              <VendorCard key={vendor.id || idx} vendor={vendor} employees={employees || []}
-                                onVerify={handleVerify} onDelete={handleDelete} onAssign={handleAssign}
-                                onClick={() => setSelectedVendor(vendor)} />
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                    <div className="h-full w-full relative">
+                      <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-3">
+                        <span className="w-2 h-2 rounded-full bg-violet-500"></span> 
+                        Total Leads ({folderVendorsList.length})
+                      </h3>
+                      <div className="absolute inset-0 top-8">
+                        <AutoSizer>
+                          {({ height, width }) => (
+                            <ListWindow
+                              height={height}
+                              itemCount={folderVendorsList.length}
+                              itemSize={130}
+                              width={width}
+                              itemData={folderVendorsList}
+                              className="scrollbar-thin scrollbar-thumb-gray-200"
+                            >
+                              {({ index, style, data }) => {
+                                const vendor = data[index];
+                                return (
+                                  <div style={style} className="pr-3 pb-3">
+                                    <VendorCard
+                                      key={vendor.id || index}
+                                      vendor={vendor}
+                                      employees={employees || []}
+                                      onVerify={handleVerify}
+                                      onDelete={handleDelete}
+                                      onAssign={handleAssign}
+                                      onClick={() => setSelectedVendor(vendor)}
+                                    />
+                                  </div>
+                                );
+                              }}
+                            </ListWindow>
+                          )}
+                        </AutoSizer>
+                      </div>
                     </div>
                   );
                 })()}
@@ -449,7 +482,7 @@ export default function LeadsPage() {
               <div className="p-6 border-b border-gray-100 flex items-start justify-between">
                 <div className="flex items-center gap-4">
                   {(selectedVendor.avatar || (selectedVendor.images && selectedVendor.images.length > 0)) ? (
-                    <img src={selectedVendor.avatar || selectedVendor.images[0]} alt={selectedVendor.name} className="w-16 h-16 rounded-2xl object-cover shadow-sm border border-gray-100 flex-shrink-0" />
+                    <img src={selectedVendor.avatar || selectedVendor.images[0]} alt={selectedVendor.name} className="w-16 h-16 rounded-2xl object-cover shadow-sm border border-gray-100 flex-shrink-0" onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedVendor.name || 'Vendor')}&background=ede9fe&color=7c3aed`; }} />
                   ) : (
                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-100 to-indigo-100 flex items-center justify-center text-violet-600 font-black text-2xl">
                       {selectedVendor.name?.[0] || '?'}
@@ -478,7 +511,7 @@ export default function LeadsPage() {
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Vendor Photos</p>
                     <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
                       {selectedVendor.images.map((img, i) => (
-                        <img key={i} src={img} alt={`Vendor ${i}`} className="h-24 w-24 object-cover rounded-xl border border-gray-100 flex-shrink-0 shadow-sm" />
+                        <img key={i} src={img} alt={`Vendor ${i}`} className="h-24 w-24 object-cover rounded-xl border border-gray-100 flex-shrink-0 shadow-sm" onError={(e) => { e.target.style.display = 'none'; }} />
                       ))}
                     </div>
                   </div>
@@ -523,7 +556,7 @@ export default function LeadsPage() {
   );
 }
 
-function ContactRow({ icon, label, value, color }) {
+const ContactRow = React.memo(({ icon, label, value, color }) => {
   const colorMap = {
     green: 'bg-green-50 text-green-600 border-green-100',
     blue: 'bg-blue-50 text-blue-600 border-blue-100',
@@ -539,15 +572,15 @@ function ContactRow({ icon, label, value, color }) {
       </div>
     </div>
   );
-}
+});
 
-function VendorCard({ vendor, employees, onVerify, onDelete, onAssign, onClick }) {
+const VendorCard = React.memo(({ vendor, employees, onVerify, onDelete, onAssign, onClick }) => {
   return (
     <div onClick={onClick}
       className="group bg-white rounded-2xl border border-gray-100 hover:border-violet-200 hover:shadow-lg hover:shadow-violet-50/50 transition-all p-4 cursor-pointer">
       <div className="flex gap-4">
         {(vendor.avatar || (vendor.images && vendor.images.length > 0)) ? (
-          <img src={vendor.avatar || vendor.images[0]} alt={vendor.name} className="w-14 h-14 rounded-2xl object-cover shadow-sm border border-gray-100 flex-shrink-0" />
+          <img src={vendor.avatar || vendor.images[0]} alt={vendor.name} className="w-14 h-14 rounded-2xl object-cover shadow-sm border border-gray-100 flex-shrink-0" onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(vendor.name || 'Vendor')}&background=ede9fe&color=7c3aed`; }} />
         ) : (
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-50 to-indigo-100 flex items-center justify-center text-violet-600 font-black text-xl flex-shrink-0">
             {vendor.name?.[0] || '?'}
@@ -569,7 +602,7 @@ function VendorCard({ vendor, employees, onVerify, onDelete, onAssign, onClick }
           {vendor.images && vendor.images.length > 0 && (
             <div className="mt-2 flex items-center gap-1.5 overflow-hidden">
               {vendor.images.slice(0, 4).map((img, i) => (
-                <img key={i} src={img} alt="" className="h-8 w-8 object-cover rounded-md border border-gray-100 shadow-sm" />
+                <img key={i} src={img} alt="" className="h-8 w-8 object-cover rounded-md border border-gray-100 shadow-sm" onError={(e) => { e.target.style.display = 'none'; }} />
               ))}
               {vendor.images.length > 4 && (
                 <div className="h-8 w-8 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-400">
@@ -610,6 +643,6 @@ function VendorCard({ vendor, employees, onVerify, onDelete, onAssign, onClick }
       </div>
     </div>
   );
-}
+});
 
 

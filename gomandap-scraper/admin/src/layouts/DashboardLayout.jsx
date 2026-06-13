@@ -4,10 +4,13 @@ import {
   LayoutDashboard, Users, Settings, LogOut, Menu, X,
   Activity, ChevronRight, Bell, Search, Zap, MapPin
 } from 'lucide-react';
+import { useScraper } from '../context/ScraperContext';
+import OmniSearch from '../components/OmniSearch';
 
 export default function DashboardLayout({ user, onLogout }) {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const scraperContext = useScraper();
 
   const handleLogout = () => {
     onLogout();
@@ -17,7 +20,7 @@ export default function DashboardLayout({ user, onLogout }) {
   const isAdmin = user?.role === 'admin';
 
   const navItems = [
-    { to: '/app/overview', icon: <LayoutDashboard size={18} />, label: 'Scraper', desc: 'Extract & manage leads' },
+    { to: '/app/overview', icon: <LayoutDashboard size={18} />, label: 'Global Search', desc: 'Extract & manage global leads' },
     { to: '/app/leads', icon: <Users size={18} />, label: 'Leads Pipeline', desc: 'View & manage leads' },
     { to: '/app/automations', icon: <Zap size={18} />, label: 'Automations', desc: 'Workflows & phone scraper' },
     ...(isAdmin ? [
@@ -48,7 +51,7 @@ export default function DashboardLayout({ user, onLogout }) {
               <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
                 <Search size={14} className="text-white" strokeWidth={2.5} />
               </div>
-              <span className="font-black text-lg tracking-tight">OmniLead<span className="text-violet-600">.</span></span>
+              <span className="font-black text-lg tracking-tight">OmniSearch<span className="text-violet-600">.</span></span>
             </div>
             <button className="md:hidden p-1 text-gray-400 hover:text-gray-700" onClick={() => setSidebarOpen(false)}>
               <X size={18} />
@@ -111,7 +114,7 @@ export default function DashboardLayout({ user, onLogout }) {
             <div className="w-7 h-7 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
               <Search size={13} className="text-white" strokeWidth={2.5} />
             </div>
-            <span className="font-black text-base">OmniLead<span className="text-violet-600">.</span></span>
+            <span className="font-black text-base">OmniSearch<span className="text-violet-600">.</span></span>
           </div>
           <button className="p-2 text-gray-600 hover:text-gray-900 relative">
             <Bell size={18} />
@@ -119,8 +122,28 @@ export default function DashboardLayout({ user, onLogout }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 w-full">
-          <Outlet />
+        <main className="flex-1 w-full flex flex-col">
+          {/* Global Search Bar (Desktop) */}
+          <div className="hidden md:flex h-16 bg-white border-b border-gray-100 items-center justify-between px-8 flex-shrink-0 sticky top-0 z-40">
+            <div className="flex-1 max-w-2xl">
+              <OmniSearch 
+                onSearch={(cat, loc) => {
+                  navigate('/app/overview');
+                  setTimeout(() => scraperContext.startScrape(null, cat, loc), 100);
+                }}
+                knowledge={scraperContext.knowledge}
+                history={scraperContext.searchHistory}
+              />
+            </div>
+            <div className="flex items-center gap-4 ml-4">
+              <button className="p-2 text-gray-400 hover:text-gray-900 rounded-xl hover:bg-gray-50 transition-colors">
+                <Bell size={18} />
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 w-full overflow-x-hidden">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

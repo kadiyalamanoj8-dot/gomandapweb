@@ -279,6 +279,7 @@ function ScraperDashboard({ user, onLogout }) {
   const activeInputRef = useRef(activeInput);
   useEffect(() => { activeInputRef.current = activeInput; }, [activeInput]);
   const [searchScope, setSearchScope] = useState('full');
+  const [searchSessionStart, setSearchSessionStart] = useState(0);
   const [searchHistory, setSearchHistory] = useState(() => {
     try { return JSON.parse(localStorage.getItem('gomandap_search_history') || '[]'); } catch { return []; }
   });
@@ -344,6 +345,18 @@ function ScraperDashboard({ user, onLogout }) {
           if (Array.isArray(coords)) setGridPoints(coords);
         } catch (err) { /* ignore */ }
       });
+      es.addEventListener('dispatch_targets', (e) => {
+        try {
+          const targets = JSON.parse(e.data);
+          if (Array.isArray(targets) && targets.length > 0) {
+            toast.success(`Dispatching jobs to ${targets.length} targets:\n${targets.slice(0, 5).join(', ')}${targets.length > 5 ? '...' : ''}`, {
+              duration: 6000,
+              icon: '🗺️',
+              style: { minWidth: '300px' }
+            });
+          }
+        } catch (err) { /* ignore */ }
+      });
       es.addEventListener('active_point', (e) => {
         try {
           const pt = JSON.parse(e.data);
@@ -354,19 +367,29 @@ function ScraperDashboard({ user, onLogout }) {
           });
         } catch (err) { /* ignore */ }
       });
-      es.onmessage = (e) => {
-        try {
+      // Buffer logs to prevent React from freezing due to massive re-renders
+      const logBuffer = [];
+      const logInterval = setInterval(() => {
+        if (logBuffer.length > 0) {
           setLogs(prev => {
-            const next = [...prev, e.data];
+            const next = [...prev, ...logBuffer];
             return next.slice(-200);
           });
+          logBuffer.length = 0; // clear buffer
+          
           // auto-scroll
           setTimeout(() => {
             if (terminalRef.current) {
               terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
             }
           }, 50);
-        } catch (err) { /* ignore scroll errors */ }
+        }
+      }, 500);
+
+      es.onmessage = (e) => {
+        try {
+          logBuffer.push(e.data);
+        } catch (err) { /* ignore */ }
       };
       es.onerror = () => {
         setSseStatus('error');
@@ -381,9 +404,15 @@ function ScraperDashboard({ user, onLogout }) {
           if (res.data && Array.isArray(res.data)) setLogs(res.data);
         } catch (e) { console.warn('Log polling failed', e.message); }
       }, 2000);
-      return () => clearInterval(interval);
+      return () => { clearInterval(interval); if (typeof logInterval !== 'undefined') clearInterval(logInterval); };
     }
-    return () => { try { es && es.close(); eventSourceRef.current = null; } catch (e) { /* ignore close error */ } };
+    return () => { 
+      try { 
+        if (typeof logInterval !== 'undefined') clearInterval(logInterval);
+        es && es.close(); 
+        eventSourceRef.current = null; 
+      } catch (e) { /* ignore close error */ } 
+    };
   }, []);
 
   // Proactive AI Guidance Toast (Idle for 60s)
@@ -763,6 +792,7 @@ function ScraperDashboard({ user, onLogout }) {
     setVendors([]);
     setActivePoints([]);
     setGridPoints([]);
+    setSearchSessionStart(Date.now());
     
     try {
       setLoading(true);
@@ -916,25 +946,28 @@ function ScraperDashboard({ user, onLogout }) {
   const liveVendors = vendors.filter(v => v.pushed).reverse();
   const verifiedCount = stagingVendors.filter(v => v.verified).length;
 
-  const displayedVendors = activeTab === 'staging-phones' ? stagingVendorsWithPhones
-    : activeTab === 'staging-nophones' ? stagingVendorsNoPhones : liveVendors;
+  const displayedVendors = activeTab === 'staging' ? stagingVendors
+    : activeTab === 'out-of-bounds' ? outOfBoundsVendors
+    : activeTab === 'pushed' ? liveVendors
+    : stagingVendors; // default fallback
 
-  // Auto-switch to no-phones tab if there are results there but none in the phones tab
-  useEffect(() => {
-    if (activeTab === 'staging-phones' && stagingVendorsWithPhones.length === 0 && stagingVendorsNoPhones.length > 0) {
-      const timer = setTimeout(() => setActiveTab('staging-nophones'), 0);
-      return () => clearTimeout(timer);
-    }
-  }, [stagingVendorsWithPhones.length, stagingVendorsNoPhones.length, activeTab]);
+  // Unified staging tab handles everything now.
+
+  const deferredSearchFilter = React.useDeferredValue(searchFilter);
 
   const cities = ['All', ...new Set(displayedVendors.map(v => v.city).filter(Boolean))];
-  const filteredVendors = displayedVendors.filter(v =>
-    (selectedCity === 'All' || v.city === selectedCity) &&
-    (v.name?.toLowerCase().includes(searchFilter.toLowerCase()) ||
-     v.category?.toLowerCase().includes(searchFilter.toLowerCase()) ||
-     v.city?.toLowerCase().includes(searchFilter.toLowerCase()) ||
-     v.phone?.includes(searchFilter))
-  );
+  const filteredVendors = displayedVendors.filter(v => {
+    if (selectedCity !== 'All' && v.city !== selectedCity) return false;
+    if (!deferredSearchFilter) return true;
+    
+    const term = deferredSearchFilter.toLowerCase();
+    return (
+      v.name?.toLowerCase().includes(term) ||
+      v.category?.toLowerCase().includes(term) ||
+      v.city?.toLowerCase().includes(term) ||
+      v.phone?.includes(term)
+    );
+  });
 
   const grouped = filteredVendors.reduce((acc, v) => {
     const key = (v.city && v.city !== 'Global') ? `${v.category || 'Uncategorized'} in ${v.city}` : (v.category || 'Uncategorized');
@@ -966,7 +999,7 @@ function ScraperDashboard({ user, onLogout }) {
   }
 
   // Provide all scraping state/actions to sub-pages via context
-  const contextValue = {
+  const contextValue = React.useMemo(() => ({
     // Data
     vendors, setVendors,
     loading, setLoading,
@@ -978,6 +1011,7 @@ function ScraperDashboard({ user, onLogout }) {
     locationQuery, setLocationQuery,
     activeInput, setActiveInput,
     searchScope, setSearchScope,
+    searchSessionStart,
     handleCategoryChange, handleLocationChange,
     enabledEngines, setEnabledEngines,
     suggestions, setSuggestions,
@@ -995,6 +1029,7 @@ function ScraperDashboard({ user, onLogout }) {
     stagingVendorsWithPhones,
     stagingVendorsNoPhones,
     liveVendors,
+    outOfBoundsVendors,
     verifiedCount,
     grouped,
     filteredVendors,
@@ -1033,7 +1068,15 @@ function ScraperDashboard({ user, onLogout }) {
     // Auth
     onLogout,
     user,
-  };
+  }), [
+    vendors, loading, logs, sseStatus, logLevel,
+    categoryQuery, locationQuery, activeInput, searchScope, searchSessionStart, enabledEngines,
+    suggestions, showSuggestions, suggestionIndex, searchHistory, showDirectory, knowledge,
+    activeCategory, activeTab, employees, stagingVendorsWithPhones, stagingVendorsNoPhones,
+    liveVendors, outOfBoundsVendors, verifiedCount, grouped, filteredVendors, displayedVendors,
+    cities, selectedCity, searchFilter, activeJobs, selectedJobCategory, selectedFolder,
+    modelLoadingStatus, activePoints, gridPoints, user
+  ]);
 
   return (
     <ScraperContext.Provider value={contextValue}>

@@ -3,7 +3,7 @@ const axios = require('axios');
 const path = require('path');
 const dbAdapter = require('../config/dbAdapter');
 const geoAI = require('../utils/geoAI');
-const { getBrowser, chromium } = require('./browserFactory');
+const { getBrowser, chromium, applyAdvancedStealth } = require('./browserFactory');
 const { verifyWithAI } = require('../utils/aiParser');
 
 // Lead Quality Scoring Algorithm
@@ -180,6 +180,7 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
       viewport: { width: 1280, height: 800 }
     });
     page = await context.newPage();
+    await applyAdvancedStealth(page);
 
     // Abort image, font, and media for maximum speed, but allow stylesheets/other so Google Maps JS renders the feed correctly.
     await page.route('**/*', (route) => {

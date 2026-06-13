@@ -11,6 +11,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useScraper } from '../../context/ScraperContext';
 import OmniSearch from '../../components/OmniSearch';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 
 // Fix for default leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -20,18 +21,48 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-const MapBounds = ({ vendors, gridPoints }) => {
+// Custom colored markers for clear visual distinction
+const validIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
+const oobIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
+const MapBounds = ({ vendors, gridPoints, activePoints, userLocation, autoCenter }) => {
   const map = useMap();
   useEffect(() => {
+    if (!autoCenter) return; // Allow manual override if user interacts
+
     let pts = [];
-    if (vendors && vendors.length > 0) pts.push(...vendors.map(v => [v.safeLat, v.safeLng]));
-    if (gridPoints && gridPoints.length > 0) pts.push(...gridPoints.map(p => [p.lat, p.lng]));
-    
+    if (gridPoints && gridPoints.length > 0) {
+      pts.push(...gridPoints.map(p => [p.lat, p.lng]));
+    } else if (activePoints && activePoints.length > 0) {
+      pts.push(...activePoints.map(p => [p.lat, p.lng]));
+    } else if (userLocation && userLocation.length === 2) {
+      pts.push(userLocation);
+      // Optional: add recent vendors that are close to userLocation to avoid zooming to the whole world
+    } else if (vendors && vendors.length > 0) {
+      // Only bound to the most recent 10 vendors to prevent global zoom out
+      pts.push(...vendors.slice(0, 10).map(v => [v.safeLat, v.safeLng]));
+    }
+
     if (pts.length > 0) {
       const bounds = L.latLngBounds(pts);
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+      map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 14, duration: 1.5 });
     }
-  }, [vendors, gridPoints, map]);
+  }, [vendors, gridPoints, activePoints, userLocation, autoCenter, map]);
   return null;
 };
 
@@ -41,7 +72,7 @@ export default function OverviewPage() {
     searchRadius, setSearchRadius,
     enabledEngines, setEnabledEngines,
     startScrape, handleMasterStop,
-    stagingVendorsWithPhones, stagingVendorsNoPhones, liveVendors, verifiedCount,
+    stagingVendorsWithPhones, stagingVendorsNoPhones, liveVendors, outOfBoundsVendors, verifiedCount,
     modelLoadingStatus, suggestions, showSuggestions, setShowSuggestions,
     suggestionIndex, searchHistory, setSearchHistory,
     showDirectory, setShowDirectory, knowledge,
@@ -50,6 +81,7 @@ export default function OverviewPage() {
     locationQuery, setLocationQuery,
     activeInput, setActiveInput,
     searchScope, setSearchScope,
+    searchSessionStart,
     handleCategoryChange, handleLocationChange,
     triggerPython, triggerCheerio, triggerMaps,
     vendors, activeJobs, grouped, pushToProd,
@@ -58,26 +90,35 @@ export default function OverviewPage() {
   } = useScraper();
 
   const [showLog, setShowLog] = useState(false);
+  const [userLocation, setUserLocation] = useState([17.3850, 78.4867]); // Default to Hyderabad
+  const [autoCenter, setAutoCenter] = useState(true);
 
-  const PLATFORMS = [
-    { id: 'maps', label: 'Maps & Location', icon: <MapPin size={14} />, desc: 'Google Maps & local directories' },
-    { id: 'instagram', label: 'Instagram', icon: <Camera size={14} />, desc: 'Business profiles & contacts' },
-    { id: 'google-web', label: 'Universal Web Search', icon: <Globe size={14} />, desc: 'Global organic web scraper' },
-    { id: 'justdial', label: 'Justdial', icon: <Globe size={14} />, desc: 'India\'s top business directory' },
-    { id: 'firebase', label: 'Cloud Sync', icon: <Database size={14} />, desc: 'Sync with live database' },
-  ];
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation([position.coords.latitude, position.coords.longitude]);
+        },
+        (error) => {
+          console.log("Geolocation error or denied:", error);
+        }
+      );
+    }
+  }, []);
 
   const totalLeads = vendors?.length || 0;
   const withPhone = stagingVendorsWithPhones?.length || 0;
   const noPhone = stagingVendorsNoPhones?.length || 0;
   const live = liveVendors?.length || 0;
 
-  const mapVendors = [...(stagingVendorsWithPhones || []), ...(stagingVendorsNoPhones || [])]
+  const rawMapVendors = [...(stagingVendorsWithPhones || []), ...(stagingVendorsNoPhones || []), ...(outOfBoundsVendors || [])]
     .filter(v => (v.lat && v.lng) || (v.latitude && v.longitude))
-    .map(v => ({...v, safeLat: v.lat || v.latitude, safeLng: v.lng || v.longitude}))
-    .slice(0, 50);
+    .filter(v => searchSessionStart === 0 || new Date(v.scrapedAt).getTime() >= searchSessionStart)
+    .map(v => ({...v, safeLat: v.lat || v.latitude, safeLng: v.lng || v.longitude}));
 
-
+  // Defer map rendering arrays so Leaflet doesn't crash the browser
+  const mapVendors = React.useDeferredValue(rawMapVendors);
+  const deferredActivePoints = React.useDeferredValue(activePoints || []);
 
   return (
     <div className="min-h-full bg-[#f7f8fa]">
@@ -86,8 +127,8 @@ export default function OverviewPage() {
       <div className="bg-white border-b border-gray-100 px-8 py-6">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-black text-gray-900">Lead Scraper</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Search and extract verified business contacts from multiple sources</p>
+            <h1 className="text-2xl font-black text-gray-900">Global Omni Search</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Search and extract verified business contacts from around the world</p>
           </div>
           <div className="flex items-center gap-3">
             <button onClick={handleMasterStop}
@@ -175,7 +216,8 @@ export default function OverviewPage() {
             <div className="mb-6">
               <OmniSearch 
                 onSearch={(cat, loc) => {
-                  setTimeout(() => startScrape(null, cat, loc), 10);
+                  // Pass null for event, then category and location
+                  setTimeout(() => startScrape(null, cat, loc), 100);
                 }}
                 knowledge={knowledge}
                 history={searchHistory}
@@ -329,7 +371,7 @@ export default function OverviewPage() {
                   style={{ scrollbarWidth: 'thin', scrollbarColor: '#374151 transparent' }}>
                   {logs?.length === 0
                     ? <span className="text-gray-600">No logs yet. Start a scrape to see activity.</span>
-                    : [...(logs || [])].filter(l => !logLevel || logLevel === 'ALL' || l.includes(`[${logLevel}]`)).slice(-200).reverse().map((log, i) => {
+                    : [...(logs || [])].filter(l => !logLevel || logLevel === 'ALL' || l.includes(`[${logLevel}]`)).slice(-50).reverse().map((log, i) => {
                         const isError = log.includes('[ERROR]');
                         const isWarn = log.includes('[WARN]');
                         const isInfo = log.includes('[INFO]');
@@ -415,12 +457,12 @@ export default function OverviewPage() {
                   </span>
                 </div>
                 <div className="max-h-24 overflow-y-auto flex flex-wrap gap-2 p-2 bg-amber-50/30" style={{ scrollbarWidth: 'thin' }}>
-                  {activePoints.map((pt, i) => (
+                  {deferredActivePoints.map((pt, i) => (
                     <div key={i} className="bg-white border border-amber-100 rounded shadow-sm px-2.5 py-1.5 flex-grow min-w-[200px] max-w-[250px] hover:border-amber-300 transition-colors">
                       <p className="text-xs font-bold text-gray-800 line-clamp-1">{pt.locationName}</p>
                       <div className="flex items-center justify-between mt-1">
                         <p className="text-[10px] text-amber-700 font-bold bg-amber-100 px-1.5 py-0.5 rounded">Worker {pt.instanceId}</p>
-                        <p className="text-[10px] text-gray-400 font-mono">{pt.lat.toFixed(4)}, {pt.lng.toFixed(4)}</p>
+                        <p className="text-[10px] text-gray-400 font-mono">{Number(pt.lat || 0).toFixed(4)}, {Number(pt.lng || 0).toFixed(4)}</p>
                       </div>
                     </div>
                   ))}
@@ -429,11 +471,23 @@ export default function OverviewPage() {
             )}
           </AnimatePresence>
 
-          <div className="relative w-full h-[400px] rounded-xl overflow-hidden border border-gray-100">
-            {mapVendors.length > 0 || gridPoints?.length > 0 ? (
-              <MapContainer center={mapVendors.length > 0 ? [mapVendors[0].safeLat, mapVendors[0].safeLng] : [gridPoints[0].lat, gridPoints[0].lng]} zoom={11} style={{ width: '100%', height: '100%' }} zoomControl={false}>
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
-                <MapBounds vendors={mapVendors} gridPoints={gridPoints} />
+          <div className="relative w-full h-[400px] rounded-xl overflow-hidden border border-gray-100 group">
+              {/* Custom Map Controls */}
+              <div className="absolute top-4 right-4 z-[400] flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={() => setAutoCenter(true)} className="bg-white p-2 rounded-xl shadow-lg border border-gray-100 text-violet-600 hover:bg-violet-50 hover:scale-105 transition-all" title="Recenter to active search">
+                  <MapPin size={20} />
+                </button>
+              </div>
+
+              <MapContainer 
+                center={userLocation} 
+                zoom={5} 
+                style={{ width: '100%', height: '100%' }} 
+                zoomControl={true}
+                onMoveStart={() => setAutoCenter(false)}
+              >
+                <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" attribution='&copy; OpenStreetMap &copy; CARTO' />
+                <MapBounds vendors={mapVendors} gridPoints={gridPoints} activePoints={deferredActivePoints} userLocation={userLocation} autoCenter={autoCenter} />
                 
                 {/* Render Grid Points */}
                 {gridPoints?.length > 0 && gridPoints[0].maxRadiusKm > 0 && (
@@ -449,55 +503,61 @@ export default function OverviewPage() {
                     <Popup>
                       <div className="text-xs p-1">
                         <p className="font-bold mb-1">{i === 0 ? 'Center Pin' : `Search Point ${i+1}`}</p>
-                        <p className="text-gray-500">Radius Dist: {pt.distanceFromCenter ? pt.distanceFromCenter.toFixed(2) : 0}km</p>
+                        <p className="text-gray-500">Radius Dist: {Number(pt.distanceFromCenter || 0).toFixed(2)}km</p>
                       </div>
                     </Popup>
                   </CircleMarker>
                 ))}
 
                 {/* Render Blinking Active Points */}
-                {activePoints?.map((pt, i) => (
+                {deferredActivePoints?.map((pt, i) => (
                   <CircleMarker key={`active-${i}`} center={[pt.lat, pt.lng]} radius={10} 
                     className="animate-ping"
                     color="#eab308" fillColor="#eab308" fillOpacity={0.9} stroke={false}>
                   </CircleMarker>
                 ))}
-                {activePoints?.map((pt, i) => (
+                {deferredActivePoints?.map((pt, i) => (
                   <CircleMarker key={`active-solid-${i}`} center={[pt.lat, pt.lng]} radius={6} 
                     color="#ca8a04" fillColor="#fef08a" fillOpacity={1}>
                     <Popup>
                       <div className="text-xs p-1">
                         <p className="font-bold text-yellow-700 mb-1">🔥 Active Scanner (Worker {pt.instanceId})</p>
                         <p className="text-gray-600 mb-1">{pt.locationName}</p>
-                        <p className="text-gray-500 text-[10px] font-mono">{pt.lat.toFixed(5)}, {pt.lng.toFixed(5)}</p>
+                        <p className="text-gray-500 text-[10px] font-mono">{Number(pt.lat || 0).toFixed(5)}, {Number(pt.lng || 0).toFixed(5)}</p>
                       </div>
                     </Popup>
                   </CircleMarker>
                 ))}
 
-                {mapVendors.map((vendor, i) => (
-                  <Marker key={`vendor-${i}`} position={[vendor.safeLat, vendor.safeLng]}>
-                    <Popup>
-                      <div className="text-xs p-1">
-                        <p className="font-bold text-gray-900 mb-1">{vendor.name}</p>
-                        <p className="text-gray-500 mb-1">{vendor.category}</p>
-                        {vendor.phone && <p className="text-green-600 font-semibold">{vendor.phone}</p>}
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
+                <MarkerClusterGroup chunkedLoading maxClusterRadius={50}>
+                  {mapVendors.map((vendor, i) => (
+                    <Marker 
+                      key={`vendor-${i}`} 
+                      position={[vendor.safeLat, vendor.safeLng]}
+                      icon={vendor.source === 'Google Maps (Out of Bounds)' ? oobIcon : validIcon}
+                    >
+                      <Popup>
+                        <div className="text-xs p-1">
+                          <p className="font-bold text-gray-900 mb-1">{vendor.name}</p>
+                          <p className="text-gray-600 mb-2">{vendor.category} &middot; {vendor.city}</p>
+                          <p className="text-gray-500 font-mono mb-2">{vendor.phone}</p>
+                          {vendor.source === 'Google Maps (Out of Bounds)' && (
+                            <p className="text-red-500 font-bold mb-2">Out of Bounds: {vendor.outOfBoundsDistance}km</p>
+                          )}
+                          <a href={vendor.mapsLink} target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:text-violet-700 font-semibold flex items-center gap-1">
+                            View on Maps <ArrowRight size={10} />
+                          </a>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  ))}
+                </MarkerClusterGroup>
               </MapContainer>
-            ) : (
-              <div className="w-full h-full bg-gray-50 flex items-center justify-center text-gray-400 flex-col gap-3">
-                <Map size={32} className="opacity-20" />
-                <p className="font-bold text-sm">Waiting for geographic data...</p>
-              </div>
-            )}
           </div>
         </div>
 
         {/* ── QUICK STATS BY CATEGORY ── */}
-        {Object.keys(grouped || {}).length > 0 && (
+        {vendors?.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-bold text-gray-900">Category Breakdown</h2>
@@ -506,12 +566,33 @@ export default function OverviewPage() {
               </a>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {Object.entries(grouped).slice(0, 8).map(([cat, items]) => (
-                <div key={cat} className="p-4 rounded-xl bg-gray-50 border border-gray-100 hover:border-violet-200 hover:bg-violet-50/30 transition-all">
+              {Object.entries(
+                vendors.reduce((acc, v) => {
+                  const cat = v.category || 'Uncategorized';
+                  if (!acc[cat]) acc[cat] = [];
+                  acc[cat].push(v);
+                  return acc;
+                }, {})
+              )
+              .sort((a, b) => b[1].length - a[1].length)
+              .slice(0, 8)
+              .map(([cat, items], i) => (
+                <motion.a 
+                  key={cat} 
+                  href={`/app/leads`} // Basic routing, context state would be better, but href resets state.
+                  onClick={() => {
+                    // Pre-fill activeCategory via localStorage before navigating so leads page picks it up
+                    localStorage.setItem('gomandap_active_category', cat);
+                  }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: i * 0.05 }}
+                  className="block p-4 rounded-xl bg-gray-50 border border-gray-100 hover:border-violet-300 hover:bg-violet-50/50 hover:-translate-y-1 transition-all cursor-pointer shadow-sm hover:shadow"
+                >
                   <p className="text-xs font-semibold text-gray-600 truncate" title={cat}>{cat}</p>
                   <p className="text-2xl font-black text-gray-900 mt-1">{items.length}</p>
                   <p className="text-[10px] text-gray-400">{items.filter(v => v.verified).length} verified</p>
-                </div>
+                </motion.a>
               ))}
             </div>
           </div>

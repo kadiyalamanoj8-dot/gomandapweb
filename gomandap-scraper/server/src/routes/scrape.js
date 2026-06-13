@@ -43,6 +43,7 @@ let batchProgress = { total: 0, completed: 0, currentTask: '', isActive: false }
 let globalAbortSignal = { aborted: false };
 let addLog = console.log;
 let emitGridEvent = () => {};
+let emitDispatchEvent = () => {};
 
 // Register tasks with BullMQ
 registerTask('scrapeGooglePlaces', async (q, cat, loc, sessionId, centerLat, centerLng, radiusKm) => safeExecute(() => scrapeGooglePlaces(q, cat, loc, sessionId, centerLat, centerLng, radiusKm), 'Google Places Scrape', addLog));
@@ -63,6 +64,7 @@ function setDeps(deps) {
   addLog = deps.logger;
   globalAbortSignal = deps.abortSignal;
   if (deps.emitGridEvent) emitGridEvent = deps.emitGridEvent;
+  if (deps.emitDispatchEvent) emitDispatchEvent = deps.emitDispatchEvent;
   if (setPlacesDeps) setPlacesDeps(deps);
   if (setDorkLogger) setDorkLogger(deps.logger);
 
@@ -444,100 +446,78 @@ router.post('/omni', async (req, res) => {
     const bl = (baseLocation || "").toString().toLowerCase();
 
     if (strategy === 'mandal' || strategy === 'full') {
-      addLog(`[OSM Engine] Fetching Villages/Towns for ${baseLocation} via OpenStreetMap...`);
-      const osmResults = await intelligentExtractor.fetchOSMLocalities(baseLocation);
-      
-      if (osmResults && osmResults.length > 0) {
-        addLog(`[OSM Engine] Master expansion complete! Found ${osmResults.length} exact coordinate pins.`);
-        
-        let centerGeo = await geocodeLocation(baseLocation);
-        let maxRadiusKm = 0;
+      addLog(`[Hierarchy Engine] Resolving regional sub-divisions for: ${baseLocation}...`);
+      const initialBreakdown = await getSubLocations(baseLocation);
+      let targets = [];
+      const isSafeString = (val) => typeof val === 'string' && val.trim().length > 0;
 
-        if (centerGeo && centerGeo.lat) {
-          const centerFormatted = `${baseLocation} Center`;
-          centerLocations.push({ lat: centerGeo.lat, lng: centerGeo.lng, formattedLocation: centerFormatted, queryLoc: centerFormatted });
-          allGridCoords.push({ lat: centerGeo.lat, lng: centerGeo.lng, distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: centerFormatted });
-          
-          for (const loc of osmResults) {
-            const dist = getDistanceKm(centerGeo.lat, centerGeo.lng, parseFloat(loc.lat), parseFloat(loc.lng));
-            if (dist > maxRadiusKm) maxRadiusKm = dist;
-            const formattedLoc = `${loc.name}, ${baseLocation}`;
-            allGridCoords.push({ lat: parseFloat(loc.lat), lng: parseFloat(loc.lng), distanceFromCenter: dist, ring: 0, angle: 0, centerLoc: formattedLoc });
-            centerLocations.push({ lat: loc.lat, lng: loc.lng, formattedLocation: formattedLoc, queryLoc: formattedLoc });
-          }
-          
-          if (allGridCoords.length > 0 && maxRadiusKm > 0) {
-            allGridCoords[0].maxRadiusKm = maxRadiusKm; // Attach radius for map boundary
-          }
-        } else {
-          // If center geocode fails, just push the nodes
-          for (const loc of osmResults) {
-            const formattedLoc = `${loc.name}, ${baseLocation}`;
-            allGridCoords.push({ lat: parseFloat(loc.lat), lng: parseFloat(loc.lng), distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: formattedLoc });
-            centerLocations.push({ lat: loc.lat, lng: loc.lng, formattedLocation: formattedLoc, queryLoc: formattedLoc });
-          }
-        }
+      if (initialBreakdown.length === 1 && isSafeString(initialBreakdown[0]) && initialBreakdown[0].toLowerCase() === (baseLocation || "").toString().toLowerCase()) {
+         addLog(`[Hierarchy Engine] No breakdown found in knowledge base or AI for "${baseLocation}". Falling back to OpenStreetMap (OSM) extraction...`);
+         const intelligentExtractor = require('../utils/intelligentExtractor');
+         const osmResults = await intelligentExtractor.fetchOSMLocalities(baseLocation);
+         if (osmResults && osmResults.length > 0) {
+            for (const loc of osmResults) {
+                if (loc.name) targets.push(loc.name);
+            }
+         } else {
+            targets.push(baseLocation);
+         }
       } else {
-        // Fallback to legacy behavior if OSM fails or returns 0
-        addLog(`[Hyper-Local AI] OSM failed or returned 0. Falling back to AI semantic expansion for: ${baseLocation}`);
-        const initialBreakdown = await getSubLocations(baseLocation);
-        let targets = [];
-        
-        const isSafeString = (val) => typeof val === 'string' && val.trim().length > 0;
-
-        if (initialBreakdown.length === 1 && isSafeString(initialBreakdown[0]) && initialBreakdown[0].toLowerCase() === (baseLocation || "").toString().toLowerCase()) {
-           targets.push(baseLocation);
-        } else {
-           if (strategy === 'full') {
-             for (const subRegion of initialBreakdown.filter(isSafeString)) {
-                addLog(`[Hyper-Local AI] Learning villages/colonies for: ${subRegion}...`);
-                const deepLocalities = await getSubLocations(subRegion); // Just Mandal Name
-                
-                if (deepLocalities.length === 1 && isSafeString(deepLocalities[0]) && deepLocalities[0].toLowerCase() === subRegion.toLowerCase()) {
-                    targets.push(subRegion); // Just Mandal Name
-                } else {
-                    for (const loc of deepLocalities.filter(isSafeString)) {
-                       targets.push(loc); // Just Village Name!
-                    }
-                }
-             }
-           } else {
-             for (const subRegion of initialBreakdown.filter(isSafeString)) {
-                targets.push(subRegion); // Just Mandal Name
-             }
+         if (strategy === 'full') {
+           for (const subRegion of initialBreakdown.filter(isSafeString)) {
+              addLog(`[Hierarchy Engine] Expanding deep localities for: ${subRegion}...`);
+              const deepLocalities = await getSubLocations(subRegion); 
+              
+              if (deepLocalities.length === 1 && isSafeString(deepLocalities[0]) && deepLocalities[0].toLowerCase() === subRegion.toLowerCase()) {
+                  targets.push(subRegion);
+              } else {
+                  for (const loc of deepLocalities.filter(isSafeString)) {
+                     targets.push(loc); 
+                  }
+              }
            }
-        }
-        
-        addLog(`[Hyper-Local AI] Fallback expansion complete! Generated ${targets.length} localities.`);
-        
-        if (strategy === 'full' && targets.length > 10) {
-           addLog(`[Tier 3 Speed Optimization] Bypassing individual geocoding for ${targets.length} villages to prevent API rate-limits.`);
-           const baseGeo = await geocodeLocation(baseLocation);
-           if (baseGeo && baseGeo.lat) {
-             for (let i = 0; i < targets.length; i++) {
-               const t = targets[i];
-               // Add a tiny visual jitter to prevent markers stacking perfectly on top of each other
-               const jitterLat = baseGeo.lat + (Math.random() - 0.5) * 0.05;
-               const jitterLng = baseGeo.lng + (Math.random() - 0.5) * 0.05;
-               allGridCoords.push({ lat: parseFloat(jitterLat.toFixed(6)), lng: parseFloat(jitterLng.toFixed(6)), distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: t });
-               centerLocations.push({ lat: jitterLat, lng: jitterLng, formattedLocation: t, queryLoc: t });
-             }
+         } else {
+           for (const subRegion of initialBreakdown.filter(isSafeString)) {
+              targets.push(subRegion); 
            }
-        } else {
-           // Normal sequential geocoding for smaller lists (Mandals)
+         }
+      }
+      
+      // Remove duplicates
+      targets = [...new Set(targets)];
+      addLog(`[Hierarchy Engine] Regional expansion complete! Generated ${targets.length} distinct targets.`);
+      
+      // Emit dispatch targets to frontend to show a beautiful popup
+      try { emitDispatchEvent(targets); } catch (e) {}
+      
+      if (strategy === 'full' && targets.length > 10) {
+         const baseGeo = await geocodeLocation(baseLocation);
+         if (baseGeo && baseGeo.lat) {
+           for (let i = 0; i < targets.length; i++) {
+             const jitterLat = baseGeo.lat + (Math.random() - 0.5) * 0.05;
+             const jitterLng = baseGeo.lng + (Math.random() - 0.5) * 0.05;
+             allGridCoords.push({ lat: jitterLat, lng: jitterLng, distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: `${targets[i]}, ${baseLocation}` });
+             centerLocations.push({ lat: jitterLat, lng: jitterLng, formattedLocation: targets[i], queryLoc: targets[i] });
+           }
+         } else {
            for (const t of targets) {
-             addLog(`[Mandal Expansion] Resolving coordinates for: ${t}`);
-             const geo = await geocodeLocation(t);
-             if (geo && geo.lat) {
-               allGridCoords.push({
-                 lat: parseFloat(geo.lat.toFixed(6)),
-                 lng: parseFloat(geo.lng.toFixed(6)),
-                 distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: t
-               });
-               centerLocations.push({ ...geo, queryLoc: t });
-             }
+             centerLocations.push({ lat: null, lng: null, formattedLocation: t, queryLoc: t });
            }
-        }
+         }
+      } else {
+         // Normal sequential geocoding for smaller lists (Mandals)
+         for (const t of targets) {
+           addLog(`[Mandal Expansion] Resolving coordinates for: ${t}`);
+           const geo = await geocodeLocation(t);
+           if (geo && geo.lat) {
+             allGridCoords.push({
+               lat: parseFloat(geo.lat.toFixed(6)),
+               lng: parseFloat(geo.lng.toFixed(6)),
+               distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: t
+             });
+             centerLocations.push({ ...geo, queryLoc: t });
+           }
+         }
       }
     } else {
       // Normal Single Target
@@ -548,9 +528,11 @@ router.post('/omni', async (req, res) => {
     }
 
     // NASA SUNFLOWER RADIUS JUMPING (MULTI-TIER SCALING)
+    const isMandal = strategy === 'mandal';
+    
     if (centerLocations.length > 0) {
       if (strategy === 'full') {
-         // Tier 3: Village Level (Do NOT generate grids. 1 exact point per village to prevent 18,000 browsers)
+         // Tier 3: Village Level
          addLog(`[Tier 3: Villages] Bypassing massive grids. Targeting exactly ${centerLocations.length} precise village coordinates.`);
          for (const center of centerLocations) {
             allGridCoords.push({ 
@@ -561,7 +543,6 @@ router.post('/omni', async (req, res) => {
          }
       } else {
          // Tier 1 & Tier 2: City / Mandal
-         const isMandal = strategy === 'mandal';
          const activeRadius = isMandal ? 10 : ((radius && parseInt(radius) > 0) ? parseInt(radius) : 30); 
          const density = isMandal ? 20 : (gridDensity ? parseInt(gridDensity) : 50); 
          
@@ -571,6 +552,42 @@ router.post('/omni', async (req, res) => {
            const gridCoords = generateGridCoordinates(center.lat, center.lng, activeRadius, density, center.boundingbox);
            gridCoords.forEach(c => allGridCoords.push({ ...c, centerLoc: center.queryLoc, activeRadius, isExactPoint: false }));
          }
+      }
+    } else if (targets.length > 0) {
+      // === GEOGRAPHIC WORKER DISPATCH SYSTEM FOR TEXT TARGETS (NO CENTER GEO) ===
+      if (targets.length > 50) {
+          addLog(`[Dispatcher] Large geographic target detected (${targets.length} sub-regions). Engaging Distributed Worker Mode.`);
+          const chunkSize = 20; // Dispatch 20 localities per worker job
+          for (let i = 0; i < targets.length; i += chunkSize) {
+             const chunkTargets = targets.slice(i, i + chunkSize);
+             
+             addLog(`[Dispatcher] Queuing Worker Task ${Math.floor(i/chunkSize) + 1} for ${chunkTargets.length} localities...`);
+             addScrapeJob('scrapeOmniGrid', [
+                category,
+                `${baseLocation} (Part ${Math.floor(i/chunkSize) + 1})`,
+                sessionId,
+                [], // centerGeo
+                chunkTargets,
+                [], // allGridCoords
+                isMandal ? 10 : 30,
+                enabledEngines
+             ]);
+          }
+          addLog(`[Dispatcher] Successfully queued ${Math.ceil(targets.length / chunkSize)} parallel worker jobs.`);
+          return res.json({ message: 'Omni-Scrape process started (Distributed Worker Mode)', sessionId });
+      } else {
+          addLog(`[Dispatcher] Single worker node assigned for ${baseLocation}.`);
+          addScrapeJob('scrapeOmniGrid', [
+             category,
+             baseLocation,
+             sessionId,
+             [],
+             targets,
+             [],
+             isMandal ? 10 : 30,
+             enabledEngines
+          ]);
+          return res.json({ message: 'Omni-Scrape process started', sessionId });
       }
     }
 

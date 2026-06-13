@@ -1,4 +1,16 @@
-// In-Memory Queue to replace BullMQ and Redis (Removes ECONNREFUSED 127.0.0.1:6379 errors)
+// Persistent Queue to replace BullMQ and Redis (Removes ECONNREFUSED 127.0.0.1:6379 errors)
+const fs = require('fs');
+const path = require('path');
+
+const JOBS_FILE = path.join(__dirname, '../../data/jobs.json');
+
+// Ensure jobs file exists
+if (!fs.existsSync(path.dirname(JOBS_FILE))) {
+  fs.mkdirSync(path.dirname(JOBS_FILE), { recursive: true });
+}
+if (!fs.existsSync(JOBS_FILE)) {
+  fs.writeFileSync(JOBS_FILE, JSON.stringify([]));
+}
 
 let globalDeps = {
   logger: console.log,
@@ -7,6 +19,8 @@ let globalDeps = {
 
 function initQueue(deps) {
   globalDeps = { ...globalDeps, ...deps };
+  // Resume any jobs that were pending/running when the server restarted
+  setTimeout(processQueue, 2000); 
 }
 
 // Map of task types to actual execution functions
@@ -16,40 +30,54 @@ function registerTask(name, fn) {
   taskRegistry[name] = fn;
 }
 
-const memoryQueue = [];
+function getPersistentQueue() {
+  try {
+    return JSON.parse(fs.readFileSync(JOBS_FILE, 'utf-8')) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function savePersistentQueue(queueData) {
+  try {
+    fs.writeFileSync(JOBS_FILE, JSON.stringify(queueData, null, 2));
+  } catch (e) {
+    console.error('[Queue] Failed to save queue state:', e);
+  }
+}
+
 let isProcessing = false;
 let activeCount = 0;
-// Capped at 1 for ultra-stable sequential scraping as requested by the user
+// Capped at 1 for ultra-stable sequential scraping
 const CONCURRENCY = 1;
 
 async function processQueue() {
   if (isProcessing) return;
   isProcessing = true;
 
-  while (memoryQueue.length > 0 || activeCount > 0) {
+  while (activeCount < CONCURRENCY) {
     if (globalDeps.abortSignal.aborted) {
-      memoryQueue.length = 0; // Clear queue
+      savePersistentQueue([]); // Clear queue on abort
       globalDeps.logger(`[Queue] Queue cleared due to master abort.`);
       break;
     }
 
-    if (activeCount < CONCURRENCY && memoryQueue.length > 0) {
-      const job = memoryQueue.shift();
-      activeCount++;
-      
-      const instanceId = Math.random().toString(36).substr(2, 5).toUpperCase();
-      
-      // Fire and forget, but handle completion/error
-      processJob(job, instanceId).finally(() => {
-        activeCount--;
-        // Trigger next process loop without blowing up stack
-        setImmediate(processQueue);
-      });
-    } else {
-      // Either queue is empty but things are running, or we hit concurrency limit
-      // Just break this loop, the `finally` block above will restart it
-      break;
-    }
+    const queue = getPersistentQueue();
+    if (queue.length === 0) break;
+
+    // Shift the first job off the disk queue
+    const job = queue.shift();
+    savePersistentQueue(queue); // Update disk state immediately
+    
+    activeCount++;
+    const instanceId = Math.random().toString(36).substr(2, 5).toUpperCase();
+    
+    // Fire and forget, but handle completion/error
+    processJob(job, instanceId).finally(() => {
+      activeCount--;
+      // Trigger next process loop without blowing up stack
+      setImmediate(processQueue);
+    });
   }
 
   isProcessing = false;
@@ -86,16 +114,17 @@ async function processJob(job, instanceId) {
 }
 
 async function addScrapeJob(taskName, args, priority = 10, meta = null) {
-  memoryQueue.push({ taskName, args, priority, meta });
-  // Sort descending if priority is important, but simple append is usually fine for this use case
-  memoryQueue.sort((a, b) => b.priority - a.priority);
+  const queue = getPersistentQueue();
+  queue.push({ taskName, args, priority, meta });
+  queue.sort((a, b) => b.priority - a.priority);
+  savePersistentQueue(queue);
   
   processQueue(); // Kick off processing if not already running
 }
 
 async function clearQueue() {
-  memoryQueue.length = 0;
-  globalDeps.logger(`[Queue] Memory queue obliterated.`);
+  savePersistentQueue([]);
+  globalDeps.logger(`[Queue] Persistent queue obliterated.`);
 }
 
 module.exports = {

@@ -93,6 +93,15 @@ function emitInterventionEvent(platformName, isActive) {
   } catch (e) { console.error('Failed to emit intervention SSE', e.message); }
 }
 
+function emitDispatchEvent(targets) {
+  try {
+    const safe = JSON.stringify(targets).replace(/\n/g, '\\n');
+    sseClients.forEach(res => {
+      try { res.write('event: dispatch_targets\n'); res.write(`data: ${safe}\n\n`); } catch (e) {}
+    });
+  } catch (e) { console.error('Failed to emit dispatch_targets SSE', e.message); }
+}
+
 function emitActivePointEvent(pointInfo) {
   try {
     const safe = JSON.stringify(pointInfo).replace(/\n/g, '\\n');
@@ -113,7 +122,7 @@ let globalAbortSignal = { aborted: false };
 
 // Inject dependencies into routers
 setLogGetter(() => systemLogs);
-setDeps({ logger: addLog, abortSignal: globalAbortSignal, emitVendorEvent, emitGridEvent, emitActivePointEvent, emitInterventionEvent });
+setDeps({ logger: addLog, abortSignal: globalAbortSignal, emitVendorEvent, emitGridEvent, emitActivePointEvent, emitInterventionEvent, emitDispatchEvent });
 const { setInterventionEmitter } = require('./src/utils/manualIntervention');
 setInterventionEmitter(emitInterventionEvent);
 

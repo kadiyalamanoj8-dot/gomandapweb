@@ -115,10 +115,28 @@ async function getBrowser() {
   return globalBrowser;
 }
 
+async function applyAdvancedStealth(page) {
+  try {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+      Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+      Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+      
+      const getParameter = WebGLRenderingContext.prototype.getParameter;
+      WebGLRenderingContext.prototype.getParameter = function(parameter) {
+        if (parameter === 37445) return 'Intel Inc.';
+        if (parameter === 37446) return 'Intel Iris OpenGL Engine';
+        return getParameter.call(this, parameter);
+      };
+    });
+  } catch(e) {}
+}
+
 module.exports = {
   launchStealthBrowser,
   launchBraveBrowser,
   launchFirefoxBrowser,
   getBrowser,
+  applyAdvancedStealth,
   chromium
 };

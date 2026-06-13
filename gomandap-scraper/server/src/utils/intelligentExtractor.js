@@ -85,22 +85,29 @@ async function generateLocalities(broadLocation) {
     let villageMatches = [];
 
     for (const state of indiaGeoData) {
+      if (state.state && state.state.toLowerCase() === searchName) {
+        if (state.districts) {
+          return state.districts.map(d => d.district).filter(Boolean);
+        }
+      }
+
       if (!state.districts) continue;
       for (const dist of state.districts) {
         if (!dist.subDistricts) continue;
 
-        // MATCH DISTRICT: Return top 20 Mandals
+        // MATCH DISTRICT: Return all Mandals
         if (dist.district.toLowerCase() === searchName) {
           const mandals = dist.subDistricts.map(sd => sd.subDistrict).filter(Boolean);
-          // Shuffle slightly or take top 20
-          return mandals.slice(0, 20);
+          // Return all mandals, the Chunk Dispatcher in scrape.js will handle the massive volume safely
+          return mandals;
         }
 
         for (const sub of dist.subDistricts) {
-          // MATCH MANDAL: Return top 20 Villages
+          // MATCH MANDAL: Return ALL Villages
           if (sub.subDistrict.toLowerCase() === searchName) {
             if (sub.villages && sub.villages.length > 0) {
-              return sub.villages.filter(Boolean).slice(0, 20);
+              // Return all villages, the Chunk Dispatcher in scrape.js will handle the massive volume safely
+              return sub.villages.filter(Boolean);
             } else {
               return [broadLocation];
             }
@@ -118,8 +125,44 @@ async function generateLocalities(broadLocation) {
   }
 
   // Fallback if not found in database or dataset missing
-  console.log(`[Intelligent Extractor] Local JSON miss for "${broadLocation}". Returning raw query.`);
-  return [broadLocation];
+  console.log(`[Intelligent Extractor] Local JSON miss for "${broadLocation}". Engaging DeepSeek AI for global resolution...`);
+  const prompt = `You are a highly precise Global Geographic Intelligence AI.
+The user wants to search for vendors in the region: "${broadLocation}".
+
+First, identify the country of this location. Then, return a JSON array of 5 to 15 major specific sub-divisions based strictly on that country's political geography.
+
+RULES:
+- If USA: Return Counties or major Municipalities/Cities.
+- If UK: Return Districts or London Boroughs.
+- If Australia: Return Local Government Areas (LGAs) or Suburbs.
+- If Canada: Return Regional Municipalities or Neighborhoods.
+- If UAE: Return Sectors or major Communities.
+- For all others, return the most culturally accurate local administrative boundaries (equivalent to Mandals/Counties/Districts).
+
+Include the original broad location as the first element. Return ONLY a valid JSON array of strings. Do not include markdown formatting or any other text.`;
+
+  try {
+    const apiKey = getNvidiaApiKey();
+    const response = await axios.post(
+      'https://integrate.api.nvidia.com/v1/chat/completions',
+      {
+        model: 'deepseek-ai/deepseek-v4-pro',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.1,
+        max_tokens: 400,
+        extra_body: { chat_template_kwargs: { thinking: false } },
+        stream: false
+      },
+      { headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }, timeout: 45000 }
+    );
+    const rawContent = response.data.choices[0].message.content;
+    const cleanJson = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();
+    const parsed = JSON.parse(cleanJson);
+    return Array.isArray(parsed) ? parsed : [broadLocation];
+  } catch(e) {
+    console.error('[Intelligent Extractor] Global AI fallback failed:', e.message);
+    return [broadLocation];
+  }
 }
 
 /**
@@ -202,7 +245,7 @@ async function fetchOSMLocalities(region) {
   if (!region) return [];
   try {
     const response = await axios.get('https://nominatim.openstreetmap.org/search', {
-      params: { q: region, format: 'json', addressdetails: 1, limit: 20, countrycodes: 'in' },
+      params: { q: region, format: 'json', addressdetails: 1, limit: 20 },
       headers: { 'User-Agent': 'GomandapScraper/1.0 (contact@gomandap.com)' },
       timeout: 10000
     });
@@ -228,6 +271,10 @@ function getAllLocalities() {
   if (!indiaGeoData) return locs;
 
   for (const state of indiaGeoData) {
+    if (state.state) {
+      locs.push({ type: 'state', name: state.state });
+    }
+    
     // Only fetch Andhra Pradesh and Telangana for performance, or fetch all if needed
     // Let's fetch all Districts and SubDistricts (Mandals)
     if (!state.districts) continue;
