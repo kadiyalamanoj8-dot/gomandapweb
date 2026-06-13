@@ -98,30 +98,25 @@ export default function OverviewPage() {
   };
 
   return (
-    <div className="min-h-full bg-[#f7f8fa]">
-
+    <div className="min-h-full">
       {/* ── PAGE HEADER ── */}
-      <div className="bg-white border-b border-gray-100 px-8 py-6">
+      <div className="bg-white/5 border-b border-white/5 px-8 py-6 backdrop-blur-md">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-black text-gray-900">Lead Scraper</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Search and extract verified business contacts from multiple sources</p>
+            <h1 className="text-2xl font-black text-white">Lead Scraper Engine</h1>
+            <p className="text-sm text-white/50 mt-0.5">Extract B2B contacts on demand. Each search costs 5 credits.</p>
           </div>
           <div className="flex items-center gap-3">
             {loading && (
               <button onClick={handleMasterStop}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 transition-all">
-                <XCircle size={15} /> Stop All
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all">
+                <XCircle size={15} /> Stop Extraction
               </button>
             )}
-            <button onClick={pushToProd} disabled={verifiedCount === 0}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
-                verifiedCount > 0
-                  ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700 shadow-lg shadow-violet-200'
-                  : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
-              }`}>
-              <Send size={15} /> Push to Live {verifiedCount > 0 && `(${verifiedCount})`}
-            </button>
+            <a href="/app/leads"
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border bg-blue-600 text-white border-blue-500 hover:bg-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.4)]`}>
+              View My Leads <ArrowRight size={15} />
+            </a>
           </div>
         </div>
       </div>

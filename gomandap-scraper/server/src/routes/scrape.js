@@ -17,6 +17,17 @@ const { scrapeScrapySpider, setDeps: setScrapyDeps } = require('../scrapers/engi
 const { initQueue, registerTask, addScrapeJob, clearQueue } = require('../utils/queue');
 const { geocodeLocation } = require('../utils/olaMaps');
 
+function getDistanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radius of the earth in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2); 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  return R * c; 
+}
+
 // Safe execute wrapper
 async function safeExecute(fn, name = 'Operation', logger = console.log) {
   try {
@@ -273,7 +284,7 @@ function saveLocationsMemory(data) {
 
 async function getSubLocations(locationName) {
   const memory = getLocationsMemory();
-  const key = locationName.toLowerCase().trim();
+  const key = (locationName || "").toString().toLowerCase().trim();
   
   if (memory[key] && memory[key].length > 0) {
     return memory[key];
@@ -379,11 +390,33 @@ router.post('/stop', async (req, res) => {
 
 // OMNI SEARCH API
 router.post('/omni', async (req, res) => {
-  const { query, category, location, radius, gridDensity, enabledEngines, sessionId } = req.body;
+  const { query, category, location, radius, gridDensity, enabledEngines, sessionId, userId } = req.body;
   const activeEngines = enabledEngines || ['deepseek-ai', 'maps'];
 
   if (!query) {
     return res.status(400).json({ error: 'Query is required' });
+  }
+
+  // Handle Startup/Public User Credit Deduction
+  if (userId) {
+    const dbAdapter = require('../config/dbAdapter');
+    const users = dbAdapter.getPublicUsers();
+    const userIndex = users.findIndex(u => u.id === userId);
+    
+    if (userIndex === -1) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const user = users[userIndex];
+    if (user.credits < 5) {
+      return res.status(403).json({ error: 'Insufficient credits for an Omni Scrape. Requires at least 5 credits.' });
+    }
+    
+    // Deduct 5 credits for a search
+    user.credits -= 5;
+    users[userIndex] = user;
+    dbAdapter.savePublicUsers(users);
+    addLog(`[Billing] Deducted 5 credits from user ${user.email} for Omni Scrape. Remaining: ${user.credits}`);
   }
   
   // The user requested NO NLP auto-correction, NO splitting for the primary.
@@ -405,61 +438,85 @@ router.post('/omni', async (req, res) => {
     // 1. RESOLVE LOCATIONS (Support State -> District -> Mandal Expansion)
     let centerLocations = [];
     let allGridCoords = [];
-    const bl = baseLocation.toLowerCase();
+    const bl = (baseLocation || "").toString().toLowerCase();
 
     if (strategy === 'mandal' || strategy === 'full') {
-      let targets = [];
+      addLog(`[OSM Engine] Fetching Villages/Towns for ${baseLocation} via OpenStreetMap...`);
+      const osmResults = await intelligentExtractor.fetchOSMLocalities(baseLocation);
       
-      // Fully Dynamic AI Semantic Expansion
-      addLog(`[Hyper-Local AI] Analyzing geographical scope for: ${baseLocation}`);
-      const initialBreakdown = await getSubLocations(baseLocation);
-      
-      if (initialBreakdown.length === 1 && initialBreakdown[0] && initialBreakdown[0].toLowerCase() === baseLocation.toLowerCase()) {
-         addLog(`[Hyper-Local AI] '${baseLocation}' is already highly specific. Searching directly.`);
-         targets.push(baseLocation);
-      } else {
-         addLog(`[Hyper-Local AI] '${baseLocation}' expanded into ${initialBreakdown.length} sub-regions. Diving deeper into each...`);
-         
-         if (strategy === 'full') {
-           // For each sub-region (e.g. Mandal or City), dive ONE level deeper to get Villages/Colonies
-           for (const subRegion of initialBreakdown.filter(Boolean)) {
-              addLog(`[Hyper-Local AI] Learning villages/colonies for: ${subRegion}...`);
-              const deepLocalities = await getSubLocations(`${subRegion}, ${baseLocation}`);
-              
-              // Format semantic strings targeting the local area precisely
-              if (deepLocalities.length === 1 && deepLocalities[0] && deepLocalities[0].toLowerCase() === `${subRegion}, ${baseLocation}`.toLowerCase()) {
-                  targets.push(`${subRegion}, ${baseLocation}`);
-              } else {
-                  for (const loc of deepLocalities) {
-                     targets.push(`${loc}, ${subRegion}, ${baseLocation}`);
-                  }
-              }
-           }
-         } else {
-           // Strategy is 'mandal' - stop at the Mandal level to save time
-           for (const subRegion of initialBreakdown.filter(Boolean)) {
-              targets.push(`${subRegion}, ${baseLocation}`);
-           }
-         }
-      }
-      
-      addLog(`[Hyper-Local AI] Master expansion complete! Generated ${targets.length} highly-targeted semantic localities to search sequentially.`);
+      if (osmResults && osmResults.length > 0) {
+        addLog(`[OSM Engine] Master expansion complete! Found ${osmResults.length} exact coordinate pins.`);
+        
+        let centerGeo = await geocodeLocation(baseLocation);
+        let maxRadiusKm = 0;
 
-      // Geocode all targets and treat each ONE as a SINGLE grid point to prevent freezing map
-      for (const t of targets) {
-        addLog(`[Mandal Expansion] Resolving coordinates for: ${t}`);
-        const geo = await geocodeLocation(t);
-        if (geo && geo.lat) {
-          allGridCoords.push({
-            lat: parseFloat(geo.lat.toFixed(6)),
-            lng: parseFloat(geo.lng.toFixed(6)),
-            distanceFromCenter: 0,
-            ring: 0,
-            angle: 0,
-            centerLoc: t
-          });
-          // Also add to centerLocations for JustDial grouping later
-          centerLocations.push({ ...geo, queryLoc: t });
+        if (centerGeo && centerGeo.lat) {
+          const centerFormatted = `${baseLocation} Center`;
+          centerLocations.push({ lat: centerGeo.lat, lng: centerGeo.lng, formattedLocation: centerFormatted, queryLoc: centerFormatted });
+          allGridCoords.push({ lat: centerGeo.lat, lng: centerGeo.lng, distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: centerFormatted });
+          
+          for (const loc of osmResults) {
+            const dist = getDistanceKm(centerGeo.lat, centerGeo.lng, parseFloat(loc.lat), parseFloat(loc.lng));
+            if (dist > maxRadiusKm) maxRadiusKm = dist;
+            const formattedLoc = `${loc.name}, ${baseLocation}`;
+            allGridCoords.push({ lat: parseFloat(loc.lat), lng: parseFloat(loc.lng), distanceFromCenter: dist, ring: 0, angle: 0, centerLoc: formattedLoc });
+            centerLocations.push({ lat: loc.lat, lng: loc.lng, formattedLocation: formattedLoc, queryLoc: formattedLoc });
+          }
+          
+          if (allGridCoords.length > 0 && maxRadiusKm > 0) {
+            allGridCoords[0].maxRadiusKm = maxRadiusKm; // Attach radius for map boundary
+          }
+        } else {
+          // If center geocode fails, just push the nodes
+          for (const loc of osmResults) {
+            const formattedLoc = `${loc.name}, ${baseLocation}`;
+            allGridCoords.push({ lat: parseFloat(loc.lat), lng: parseFloat(loc.lng), distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: formattedLoc });
+            centerLocations.push({ lat: loc.lat, lng: loc.lng, formattedLocation: formattedLoc, queryLoc: formattedLoc });
+          }
+        }
+      } else {
+        // Fallback to legacy behavior if OSM fails or returns 0
+        addLog(`[Hyper-Local AI] OSM failed or returned 0. Falling back to AI semantic expansion for: ${baseLocation}`);
+        const initialBreakdown = await getSubLocations(baseLocation);
+        let targets = [];
+        
+        const isSafeString = (val) => typeof val === 'string' && val.trim().length > 0;
+
+        if (initialBreakdown.length === 1 && isSafeString(initialBreakdown[0]) && initialBreakdown[0].toLowerCase() === (baseLocation || "").toString().toLowerCase()) {
+           targets.push(baseLocation);
+        } else {
+           if (strategy === 'full') {
+             for (const subRegion of initialBreakdown.filter(isSafeString)) {
+                addLog(`[Hyper-Local AI] Learning villages/colonies for: ${subRegion}...`);
+                const deepLocalities = await getSubLocations(subRegion); // Just Mandal Name
+                
+                if (deepLocalities.length === 1 && isSafeString(deepLocalities[0]) && deepLocalities[0].toLowerCase() === subRegion.toLowerCase()) {
+                    targets.push(subRegion); // Just Mandal Name
+                } else {
+                    for (const loc of deepLocalities.filter(isSafeString)) {
+                       targets.push(loc); // Just Village Name!
+                    }
+                }
+             }
+           } else {
+             for (const subRegion of initialBreakdown.filter(isSafeString)) {
+                targets.push(subRegion); // Just Mandal Name
+             }
+           }
+        }
+        
+        addLog(`[Hyper-Local AI] Fallback expansion complete! Generated ${targets.length} localities.`);
+        for (const t of targets) {
+          addLog(`[Mandal Expansion] Resolving coordinates for: ${t}`);
+          const geo = await geocodeLocation(t);
+          if (geo && geo.lat) {
+            allGridCoords.push({
+              lat: parseFloat(geo.lat.toFixed(6)),
+              lng: parseFloat(geo.lng.toFixed(6)),
+              distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: t
+            });
+            centerLocations.push({ ...geo, queryLoc: t });
+          }
         }
       }
     } else {
@@ -470,13 +527,30 @@ router.post('/omni', async (req, res) => {
       }
     }
 
-    // RADIUS JUMPING FOR ALL RESOLVED CENTERS (Only if strategy isn't mandal)
-    if (strategy !== 'mandal' && centerLocations.length > 0 && radius && parseInt(radius) > 0) {
-      const density = gridDensity ? parseInt(gridDensity) : 30;
-      for (const center of centerLocations) {
-        addLog(`[Radius Jumping] Center geocoded: ${center.formattedLocation} (${center.lat}, ${center.lng})`);
-        const gridCoords = generateGridCoordinates(center.lat, center.lng, parseInt(radius), density, center.boundingbox);
-        gridCoords.forEach(c => allGridCoords.push({ ...c, centerLoc: center.queryLoc }));
+    // NASA SUNFLOWER RADIUS JUMPING (MULTI-TIER SCALING)
+    if (centerLocations.length > 0) {
+      if (strategy === 'full') {
+         // Tier 3: Village Level (Do NOT generate grids. 1 exact point per village to prevent 18,000 browsers)
+         addLog(`[Tier 3: Villages] Bypassing massive grids. Targeting exactly ${centerLocations.length} precise village coordinates.`);
+         for (const center of centerLocations) {
+            allGridCoords.push({ 
+               lat: center.lat, lng: center.lng, 
+               distanceFromCenter: 0, ring: 0, angle: 0, 
+               centerLoc: center.queryLoc, activeRadius: 2, isExactPoint: true 
+            });
+         }
+      } else {
+         // Tier 1 & Tier 2: City / Mandal
+         const isMandal = strategy === 'mandal';
+         const activeRadius = isMandal ? 10 : ((radius && parseInt(radius) > 0) ? parseInt(radius) : 30); 
+         const density = isMandal ? 20 : (gridDensity ? parseInt(gridDensity) : 50); 
+         
+         addLog(`[Tier ${isMandal ? 2 : 1}: ${isMandal ? 'Mandal' : 'City'}] Generating ${activeRadius}km radius grid with ${density} points.`);
+         
+         for (const center of centerLocations) {
+           const gridCoords = generateGridCoordinates(center.lat, center.lng, activeRadius, density, center.boundingbox);
+           gridCoords.forEach(c => allGridCoords.push({ ...c, centerLoc: center.queryLoc, activeRadius, isExactPoint: false }));
+         }
       }
     }
 
@@ -497,22 +571,23 @@ router.post('/omni', async (req, res) => {
 
           if (activeEngines.includes('maps') || activeEngines.includes('google')) {
             let searchString;
-            if (strategy === 'mandal') {
-              // Hyper-Local Strategy: Strict semantic match WITHOUT coordinates forcing Google's hand.
+            
+            if (coord.isExactPoint) {
+              // Tier 3: Strict Semantic without lat/lng coordinates to ensure pure village query
               searchString = `${matchedCategory} in ${accurateLocation}`;
-              // DO NOT pass coordinates or radius for 'mandal' strategy to ensure semantic keyword parsing
-              addLog(`[Hyper-Local] Dispatching STRICT SEMANTIC query: ${searchString}`);
+              addLog(`[Tier 3 Dispatch] STRICT SEMANTIC query: ${searchString}`);
               const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}`;
               await addScrapeJob('scrapeGooglePlaces', [searchUrl, matchedCategory, accurateLocation, sessionId, null, null, null, strategy], 10, meta);
             } else {
+              // Tier 1/2: Grid Jumping with exact coordinates
               if (strategy === 'strict') {
                 searchString = `${matchedCategory} in ${accurateLocation} near ${coord.lat},${coord.lng}`;
               } else {
                 searchString = `${matchedCategory} near ${coord.lat},${coord.lng}`;
               }
               const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}/@${coord.lat},${coord.lng},14z`;
-              addLog(`[Radius Jumping] [${strategy}] Dispatching query at distance ${coord.distanceFromCenter}km from ${accurateLocation}`);
-              await addScrapeJob('scrapeGooglePlaces', [searchUrl, matchedCategory, accurateLocation, sessionId, coord.lat, coord.lng, parseInt(radius), strategy], 10, meta);
+              addLog(`[Sunflower Map Dispatch] Dispatching query at distance ${coord.distanceFromCenter}km from ${accurateLocation}`);
+              await addScrapeJob('scrapeGooglePlaces', [searchUrl, matchedCategory, accurateLocation, sessionId, coord.lat, coord.lng, coord.activeRadius, strategy], 10, meta);
             }
           }
 

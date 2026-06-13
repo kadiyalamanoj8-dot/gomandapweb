@@ -16,9 +16,33 @@ const saveUpdatedVendor = (vendors, updated) => {
 // API: Get all staging leads (vendors)
 router.get('/', (req, res) => {
   try {
+    const { userId } = req.query;
     let data = dbAdapter.getVendors() || [];
+    
     // Sort descending by scrapedAt
     data.sort((a, b) => new Date(b.scrapedAt) - new Date(a.scrapedAt));
+
+    // SaaS Data Partitioning / Masking
+    if (userId) {
+      const users = dbAdapter.getPublicUsers();
+      const user = users.find(u => u.id === userId);
+      const unlockedLeads = user ? user.unlockedLeads : [];
+
+      data = data.map(v => {
+        // If user hasn't unlocked this lead, mask contact info
+        if (!unlockedLeads.includes(v.id)) {
+          return {
+            ...v,
+            phone: v.phone ? 'Requires 1 Credit' : null,
+            email: v.email ? 'Requires 1 Credit' : null,
+            Camera: v.Camera ? 'Masked' : null,
+            isLocked: true
+          };
+        }
+        return { ...v, isLocked: false };
+      });
+    }
+
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });

@@ -6,10 +6,11 @@ import {
   Trash2, X, Activity, ChevronDown, Check, XCircle, Download,
   FolderOpen, Filter, Send, Settings, TrendingUp, Zap, Target, Map
 } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, CircleMarker } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, CircleMarker, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useScraper } from '../../context/ScraperContext';
+import OmniSearch from '../../components/OmniSearch';
 
 // Fix for default leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -174,117 +175,15 @@ export default function OverviewPage() {
               </div>
             </div>
 
-            {/* Search input */}
-            <form onSubmit={startScrape} ref={searchContainerRef} className="relative mb-6">
-              <div className={`flex flex-col md:flex-row items-center gap-0 border-2 rounded-2xl bg-gray-50 transition-all ${loading ? 'border-violet-300 bg-violet-50/30' : 'border-gray-200 focus-within:border-violet-400 focus-within:bg-white focus-within:shadow-lg focus-within:shadow-violet-50'}`}>
-                
-                {/* Category Input */}
-                <div className="flex-1 flex items-center w-full px-5 py-4">
-                  <Search size={20} className={`flex-shrink-0 ${loading ? 'text-violet-500' : 'text-gray-400'}`} />
-                  <input
-                    type="text"
-                    value={categoryQuery || ''}
-                    onChange={e => handleCategoryChange(e.target.value)}
-                    onFocus={() => {
-                      setActiveInput('category');
-                      if (!categoryQuery && searchHistory?.length > 0) setShowSuggestions(true);
-                    }}
-                    onKeyDown={handleKeyDown}
-                    placeholder="What? (e.g. Photographers)"
-                    className="flex-1 ml-3 bg-transparent outline-none text-gray-900 placeholder-gray-400 text-base font-medium w-full"
-                  />
-                  {categoryQuery && !loading && (
-                    <button type="button" onClick={() => setCategoryQuery('')} className="text-gray-300 hover:text-gray-500 transition-colors ml-2">
-                      <X size={16} />
-                    </button>
-                  )}
-                </div>
-
-                <div className="hidden md:block w-px h-10 bg-gray-200"></div>
-                <div className="md:hidden h-px w-full bg-gray-200"></div>
-
-                {/* Location Input */}
-                <div className="flex-1 flex items-center w-full px-5 py-4">
-                  <MapPin size={20} className={`flex-shrink-0 ${loading ? 'text-violet-500' : 'text-gray-400'}`} />
-                  <input
-                    type="text"
-                    value={locationQuery || ''}
-                    onChange={e => handleLocationChange(e.target.value)}
-                    onFocus={() => {
-                      setActiveInput('location');
-                    }}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Where? (e.g. Hyderabad)"
-                    className="flex-1 ml-3 bg-transparent outline-none text-gray-900 placeholder-gray-400 text-base font-medium w-full"
-                  />
-                  {locationQuery && !loading && (
-                    <button type="button" onClick={() => setLocationQuery('')} className="text-gray-300 hover:text-gray-500 transition-colors ml-2">
-                      <X size={16} />
-                    </button>
-                  )}
-                </div>
-
-
-
-                {/* Extract Button */}
-                <div className="p-2 w-full md:w-auto">
-                  <button type="submit" disabled={loading || !categoryQuery || !locationQuery}
-                    className={`w-full md:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${
-                      loading ? 'bg-violet-100 text-violet-400 cursor-not-allowed'
-                      : (categoryQuery && locationQuery) ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-200 hover:opacity-90'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    }`}>
-                    {loading ? <RefreshCw size={15} className="animate-spin" /> : <ArrowRight size={15} />}
-                    {loading ? 'Extracting...' : 'Extract'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Loading progress bar */}
-              {loading && (
-                <div className="absolute -bottom-1 left-0 right-0 h-1 bg-violet-100 rounded-full overflow-hidden">
-                  <motion.div className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full"
-                    animate={{ x: ['-100%', '200%'] }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                    style={{ width: '50%' }} />
-                </div>
-              )}
-
-              {/* Suggestions dropdown */}
-              <AnimatePresence>
-                {showSuggestions && suggestions?.length > 0 && (
-                  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-                    className={`absolute top-full mt-2 ${activeInput === 'location' ? 'left-1/2 right-0' : 'left-0 right-1/2'} bg-white border border-gray-100 rounded-2xl shadow-xl shadow-gray-100 overflow-hidden z-50`}
-                    style={typeof window !== 'undefined' && window.innerWidth < 768 ? { left: 0, right: 0 } : {}}
-                  >
-                    {suggestions.map((s, idx) => {
-                      const isHistory = activeInput === 'category' && searchHistory?.includes(s) && !categoryQuery;
-                      return (
-                        <div key={idx}
-                          className={`px-5 py-3 flex items-center gap-3 cursor-pointer text-sm border-b border-gray-50 last:border-0 transition-colors ${suggestionIndex === idx ? 'bg-violet-50 text-violet-700' : 'hover:bg-gray-50 text-gray-700'}`}
-                          onClick={() => {
-                            if (activeInput === 'category') {
-                              setCategoryQuery(s);
-                              document.querySelector('input[placeholder="Where? (e.g. Hyderabad)"]')?.focus();
-                            } else {
-                              setLocationQuery(s);
-                            }
-                            setShowSuggestions(false);
-                          }}>
-                          {activeInput === 'location' ? <MapPin size={14} className="text-gray-300" /> : isHistory ? <Clock size={14} className="text-gray-300" /> : <Search size={14} className="text-gray-300" />}
-                          <span className="font-medium">{s}</span>
-                        </div>
-                      );
-                    })}
-                    {activeInput === 'category' && !categoryQuery && searchHistory?.length > 0 && (
-                      <div className="px-5 py-2.5 text-xs text-red-400 hover:text-red-600 cursor-pointer flex items-center gap-2 border-t border-gray-50 bg-gray-50/50"
-                        onClick={() => { setSearchHistory([]); localStorage.removeItem('gomandap_search_history'); setShowSuggestions(false); }}>
-                        <Trash2 size={12} /> Clear Search History
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </form>
+            <div className="mb-6">
+              <OmniSearch 
+                onSearch={(cat, loc) => {
+                  setTimeout(() => startScrape(null, cat, loc), 10);
+                }}
+                knowledge={knowledge}
+                history={searchHistory}
+              />
+            </div>
 
             {/* Platform selectors */}
             <div className="mb-4">
@@ -550,12 +449,20 @@ export default function OverviewPage() {
                 <MapBounds vendors={mapVendors} gridPoints={gridPoints} />
                 
                 {/* Render Grid Points */}
+                {gridPoints?.length > 0 && gridPoints[0].maxRadiusKm > 0 && (
+                  <Circle 
+                    center={[gridPoints[0].lat, gridPoints[0].lng]} 
+                    radius={gridPoints[0].maxRadiusKm * 1000} 
+                    pathOptions={{ color: 'red', fillColor: '#ef4444', fillOpacity: 0.1, dashArray: '5, 10' }} 
+                  />
+                )}
+
                 {gridPoints?.map((pt, i) => (
                   <CircleMarker key={`grid-${i}`} center={[pt.lat, pt.lng]} radius={i === 0 ? 8 : 4} color={i === 0 ? "#ef4444" : "#8b5cf6"} fillColor={i === 0 ? "#ef4444" : "#8b5cf6"} fillOpacity={0.6}>
                     <Popup>
                       <div className="text-xs p-1">
                         <p className="font-bold mb-1">{i === 0 ? 'Center Pin' : `Search Point ${i+1}`}</p>
-                        <p className="text-gray-500">Radius Dist: {pt.distanceFromCenter}km</p>
+                        <p className="text-gray-500">Radius Dist: {pt.distanceFromCenter ? pt.distanceFromCenter.toFixed(2) : 0}km</p>
                       </div>
                     </Popup>
                   </CircleMarker>

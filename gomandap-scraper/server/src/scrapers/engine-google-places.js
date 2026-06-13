@@ -347,13 +347,13 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
         addLog("Scrolling through search results feed... (Fast Mode)");
         
         // Dynamic Fast Scroll - absolute minimum delays
-        for(let i=0; i<30; i++) {
+        for(let i=0; i<50; i++) {
           if (globalAbortSignal.aborted) throw new Error('Master Stop Aborted');
           await scrollable.evaluate(node => node.scrollBy(0, 10000));
           await page.waitForTimeout(150); // Ultra-fast hardware scroll speed
           await page.waitForTimeout(150); // Ultra-fast hardware scroll speed
           const currentCount = await page.locator('a.hfpxzc').count();
-          if (currentCount >= 120) {
+          if (currentCount >= 300) {
             addLog(`Reached ${currentCount} cards quickly, stopping scroll.`);
             break;
           }

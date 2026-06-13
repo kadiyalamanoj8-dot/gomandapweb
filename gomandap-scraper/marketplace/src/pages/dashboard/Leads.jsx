@@ -39,7 +39,8 @@ export default function LeadsPage() {
     employees, activeJobs, loading, handleUpdateJob,
     selectedFolder, setSelectedFolder,
     selectedJobCategory, setSelectedJobCategory,
-    grouped: groupedData
+    grouped: groupedData,
+    handleUnlock
   } = useScraper();
 
   const [view, setView] = useState('folders'); // 'folders' | 'list' | 'map'
@@ -222,11 +223,12 @@ export default function LeadsPage() {
                 <p className="font-bold">No leads to display</p>
               </div>
             ) : (
-              (filteredVendors || []).map((vendor, idx) => (
-                <VendorCard key={vendor.id || idx} vendor={vendor} employees={employees || []}
-                  onVerify={handleVerify} onDelete={handleDelete} onAssign={handleAssign}
-                  onClick={() => setSelectedVendor(vendor)} />
-              ))
+            {(filteredVendors || []).map((vendor, idx) => (
+              <VendorCard key={vendor.id || idx} vendor={vendor} employees={employees || []}
+                onVerify={handleVerify} onDelete={handleDelete} onAssign={handleAssign}
+                onUnlock={handleUnlock}
+                onClick={() => setSelectedVendor(vendor)} />
+            ))}
             )}
           </div>
         )}
@@ -358,6 +360,7 @@ export default function LeadsPage() {
                 {(groupedData?.[selectedFolder] || []).map((vendor, idx) => (
                   <VendorCard key={vendor.id || idx} vendor={vendor} employees={employees || []}
                     onVerify={handleVerify} onDelete={handleDelete} onAssign={handleAssign}
+                    onUnlock={handleUnlock}
                     onClick={() => setSelectedVendor(vendor)} />
                 ))}
                 {(groupedData?.[selectedFolder] || []).length === 0 && (
@@ -420,14 +423,17 @@ export default function LeadsPage() {
                 )}
               </div>
               <div className="px-6 pb-6 flex gap-3">
-                <button onClick={() => { handleVerify(selectedVendor.id, !selectedVendor.verified); setSelectedVendor(null); }}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all border flex items-center justify-center gap-2 ${selectedVendor.verified ? 'bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100' : 'bg-green-50 text-green-700 border-green-100 hover:bg-green-100'}`}>
-                  <CheckCircle2 size={15} /> {selectedVendor.verified ? 'Unverify' : 'Verify Lead'}
-                </button>
-                <button onClick={() => { handleDelete(selectedVendor.id); setSelectedVendor(null); }}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 transition-all">
-                  <Trash2 size={15} /> Delete
-                </button>
+                {selectedVendor.isLocked ? (
+                  <button onClick={() => { handleUnlock(selectedVendor.id); setSelectedVendor(null); }}
+                    className="w-full flex py-3 rounded-xl text-sm font-bold transition-all border flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-500 hover:shadow-lg hover:shadow-blue-500/30">
+                    <Globe size={15} /> Unlock Contact (-1 Credit)
+                  </button>
+                ) : (
+                  <button onClick={() => { handleDelete(selectedVendor.id); setSelectedVendor(null); }}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 transition-all ml-auto">
+                    <Trash2 size={15} /> Remove from Leads
+                  </button>
+                )}
               </div>
             </motion.div>
           </div>
@@ -455,7 +461,7 @@ function ContactRow({ icon, label, value, color }) {
   );
 }
 
-function VendorCard({ vendor, employees, onVerify, onDelete, onAssign, onClick }) {
+function VendorCard({ vendor, employees, onVerify, onDelete, onAssign, onUnlock, onClick }) {
   return (
     <div onClick={onClick}
       className="group bg-white rounded-2xl border border-gray-100 hover:border-violet-200 hover:shadow-lg hover:shadow-violet-50/50 transition-all p-4 cursor-pointer">
@@ -476,10 +482,15 @@ function VendorCard({ vendor, employees, onVerify, onDelete, onAssign, onClick }
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          {vendor.phone && (
+          {vendor.phone && !vendor.isLocked && (
             <span className="flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-lg border border-green-100">
               <Phone size={10} /> {vendor.phone.length > 13 ? vendor.phone.slice(0, 13) + '...' : vendor.phone}
             </span>
+          )}
+          {vendor.isLocked && (
+             <span className="flex items-center gap-1 px-2.5 py-1 bg-gray-50 text-gray-400 text-xs font-semibold rounded-lg border border-gray-200">
+               <Phone size={10} /> Hidden
+             </span>
           )}
           {vendor.Camera && (
             <span className="flex items-center gap-1 px-2.5 py-1 bg-pink-50 text-pink-700 text-xs font-semibold rounded-lg border border-pink-100">
@@ -492,16 +503,18 @@ function VendorCard({ vendor, employees, onVerify, onDelete, onAssign, onClick }
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-          <button onClick={() => onVerify(vendor.id, !vendor.verified)}
-            className={`p-1.5 rounded-lg transition-colors ${vendor.verified ? 'text-green-500 bg-green-50' : 'text-gray-300 hover:text-green-500 hover:bg-green-50'}`}
-            title="Verify">
-            <CheckCircle2 size={15} />
-          </button>
-          <button onClick={() => onDelete(vendor.id)}
-            className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors" title="Delete">
-            <Trash2 size={15} />
-          </button>
+        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+          {vendor.isLocked ? (
+             <button onClick={() => onUnlock(vendor.id)}
+               className="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 shadow shadow-blue-500/20 transition-all">
+               Unlock
+             </button>
+          ) : (
+            <button onClick={() => onDelete(vendor.id)}
+              className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors" title="Remove from Leads">
+              <Trash2 size={15} />
+            </button>
+          )}
         </div>
       </div>
     </div>

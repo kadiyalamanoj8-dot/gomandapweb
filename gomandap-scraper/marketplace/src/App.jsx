@@ -11,6 +11,11 @@ import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import PhoneScraper from './pages/products/PhoneScraper';
 
+// Dashboard Components
+import ScraperDashboard from './ScraperDashboard';
+import OverviewPage from './pages/dashboard/Overview';
+import LeadsPage from './pages/dashboard/Leads';
+
 export default function App() {
   const [user, setUser] = useState(() => {
     try {
@@ -43,12 +48,21 @@ export default function App() {
       <Routes>
         {/* Public pages */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/pricing" element={<PricingPage user={user} />} />
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/products/phone-scraper" element={<PhoneScraper />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
-        <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/" replace />} />
+        <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/app/scraper" replace />} />
+
+        {/* Dashboard Routes (Protected) */}
+        {/* ScraperDashboard acts as the Context Provider AND the Layout Wrapper */}
+        <Route path="/app" element={user ? <ScraperDashboard user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />}>
+           <Route path="scraper" element={<OverviewPage />} />
+           <Route path="leads" element={<LeadsPage />} />
+           <Route path="billing" element={<PricingPage user={user} isDashboard={true} />} />
+           <Route index element={<Navigate to="scraper" replace />} />
+        </Route>
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

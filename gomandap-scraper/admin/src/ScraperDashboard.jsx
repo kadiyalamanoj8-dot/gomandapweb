@@ -722,16 +722,22 @@ const [vendors, setVendors] = useState([]);
     reader.readAsText(file);
   };
 
-  const startScrape = async (e) => {
+  const startScrape = async (e, overrideCat, overrideLoc) => {
     if (e) e.preventDefault();
     
-    if (!categoryQuery.trim() || !locationQuery.trim()) {
+    const cat = overrideCat !== undefined ? overrideCat : categoryQuery;
+    const loc = overrideLoc !== undefined ? overrideLoc : locationQuery;
+
+    if (!cat.trim() || !loc.trim()) {
       return toast.error("Please enter both what you are looking for, and where.");
     }
 
-    const finalQuery = `${categoryQuery.trim()} in ${locationQuery.trim()}`;
-    const parsedCat = categoryQuery.trim();
-    const parsedLoc = locationQuery.trim();
+    if (overrideCat !== undefined) setCategoryQuery(cat);
+    if (overrideLoc !== undefined) setLocationQuery(loc);
+
+    const finalQuery = `${cat.trim()} in ${loc.trim()}`;
+    const parsedCat = cat.trim();
+    const parsedLoc = loc.trim();
 
     if (!searchHistory.includes(parsedCat)) {
       setSearchHistory(prev => {

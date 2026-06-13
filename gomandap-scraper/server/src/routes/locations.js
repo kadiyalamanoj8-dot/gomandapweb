@@ -20,27 +20,33 @@ router.get('/memory', (req, res) => {
 });
 
 router.post('/geocode', async (req, res) => {
-  const { locations } = req.body;
-  if (!locations || !Array.isArray(locations)) {
-    return res.status(400).json({ error: 'Array of locations required' });
-  }
-
   try {
-    const results = [];
+    const { locations } = req.body;
+    if (!locations || !Array.isArray(locations)) return res.status(400).json({ error: 'Array of locations required' });
+
+    let results = [];
     for (const loc of locations) {
       const geo = await geocodeLocation(loc);
-      if (geo && geo.lat && geo.lng) {
-        results.push({
-          name: loc,
-          lat: geo.lat,
-          lng: geo.lng
-        });
+      if (geo && geo.lat) {
+        results.push({ name: loc, lat: geo.lat, lng: geo.lng });
       }
     }
     res.json(results);
   } catch (err) {
-    console.error('[Location Intel] Geocode failed:', err);
-    res.status(500).json({ error: 'Geocoding failed' });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Fetch OSM specific coordinates directly
+router.post('/osm', async (req, res) => {
+  try {
+    const { district } = req.body;
+    if (!district) return res.status(400).json({ error: 'district required' });
+    const intelligentExtractor = require('../utils/intelligentExtractor');
+    const results = await intelligentExtractor.fetchOSMLocalities(district);
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

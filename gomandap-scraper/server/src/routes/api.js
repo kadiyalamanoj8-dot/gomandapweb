@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
-const MiniSearch = require('minisearch');
 const { axiosWithProxy, getRandomIP } = require('../scrapers/proxyManager');
 
 const REGIONS_FILE = path.join(__dirname, '../../../data', 'regions.json');
@@ -33,18 +32,14 @@ const getFlatLocations = () => {
   return allLocs;
 };
 
-let locationSearch = new MiniSearch({
-  fields: ['name', 'district'], 
-  storeFields: ['name', 'type', 'district'],
-  searchOptions: { fuzzy: 0.2, prefix: true }
-});
-
-const indexLocations = () => {
-  locationSearch.removeAll();
-  const flat = getFlatLocations().map((loc, i) => ({ id: `loc_${i}`, ...loc }));
-  locationSearch.addAll(flat);
+// Native Server Intelligence filtering instead of bloated minisearch
+const searchLocationsNatively = (query) => {
+  const q = query.toLowerCase();
+  return getFlatLocations().filter(loc => 
+    loc.name.toLowerCase().includes(q) || 
+    (loc.district && loc.district.toLowerCase().includes(q))
+  );
 };
-indexLocations();
 
 router.get('/regions', (req, res) => {
   res.json(getRegions());
@@ -76,8 +71,8 @@ router.get('/location/search', async (req, res) => {
   if (!query) return res.json([]);
 
   try {
-    // 1. INSTANT LOCAL SEARCH (0ms)
-    const localResults = locationSearch.search(query, { prefix: true, fuzzy: 0.2 });
+    // 1. INSTANT LOCAL SEARCH (0ms) via Native Intelligence
+    const localResults = searchLocationsNatively(query);
     let formattedLocal = [];
     if (localResults && localResults.length > 0) {
       formattedLocal = localResults.slice(0, 5).map(item => ({

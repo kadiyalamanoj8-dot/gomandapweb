@@ -1,19 +1,13 @@
-let chromium, firefox, stealth;
+let chromium, stealth;
 
-const PLAYWRIGHT_ENABLED = process.env.ENABLE_PLAYWRIGHT === 'true' || process.env.NODE_ENV !== 'production';
-
-if (PLAYWRIGHT_ENABLED) {
-  try {
-    const playwrightExtra = require('playwright-extra');
-    chromium = playwrightExtra.chromium;
-    firefox = playwrightExtra.firefox;
-    stealth = require('puppeteer-extra-plugin-stealth')();
-    if (chromium) chromium.use(stealth);
-    if (firefox) firefox.use(stealth);
-    console.log('[Playwright] Browser engines loaded with Stealth.');
-  } catch (e) {
-    console.warn('[Playwright] Not available on this server.');
-  }
+try {
+  const { chromium: playwrightChromium } = require('playwright-extra');
+  chromium = playwrightChromium;
+  stealth = require('puppeteer-extra-plugin-stealth')();
+  chromium.use(stealth);
+  console.log('[Playwright] Browser engines loaded with Stealth.');
+} catch (e) {
+  console.warn('[Playwright] Not available on this server.');
 }
 
 const { getProxyList, getRandomIP } = require('./proxyManager');
@@ -27,7 +21,7 @@ const STEALTH_USER_AGENTS = [
 const fs = require('fs');
 
 async function launchStealthBrowser(useProxy = true, executablePath = null, isHeadless = true) {
-  if (!chromium) throw new Error('Playwright Chromium not available on this server.');
+  if (!chromium) throw new Error('Playwright not available on this server.');
 
   const userAgent = STEALTH_USER_AGENTS[Math.floor(Math.random() * STEALTH_USER_AGENTS.length)];
   const fakeIP = getRandomIP();
@@ -89,7 +83,6 @@ async function launchStealthBrowser(useProxy = true, executablePath = null, isHe
   }
   
   // Launch a standard, isolated headless browser instance.
-  // This prevents "browser has been closed" and directory locking issues under heavy concurrency.
   const browser = await chromium.launch(launchOptions);
   
   return { browser, userAgent, fakeIP, isPersistent: false };
@@ -109,25 +102,7 @@ async function launchBraveBrowser(useProxy = true) {
 }
 
 async function launchFirefoxBrowser(useProxy = false) {
-  if (!firefox) throw new Error('Playwright Firefox not available on this server.');
-  const fakeIP = getRandomIP();
-  
-  let proxyConfig = undefined;
-  const proxyList = getProxyList();
-  if (useProxy && proxyList.length > 0) {
-    const rawProxy = proxyList[Math.floor(Math.random() * proxyList.length)];
-    try {
-      new URL(rawProxy);
-      proxyConfig = { server: rawProxy };
-    } catch(e) {}
-  }
-
-  const browser = await firefox.launch({
-    headless: true,
-    ...(proxyConfig ? { proxy: proxyConfig } : {})
-  });
-  
-  return { browser, fakeIP };
+  throw new Error('Firefox not available. Reverting to Puppeteer Chromium Native Intelligence.');
 }
 
 let globalBrowser = null;
@@ -145,6 +120,5 @@ module.exports = {
   launchBraveBrowser,
   launchFirefoxBrowser,
   getBrowser,
-  chromium,
-  firefox
+  chromium
 };

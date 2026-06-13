@@ -17,7 +17,7 @@ import Fuse from 'fuse.js';
 import debounce from 'lodash.debounce';
 
 import { ScraperContext } from './context/ScraperContext';
-import DashboardLayout from './layouts/DashboardLayout';
+import UserDashboardLayout from './layouts/UserDashboardLayout';
 
 import SemanticWorker from './semanticWorker?worker';
 import { API_URL } from './apiConfig';
@@ -634,7 +634,8 @@ function ScraperDashboard({ user, onLogout }) {
 
   async function fetchVendors() {
     try {
-      const res = await axios.get(`${API_URL}/vendors`);
+      const url = user?.id ? `${API_URL}/vendors?userId=${user.id}` : `${API_URL}/vendors`;
+      const res = await axios.get(url);
       setVendors(res.data);
       setBackendConnected(true);
     } catch (error) { 
@@ -722,7 +723,8 @@ function ScraperDashboard({ user, onLogout }) {
         category: parsedCat,
         location: parsedLoc,
         enabledEngines: enabledEngines,
-        radius: searchRadius
+        radius: searchRadius,
+        userId: user?.id
       });
       toast.success('Omni-scrape started! Stream processing engaged.', { icon: '🚀' });
       
@@ -760,6 +762,31 @@ function ScraperDashboard({ user, onLogout }) {
       fetchVendors();
       toast.success('Assigned!');
     } catch (error) { toast.error('Assignment failed'); }
+  };
+
+  const handleUnlock = async (vendorId) => {
+    try {
+      if (!user?.id) {
+        toast.error('You must be logged in to unlock leads.');
+        return;
+      }
+      const res = await axios.post(`${API_URL}/public/reveal`, {
+        userId: user.id,
+        vendorId
+      });
+      if (res.data.success) {
+        toast.success('Contact unlocked! (-1 Credit)');
+        fetchVendors();
+        // Fire a silent background refresh for the user to update credits globally
+        axios.post(`${API_URL}/auth`, { email: user.email }).catch(() => {});
+      }
+    } catch (error) {
+      if (error.response?.data?.error === 'Out of credits') {
+        toast.error('Out of credits! Please upgrade your plan.', { duration: 4000 });
+      } else {
+        toast.error('Failed to unlock contact');
+      }
+    }
   };
 
   const handleDelete = async (id) => {
@@ -971,6 +998,7 @@ function ScraperDashboard({ user, onLogout }) {
     handleVerify,
     handleDelete,
     handleAssign,
+    handleUnlock,
     handleFileUpload,
     handleUpdateJob,
     handleKeyDown,
@@ -987,7 +1015,7 @@ function ScraperDashboard({ user, onLogout }) {
 
   return (
     <ScraperContext.Provider value={contextValue}>
-      <DashboardLayout user={user} onLogout={onLogout} />
+      <UserDashboardLayout user={user} onLogout={onLogout} />
     </ScraperContext.Provider>
   );
 }

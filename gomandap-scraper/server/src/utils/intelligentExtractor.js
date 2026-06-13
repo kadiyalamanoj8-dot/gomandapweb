@@ -22,79 +22,34 @@ async function extractData(rawText, domainHint = '') {
     pricingFound: null,
     emails: [],
     phones: [],
-    aiCategory: 'Unknown',
+    aiCategory: domainHint || 'Unknown',
     extractedAddress: '',
     socialLinks: {},
-    businessSummary: '',
+    businessSummary: 'Auto-extracted vendor profile from official website.',
     score: 0
   };
 
   if (!rawText || rawText.trim().length === 0) return defaultData;
 
-  const prompt = `You are a master data extraction AI. Extract the following from the raw website text: 
-1. Phone numbers (phones - array of strings)
-2. Email addresses (emails - array of strings)
-3. Specific category of the vendor (aiCategory - string, e.g., "Candid Photographer", "Luxury Banquet", "Mehendi Artist")
-4. Physical Address (extractedAddress - string, look for footers/contact info)
-5. Social Media Links (socialLinks - object with keys like "instagram", "facebook", "youtube" if found)
-6. Business Summary (businessSummary - string, write a 2-sentence pitch about what they do and their vibe)
-7. Pricing details (pricingFound - string or null)
-
-Raw text from ${domainHint}:
-"""
-${rawText.substring(0, 8000)}
-"""
-
-Return ONLY a valid JSON object matching the requested schema. No markdown formatting.`;
-
   try {
-    const apiKey = getNvidiaApiKey();
-    const response = await axios.post(
-      'https://integrate.api.nvidia.com/v1/chat/completions',
-      {
-        model: 'deepseek-ai/deepseek-v4-pro',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.1,
-        top_p: 0.95,
-        max_tokens: 1500,
-        extra_body: { chat_template_kwargs: { thinking: false } },
-        stream: false
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 25000
-      }
-    );
-
-    const rawContent = response.data.choices[0].message.content;
-    const cleanJson = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();
-    const parsed = JSON.parse(cleanJson);
-
+    const phoneRegex = /(?:\+91|0)?\s?[6-9]\d{9}/g;
+    const emailRegex = /[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}/g;
+    
+    const phonesMatches = [...new Set(rawText.match(phoneRegex) || [])].slice(0, 3);
+    const emailsMatches = [...new Set(rawText.match(emailRegex) || [])].slice(0, 3);
+    
     let score = 0;
-    if (parsed.phones && parsed.phones.length > 0) score += 40;
-    if (parsed.emails && parsed.emails.length > 0) score += 20;
-    if (parsed.extractedAddress) score += 20;
-    if (parsed.socialLinks && Object.keys(parsed.socialLinks).length > 0) score += 10;
-    if (parsed.businessSummary) score += 10;
+    if (phonesMatches.length > 0) score += 40;
+    if (emailsMatches.length > 0) score += 20;
 
     return {
-      servicesOffered: parsed.servicesOffered || [],
-      pricingFound: parsed.pricingFound || null,
-      emails: parsed.emails || [],
-      phones: parsed.phones || [],
-      aiCategory: parsed.aiCategory || 'Unknown',
-      extractedAddress: parsed.extractedAddress || '',
-      socialLinks: parsed.socialLinks || {},
-      businessSummary: parsed.businessSummary || '',
+      ...defaultData,
+      emails: emailsMatches,
+      phones: phonesMatches,
       score
     };
-
   } catch (error) {
-    console.error(`[Intelligent Extractor] DeepSeek API failed: ${error.message}`);
-    // Fallback to default heuristic if API fails
+    console.error(`[Heuristic Extractor] Regex failed: ${error.message}`);
     return defaultData;
   }
 }
@@ -104,72 +59,18 @@ Return ONLY a valid JSON object matching the requested schema. No markdown forma
  */
 async function evaluateSERP(serpData) {
   if (!serpData || serpData.length === 0) return [];
-  
-  const prompt = `You are an AI research agent looking for DIRECT vendor websites (e.g., individual photographers, specific banquet halls).
-Analyze the following search results. Ignore directories, aggregators, news sites, or broad lists (like JustDial, WedMeGood, WeddingWire, Pinterest).
-Return ONLY a JSON array of the top 3 to 5 most promising direct vendor URLs.
-Format: ["https://example.com", "https://another.com"]
-
-Search Results:
-${JSON.stringify(serpData, null, 2)}
-`;
-
-  try {
-    const apiKey = getNvidiaApiKey();
-    const response = await axios.post(
-      'https://integrate.api.nvidia.com/v1/chat/completions',
-      {
-        model: 'deepseek-ai/deepseek-v4-pro',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.1,
-        top_p: 0.9,
-        max_tokens: 500,
-        extra_body: { chat_template_kwargs: { thinking: false } },
-        stream: false
-      },
-      { headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }, timeout: 45000 }
-    );
-
-    const rawContent = response.data.choices[0].message.content;
-    const cleanJson = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();
-    const parsed = JSON.parse(cleanJson);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.error(`[Intelligent Extractor] evaluateSERP failed: ${err.message}`);
-    return serpData.slice(0, 3).map(s => s.url); // Fallback to top 3
-  }
+  // Basic heuristic filtering
+  return serpData.filter(s => {
+    const d = s.url.toLowerCase();
+    return !d.includes('justdial') && !d.includes('wedmegood') && !d.includes('weddingwire') && !d.includes('pinterest');
+  }).slice(0, 3).map(s => s.url);
 }
 
 /**
  * Generates a refined search query if the previous one failed to find enough leads.
  */
 async function generateRefinedQuery(previousQuery, resultsFound) {
-  const prompt = `You are an AI research agent. You previously searched for "${previousQuery}" but only found ${resultsFound} high-quality leads.
-Generate a NEW, refined search query to find more direct vendors. Consider adding words like "contact", "official website", "portfolio", or excluding directories (e.g., -justdial).
-Return ONLY the new search query string. Do not use quotes or markdown.`;
-
-  try {
-    const apiKey = getNvidiaApiKey();
-    const response = await axios.post(
-      'https://integrate.api.nvidia.com/v1/chat/completions',
-      {
-        model: 'deepseek-ai/deepseek-v4-pro',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 100,
-        extra_body: { chat_template_kwargs: { thinking: false } },
-        stream: false
-      },
-      { headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }, timeout: 45000 }
-    );
-
-    let newQuery = response.data.choices[0].message.content.trim();
-    newQuery = newQuery.replace(/^"/, '').replace(/"$/, '');
-    return newQuery;
-  } catch (err) {
-    console.error(`[Intelligent Extractor] generateRefinedQuery failed: ${err.message}`);
-    return `${previousQuery} contact info`; // Safe fallback
-  }
+  return `${previousQuery} contact info official website`;
 }
 
 /**

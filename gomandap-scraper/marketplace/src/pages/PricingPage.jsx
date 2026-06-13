@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Check, ArrowLeft, Zap, Sparkles, Building2 } from 'lucide-react';
 
-export default function PricingPage() {
+export default function PricingPage({ user }) {
   const navigate = useNavigate();
   const [isAnnual, setIsAnnual] = useState(false);
 
@@ -95,6 +95,7 @@ export default function PricingPage() {
               { text: "Automation credits (Monthly renewing quota)", value: "4500" },
               { text: "Simultaneous running workflows", value: "10" }
             ]}
+            user={user} navigate={navigate} isAnnual={isAnnual}
           />
 
           {/* Gold (Highlighted) */}
@@ -109,6 +110,7 @@ export default function PricingPage() {
               { text: "Simultaneous running workflows", value: "Unlimited" },
               { text: "DeepSeek Semantic Verification", icon: <Check size={16} className="text-purple-500" /> },
             ]}
+            user={user} navigate={navigate} isAnnual={isAnnual}
           />
 
           {/* Enterprise */}
@@ -137,9 +139,45 @@ export default function PricingPage() {
   );
 }
 
-function PricingCard({ title, price, billingText, features, isPopular = false }) {
+function PricingCard({ title, price, billingText, features, isPopular = false, user, navigate, isAnnual }) {
+  const handleSubscribe = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    
+    // Determine credits based on plan
+    const creditsToAdd = title === 'Silver' ? 4500 : title === 'Gold' ? 10000 : 0;
+    
+    if (creditsToAdd > 0) {
+      try {
+        const { default: toast } = await import('react-hot-toast');
+        const { default: axios } = await import('axios');
+        const { API_URL } = await import('../apiConfig');
+        
+        await axios.post(`${API_URL}/public/buy-credits`, {
+          userId: user.id,
+          creditsToAdd,
+          amount: isAnnual ? (title === 'Silver' ? 398 : 810) : (title === 'Silver' ? 40 : 82)
+        });
+        
+        toast.success(`Successfully added ${creditsToAdd} credits to your account!`, { duration: 4000 });
+        
+        // Refresh auth to update global credits
+        axios.post(`${API_URL}/auth`, { email: user.email }).catch(() => {});
+        
+      } catch (e) {
+        const { default: toast } = await import('react-hot-toast');
+        toast.error('Payment failed');
+      }
+    } else {
+      const { default: toast } = await import('react-hot-toast');
+      toast('Contacting sales...', { icon: '📧' });
+    }
+  };
+
   return (
-    <div className={`bg-white rounded-2xl border ${isPopular ? 'border-purple-400 shadow-2xl shadow-purple-500/20 md:-mt-6 z-10' : 'border-gray-100 shadow-xl shadow-gray-200/50 mt-4 md:mt-0'} relative flex flex-col h-full`}>
+    <div className={`bg-white rounded-2xl border ${isPopular ? 'border-blue-400 shadow-2xl shadow-blue-500/20 md:-mt-6 z-10' : 'border-gray-100 shadow-xl shadow-gray-200/50 mt-4 md:mt-0'} relative flex flex-col h-full`}>
       
       {isPopular && (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#dfb22b] text-white text-xs font-bold px-8 py-2 rounded-sm clip-banner shadow-lg">
@@ -147,7 +185,7 @@ function PricingCard({ title, price, billingText, features, isPopular = false })
         </div>
       )}
 
-      <div className={`p-8 text-center border-b ${isPopular ? 'border-purple-100' : 'border-gray-100'}`}>
+      <div className={`p-8 text-center border-b ${isPopular ? 'border-blue-100' : 'border-gray-100'}`}>
         <h3 className="text-xl font-medium text-gray-600 mb-4">{title}</h3>
         <div className="flex items-start justify-center gap-1 mb-2">
           <span className="text-xl font-bold mt-2">$</span>
@@ -155,8 +193,8 @@ function PricingCard({ title, price, billingText, features, isPopular = false })
           <span className="text-xl font-bold text-gray-500 mt-auto mb-2">/mo</span>
         </div>
         
-        <button className={`w-full mt-6 py-3 px-4 rounded-lg font-bold transition-all ${isPopular ? 'text-purple-600 bg-white border-2 border-purple-200 hover:border-purple-600' : 'text-purple-600 bg-white border-2 border-purple-200 hover:border-purple-600'}`}>
-          Subscribe
+        <button onClick={handleSubscribe} className={`w-full mt-6 py-3 px-4 rounded-lg font-bold transition-all ${isPopular ? 'text-blue-600 bg-white border-2 border-blue-200 hover:border-blue-600' : 'text-blue-600 bg-white border-2 border-blue-200 hover:border-blue-600'}`}>
+          {user ? 'Buy Credits' : 'Sign Up'}
         </button>
         <p className="text-xs text-gray-400 mt-4 font-medium">{billingText}</p>
       </div>

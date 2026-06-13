@@ -24,7 +24,8 @@ export default function LandingPage() {
   const handleSearch = (e) => {
     e.preventDefault();
     if (category && location) {
-      navigate(`/marketplace?category=${encodeURIComponent(category)}&location=${encodeURIComponent(location)}`);
+      // Pass the parameters via query string so the dashboard can auto-start
+      navigate(`/app/scraper?category=${encodeURIComponent(category)}&location=${encodeURIComponent(location)}`);
     }
   };
 

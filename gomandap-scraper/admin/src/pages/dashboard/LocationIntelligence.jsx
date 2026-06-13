@@ -43,6 +43,8 @@ export default function LocationIntelligence() {
   const [mapPoints, setMapPoints] = useState([]);
   const [geocoding, setGeocoding] = useState(false);
   const [selectedParent, setSelectedParent] = useState(null);
+  const [osmQuery, setOsmQuery] = useState('');
+  const [fetchingOSM, setFetchingOSM] = useState(false);
 
   useEffect(() => {
     fetchMemory();
@@ -94,6 +96,30 @@ export default function LocationIntelligence() {
     }
   };
 
+  const handleFetchOSM = async (e) => {
+    e.preventDefault();
+    if (!osmQuery) return;
+    try {
+      setFetchingOSM(true);
+      const res = await fetch(`${API_URL}/api/locations/osm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ district: osmQuery })
+      });
+      const data = await res.json();
+      if (data && data.length > 0) {
+        setMapPoints(data);
+        toast.success(`Fetched ${data.length} precise locations from OSM`);
+      } else {
+        toast.error('No locations found in OSM for this region');
+      }
+    } catch (err) {
+      toast.error('Failed to fetch from OSM');
+    } finally {
+      setFetchingOSM(false);
+    }
+  };
+
   return (
     <div className="min-h-full flex flex-col md:flex-row bg-[#f7f8fa]">
       
@@ -113,6 +139,27 @@ export default function LocationIntelligence() {
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
           </button>
+        </div>
+
+        <div className="p-4 bg-violet-50 border-b border-gray-100">
+          <p className="text-xs font-bold text-violet-700 mb-2">Fetch precise OSM Nodes (Mandals/Villages)</p>
+          <form onSubmit={handleFetchOSM} className="flex gap-2">
+            <input 
+              type="text" 
+              placeholder="e.g. Guntur" 
+              value={osmQuery}
+              onChange={(e) => setOsmQuery(e.target.value)}
+              className="flex-1 px-3 py-2 text-sm border border-violet-200 rounded-lg focus:outline-none focus:border-violet-400"
+            />
+            <button 
+              type="submit" 
+              disabled={fetchingOSM}
+              className="bg-violet-600 text-white px-3 py-2 rounded-lg text-sm font-bold hover:bg-violet-700 disabled:opacity-50 flex items-center gap-1"
+            >
+              {fetchingOSM ? <RefreshCw size={14} className="animate-spin" /> : <Search size={14} />}
+              Fetch
+            </button>
+          </form>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-2">

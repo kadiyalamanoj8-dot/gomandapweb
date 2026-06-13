@@ -244,4 +244,81 @@ function fetchAndReturnRealVendor(vendorId, res) {
   });
 }
 
+// 8. Public: Get My Unlocked Leads
+router.get('/my-leads', (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ error: 'Missing userId' });
+
+    const users = dbAdapter.getPublicUsers();
+    const user = users.find(u => u.id === userId);
+    
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const vendors = dbAdapter.getVendors();
+    const myLeads = vendors.filter(v => user.unlockedLeads.includes(v.id));
+
+    res.json({ success: true, leads: myLeads });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// 9. Public: Buy Credits (Simulated)
+router.post('/buy-credits', (req, res) => {
+  try {
+    const { userId, creditsToAdd, amount } = req.body;
+    if (!userId || !creditsToAdd) return res.status(400).json({ error: 'Missing userId or credits' });
+
+    const users = dbAdapter.getPublicUsers();
+    const userIndex = users.findIndex(u => u.id === userId);
+    
+    if (userIndex === -1) return res.status(404).json({ error: 'User not found' });
+
+    const user = users[userIndex];
+    user.credits += parseInt(creditsToAdd);
+    
+    users[userIndex] = user;
+    dbAdapter.savePublicUsers(users);
+
+    res.json({ success: true, message: `Successfully purchased ${creditsToAdd} credits!`, user });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// 10. Public: Reveal/Unlock a Lead
+router.post('/reveal', (req, res) => {
+  try {
+    const { userId, vendorId } = req.body;
+    if (!userId || !vendorId) return res.status(400).json({ error: 'Missing userId or vendorId' });
+
+    const users = dbAdapter.getPublicUsers();
+    const userIndex = users.findIndex(u => u.id === userId);
+    
+    if (userIndex === -1) return res.status(404).json({ error: 'User not found' });
+
+    const user = users[userIndex];
+    
+    // Check if already unlocked
+    if (user.unlockedLeads.includes(vendorId)) {
+      return res.json({ success: true, message: 'Already unlocked' });
+    }
+
+    if (user.credits < 1) {
+      return res.status(403).json({ error: 'Out of credits' });
+    }
+
+    user.credits -= 1;
+    user.unlockedLeads.push(vendorId);
+    
+    users[userIndex] = user;
+    dbAdapter.savePublicUsers(users);
+
+    res.json({ success: true, message: 'Unlocked successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;
