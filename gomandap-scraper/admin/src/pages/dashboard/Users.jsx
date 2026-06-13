@@ -10,11 +10,7 @@ export default function UsersPage() {
   const [editCredits, setEditCredits] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  async function fetchUsers() {
     setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/public/admin/list`);
@@ -23,7 +19,11 @@ export default function UsersPage() {
       console.error("Failed to fetch users", e);
     }
     setLoading(false);
-  };
+  }
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleSaveCredits = async (userId) => {
     try {

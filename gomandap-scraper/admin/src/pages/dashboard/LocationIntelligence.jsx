@@ -48,7 +48,7 @@ export default function LocationIntelligence() {
     fetchMemory();
   }, []);
 
-  const fetchMemory = async () => {
+  async function fetchMemory() {
     try {
       setLoading(true);
       const res = await fetch(`${API_URL}/api/locations/memory`);
@@ -60,7 +60,7 @@ export default function LocationIntelligence() {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const toggleNode = (nodeName) => {
     setExpandedNodes(prev => ({

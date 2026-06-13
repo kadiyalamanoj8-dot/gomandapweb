@@ -106,7 +106,7 @@ export default function Marketplace() {
           if (locRes.data && locRes.data.length > 0) {
             setMapCenter([parseFloat(locRes.data[0].lat), parseFloat(locRes.data[0].lon)]);
           }
-        } catch(e) {}
+        } catch(e) { /* ignore */ }
       }
     } catch (error) {
       console.error('Failed to fetch marketplace data', error);
@@ -176,7 +176,7 @@ export default function Marketplace() {
           if (event.lastEventId === 'init' || event.type === 'init') return;
           try {
             const parsed = JSON.parse(event.data);
-            if (Array.isArray(parsed)) {}
+            if (Array.isArray(parsed)) { /* ignore */ }
           } catch(e) {
             setLiveLogs(prev => [...prev.slice(-40), event.data]);
           }
@@ -193,7 +193,7 @@ export default function Marketplace() {
                    setMapCenter([parseFloat(newVendor.latitude), parseFloat(newVendor.longitude)]);
                 }
              }
-           } catch(e) {}
+           } catch(e) { /* ignore */ }
         });
       }
     } catch (e) {

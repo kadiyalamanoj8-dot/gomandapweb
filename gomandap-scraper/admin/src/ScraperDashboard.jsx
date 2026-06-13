@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { 
   Search, Play, Square, Download, RefreshCw, ChevronDown, ChevronUp, Star, Phone, 
-  MapPin, Link2, Mail, CheckCircle2, XCircle, Filter, Activity, 
+  MapPin, Link2, Mail, CheckCircle2, XCircle, Filter, Activity, Clock,
   Trash2, Database, Upload, Users, ShieldAlert, FileOutput, ArrowRight, BrainCircuit,
   Building2, Camera, Music, Utensils, Flower2, Zap, FolderOpen, X, Settings, 
   Share, Menu, ServerCrash, Check, Send, LogOut, Image, MessageCircle, Briefcase,
@@ -324,7 +324,7 @@ const [vendors, setVendors] = useState([]);
       es.addEventListener('open', () => setSseStatus('open'));
       es.addEventListener('error', () => setSseStatus('error'));
       es.addEventListener('init', (e) => {
-        try { const arr = JSON.parse(e.data); if (Array.isArray(arr)) setLogs(arr); } catch {}
+        try { const arr = JSON.parse(e.data); if (Array.isArray(arr)) setLogs(arr); } catch(err) { /* ignore parse error */ }
       });
       es.addEventListener('vendor', (e) => {
         try {
@@ -364,7 +364,7 @@ const [vendors, setVendors] = useState([]);
               terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
             }
           }, 50);
-        } catch (err) {}
+        } catch (err) { /* ignore scroll errors */ }
       };
       es.onerror = () => {
         setSseStatus('error');
@@ -377,11 +377,11 @@ const [vendors, setVendors] = useState([]);
         try {
           const res = await axios.get(`${API_URL}/logs`);
           if (res.data && Array.isArray(res.data)) setLogs(res.data);
-        } catch (e) {}
+        } catch (e) { console.warn('Log polling failed', e.message); }
       }, 2000);
       return () => clearInterval(interval);
     }
-    return () => { try { es && es.close(); eventSourceRef.current = null; } catch (e) {} };
+    return () => { try { es && es.close(); eventSourceRef.current = null; } catch (e) { /* ignore close error */ } };
   }, []);
 
   // Proactive AI Guidance Toast (Idle for 60s)
@@ -579,7 +579,7 @@ const [vendors, setVendors] = useState([]);
         setSuggestions(prev => [...new Set([...prev, ...res.data])].slice(0, 10));
         setShowSuggestions(true);
       }
-    } catch (e) {}
+    } catch (e) { console.warn('Google suggest failed', e.message); }
   }, 50)).current;
 
   // Blazing Fast 50ms Debounce
@@ -593,7 +593,7 @@ const [vendors, setVendors] = useState([]);
         });
         setShowSuggestions(true);
       }
-    } catch (e) {}
+    } catch (e) { console.warn('OSM search failed', e.message); }
   }, 50)).current;
 
   const handleKeyDown = (e) => {

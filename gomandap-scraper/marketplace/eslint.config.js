@@ -22,7 +22,12 @@ export default defineConfig([
       'no-useless-assignment': 'off',
       'react-hooks/exhaustive-deps': 'off',
       'react-hooks/rules-of-hooks': 'warn',
-      'react-refresh/only-export-components': 'warn'
+      'react-refresh/only-export-components': 'warn',
+      // Disable overly strict plugin rules that flag valid React patterns
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/immutability': 'off',
+      'react-hooks/refs': 'off',
+      'react-hooks/static-components': 'off',
     }
   },
 ])

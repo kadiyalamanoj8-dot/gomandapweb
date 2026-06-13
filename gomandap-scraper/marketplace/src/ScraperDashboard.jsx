@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { 
+import {
   Search, Play, Square, Download, RefreshCw, ChevronDown, ChevronUp, Star, Phone, 
-  MapPin, Link2, Mail, CheckCircle2, XCircle, Filter, Activity, 
+  MapPin, Link2, Mail, CheckCircle2, XCircle, Filter, Activity, Clock,
   Trash2, Database, Upload, Users, ShieldAlert, FileOutput, ArrowRight, BrainCircuit,
   Building2, Camera, Music, Utensils, Flower2, Zap, FolderOpen, X, Settings, 
   Share, Menu, ServerCrash, Check, Send, LogOut, Image, MessageCircle, Briefcase,
@@ -320,7 +320,7 @@ function ScraperDashboard({ user, onLogout }) {
       es.addEventListener('open', () => setSseStatus('open'));
       es.addEventListener('error', () => setSseStatus('error'));
       es.addEventListener('init', (e) => {
-        try { const arr = JSON.parse(e.data); if (Array.isArray(arr)) setLogs(arr); } catch {}
+        try { const arr = JSON.parse(e.data); if (Array.isArray(arr)) setLogs(arr); } catch(e) { /* ignore */ }
       });
       es.addEventListener('vendor', (e) => {
         try {
@@ -340,7 +340,7 @@ function ScraperDashboard({ user, onLogout }) {
               terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
             }
           }, 50);
-        } catch (err) {}
+        } catch (err) { /* ignore */ }
       };
       es.onerror = () => {
         setSseStatus('error');
@@ -353,11 +353,11 @@ function ScraperDashboard({ user, onLogout }) {
         try {
           const res = await axios.get(`${API_URL}/logs`);
           if (res.data && Array.isArray(res.data)) setLogs(res.data);
-        } catch (e) {}
+        } catch (e) { /* ignore */ }
       }, 2000);
       return () => clearInterval(interval);
     }
-    return () => { try { es && es.close(); eventSourceRef.current = null; } catch (e) {} };
+    return () => { try { es && es.close(); eventSourceRef.current = null; } catch (e) { /* ignore */ } };
   }, []);
 
   // Proactive AI Guidance Toast (Idle for 60s)
@@ -414,7 +414,10 @@ function ScraperDashboard({ user, onLogout }) {
           // Auto-correct the input box if confidence is extremely high on a long sentence
           if (topMatches.length > 0 && topMatches[0].score > 0.4 && msg.text !== topMatches[0].text) {
              const assembledQuery = topMatches[0].text + ' ' + msg.separator + ' ' + msg.locationPart;
-             if (topMatches[0].score > 0.6) setOmniQuery(assembledQuery);
+             if (topMatches[0].score > 0.6) {
+               setCategoryQuery(topMatches[0].text);
+               setLocationQuery(msg.locationPart);
+             }
           }
         } else {
           topSuggestions = topMatches.map(r => (msg.prefix || '') + r.text);
@@ -553,7 +556,7 @@ function ScraperDashboard({ user, onLogout }) {
         setSuggestions(prev => [...new Set([...prev, ...res.data])].slice(0, 10));
         setShowSuggestions(true);
       }
-    } catch (e) {}
+    } catch (e) { /* ignore */ }
   }, 50)).current;
 
   // Blazing Fast 50ms Debounce
@@ -567,7 +570,7 @@ function ScraperDashboard({ user, onLogout }) {
         });
         setShowSuggestions(true);
       }
-    } catch (e) {}
+    } catch (e) { /* ignore */ }
   }, 50)).current;
 
   const handleKeyDown = (e) => {
@@ -726,9 +729,9 @@ function ScraperDashboard({ user, onLogout }) {
       // Trigger Firebase scrape if enabled
       if (enabledEngines.includes('firebase')) {
         axios.post(`${API_URL}/scrape/firebase`, {
-          query: queryToUse,
+          query: finalQuery,
           category: parsedCat,
-          location: locationPart
+          location: parsedLoc
         }).catch(err => console.error('[Firebase]', err.message));
       }
       

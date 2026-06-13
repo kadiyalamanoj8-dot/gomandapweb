@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Play, Square, RefreshCw, ArrowRight, MapPin, Camera,
@@ -19,6 +19,18 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+// MapBounds must be declared outside the component to avoid re-creation on each render
+function MapBoundsHelper({ vendors }) {
+  const map = useMap();
+  useEffect(() => {
+    if (vendors.length > 0) {
+      const bounds = L.latLngBounds(vendors.map(v => [v.safeLat, v.safeLng]));
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+    }
+  }, [vendors, map]);
+  return null;
+}
+
 export default function OverviewPage() {
   const {
     loading, logs, sseStatus, logLevel, setLogLevel,
@@ -26,6 +38,7 @@ export default function OverviewPage() {
     enabledEngines, setEnabledEngines,
     startScrape, handleMasterStop,
     stagingVendorsWithPhones, stagingVendorsNoPhones, liveVendors, verifiedCount,
+    vendors, activeJobs,
     modelLoadingStatus, suggestions, showSuggestions, setShowSuggestions,
     suggestionIndex, searchHistory, setSearchHistory,
     showDirectory, setShowDirectory, knowledge,
@@ -34,8 +47,23 @@ export default function OverviewPage() {
     locationQuery, setLocationQuery,
     activeInput, setActiveInput,
     handleCategoryChange, handleLocationChange,
-    triggerPython, triggerCheerio, triggerMaps
+    triggerPython, triggerCheerio, triggerMaps,
+    pushToProd,
   } = useScraper();
+
+  const terminalRef = useRef(null);
+  const searchContainerRef = useRef(null);
+
+  // Group vendors by category
+  const grouped = React.useMemo(() => {
+    if (!vendors) return {};
+    return vendors.reduce((acc, v) => {
+      const cat = v.category || 'Other';
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(v);
+      return acc;
+    }, {});
+  }, [vendors]);
 
   const [showLog, setShowLog] = useState(false);
 
@@ -494,7 +522,7 @@ export default function OverviewPage() {
             {mapVendors.length > 0 ? (
               <MapContainer center={[mapVendors[0].safeLat, mapVendors[0].safeLng]} zoom={11} style={{ width: '100%', height: '100%' }} zoomControl={false}>
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
-                <MapBounds vendors={mapVendors} />
+                <MapBoundsHelper vendors={mapVendors} />
                 {mapVendors.map((vendor, i) => (
                   <Marker key={i} position={[vendor.safeLat, vendor.safeLng]}>
                     <Popup>

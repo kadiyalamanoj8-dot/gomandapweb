@@ -44,11 +44,7 @@ export default function Marketplace() {
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState([20.5937, 78.9629]); // Default India
 
-  useEffect(() => {
-    fetchVendors();
-  }, [category, location]);
-
-  const fetchVendors = async () => {
+  async function fetchVendors() {
     setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/vendors/public`, {
@@ -70,13 +66,17 @@ export default function Marketplace() {
           if (locRes.data && locRes.data.length > 0) {
             setMapCenter([parseFloat(locRes.data[0].lat), parseFloat(locRes.data[0].lon)]);
           }
-        } catch(e) {}
+        } catch(e) { console.warn('Geocode failed', e); }
       }
     } catch (error) {
       console.error('Failed to fetch marketplace data', error);
     }
     setLoading(false);
-  };
+  }
+
+  useEffect(() => {
+    fetchVendors();
+  }, [category, location]);
 
   const handleAuth = async (e) => {
     e.preventDefault();
