@@ -1,0 +1,70 @@
+{
+  "requestsFinished": 12,
+  "requestsFailed": 11,
+  "requestsRetries": 14,
+  "requestsFailedPerMinute": 1,
+  "requestsFinishedPerMinute": 2,
+  "requestMinDurationMillis": 1591,
+  "requestMaxDurationMillis": 59641,
+  "requestTotalFailedDurationMillis": 610572,
+  "requestTotalFinishedDurationMillis": 224976,
+  "crawlerStartedAt": "2026-06-13T11:35:24.821Z",
+  "crawlerFinishedAt": "2026-06-13T11:41:34.772Z",
+  "statsPersistedAt": "2026-06-13T11:41:34.772Z",
+  "crawlerRuntimeMillis": 370284,
+  "crawlerLastStartTimestamp": 1781350524488,
+  "requestRetryHistogram": [
+    9,
+    3,
+    null,
+    11
+  ],
+  "statsId": 0,
+  "requestAvgFailedDurationMillis": 55507,
+  "requestAvgFinishedDurationMillis": 18748,
+  "requestTotalDurationMillis": 835548,
+  "requestsTotal": 23,
+  "requestsWithStatusCode": {
+    "200": 16
+  },
+  "errors": {
+    "node:internal/url:825:25": {
+      "ERR_INVALID_URL": {
+        "TypeError": {
+          "Invalid URL": {
+            "count": 1
+          }
+        }
+      }
+    },
+    "C:\\Users\\manoj\\OneDrive\\Desktop\\Gomandapweb\\gomandap-research\\node_modules\\@crawlee\\playwright\\internals\\utils\\playwright-utils.js:165:17": {
+      "missing error code": {
+        "TimeoutError": {
+          "page.goto: Timeout 60000ms exceeded.": {
+            "count": 10
+          }
+        }
+      }
+    }
+  },
+  "retryErrors": {
+    "node:internal/url:825:25": {
+      "ERR_INVALID_URL": {
+        "TypeError": {
+          "Invalid URL": {
+            "count": 3
+          }
+        }
+      }
+    },
+    "C:\\Users\\manoj\\OneDrive\\Desktop\\Gomandapweb\\gomandap-research\\node_modules\\@crawlee\\playwright\\internals\\utils\\playwright-utils.js:165:17": {
+      "missing error code": {
+        "TimeoutError": {
+          "page.goto: Timeout 60000ms exceeded.": {
+            "count": 33
+          }
+        }
+      }
+    }
+  }
+}

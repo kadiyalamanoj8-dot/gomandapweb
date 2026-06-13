@@ -1,0 +1,9 @@
+{
+	"id": "lRY7c2LUhMkhYIF",
+	"json": "{\"id\":\"lRY7c2LUhMkhYIF\",\"url\":\"https://duckduckgo.com/l/?uddg=https%3A%2F%2Fspeedtest.xfinity.com%2F&rut=d5688ab79832f659075c400dd2cfc3839182b76c030da46fca196d6a30bdc52f\",\"loadedUrl\":\"https://speedtest.xfinity.com/\",\"uniqueKey\":\"https://duckduckgo.com/l?rut=d5688ab79832f659075c400dd2cfc3839182b76c030da46fca196d6a30bdc52f&uddg=https%3A%2F%2Fspeedtest.xfinity.com%2F\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"all\",\"state\":4}},\"handledAt\":\"2026-06-13T11:38:40.893Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://duckduckgo.com/l?rut=d5688ab79832f659075c400dd2cfc3839182b76c030da46fca196d6a30bdc52f&uddg=https%3A%2F%2Fspeedtest.xfinity.com%2F",
+	"url": "https://duckduckgo.com/l/?uddg=https%3A%2F%2Fspeedtest.xfinity.com%2F&rut=d5688ab79832f659075c400dd2cfc3839182b76c030da46fca196d6a30bdc52f"
+}

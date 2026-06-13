@@ -15,7 +15,7 @@ export default defineConfig({
   },
   plugins: [react()],
   optimizeDeps: {
-    include: ['olamaps-web-sdk', 'react-window', 'react-virtualized-auto-sizer'],
+    include: ['react-window', 'react-virtualized-auto-sizer'],
   },
   define: {
     'process.env': {},

@@ -270,7 +270,7 @@ function FolderCard({ category, vendors, onClick, onExport, isActive, onSettings
 }
 
 function ScraperDashboard({ user, onLogout }) {
-const [vendors, setVendors] = useState([]);
+  const [vendors, setVendors] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [categoryQuery, setCategoryQuery] = useState('');
@@ -309,6 +309,8 @@ const [vendors, setVendors] = useState([]);
   const [fuseInstances, setFuseInstances] = useState({ categories: null, locations: null });
   const [gridPoints, setGridPoints] = useState([]);
   const [activePoints, setActivePoints] = useState([]); // Track currently searching points
+  const [publicUsers, setPublicUsers] = useState([]);
+  const [outOfBoundsVendors, setOutOfBoundsVendors] = useState([]);
   const prevVendorsCount = useRef(0);
   const terminalRef = useRef(null);
   const workerRef = useRef(null);
@@ -655,13 +657,22 @@ const [vendors, setVendors] = useState([]);
     } catch (error) { console.error('Failed to fetch jobs', error); }
   };
 
+  const [researchData, setResearchData] = useState([]);
+
   async function fetchVendors() {
     try {
-      const res = await axios.get(`${API_URL}/vendors`);
-      setVendors(res.data);
+      const [vRes, pRes, oRes] = await Promise.all([
+        axios.get(`${API_URL}/vendors`),
+        axios.get(`${API_URL}/public/admin/list`),
+        axios.get(`${API_URL}/vendors/out-of-bounds`)
+      ]);
+      setVendors(vRes.data);
+      setPublicUsers(pRes.data);
+      setOutOfBoundsVendors(oRes.data);
       setBackendConnected(true);
     } catch (error) { 
-      console.error('Failed to fetch vendors', error);
+      console.error('Failed to fetch vendors. Network Error details:', error);
+      alert('Dashboard Failed to Connect. Check browser console (F12) for exact details. Error: ' + error.message);
       setBackendConnected(false);
     }
   }
@@ -826,7 +837,6 @@ const [vendors, setVendors] = useState([]);
     }
   };
 
-  // MANUAL TRIGGERS
   const triggerPython = async (query, location) => {
     try {
       setLoading(true);

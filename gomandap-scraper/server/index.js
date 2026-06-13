@@ -127,6 +127,9 @@ app.use('/api/employees', employeesRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/locations', locationsRoutes);
 
+// Static PDF Downloads
+app.use('/downloads', express.static(path.join(__dirname, 'downloads')));
+
 // Log Streaming Route
 app.get('/api/logs/stream', (req, res) => {
   res.set({

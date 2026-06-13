@@ -14,6 +14,7 @@ const { scrapeCrawleeDeep, setDeps: setCrawleeDeps } = require('../scrapers/engi
 const { scrapePuppeteerIndiaMart, setDeps: setIndiaMartDeps } = require('../scrapers/engine-puppeteer-indiamart');
 const { scrapeScrapySpider, setDeps: setScrapyDeps } = require('../scrapers/engine-scrapy');
 
+
 const { initQueue, registerTask, addScrapeJob, clearQueue } = require('../utils/queue');
 const { geocodeLocation } = require('../utils/olaMaps');
 
@@ -57,12 +58,14 @@ registerTask('scrapeCrawleeDeep', async (url, vendorName, cat, loc) => safeExecu
 registerTask('scrapePuppeteerIndiaMart', async (cat, loc) => safeExecute(() => scrapePuppeteerIndiaMart(cat, loc), 'IndiaMart Stealth Scrape', addLog));
 registerTask('scrapeScrapySpider', async (cat, loc) => safeExecute(() => scrapeScrapySpider(cat, loc), 'Scrapy Python Spider', addLog));
 
+
 function setDeps(deps) {
   addLog = deps.logger;
   globalAbortSignal = deps.abortSignal;
   if (deps.emitGridEvent) emitGridEvent = deps.emitGridEvent;
   if (setPlacesDeps) setPlacesDeps(deps);
   if (setDorkLogger) setDorkLogger(deps.logger);
+
   if (setJDDeps) setJDDeps(deps);
   if (setWBDeps) setWBDeps(deps);
   if (setWWDeps) setWWDeps(deps);
@@ -506,17 +509,34 @@ router.post('/omni', async (req, res) => {
         }
         
         addLog(`[Hyper-Local AI] Fallback expansion complete! Generated ${targets.length} localities.`);
-        for (const t of targets) {
-          addLog(`[Mandal Expansion] Resolving coordinates for: ${t}`);
-          const geo = await geocodeLocation(t);
-          if (geo && geo.lat) {
-            allGridCoords.push({
-              lat: parseFloat(geo.lat.toFixed(6)),
-              lng: parseFloat(geo.lng.toFixed(6)),
-              distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: t
-            });
-            centerLocations.push({ ...geo, queryLoc: t });
-          }
+        
+        if (strategy === 'full' && targets.length > 10) {
+           addLog(`[Tier 3 Speed Optimization] Bypassing individual geocoding for ${targets.length} villages to prevent API rate-limits.`);
+           const baseGeo = await geocodeLocation(baseLocation);
+           if (baseGeo && baseGeo.lat) {
+             for (let i = 0; i < targets.length; i++) {
+               const t = targets[i];
+               // Add a tiny visual jitter to prevent markers stacking perfectly on top of each other
+               const jitterLat = baseGeo.lat + (Math.random() - 0.5) * 0.05;
+               const jitterLng = baseGeo.lng + (Math.random() - 0.5) * 0.05;
+               allGridCoords.push({ lat: parseFloat(jitterLat.toFixed(6)), lng: parseFloat(jitterLng.toFixed(6)), distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: t });
+               centerLocations.push({ lat: jitterLat, lng: jitterLng, formattedLocation: t, queryLoc: t });
+             }
+           }
+        } else {
+           // Normal sequential geocoding for smaller lists (Mandals)
+           for (const t of targets) {
+             addLog(`[Mandal Expansion] Resolving coordinates for: ${t}`);
+             const geo = await geocodeLocation(t);
+             if (geo && geo.lat) {
+               allGridCoords.push({
+                 lat: parseFloat(geo.lat.toFixed(6)),
+                 lng: parseFloat(geo.lng.toFixed(6)),
+                 distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: t
+               });
+               centerLocations.push({ ...geo, queryLoc: t });
+             }
+           }
         }
       }
     } else {
@@ -647,7 +667,6 @@ router.post('/omni', async (req, res) => {
         await addScrapeJob('scrapePuppeteerIndiaMart', [matchedCategory, baseLocation]);
       }
     }
-
   } catch (err) {
     addLog(`[Omni] Failed to dispatch jobs: ${err.message}`);
   }

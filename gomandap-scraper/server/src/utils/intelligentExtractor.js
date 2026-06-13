@@ -194,11 +194,76 @@ Return ONLY valid JSON format. Do not use markdown wrappers.`;
   }
 }
 
+/**
+ * Fetches localities (villages, towns, nodes) for a given region using OSM Nominatim.
+ * Provides precise lat/lng coordinates for geographical gridding.
+ */
+async function fetchOSMLocalities(region) {
+  if (!region) return [];
+  try {
+    const response = await axios.get('https://nominatim.openstreetmap.org/search', {
+      params: { q: region, format: 'json', addressdetails: 1, limit: 20, countrycodes: 'in' },
+      headers: { 'User-Agent': 'GomandapScraper/1.0 (contact@gomandap.com)' },
+      timeout: 10000
+    });
+    
+    return response.data.map(item => ({
+      name: item.name,
+      lat: item.lat,
+      lng: item.lon, // scrape.js expects lng
+      type: item.type
+    })).filter(loc => loc.lat && loc.lng);
+  } catch (err) {
+    console.error('[OSM Engine] fetchOSMLocalities failed:', err.message);
+    return [];
+  }
+}
+
+/**
+ * Returns a flattened array of all districts and mandals from the geo database.
+ * Formatted for Orama knowledge engine initialization.
+ */
+function getAllLocalities() {
+  const locs = [];
+  if (!indiaGeoData) return locs;
+
+  for (const state of indiaGeoData) {
+    // Only fetch Andhra Pradesh and Telangana for performance, or fetch all if needed
+    // Let's fetch all Districts and SubDistricts (Mandals)
+    if (!state.districts) continue;
+    for (const dist of state.districts) {
+      if (dist.district) {
+        locs.push({ type: 'district', name: dist.district });
+      }
+      if (!dist.subDistricts) continue;
+      for (const sub of dist.subDistricts) {
+        if (sub.subDistrict) {
+          locs.push({ type: 'mandal', name: sub.subDistrict, district: dist.district });
+        }
+      }
+    }
+  }
+  
+  // Deduplicate
+  const uniqueLocs = [];
+  const seen = new Set();
+  for (const loc of locs) {
+    if (!seen.has(loc.name.toLowerCase())) {
+      seen.add(loc.name.toLowerCase());
+      uniqueLocs.push(loc);
+    }
+  }
+  
+  return uniqueLocs;
+}
+
 module.exports = {
   extractData,
   evaluateSERP,
   generateRefinedQuery,
   generateLocalities,
   generateNearbyLocations,
-  analyzeGeographicScope
+  analyzeGeographicScope,
+  fetchOSMLocalities,
+  getAllLocalities
 };

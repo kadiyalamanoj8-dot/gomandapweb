@@ -4,13 +4,12 @@ const fs = require('fs');
 const path = require('path');
 const { axiosWithProxy, getRandomIP } = require('../scrapers/proxyManager');
 
-const REGIONS_FILE = path.join(__dirname, '../../../data', 'regions.json');
-const getRegions = () => fs.existsSync(REGIONS_FILE) ? JSON.parse(fs.readFileSync(REGIONS_FILE, 'utf-8')) : {};
+const { getAllLocalities } = require('../utils/intelligentExtractor');
 
 const CATEGORIES = [
   "Banquet Halls", "Kalyana Mandapams", "Open Lawns & Farmhouses", 
   "Resorts & Destination Venues", "5-Star Hotels", "Party & Mini Halls", 
-  "Temples & Ashrams", "Wedding Photographers", "Candid Photographers", 
+  "Temples & Ashrams", "Wedding Photographers", "Candid Photographers", "Photography", "Photographers", 
   "Pre-Wedding Shoots", "Cinematographers", "Drone Specialists", 
   "Instant Photo Booths", "Decorators", "Caterers", "Makeup Artists", 
   "Mehndi Designers", "Wedding Clothes / Boutiques", "Jewelry Shops", 
@@ -19,17 +18,7 @@ const CATEGORIES = [
 ];
 
 const getFlatLocations = () => {
-  const regions = getRegions();
-  let allLocs = [];
-  for (const [district, mandals] of Object.entries(regions)) {
-    allLocs.push({ type: 'district', name: district });
-    if (mandals) {
-      for (const m of mandals) {
-        allLocs.push({ type: 'mandal', name: m, district: district });
-      }
-    }
-  }
-  return allLocs;
+  return getAllLocalities();
 };
 
 // Native Server Intelligence filtering instead of bloated minisearch
@@ -42,7 +31,7 @@ const searchLocationsNatively = (query) => {
 };
 
 router.get('/regions', (req, res) => {
-  res.json(getRegions());
+  res.json({ message: "Regions API is deprecated. Use /knowledge instead." });
 });
 
 router.get('/suggest', async (req, res) => {

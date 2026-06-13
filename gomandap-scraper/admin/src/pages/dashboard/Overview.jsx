@@ -4,7 +4,7 @@ import {
   Search, Play, Square, RefreshCw, ArrowRight, MapPin, Camera,
   MessageCircle, Globe, Database, Briefcase, Image, Clock,
   Trash2, X, Activity, ChevronDown, Check, XCircle, Download,
-  FolderOpen, Filter, Send, Settings, TrendingUp, Zap, Target, Map
+  FolderOpen, Filter, Send, Settings, TrendingUp, Zap, Target, Map, Users
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, CircleMarker, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -90,12 +90,10 @@ export default function OverviewPage() {
             <p className="text-sm text-gray-500 mt-0.5">Search and extract verified business contacts from multiple sources</p>
           </div>
           <div className="flex items-center gap-3">
-            {loading && (
-              <button onClick={handleMasterStop}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 transition-all">
-                <XCircle size={15} /> Stop All
-              </button>
-            )}
+            <button onClick={handleMasterStop}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 transition-all shadow-sm hover:shadow">
+              <XCircle size={15} /> Stop All
+            </button>
             <button onClick={pushToProd} disabled={verifiedCount === 0}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
                 verifiedCount > 0
@@ -151,7 +149,6 @@ export default function OverviewPage() {
           </div>
 
           <div className="p-6">
-            {/* Search Scope Toggle */}
             <div className="mb-6 flex justify-center">
               <div className="inline-flex bg-gray-100 p-1.5 rounded-xl">
                 {[
@@ -186,36 +183,26 @@ export default function OverviewPage() {
             </div>
 
             {/* Platform selectors */}
-            <div className="mb-4">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Search Sources</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {PLATFORMS.map(platform => {
-                  const isEnabled = enabledEngines?.includes(platform.id);
-                  return (
-                    <div key={platform.id} 
-                      className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm transition-all border ${
-                        isEnabled
-                          ? 'bg-white text-gray-900 border-gray-200 shadow-sm'
-                          : 'bg-gray-50 text-gray-500 border-gray-100'
-                      }`}>
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className={`p-1.5 rounded-lg ${isEnabled ? 'bg-violet-100 text-violet-600' : 'bg-gray-100'}`}>
-                          {platform.icon}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-semibold truncate">{platform.label}</p>
-                          <p className="text-[10px] opacity-60 truncate">{platform.desc}</p>
-                        </div>
-                      </div>
-                      
-                      {/* 3D Switch Toggle */}
-                      <label className="switch-3d flex-shrink-0">
-                        <input type="checkbox" checked={isEnabled} onChange={() => setEnabledEngines(prev => prev?.includes(platform.id) ? prev.filter(e => e !== platform.id) : [...(prev || []), platform.id])} />
-                        <span className="slider-3d"></span>
-                      </label>
-                    </div>
-                  );
-                })}
+            <div className="mb-8">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest text-center mb-3">Extract From</p>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {[
+                  { id: 'maps', label: 'Google Maps', icon: <MapPin size={13} />, color: 'blue' },
+                  { id: 'instagram', label: 'Instagram', icon: <Camera size={13} />, color: 'pink' },
+                  { id: 'facebook', label: 'Facebook', icon: <Globe size={13} />, color: 'blue' },
+                  { id: 'youtube', label: 'YouTube', icon: <Target size={13} />, color: 'red' },
+                  { id: 'pinterest', label: 'Pinterest', icon: <Globe size={13} />, color: 'red' },
+                  { id: 'linkedin', label: 'LinkedIn', icon: <Users size={13} />, color: 'blue' },
+                ].map(p => (
+                  <button key={p.id} type="button" onClick={() => setEnabledEngines(prev => prev.includes(p.id) ? prev.filter(x => x !== p.id) : [...prev, p.id])}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                      enabledEngines.includes(p.id)
+                        ? `bg-${p.color}-50 text-${p.color}-700 border-${p.color}-200 shadow-sm`
+                        : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'
+                    }`}>
+                    {p.icon} {p.label}
+                  </button>
+                ))}
               </div>
             </div>
 

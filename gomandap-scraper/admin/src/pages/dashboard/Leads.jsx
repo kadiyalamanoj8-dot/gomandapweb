@@ -158,7 +158,7 @@ export default function LeadsPage() {
         {/* ── VIEWS ── */}
 
         {/* FOLDER VIEW */}
-        {view === 'folders' && (
+            {view === 'folders' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {Object.entries(groupedData || {}).length === 0 ? (
               <div className="col-span-4 py-24 flex flex-col items-center text-center text-gray-400">

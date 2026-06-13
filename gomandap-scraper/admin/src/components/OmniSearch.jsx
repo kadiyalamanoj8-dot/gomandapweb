@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, MapPin, List, ArrowRight, X, Clock, BrainCircuit, Command } from 'lucide-react';
+import { initializeOrama, performOramaSearch } from '../utils/oramaEngine';
 import Fuse from 'fuse.js';
 
 export default function OmniSearch({ 
@@ -12,29 +13,35 @@ export default function OmniSearch({
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const intentRef = useRef({ cat: '', loc: '' });
   
   const inputRef = useRef(null);
   const containerRef = useRef(null);
-
-  // Setup Fuse.js for local fast matching
   const fuseRef = useRef({ categories: null, locations: null });
+  const [oramaReady, setOramaReady] = useState(false);
+
+  // Setup Engines (Orama + Fuse)
   useEffect(() => {
-    if (knowledge.categories?.length > 0) {
-      fuseRef.current.categories = new Fuse(knowledge.categories, { threshold: 0.4 });
-    }
-    if (knowledge.locations?.length > 0) {
-      fuseRef.current.locations = new Fuse(knowledge.locations.map(l => l.name), { threshold: 0.4 });
-    }
+    const formattedCategories = knowledge.categories || [];
+    const formattedLocations = knowledge.locations ? knowledge.locations.map(l => l.name) : [];
+    
+    // 1. Initialize Fuse Fallback Engine
+    fuseRef.current.categories = new Fuse(formattedCategories, { threshold: 0.4 });
+    fuseRef.current.locations = new Fuse(formattedLocations, { threshold: 0.4 });
+
+    // 2. Initialize Orama Primary Engine
+    initializeOrama({ categories: formattedCategories, locations: formattedLocations })
+      .then(() => setOramaReady(true));
   }, [knowledge]);
 
-  // Global Hotkey (Cmd+K or /)
+  // Global Hotkey
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setIsOpen(true);
       }
-      if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
         e.preventDefault();
         setIsOpen(true);
       }
@@ -66,22 +73,37 @@ export default function OmniSearch({
     }
   }, [isOpen]);
 
-  // NLP Parse Query
+  // ADVANCED NLP PARSER (Handles "ner", "arnd", etc)
   const parseQuery = (text) => {
     const lower = text.toLowerCase();
-    const splitters = [' in ', ' near ', ' at '];
-    let cat = text;
+    const regex = /\s+(in|at|near|ner|naer|around|arnd|of)\s+/i;
+    const match = lower.match(regex);
+    
+    let cat = text.trim();
     let loc = '';
 
-    for (const split of splitters) {
-      if (lower.includes(split)) {
-        const parts = lower.split(split);
-        cat = text.substring(0, parts[0].length).trim();
-        loc = text.substring(parts[0].length + split.length).trim();
-        break;
-      }
+    if (match) {
+      const index = match.index;
+      cat = text.substring(0, index).trim();
+      loc = text.substring(index + match[0].length).trim();
     }
     return { cat, loc };
+  };
+
+  // Helper: Get Best Match Hybrid (Orama -> Fuse)
+  const getBestMatch = async (token, type) => {
+    // Try Orama First (Ultra Fast, exact/prefix)
+    const oramaRes = await performOramaSearch(token);
+    const oramaMatch = oramaRes.find(r => r.type === type);
+    if (oramaMatch) return oramaMatch.label;
+
+    // Fallback to Fuse (Fuzzy, deep typo)
+    const engine = type === 'category' ? fuseRef.current.categories : fuseRef.current.locations;
+    if (engine) {
+      const fuseRes = engine.search(token);
+      if (fuseRes.length > 0) return fuseRes[0].item;
+    }
+    return null;
   };
 
   // Generate Suggestions
@@ -92,37 +114,108 @@ export default function OmniSearch({
     }
 
     const { cat, loc } = parseQuery(query);
-    let sugs = [];
+    let isActive = true;
+    
+    const fetchResults = async () => {
+      try {
+        let sugs = [];
 
-    // If loc is present, we suggest the exact combination
-    if (loc) {
-      // Find matching locations
-      let locMatches = [];
-      if (fuseRef.current.locations) {
-         locMatches = fuseRef.current.locations.search(loc).map(r => r.item);
-      }
-      
-      if (locMatches.length > 0) {
-         locMatches.slice(0, 3).forEach(m => {
-            sugs.push({ type: 'ai', text: `${cat} in ${m}`, parsedCat: cat, parsedLoc: m });
-         });
-      } else {
-         sugs.push({ type: 'search', text: query, parsedCat: cat, parsedLoc: loc });
-      }
-    } else {
-      // Just Category matching
-      if (fuseRef.current.categories) {
-         const catMatches = fuseRef.current.categories.search(cat).map(r => r.item);
-         catMatches.slice(0, 5).forEach(m => {
-            sugs.push({ type: 'category', text: `${m} in...`, parsedCat: m, parsedLoc: '' });
-         });
-      }
-      sugs.push({ type: 'search', text: query, parsedCat: cat, parsedLoc: '' });
-    }
+        // 1. Full Query NLP Check
+        const bestCatByString = await getBestMatch(cat, 'category') || cat;
+        const bestLocByString = loc ? (await getBestMatch(loc, 'location') || loc) : '';
 
-    setSuggestions(sugs);
-    setSelectedIndex(0);
-  }, [query, history, knowledge]);
+        // 2. Token-by-Token Magic Intent Parsing (Fallback)
+        const tokens = query.split(' ').filter(t => t.trim().length > 1);
+        let tokenCats = [];
+        let tokenLocs = [];
+
+        for (const token of tokens) {
+          const c = await getBestMatch(token, 'category');
+          const l = await getBestMatch(token, 'location');
+          if (c) tokenCats.push(c);
+          if (l) tokenLocs.push(l);
+        }
+
+        const topCat = bestCatByString !== cat ? bestCatByString : (tokenCats[0] || cat);
+        const topLoc = bestLocByString !== loc ? bestLocByString : (tokenLocs[0] || loc);
+
+        // Store intelligent intent globally for fast Enter press
+        intentRef.current = { cat: topCat, loc: topLoc };
+
+        // 3. Assemble Suggestions
+        if (loc) {
+           // Let's suggest multiple categories with the top location
+           const allCatMatches = fuseRef.current.categories?.search(cat).map(r => r.item) || [];
+           const catsToSuggest = [...new Set([topCat, ...allCatMatches.slice(0, 3)])].filter(Boolean);
+
+           if (bestLocByString !== loc) {
+             catsToSuggest.forEach(c => {
+               sugs.push({ type: 'ai', text: `${c} in ${bestLocByString}`, parsedCat: c, parsedLoc: bestLocByString });
+             });
+           } else {
+             const locMatches = fuseRef.current.locations?.search(loc).map(r => r.item) || [];
+             if (locMatches.length > 0) {
+                catsToSuggest.forEach(c => {
+                  locMatches.slice(0, 2).forEach(m => {
+                     sugs.push({ type: 'ai', text: `${c} in ${m}`, parsedCat: c, parsedLoc: m });
+                  });
+                });
+             } else {
+                catsToSuggest.forEach(c => {
+                  sugs.push({ type: 'search', text: `${c} in ${loc}`, parsedCat: c, parsedLoc: loc });
+                });
+             }
+           }
+        } else {
+           // No location typed yet. Just Category.
+           const allCatMatches = fuseRef.current.categories?.search(cat).map(r => r.item) || [];
+           const catsToSuggest = [...new Set([topCat, ...allCatMatches.slice(0, 4)])].filter(Boolean);
+           
+           catsToSuggest.forEach(c => {
+             sugs.push({ type: 'category', text: `${c} in...`, parsedCat: c, parsedLoc: '' });
+           });
+
+           // Magic intent combo (if they typed a city name WITHOUT "in")
+           if (tokenCats.length > 0 && tokenLocs.length > 0) {
+              sugs.unshift({ 
+                type: 'ai', 
+                text: `${tokenCats[0]} in ${tokenLocs[0]}`, 
+                parsedCat: tokenCats[0], 
+                parsedLoc: tokenLocs[0] 
+              });
+           }
+        }
+
+        // Deduplicate
+        const uniqueSugs = [];
+        const seen = new Set();
+        for (const s of sugs) {
+          const key = s.text.toLowerCase();
+          if (!seen.has(key)) {
+            seen.add(key);
+            uniqueSugs.push(s);
+          }
+        }
+
+        if (isActive) {
+          setSuggestions(uniqueSugs);
+          setSelectedIndex(0);
+        }
+      } catch (error) {
+        console.error('[OmniSearch] Engine failed:', error);
+        if (isActive) {
+          setSuggestions([{ type: 'search', text: query, parsedCat: cat, parsedLoc: loc }]);
+          setSelectedIndex(0);
+        }
+      }
+    };
+    
+    fetchResults();
+    
+    return () => {
+      isActive = false;
+    };
+  }, [query, history, knowledge, oramaReady]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowDown') {
@@ -133,10 +226,10 @@ export default function OmniSearch({
       setSelectedIndex(prev => (prev - 1 + Math.max(1, suggestions.length)) % Math.max(1, suggestions.length));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (suggestions.length > 0 && selectedIndex >= 0) {
+      if (suggestions.length > 0 && selectedIndex >= 0 && suggestions[selectedIndex].type !== 'search') {
         handleSelect(suggestions[selectedIndex]);
       } else {
-        const { cat, loc } = parseQuery(query);
+        const { cat, loc } = intentRef.current.cat ? intentRef.current : parseQuery(query);
         submitSearch(cat, loc);
       }
     }
@@ -156,7 +249,6 @@ export default function OmniSearch({
 
   const submitSearch = (category, location) => {
     if (!category || !location) {
-      // Can't search without both
       setQuery(`${category || query} in `);
       if (inputRef.current) inputRef.current.focus();
       return;
@@ -169,7 +261,6 @@ export default function OmniSearch({
 
   return (
     <>
-      {/* Trigger Button */}
       <button 
         onClick={() => setIsOpen(true)}
         className="flex items-center justify-between w-full max-w-2xl mx-auto bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-white/50 transition-all group"
@@ -183,7 +274,6 @@ export default function OmniSearch({
         </div>
       </button>
 
-      {/* Modal Overlay */}
       <AnimatePresence>
         {isOpen && (
           <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4">
@@ -200,7 +290,6 @@ export default function OmniSearch({
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="relative w-full max-w-3xl bg-[#111] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
             >
-              {/* Input Area */}
               <div className="flex items-center px-4 py-4 border-b border-white/10 bg-white/5 relative z-10">
                 <Search size={22} className="text-violet-500 mr-3 shrink-0" />
                 <input
@@ -224,7 +313,6 @@ export default function OmniSearch({
                 </div>
               </div>
 
-              {/* NLP Chips Viewer */}
               {query.trim().length > 0 && (
                 <div className="flex items-center gap-2 px-4 py-2 bg-black/20 border-b border-white/5">
                   <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 rounded-md text-xs text-blue-400">
@@ -237,7 +325,6 @@ export default function OmniSearch({
                 </div>
               )}
 
-              {/* Suggestions List */}
               <div className="max-h-[60vh] overflow-y-auto p-2">
                 {suggestions.length === 0 ? (
                   <div className="p-8 text-center text-white/30">

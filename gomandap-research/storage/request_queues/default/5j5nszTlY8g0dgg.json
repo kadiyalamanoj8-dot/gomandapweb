@@ -1,0 +1,9 @@
+{
+	"id": "5j5nszTlY8g0dgg",
+	"json": "{\"id\":\"5j5nszTlY8g0dgg\",\"url\":\"https://duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.speedtest.net%2F&rut=59bc57c161ac7e9a1d27d0d2dee02d57049c08eedea608bb0a4b3e91561845c6\",\"loadedUrl\":\"https://www.speedtest.net/\",\"uniqueKey\":\"https://duckduckgo.com/l?rut=59bc57c161ac7e9a1d27d0d2dee02d57049c08eedea608bb0a4b3e91561845c6&uddg=https%3A%2F%2Fwww.speedtest.net%2F\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"all\",\"state\":4}},\"handledAt\":\"2026-06-13T11:37:39.394Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://duckduckgo.com/l?rut=59bc57c161ac7e9a1d27d0d2dee02d57049c08eedea608bb0a4b3e91561845c6&uddg=https%3A%2F%2Fwww.speedtest.net%2F",
+	"url": "https://duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.speedtest.net%2F&rut=59bc57c161ac7e9a1d27d0d2dee02d57049c08eedea608bb0a4b3e91561845c6"
+}

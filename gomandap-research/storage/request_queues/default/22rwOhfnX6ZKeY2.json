@@ -1,0 +1,9 @@
+{
+	"id": "22rwOhfnX6ZKeY2",
+	"json": "{\"id\":\"22rwOhfnX6ZKeY2\",\"url\":\"https://duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.att.com%2Fsupport%2Fspeedtest%2F&rut=83f2b98a299b6cbc256139e76105dc12381ede850305e88411280426e26fa74c\",\"loadedUrl\":\"https://www.att.com/support/speedtest/\",\"uniqueKey\":\"https://duckduckgo.com/l?rut=83f2b98a299b6cbc256139e76105dc12381ede850305e88411280426e26fa74c&uddg=https%3A%2F%2Fwww.att.com%2Fsupport%2Fspeedtest%2F\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"all\",\"state\":4}},\"handledAt\":\"2026-06-13T11:38:34.855Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://duckduckgo.com/l?rut=83f2b98a299b6cbc256139e76105dc12381ede850305e88411280426e26fa74c&uddg=https%3A%2F%2Fwww.att.com%2Fsupport%2Fspeedtest%2F",
+	"url": "https://duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.att.com%2Fsupport%2Fspeedtest%2F&rut=83f2b98a299b6cbc256139e76105dc12381ede850305e88411280426e26fa74c"
+}
