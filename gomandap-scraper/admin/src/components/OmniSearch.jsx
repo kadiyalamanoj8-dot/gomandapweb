@@ -75,7 +75,7 @@ export default function OmniSearch({
 
   // ADVANCED NLP PARSER (Handles "ner", "arnd", etc)
   const parseQuery = (text) => {
-    const lower = text.toLowerCase();
+    const lower = text.toLowerCase().trim();
     const regex = /\s+(in|at|near|ner|naer|around|arnd|of)\s+/i;
     const match = lower.match(regex);
     
@@ -86,7 +86,40 @@ export default function OmniSearch({
       const index = match.index;
       cat = text.substring(0, index).trim();
       loc = text.substring(index + match[0].length).trim();
+    } else {
+      // Fallback: split on known states if no preposition is found
+      const stateKeywords = ['telangana', 'andhra pradesh'];
+      for (const state of stateKeywords) {
+        const idx = lower.lastIndexOf(state);
+        if (idx !== -1 && idx > 0) {
+          const beforeChar = lower[idx - 1];
+          if (beforeChar === ' ' || beforeChar === ',') {
+            cat = text.substring(0, idx).trim();
+            loc = text.substring(idx).trim();
+            break;
+          }
+        }
+      }
     }
+
+    // CLEAN CATEGORY: Strip state keywords, administrative prefixes/suffixes, and deduplicate words to handle typos like "banquet halls telanganabanquet halls telangana"
+    if (cat) {
+      let cleanCat = cat.toLowerCase().trim();
+      
+      // Strip administrative keywords at start/end of category
+      cleanCat = cleanCat.replace(/^(state|district|mandal|tehsil|village|districts|states|mandals|villages)\s+/gi, '');
+      cleanCat = cleanCat.replace(/\s+(state|district|mandal|tehsil|village|districts|states|mandals|villages)$/gi, '');
+      
+      const stateKeywords = ['telangana', 'andhra pradesh'];
+      for (const state of stateKeywords) {
+        cleanCat = cleanCat.replace(new RegExp(state, 'gi'), '');
+      }
+      const words = cleanCat.trim().split(/\s+/).filter(Boolean);
+      const uniqueWords = [...new Set(words)];
+      // Capitalize first letter of each word to match standard category names (e.g. "Banquet Halls")
+      cat = uniqueWords.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+
     return { cat, loc };
   };
 
@@ -128,12 +161,16 @@ export default function OmniSearch({
         const tokens = query.split(' ').filter(t => t.trim().length > 1);
         let tokenCats = [];
         let tokenLocs = [];
+        let matchedLocationToken = '';
 
         for (const token of tokens) {
           const c = await getBestMatch(token, 'category');
           const l = await getBestMatch(token, 'location');
           if (c) tokenCats.push(c);
-          if (l) tokenLocs.push(l);
+          if (l) {
+            tokenLocs.push(l);
+            matchedLocationToken = token;
+          }
         }
 
         const topCat = bestCatByString !== cat ? bestCatByString : (tokenCats[0] || cat);
@@ -178,7 +215,21 @@ export default function OmniSearch({
            });
 
            // Magic intent combo (if they typed a city name WITHOUT "in")
-           if (tokenCats.length > 0 && tokenLocs.length > 0) {
+           if (tokenLocs.length > 0) {
+              const matchedLocName = tokenLocs[0];
+              const resolvedCat = tokenCats[0] || (matchedLocationToken ? query.replace(new RegExp(matchedLocationToken.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi'), '').replace(/\s+/g, ' ').trim() : '');
+              if (resolvedCat && resolvedCat.toLowerCase() !== 'in') {
+                sugs.unshift({ 
+                  type: 'ai', 
+                  text: `${resolvedCat} in ${matchedLocName}`, 
+                  parsedCat: resolvedCat, 
+                  parsedLoc: matchedLocName 
+                });
+                
+                // Override default intent so fast Enter immediately uses this resolved combo
+                intentRef.current = { cat: resolvedCat, loc: matchedLocName };
+              }
+           } else if (tokenCats.length > 0 && tokenLocs.length > 0) {
               sugs.unshift({ 
                 type: 'ai', 
                 text: `${tokenCats[0]} in ${tokenLocs[0]}`, 

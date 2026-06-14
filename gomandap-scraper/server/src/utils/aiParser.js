@@ -1,9 +1,16 @@
-const { pipeline } = require('@xenova/transformers');
-const Fuse = require('fuse.js');
+// Unused Fuse.js import removed for footprint optimization
 let classifier = null;
+let pipeline = null;
+
+try {
+  pipeline = require('@xenova/transformers').pipeline;
+} catch (e) {
+  // Transformers not installed on this lightweight server environment
+}
 
 async function loadAIModel() {
   try {
+    if (!pipeline) return;
     if (!classifier) {
       console.log('[AI Model] Loading DistilBERT Zero-Shot Classifier (Offline/Local)...');
       classifier = await pipeline('zero-shot-classification', 'Xenova/distilbert-base-uncased-mnli', {
@@ -75,21 +82,37 @@ async function getKeywordSynonyms(category, location = '') {
   }
 }
 
+function getLevenshteinDistance(a, b) {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  let prev = Array(b.length + 1).fill(0).map((_, i) => i);
+  let curr = [];
+  for (let i = 1; i <= a.length; i++) {
+    curr = [i];
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      curr[j] = Math.min(
+        curr[j - 1] + 1,
+        prev[j] + 1,
+        prev[j - 1] + cost
+      );
+    }
+    prev = curr;
+  }
+  return prev[b.length];
+}
+
 async function verifyWithAI(vendorName, htmlContent, expectedCategory, aiKeywords = []) {
   if (!htmlContent || htmlContent.length < 50) return false;
   
   const cleanHtml = htmlContent.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').toLowerCase();
   
-  // 1. Exact/Fuzzy Keyword Match Engine
+  // 1. Fast Exact Substring Match Engine
   let foundKeywords = [];
-  let fuse = new Fuse(cleanHtml.split(' '), { includeScore: true, threshold: 0.3 });
-  
   for (const keyword of aiKeywords) {
-    if (cleanHtml.includes(keyword.toLowerCase())) {
+    const kwLower = keyword.toLowerCase();
+    if (cleanHtml.includes(kwLower)) {
       foundKeywords.push(keyword);
-    } else {
-      const fuzzyResult = fuse.search(keyword.toLowerCase());
-      if (fuzzyResult.length > 0) foundKeywords.push(keyword);
     }
   }
 
@@ -97,7 +120,31 @@ async function verifyWithAI(vendorName, htmlContent, expectedCategory, aiKeyword
     return true;
   }
 
-  // 2. Heavy AI Fallback 
+  // 2. High-Performance Fuzzy Match Engine (using Set of unique words from HTML to bypass Fuse.js overhead)
+  // Extract words of length > 3 to filter fluff noise
+  const htmlWords = [...new Set(cleanHtml.split(/[^a-z0-9]+/))].filter(w => w.length > 3);
+  
+  for (const keyword of aiKeywords) {
+    const kwLower = keyword.toLowerCase();
+    if (kwLower.length > 3 && !kwLower.includes(' ')) {
+      for (const word of htmlWords) {
+        // Only run Levenshtein if string lengths differ by at most 1 (threshold 0.3 approx on word length 4+)
+        if (Math.abs(word.length - kwLower.length) <= 1) {
+          const dist = getLevenshteinDistance(word, kwLower);
+          if (dist <= 1) {
+            foundKeywords.push(keyword);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  if (foundKeywords.length > 0) {
+    return true;
+  }
+
+  // 3. Heavy AI Fallback 
   if (classifier) {
     try {
       const textToAnalyze = cleanHtml.substring(0, 1500); 

@@ -53,7 +53,8 @@ export default function LeadsPage() {
     selectedFolder, setSelectedFolder,
     selectedJobCategory, setSelectedJobCategory,
     grouped: groupedData,
-    outOfBoundsVendors
+    outOfBoundsVendors,
+    searchSessionStart
   } = useScraper();
 
   const [view, setView] = useState('folders'); // 'folders' | 'list' | 'map'
@@ -80,8 +81,15 @@ export default function LeadsPage() {
 
   const rawMapVendors = (filteredVendors || [])
     .filter(v => (v.lat && v.lng) || (v.latitude && v.longitude))
-    .map(v => ({...v, safeLat: v.lat || v.latitude, safeLng: v.lng || v.longitude}))
-    .slice(0, 500);
+    .filter(v => {
+      // If a search is currently active, instantly clear old pins from the map
+      if (searchSessionStart && activeJobs.length > 0) {
+        return new Date(v.scrapedAt).getTime() >= searchSessionStart;
+      }
+      // If no active search, show the pins from the selected tab/filter
+      return true;
+    })
+    .map(v => ({...v, safeLat: v.lat || v.latitude, safeLng: v.lng || v.longitude}));
 
   const mapVendors = React.useDeferredValue(rawMapVendors);
   const [autoCenter, setAutoCenter] = useState(true);
@@ -310,6 +318,7 @@ export default function LeadsPage() {
                   zoom={11} 
                   style={{ width: '100%', height: '100%' }} 
                   zoomControl={false}
+                  preferCanvas={true}
                   onMoveStart={() => setAutoCenter(false)}
                 >
                   <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" attribution='&copy; CARTO' />

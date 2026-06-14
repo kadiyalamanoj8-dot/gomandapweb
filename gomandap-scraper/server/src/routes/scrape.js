@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+
 // Engines
 const { scrapeGooglePlaces, setDeps: setPlacesDeps } = require('../scrapers/engine-google-places');
 const { scrapeGoogleSerp, setDeps: setSerpDeps } = require('../scrapers/engine-google-serp');
@@ -14,9 +15,8 @@ const { scrapeCrawleeDeep, setDeps: setCrawleeDeps } = require('../scrapers/engi
 const { scrapePuppeteerIndiaMart, setDeps: setIndiaMartDeps } = require('../scrapers/engine-puppeteer-indiamart');
 const { scrapeScrapySpider, setDeps: setScrapyDeps } = require('../scrapers/engine-scrapy');
 
-
-const { initQueue, registerTask, addScrapeJob, clearQueue } = require('../utils/queue');
-const { geocodeLocation } = require('../utils/olaMaps');
+const { initQueue, registerTask, addScrapeJob, clearQueue, getActiveJobs, getPersistentQueue } = require('../utils/queue');
+const { geocodeLocation, getCache: getGeoCache } = require('../utils/olaMaps');
 
 function getDistanceKm(lat1, lon1, lat2, lon2) {
   const R = 6371; // Radius of the earth in km
@@ -44,11 +44,105 @@ let globalAbortSignal = { aborted: false };
 let addLog = console.log;
 let emitGridEvent = () => {};
 let emitDispatchEvent = () => {};
+let emitProgressEvent = () => {};
 
-// Register tasks with BullMQ
-registerTask('scrapeGooglePlaces', async (q, cat, loc, sessionId, centerLat, centerLng, radiusKm) => safeExecute(() => scrapeGooglePlaces(q, cat, loc, sessionId, centerLat, centerLng, radiusKm), 'Google Places Scrape', addLog));
-registerTask('scrapeGoogleSerp', async (q, cat, loc) => safeExecute(() => scrapeGoogleSerp(q, cat, loc), 'Google Serp Scrape', addLog));
-registerTask('scrapeJustDial', async (cat, loc) => safeExecute(() => scrapeJustDial(cat, loc), 'JustDial Scrape', addLog));
+function formatEta(ms) {
+  if (ms <= 0) return '0s';
+  const totalSecs = Math.ceil(ms / 1000);
+  const mins = Math.floor(totalSecs / 60);
+  const secs = totalSecs % 60;
+  if (mins > 0) {
+    return `${mins}m ${secs}s`;
+  }
+  return `${secs}s`;
+}
+
+const activeSessions = {};
+
+function updateSessionTargetState(sessionId, loc, status) {
+  if (!sessionId || !loc) return;
+  const session = activeSessions[sessionId];
+  if (!session) return;
+  
+  const key = (loc || '').toLowerCase().trim();
+  session.completedTargetsMap[key] = status;
+  
+  let completedCount = 0;
+  let runningCount = 0;
+  Object.keys(session.completedTargetsMap).forEach(k => {
+    if (session.completedTargetsMap[k] === 'completed') completedCount++;
+    if (session.completedTargetsMap[k] === 'running') runningCount++;
+  });
+  
+  session.overallCompletedMandals = completedCount;
+  
+  if (status === 'running') {
+    session.activeMandal = loc;
+    
+    // Find district for this subLoc
+    const targetDistrict = session.fullHierarchy.find(d => 
+      (d.mandals || []).some(m => m.toLowerCase().trim() === key)
+    );
+    if (targetDistrict) {
+      session.activeDistrict = targetDistrict.districtName;
+    }
+  }
+
+  // Update completedDistricts count
+  let completedDistrictsCount = 0;
+  session.fullHierarchy.forEach(d => {
+    const allMandalsDone = d.mandals.every(m => 
+      session.completedTargetsMap[m.toLowerCase().trim()] === 'completed'
+    );
+    if (allMandalsDone) completedDistrictsCount++;
+  });
+  session.completedDistricts = completedDistrictsCount;
+  
+  // Calculate ETA
+  if (completedCount > 0) {
+    const elapsed = Date.now() - session.startTime;
+    const avgTime = elapsed / completedCount;
+    const remaining = Object.keys(session.completedTargetsMap).length - completedCount;
+    session.eta = formatEta(remaining * avgTime);
+  }
+
+  try {
+    emitProgressEvent({
+      totalDistricts: session.totalDistricts,
+      completedDistricts: session.completedDistricts,
+      activeDistrict: session.activeDistrict,
+      totalMandals: Object.keys(session.completedTargetsMap).length,
+      completedMandals: completedCount,
+      activeMandal: session.activeMandal,
+      totalMandalsAcrossAll: Object.keys(session.completedTargetsMap).length,
+      overallCompletedMandals: completedCount,
+      eta: session.eta,
+      sessionActive: true,
+      fullHierarchy: session.fullHierarchy,
+      targetsMap: session.completedTargetsMap
+    });
+  } catch (e) {}
+}
+
+// Register tasks
+registerTask('scrapeGooglePlaces', async (q, cat, loc, sessionId, centerLat, centerLng, radiusKm, strategy) => {
+  updateSessionTargetState(sessionId, loc, 'running');
+  const res = await safeExecute(() => scrapeGooglePlaces(q, cat, loc, sessionId, centerLat, centerLng, radiusKm, strategy), 'Google Places Scrape', addLog);
+  updateSessionTargetState(sessionId, loc, 'completed');
+  return res;
+});
+registerTask('scrapeGoogleSerp', async (q, cat, loc, sessionId) => {
+  updateSessionTargetState(sessionId, loc, 'running');
+  const res = await safeExecute(() => scrapeGoogleSerp(q, cat, loc), 'Google Serp Scrape', addLog);
+  updateSessionTargetState(sessionId, loc, 'completed');
+  return res;
+});
+registerTask('scrapeJustDial', async (cat, loc, dummy, sessionId) => {
+  updateSessionTargetState(sessionId, loc, 'running');
+  const res = await safeExecute(() => scrapeJustDial(cat, loc), 'JustDial Scrape', addLog);
+  updateSessionTargetState(sessionId, loc, 'completed');
+  return res;
+});
 registerTask('scrapeWeddingBazaar', async (cat, loc) => safeExecute(() => scrapeWeddingBazaar(cat, loc), 'WeddingBazaar Scrape', addLog));
 registerTask('scrapeWeddingWire', async (cat, loc) => safeExecute(() => scrapeWeddingWire(cat, loc), 'WeddingWire Scrape', addLog));
 registerTask('scrapeMandap', async (cat, loc) => safeExecute(() => scrapeMandap(cat, loc), 'Mandap Scrape', addLog));
@@ -56,29 +150,37 @@ registerTask('scrapeDuckDuckGoDork', async (domain, q, cat, loc) => safeExecute(
 registerTask('scrapeBraveDork', async (domain, q, cat, loc) => safeExecute(() => scrapeBraveDork(domain, q, cat, loc), `Brave Dork ${domain}`, addLog));
 registerTask('scrapeDeepseekAI', async (q, cat, loc) => safeExecute(() => scrapeDeepseekAI(q, cat, loc), 'DeepSeek AI Scrape', addLog));
 registerTask('scrapeCrawleeDeep', async (url, vendorName, cat, loc) => safeExecute(() => scrapeCrawleeDeep(url, vendorName, cat, loc), 'Crawlee Deep Scrape', addLog));
-registerTask('scrapePuppeteerIndiaMart', async (cat, loc) => safeExecute(() => scrapePuppeteerIndiaMart(cat, loc), 'IndiaMart Stealth Scrape', addLog));
+registerTask('scrapePuppeteerIndiaMart', async (cat, loc, dummy, sessionId) => {
+  updateSessionTargetState(sessionId, loc, 'running');
+  const res = await safeExecute(() => scrapePuppeteerIndiaMart(cat, loc), 'IndiaMart Stealth Scrape', addLog);
+  updateSessionTargetState(sessionId, loc, 'completed');
+  return res;
+});
 registerTask('scrapeScrapySpider', async (cat, loc) => safeExecute(() => scrapeScrapySpider(cat, loc), 'Scrapy Python Spider', addLog));
-
+registerTask('scrapeOmniOrchestrator', async (category, baseLocation, strategy, radius, gridDensity, enabledEngines, sessionId) =>
+  safeExecute(() => runOmniSearchOrchestrator(category, baseLocation, strategy, radius, gridDensity, enabledEngines, sessionId), 'Omni Search Orchestrator', addLog)
+);
 
 function setDeps(deps) {
   addLog = deps.logger;
   globalAbortSignal = deps.abortSignal;
   if (deps.emitGridEvent) emitGridEvent = deps.emitGridEvent;
   if (deps.emitDispatchEvent) emitDispatchEvent = deps.emitDispatchEvent;
-  if (setPlacesDeps) setPlacesDeps(deps);
-  if (setDorkLogger) setDorkLogger(deps.logger);
+  if (deps.emitProgressEvent) emitProgressEvent = deps.emitProgressEvent;
+  if (typeof setPlacesDeps !== 'undefined') setPlacesDeps(deps);
+  if (typeof setDorkLogger !== 'undefined') setDorkLogger(deps.logger);
+  if (typeof setSerpDeps !== 'undefined') setSerpDeps(deps);
+  if (typeof setCrawleeDeps !== 'undefined') setCrawleeDeps(deps);
+  
+  if (typeof setJDDeps !== 'undefined') setJDDeps(deps);
+  if (typeof setWBDeps !== 'undefined') setWBDeps(deps);
+  if (typeof setWWDeps !== 'undefined') setWWDeps(deps);
+  if (typeof setMandapDeps !== 'undefined') setMandapDeps(deps);
+  if (typeof setBraveDeps !== 'undefined') setBraveDeps(deps);
+  if (typeof setDeepseekDeps !== 'undefined') setDeepseekDeps(deps);
+  if (typeof setIndiaMartDeps !== 'undefined') setIndiaMartDeps(deps);
+  if (typeof setScrapyDeps !== 'undefined') setScrapyDeps(deps);
 
-  if (setJDDeps) setJDDeps(deps);
-  if (setWBDeps) setWBDeps(deps);
-  if (setWWDeps) setWWDeps(deps);
-  if (setMandapDeps) setMandapDeps(deps);
-  if (setBraveDeps) setBraveDeps(deps);
-  if (setDeepseekDeps) setDeepseekDeps(deps);
-  if (setSerpDeps) setSerpDeps(deps);
-  if (setCrawleeDeps) setCrawleeDeps(deps);
-  if (setIndiaMartDeps) setIndiaMartDeps(deps);
-  if (setScrapyDeps) setScrapyDeps(deps);
-  // Optional but safe to call if defined
   initQueue(deps);
 }
 
@@ -254,9 +356,10 @@ router.post('/preflight', async (req, res) => {
   // Auto-correct location typos before checking scope
   const parsed = parseNaturalLanguageQuery(location);
   const cleanLocation = parsed.location || parsed.category || location;
+  const correctedLoc = intelligentExtractor.correctLocationTypo(cleanLocation);
   
   try {
-    const scopeData = await intelligentExtractor.analyzeGeographicScope(cleanLocation);
+    const scopeData = await intelligentExtractor.analyzeGeographicScope(correctedLoc);
     res.json(scopeData);
   } catch(err) {
     res.json({ type: "specific" });
@@ -268,18 +371,26 @@ const fs = require('fs');
 
 // Permanent AI Geographical Memory
 const LOCATIONS_MEMORY_FILE = path.join(__dirname, '../../db/locations_memory.json');
+let locationsMemoryCache = null;
 
 function getLocationsMemory() {
+  if (locationsMemoryCache) return locationsMemoryCache;
   if (fs.existsSync(LOCATIONS_MEMORY_FILE)) {
     try {
-      return JSON.parse(fs.readFileSync(LOCATIONS_MEMORY_FILE, 'utf-8'));
-    } catch(e) { return {}; }
+      locationsMemoryCache = JSON.parse(fs.readFileSync(LOCATIONS_MEMORY_FILE, 'utf-8'));
+      return locationsMemoryCache;
+    } catch(e) { 
+      locationsMemoryCache = {};
+      return locationsMemoryCache; 
+    }
   }
-  return {};
+  locationsMemoryCache = {};
+  return locationsMemoryCache;
 }
 
 function saveLocationsMemory(data) {
   try {
+    locationsMemoryCache = data;
     if (!fs.existsSync(path.dirname(LOCATIONS_MEMORY_FILE))) {
       fs.mkdirSync(path.dirname(LOCATIONS_MEMORY_FILE), { recursive: true });
     }
@@ -385,18 +496,384 @@ function generateGridCoordinates(centerLat, centerLng, radiusKm, pointCount = 20
   return coords;
 }
 
-// STOP SCRAPING API
+// ──────────────────────────────────────────────────────────────────────────────
+// INSTANT MANDAL JOB QUEUER - Cache-first, never blocks on Nominatim
+// ──────────────────────────────────────────────────────────────────────────────
+async function queueMandalJob(subLoc, district, mandal, stateName, category, activeEngines, sessionId, geocodeCache, isVillage) {
+  const activeRadius = isVillage ? 5 : 10;
+  const queryStr = `${subLoc}, ${district}, ${stateName || 'India'}`;
+  const cacheKey = queryStr.toLowerCase().trim();
+
+  // Check cache instantly (0ms)
+  const cached = geocodeCache[cacheKey];
+  let geo = (cached && cached.lat) ? cached : null;
+
+  // If not cached, try district-level cache as fallback (still 0ms)
+  if (!geo) {
+    const districtKey = `${district}, ${stateName || 'India'}`.toLowerCase().trim();
+    const districtCached = geocodeCache[districtKey];
+    if (districtCached && districtCached.lat) {
+      geo = districtCached; // Use district coords as pin placeholder
+    }
+  }
+
+  // Emit map pin if we have coords
+  if (geo && geo.lat) {
+    const gridPoint = { lat: geo.lat, lng: geo.lng, distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: subLoc, activeRadius, isExactPoint: true };
+    try { emitGridEvent([gridPoint]); } catch (e) {}
+  }
+
+  // Build search URL - with coords if available (better results), text-only if not
+  let searchUrl, meta;
+  if (geo && geo.lat) {
+    const searchString = `${category} in ${subLoc}, ${district}`;
+    searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}/@${geo.lat},${geo.lng},14z`;
+    meta = { lat: geo.lat, lng: geo.lng, locationName: subLoc };
+  } else {
+    // Text-only search — scraping still works, just no boundary filter
+    const searchString = `${category} in ${subLoc}, ${district}`;
+    searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}`;
+    meta = { lat: null, lng: null, locationName: subLoc };
+  }
+
+  // Queue jobs immediately without any await delay
+  if (activeEngines.includes('maps') || activeEngines.includes('google')) {
+    await addScrapeJob('scrapeGooglePlaces', [searchUrl, category, subLoc, sessionId, geo?.lat || null, geo?.lng || null, activeRadius, 'mandal'], 10, meta);
+  }
+  if (activeEngines.includes('google-web')) {
+    await addScrapeJob('scrapeGoogleSerp', [`${category} in ${subLoc}`, category, subLoc, sessionId]);
+  }
+  if (activeEngines.includes('justdial')) {
+    await addScrapeJob('scrapeJustDial', [category, subLoc, null, sessionId]);
+  }
+  if (activeEngines.includes('indiamart')) {
+    await addScrapeJob('scrapePuppeteerIndiaMart', [category, subLoc, null, sessionId]);
+  }
+}
+
+async function runOmniSearchOrchestrator(category, baseLocation, strategy, radius, gridDensity, enabledEngines, sessionId) {
+  const activeEngines = enabledEngines || ['deepseek-ai', 'maps'];
+  addLog(`[Orchestrator] Starting Place-by-Place Omni Search session: ${sessionId}`);
+  addLog(`[Orchestrator] Query: "${category}" in "${baseLocation}". Strategy: ${strategy}`);
+  
+  try {
+    const isMandal = strategy === 'mandal';
+    const isFull = strategy === 'full';
+
+    if (isMandal || isFull) {
+      try {
+        emitProgressEvent({
+          totalDistricts: 0,
+          completedDistricts: 0,
+          activeDistrict: 'Resolving Hierarchy...',
+          totalMandals: 0,
+          completedMandals: 0,
+          activeMandal: 'Loading from local database...',
+          totalMandalsAcrossAll: 0,
+          overallCompletedMandals: 0,
+          eta: 'Resolving...',
+          sessionActive: true
+        });
+      } catch (e) {}
+
+      addLog(`[Orchestrator] Resolving geographic hierarchy for: "${baseLocation}"...`);
+      const hierarchyResult = await intelligentExtractor.resolveHierarchy(baseLocation);
+      addLog(`[Orchestrator] Hierarchy resolved instantly: level=${hierarchyResult.level}, state=${hierarchyResult.stateName}, districts=${hierarchyResult.hierarchy.length}`);
+
+      const districts = hierarchyResult.hierarchy;
+      const geocodeCache = getGeoCache();
+      let overallCompletedMandals = 0;
+      let totalMandalsAcrossAll = districts.reduce((acc, d) => acc + (d.mandals || []).length, 0);
+      const startTime = Date.now();
+
+      activeSessions[sessionId] = {
+        totalDistricts: districts.length,
+        completedDistricts: 0,
+        activeDistrict: 'Starting...',
+        totalMandals: 0,
+        completedMandals: 0,
+        activeMandal: 'Starting...',
+        totalMandalsAcrossAll,
+        overallCompletedMandals: 0,
+        eta: 'Calculating...',
+        sessionActive: true,
+        fullHierarchy: districts,
+        completedTargetsMap: {},
+        startTime
+      };
+
+      // ──────────────────────────────────────────────
+      // DISTRICT-BY-DISTRICT → MANDAL-BY-MANDAL LOOP
+      // ──────────────────────────────────────────────
+      for (let di = 0; di < districts.length; di++) {
+        if (globalAbortSignal.aborted) break;
+
+        const distObj = districts[di];
+        const district = distObj.districtName;
+        const mandals = distObj.mandals || [district];
+
+        addLog(`[Orchestrator] ── District ${di + 1}/${districts.length}: "${district}" (${mandals.length} mandals) ──`);
+
+        try {
+          emitProgressEvent({
+            totalDistricts: districts.length,
+            completedDistricts: di,
+            activeDistrict: district,
+            totalMandals: mandals.length,
+            completedMandals: 0,
+            activeMandal: 'Queuing mandals...',
+            totalMandalsAcrossAll,
+            overallCompletedMandals,
+            eta: formatEta((totalMandalsAcrossAll - overallCompletedMandals) * 30000),
+            sessionActive: true,
+            fullHierarchy: districts
+          });
+        } catch (e) {}
+
+        // Queue all mandals of this district immediately
+        for (let mi = 0; mi < mandals.length; mi++) {
+          if (globalAbortSignal.aborted) break;
+
+          const mandal = mandals[mi];
+          const mandalKey = mandal.toLowerCase().trim();
+
+          if (strategy === 'full') {
+            // Full strategy: expand into sub-localities first
+            const subLocs = await getSubLocations(mandal);
+            for (const subLoc of subLocs) {
+              if (globalAbortSignal.aborted) break;
+              await queueMandalJob(subLoc, district, mandal, hierarchyResult.stateName, category, activeEngines, sessionId, geocodeCache, true);
+            }
+          } else {
+            // Mandal strategy: queue directly
+            await queueMandalJob(mandal, district, mandal, hierarchyResult.stateName, category, activeEngines, sessionId, geocodeCache, false);
+          }
+
+          activeSessions[sessionId].completedTargetsMap[mandalKey] = 'queued';
+        }
+
+        addLog(`[Orchestrator] Queued all ${mandals.length} mandals for "${district}". Waiting for workers...`);
+
+        // Wait for all jobs of THIS DISTRICT to complete before moving to next district
+        let waitTicks = 0;
+        while (true) {
+          if (globalAbortSignal.aborted) break;
+
+          const currentQueue = getPersistentQueue();
+          const running = getActiveJobs();
+          const districtMandalsLower = mandals.map(m => m.toLowerCase().trim());
+
+          const pendingDistrict = currentQueue.filter(j =>
+            j.args && districtMandalsLower.some(m => (j.args[2] || '').toLowerCase().includes(m))
+          );
+          const runningDistrict = running.filter(j =>
+            j.args && districtMandalsLower.some(m => (j.args[2] || '').toLowerCase().includes(m))
+          );
+
+          if (pendingDistrict.length === 0 && runningDistrict.length === 0) {
+            break;
+          }
+
+          waitTicks++;
+          if (waitTicks % 10 === 0) {
+            addLog(`[Orchestrator] "${district}": ${pendingDistrict.length} pending, ${runningDistrict.length} running...`);
+          }
+          await new Promise(r => setTimeout(r, 1000));
+        }
+
+        overallCompletedMandals += mandals.length;
+
+        try {
+          emitProgressEvent({
+            totalDistricts: districts.length,
+            completedDistricts: di + 1,
+            activeDistrict: district,
+            totalMandals: mandals.length,
+            completedMandals: mandals.length,
+            activeMandal: 'Complete',
+            totalMandalsAcrossAll,
+            overallCompletedMandals,
+            eta: formatEta((totalMandalsAcrossAll - overallCompletedMandals) * 30000),
+            sessionActive: true,
+            fullHierarchy: districts
+          });
+        } catch (e) {}
+
+        addLog(`[Orchestrator] ✓ District "${district}" complete (${di + 1}/${districts.length})`);
+      }
+
+      addLog(`[Orchestrator] >>> ALL DISTRICTS COMPLETE for session ${sessionId} <<<`);
+
+      try {
+        emitProgressEvent({
+          totalDistricts: districts.length,
+          completedDistricts: districts.length,
+          activeDistrict: 'Complete',
+          totalMandals: 0,
+          completedMandals: 0,
+          activeMandal: 'Complete',
+          totalMandalsAcrossAll,
+          overallCompletedMandals: totalMandalsAcrossAll,
+          eta: '0s',
+          sessionActive: false,
+          fullHierarchy: districts
+        });
+      } catch (e) {}
+    } else {
+      // Broad strategy: single region with sunflower coordinates grid
+      addLog(`[Orchestrator] Processing search for target: "${baseLocation}"...`);
+      const geo = await geocodeLocation(baseLocation);
+      if (!geo || !geo.lat) {
+        throw new Error(`Could not resolve coordinates for place "${baseLocation}"`);
+      }
+
+      const activeRadius = (radius && parseInt(radius) > 0) ? parseInt(radius) : 30;
+      const density = gridDensity ? parseInt(gridDensity) : 50; 
+      addLog(`[Orchestrator] Generating ${activeRadius}km radius grid with ${density} points for "${baseLocation}".`);
+      let gridCoords = generateGridCoordinates(geo.lat, geo.lng, activeRadius, density, geo.boundingbox);
+      gridCoords = gridCoords.map(c => ({ ...c, centerLoc: baseLocation, activeRadius, isExactPoint: false }));
+
+      // Emit grid coordinates to the map
+      try { emitGridEvent(gridCoords); } catch (e) {}
+      try { emitDispatchEvent([baseLocation]); } catch (e) {}
+
+      const totalPoints = gridCoords.length;
+      let completedPoints = 0;
+      const startTime = Date.now();
+
+      // Emit initial progress
+      try {
+        emitProgressEvent({
+          totalDistricts: 1,
+          completedDistricts: 0,
+          activeDistrict: baseLocation,
+          totalMandals: totalPoints,
+          completedMandals: 0,
+          activeMandal: 'Grid Point 1',
+          totalMandalsAcrossAll: totalPoints,
+          overallCompletedMandals: 0,
+          eta: 'Calculating...',
+          sessionActive: true
+        });
+      } catch (e) {}
+
+      // Queue scrapes for this grid
+      for (const coord of gridCoords) {
+        if (globalAbortSignal.aborted) break;
+
+        // Calculate ETA
+        let etaStr = 'Calculating...';
+        if (completedPoints > 0) {
+          const elapsed = Date.now() - startTime;
+          const avgTime = elapsed / completedPoints;
+          const etaMs = (totalPoints - completedPoints) * avgTime;
+          etaStr = formatEta(etaMs);
+        } else {
+          etaStr = formatEta(totalPoints * 25000);
+        }
+
+        try {
+          emitProgressEvent({
+            totalDistricts: 1,
+            completedDistricts: 0,
+            activeDistrict: baseLocation,
+            totalMandals: totalPoints,
+            completedMandals: completedPoints,
+            activeMandal: `Grid Point ${completedPoints + 1}`,
+            totalMandalsAcrossAll: totalPoints,
+            overallCompletedMandals: completedPoints,
+            eta: etaStr,
+            sessionActive: true
+          });
+        } catch (e) {}
+
+        const meta = { lat: coord.lat, lng: coord.lng, locationName: baseLocation };
+        const searchString = `${category} near ${coord.lat},${coord.lng}`;
+        const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}/@${coord.lat},${coord.lng},14z`;
+
+        if (activeEngines.includes('maps') || activeEngines.includes('google')) {
+          await addScrapeJob('scrapeGooglePlaces', [searchUrl, category, baseLocation, sessionId, coord.lat, coord.lng, coord.activeRadius, strategy], 10, meta);
+        }
+
+        if (activeEngines.includes('google-web')) {
+          const serpSearchString = `${category} in ${baseLocation}`;
+          await addScrapeJob('scrapeGoogleSerp', [serpSearchString, category, baseLocation, sessionId]);
+        }
+
+        completedPoints++;
+      }
+
+      // Wait for all queued and running tasks to finish
+      addLog(`[Orchestrator] Waiting for all worker jobs to complete for target "${baseLocation}"...`);
+      let waitCounter = 0;
+      while (true) {
+        if (globalAbortSignal.aborted) break;
+
+        const currentQueue = getPersistentQueue();
+        const pendingForSession = currentQueue.filter(j => j.args && j.args[3] === sessionId);
+        const runningForSession = getActiveJobs().filter(j => j.args && j.args[3] === sessionId);
+
+        if (pendingForSession.length === 0 && runningForSession.length === 0) {
+          break; 
+        }
+
+        waitCounter++;
+        if (waitCounter % 10 === 0) {
+          addLog(`[Orchestrator] Still waiting... ${pendingForSession.length} pending, ${runningForSession.length} running for target "${baseLocation}".`);
+        }
+
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+
+    addLog(`[Orchestrator] Place-by-Place Omni Search Session ${sessionId} completed successfully.`);
+    // Emit complete progress event
+    try {
+      emitProgressEvent({
+        totalDistricts: 1,
+        completedDistricts: 1,
+        activeDistrict: baseLocation,
+        totalMandals: 1,
+        completedMandals: 1,
+        activeMandal: 'Complete',
+        eta: '0s',
+        sessionActive: false
+      });
+    } catch (e) {}
+
+    globalAbortSignal.aborted = true;
+    await clearQueue();
+    addLog(`[Orchestrator] All background workers aborted and queue cleared after successful completion.`);
+  } catch (err) {
+    addLog(`[Orchestrator Error] ${err.message}`);
+    // Emit error progress event
+    try {
+      emitProgressEvent({
+        sessionActive: false,
+        error: err.message
+      });
+    } catch (e) {}
+    globalAbortSignal.aborted = true;
+    await clearQueue();
+    addLog(`[Orchestrator] All background workers aborted and queue cleared after failure.`);
+  }
+}
+
 router.post('/stop', async (req, res) => {
   addLog('[System] User triggered Stop. Aborting all active scraping jobs...');
   globalAbortSignal.aborted = true;
   await clearQueue();
+  try {
+    emitProgressEvent({
+      sessionActive: false
+    });
+  } catch (e) {}
   res.json({ message: 'All active scrapers aborted and queue cleared.' });
 });
 
 // OMNI SEARCH API
 router.post('/omni', async (req, res) => {
   const { query, category, location, radius, gridDensity, enabledEngines, sessionId, userId } = req.body;
-  const activeEngines = enabledEngines || ['deepseek-ai', 'maps'];
 
   if (!query) {
     return res.status(400).json({ error: 'Query is required' });
@@ -424,269 +901,29 @@ router.post('/omni', async (req, res) => {
     addLog(`[Billing] Deducted 5 credits from user ${user.email} for Omni Scrape. Remaining: ${user.credits}`);
   }
   
-  // The user requested NO NLP auto-correction, NO splitting for the primary.
-  const exactQuery = query;
   const matchedCategory = category || query; 
   let baseLocation = location || ""; 
-  const strategy = req.body.strategy || 'mandal'; // ALWAYS default to AI Location Intelligence
+  
+  // Auto-correct spelling typos in location using fuzzy geo-index
+  const correctedLoc = intelligentExtractor.correctLocationTypo(baseLocation);
+  if (correctedLoc && correctedLoc.toLowerCase() !== baseLocation.toLowerCase()) {
+    addLog(`[Geo Typo Auto-Correct] Corrected search target location from "${baseLocation}" to "${correctedLoc}"`);
+    baseLocation = correctedLoc;
+  }
+
+  const strategy = req.body.strategy || 'mandal'; 
 
   // Reset Abort Signal for fresh run
   globalAbortSignal.aborted = false;
 
-  res.json({ message: 'Omni Search Started in Background via BullMQ.' });
+  const finalSessionId = sessionId || 'session_' + Date.now();
 
-  addLog(`\n[Omni Search] Triggered for string: "${exactQuery}" with radius: ${radius || 0}km`);
+  res.json({ message: 'Omni Search Started in Background via BullMQ.', sessionId: finalSessionId });
+
+  addLog(`\n[Omni Search] Triggered for string: "${query}" with radius: ${radius || 0}km. Session ID: ${finalSessionId}`);
   
-  try {
-    let googleMapsJobsDispatched = false;
-
-    // 1. RESOLVE LOCATIONS (Support State -> District -> Mandal Expansion)
-    let centerLocations = [];
-    let allGridCoords = [];
-    const bl = (baseLocation || "").toString().toLowerCase();
-
-    if (strategy === 'mandal' || strategy === 'full') {
-      addLog(`[Hierarchy Engine] Resolving regional sub-divisions for: ${baseLocation}...`);
-      const initialBreakdown = await getSubLocations(baseLocation);
-      let targets = [];
-      const isSafeString = (val) => typeof val === 'string' && val.trim().length > 0;
-
-      if (initialBreakdown.length === 1 && isSafeString(initialBreakdown[0]) && initialBreakdown[0].toLowerCase() === (baseLocation || "").toString().toLowerCase()) {
-         addLog(`[Hierarchy Engine] No breakdown found in knowledge base or AI for "${baseLocation}". Falling back to OpenStreetMap (OSM) extraction...`);
-         const intelligentExtractor = require('../utils/intelligentExtractor');
-         const osmResults = await intelligentExtractor.fetchOSMLocalities(baseLocation);
-         if (osmResults && osmResults.length > 0) {
-            for (const loc of osmResults) {
-                if (loc.name) targets.push(loc.name);
-            }
-         } else {
-            targets.push(baseLocation);
-         }
-      } else {
-         if (strategy === 'full') {
-           for (const subRegion of initialBreakdown.filter(isSafeString)) {
-              addLog(`[Hierarchy Engine] Expanding deep localities for: ${subRegion}...`);
-              const deepLocalities = await getSubLocations(subRegion); 
-              
-              if (deepLocalities.length === 1 && isSafeString(deepLocalities[0]) && deepLocalities[0].toLowerCase() === subRegion.toLowerCase()) {
-                  targets.push(subRegion);
-              } else {
-                  for (const loc of deepLocalities.filter(isSafeString)) {
-                     targets.push(loc); 
-                  }
-              }
-           }
-         } else {
-           for (const subRegion of initialBreakdown.filter(isSafeString)) {
-              targets.push(subRegion); 
-           }
-         }
-      }
-      
-      // Remove duplicates
-      targets = [...new Set(targets)];
-      addLog(`[Hierarchy Engine] Regional expansion complete! Generated ${targets.length} distinct targets.`);
-      
-      // Emit dispatch targets to frontend to show a beautiful popup
-      try { emitDispatchEvent(targets); } catch (e) {}
-      
-      if (strategy === 'full' && targets.length > 10) {
-         const baseGeo = await geocodeLocation(baseLocation);
-         if (baseGeo && baseGeo.lat) {
-           for (let i = 0; i < targets.length; i++) {
-             const jitterLat = baseGeo.lat + (Math.random() - 0.5) * 0.05;
-             const jitterLng = baseGeo.lng + (Math.random() - 0.5) * 0.05;
-             allGridCoords.push({ lat: jitterLat, lng: jitterLng, distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: `${targets[i]}, ${baseLocation}` });
-             centerLocations.push({ lat: jitterLat, lng: jitterLng, formattedLocation: targets[i], queryLoc: targets[i] });
-           }
-         } else {
-           for (const t of targets) {
-             centerLocations.push({ lat: null, lng: null, formattedLocation: t, queryLoc: t });
-           }
-         }
-      } else {
-         // Normal sequential geocoding for smaller lists (Mandals)
-         for (const t of targets) {
-           addLog(`[Mandal Expansion] Resolving coordinates for: ${t}`);
-           const geo = await geocodeLocation(t);
-           if (geo && geo.lat) {
-             allGridCoords.push({
-               lat: parseFloat(geo.lat.toFixed(6)),
-               lng: parseFloat(geo.lng.toFixed(6)),
-               distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: t
-             });
-             centerLocations.push({ ...geo, queryLoc: t });
-           }
-         }
-      }
-    } else {
-      // Normal Single Target
-      if (baseLocation) {
-        const geo = await geocodeLocation(baseLocation);
-        if (geo && geo.lat) centerLocations.push({ ...geo, queryLoc: baseLocation });
-      }
-    }
-
-    // NASA SUNFLOWER RADIUS JUMPING (MULTI-TIER SCALING)
-    const isMandal = strategy === 'mandal';
-    
-    if (centerLocations.length > 0) {
-      if (strategy === 'full') {
-         // Tier 3: Village Level
-         addLog(`[Tier 3: Villages] Bypassing massive grids. Targeting exactly ${centerLocations.length} precise village coordinates.`);
-         for (const center of centerLocations) {
-            allGridCoords.push({ 
-               lat: center.lat, lng: center.lng, 
-               distanceFromCenter: 0, ring: 0, angle: 0, 
-               centerLoc: center.queryLoc, activeRadius: 2, isExactPoint: true 
-            });
-         }
-      } else {
-         // Tier 1 & Tier 2: City / Mandal
-         const activeRadius = isMandal ? 10 : ((radius && parseInt(radius) > 0) ? parseInt(radius) : 30); 
-         const density = isMandal ? 20 : (gridDensity ? parseInt(gridDensity) : 50); 
-         
-         addLog(`[Tier ${isMandal ? 2 : 1}: ${isMandal ? 'Mandal' : 'City'}] Generating ${activeRadius}km radius grid with ${density} points.`);
-         
-         for (const center of centerLocations) {
-           const gridCoords = generateGridCoordinates(center.lat, center.lng, activeRadius, density, center.boundingbox);
-           gridCoords.forEach(c => allGridCoords.push({ ...c, centerLoc: center.queryLoc, activeRadius, isExactPoint: false }));
-         }
-      }
-    } else if (targets.length > 0) {
-      // === GEOGRAPHIC WORKER DISPATCH SYSTEM FOR TEXT TARGETS (NO CENTER GEO) ===
-      if (targets.length > 50) {
-          addLog(`[Dispatcher] Large geographic target detected (${targets.length} sub-regions). Engaging Distributed Worker Mode.`);
-          const chunkSize = 20; // Dispatch 20 localities per worker job
-          for (let i = 0; i < targets.length; i += chunkSize) {
-             const chunkTargets = targets.slice(i, i + chunkSize);
-             
-             addLog(`[Dispatcher] Queuing Worker Task ${Math.floor(i/chunkSize) + 1} for ${chunkTargets.length} localities...`);
-             addScrapeJob('scrapeOmniGrid', [
-                category,
-                `${baseLocation} (Part ${Math.floor(i/chunkSize) + 1})`,
-                sessionId,
-                [], // centerGeo
-                chunkTargets,
-                [], // allGridCoords
-                isMandal ? 10 : 30,
-                enabledEngines
-             ]);
-          }
-          addLog(`[Dispatcher] Successfully queued ${Math.ceil(targets.length / chunkSize)} parallel worker jobs.`);
-          return res.json({ message: 'Omni-Scrape process started (Distributed Worker Mode)', sessionId });
-      } else {
-          addLog(`[Dispatcher] Single worker node assigned for ${baseLocation}.`);
-          addScrapeJob('scrapeOmniGrid', [
-             category,
-             baseLocation,
-             sessionId,
-             [],
-             targets,
-             [],
-             isMandal ? 10 : 30,
-             enabledEngines
-          ]);
-          return res.json({ message: 'Omni-Scrape process started', sessionId });
-      }
-    }
-
-    if (allGridCoords.length > 0) {
-        addLog(`[Grid Generator] Generated ${allGridCoords.length} total search points.`);
-      
-        // Emit the grid coordinates to the frontend to visualize them on the map
-        try { emitGridEvent(allGridCoords); } catch (e) {}
-        
-        // Give the user 2 seconds to view the grid points on the map
-        addLog(`[Radius Jumping] Plotting grid points on map. Starting jobs in 2 seconds...`);
-        await new Promise(r => setTimeout(r, 2000));
-        
-        // Distribute jobs sequentially per coordinate to avoid overloading
-        for (const coord of allGridCoords) {
-          const accurateLocation = coord.centerLoc;
-          const meta = { lat: coord.lat, lng: coord.lng, locationName: accurateLocation };
-
-          if (activeEngines.includes('maps') || activeEngines.includes('google')) {
-            let searchString;
-            
-            if (coord.isExactPoint) {
-              // Tier 3: Strict Semantic without lat/lng coordinates to ensure pure village query
-              searchString = `${matchedCategory} in ${accurateLocation}`;
-              addLog(`[Tier 3 Dispatch] STRICT SEMANTIC query: ${searchString}`);
-              const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}`;
-              await addScrapeJob('scrapeGooglePlaces', [searchUrl, matchedCategory, accurateLocation, sessionId, null, null, null, strategy], 10, meta);
-            } else {
-              // Tier 1/2: Grid Jumping with exact coordinates
-              if (strategy === 'strict') {
-                searchString = `${matchedCategory} in ${accurateLocation} near ${coord.lat},${coord.lng}`;
-              } else {
-                searchString = `${matchedCategory} near ${coord.lat},${coord.lng}`;
-              }
-              const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}/@${coord.lat},${coord.lng},14z`;
-              addLog(`[Sunflower Map Dispatch] Dispatching query at distance ${coord.distanceFromCenter}km from ${accurateLocation}`);
-              await addScrapeJob('scrapeGooglePlaces', [searchUrl, matchedCategory, accurateLocation, sessionId, coord.lat, coord.lng, coord.activeRadius, strategy], 10, meta);
-            }
-          }
-
-          if (activeEngines.includes('google-web')) {
-            const searchString = `${matchedCategory} in ${accurateLocation}`;
-            addLog(`[Radius Jumping] Dispatching Universal Web Search for: ${searchString}`);
-            await addScrapeJob('scrapeGoogleSerp', [searchString, matchedCategory, accurateLocation]);
-          }
-        }
-
-        // Dispatch JustDial ONCE per unique baseLocation/District (It ignores coordinates anyway)
-        if (activeEngines.includes('justdial')) {
-          const uniqueLocs = [...new Set(centerLocations.map(c => c.queryLoc))];
-          for (const loc of uniqueLocs) {
-            addLog(`[Radius Jumping] Dispatching JustDial Search globally for ${loc}`);
-            await addScrapeJob('scrapeJustDial', [matchedCategory, loc]);
-          }
-        }
-        googleMapsJobsDispatched = true;
-      }
-
-    // FALLBACKS & SINGLE RUNS (If Grid Search didn't trigger)
-    if (!googleMapsJobsDispatched) {
-      if (activeEngines.includes('maps') || activeEngines.includes('google')) {
-        let textLocations = [baseLocation || exactQuery];
-        if (radius && parseInt(radius) > 0 && baseLocation) {
-          addLog(`[AI Location Expansion Fallback] Finding nearby towns within ${radius}km for Google Maps fallback...`);
-          const nearby = await intelligentExtractor.generateNearbyLocations(baseLocation, parseInt(radius));
-          if (nearby && nearby.length > 0) textLocations = nearby;
-        }
-        
-        for (const loc of textLocations) {
-          let searchStr = exactQuery;
-          if (loc !== baseLocation && loc !== exactQuery && category) searchStr = `${category} in ${loc}`;
-          else if (loc !== baseLocation && loc !== exactQuery && !category) searchStr = `${exactQuery} in ${loc}`;
-          
-          const resolvedLocationData = await geocodeLocation(loc || searchStr);
-          const accurateLocation = resolvedLocationData && resolvedLocationData.lat ? resolvedLocationData.formattedLocation : loc;
-          addLog(`[Google Maps Fallback] Dispatching job for: "${searchStr}"`);
-          const searchStrFormatted = `${matchedCategory} near ${accurateLocation}`;
-          await addScrapeJob('scrapeGooglePlaces', [searchStrFormatted, matchedCategory, accurateLocation, sessionId, resolvedLocationData ? resolvedLocationData.lat : null, resolvedLocationData ? resolvedLocationData.lng : null, radius ? parseInt(radius) : null]);
-        }
-      }
-
-      if (activeEngines.includes('google-web')) {
-        const searchString = `${matchedCategory} in ${baseLocation}`;
-        await addScrapeJob('scrapeGoogleSerp', [searchString, matchedCategory, baseLocation]);
-      }
-
-      if (activeEngines.includes('justdial')) {
-        addLog(`[Radius Jumping] Dispatching JustDial Search globally for ${baseLocation}`);
-        await addScrapeJob('scrapeJustDial', [matchedCategory, baseLocation]);
-      }
-
-      if (activeEngines.includes('indiamart')) {
-        addLog(`[Manual Login Engine] Dispatching Native IndiaMart Scraper for ${matchedCategory} in ${baseLocation}`);
-        await addScrapeJob('scrapePuppeteerIndiaMart', [matchedCategory, baseLocation]);
-      }
-    }
-  } catch (err) {
-    addLog(`[Omni] Failed to dispatch jobs: ${err.message}`);
-  }
+  // Add the orchestrator task to the background queue so it starts running
+  addScrapeJob('scrapeOmniOrchestrator', [matchedCategory, baseLocation, strategy, radius, gridDensity, enabledEngines, finalSessionId]);
 });
 
 // BATCH API

@@ -300,6 +300,7 @@ function ScraperDashboard({ user, onLogout }) {
   const [logLevel, setLogLevel] = useState('ALL'); // ALL | INFO | WARN | ERROR | DEBUG
   const eventSourceRef = useRef(null);
   const [enabledEngines, setEnabledEngines] = useState(['maps', 'instagram', 'facebook', 'youtube', 'pinterest', 'linkedin']);
+  const [searchProgress, setSearchProgress] = useState(null);
   
   const [activeJobs, setActiveJobs] = useState([]);
   const [selectedJobCategory, setSelectedJobCategory] = useState(null);
@@ -331,12 +332,19 @@ function ScraperDashboard({ user, onLogout }) {
       });
       es.addEventListener('vendor', (e) => {
         try {
-          // Vendor event received; append to current session instead of fetching all from DB
-          const newVendor = JSON.parse(e.data);
-          setVendors(prev => {
-            if (prev.some(v => v.id === newVendor.id || v.phone === newVendor.phone)) return prev;
-            return [newVendor, ...prev];
-          });
+          const { action, vendor } = JSON.parse(e.data);
+          if (!vendor) return;
+          if (action === 'out-of-bounds') {
+            setOutOfBoundsVendors(prev => {
+              if (prev.some(v => v.id === vendor.id)) return prev;
+              return [vendor, ...prev];
+            });
+          } else {
+            setVendors(prev => {
+              if (prev.some(v => v.id === vendor.id || (vendor.phone && v.phone === vendor.phone))) return prev;
+              return [vendor, ...prev];
+            });
+          }
         } catch (err) { /* ignore */ }
       });
       es.addEventListener('grid_points', (e) => {
@@ -365,6 +373,12 @@ function ScraperDashboard({ user, onLogout }) {
             const filtered = prev.filter(p => p.instanceId !== pt.instanceId);
             return [pt, ...filtered].slice(0, 20);
           });
+        } catch (err) { /* ignore */ }
+      });
+      es.addEventListener('progress', (e) => {
+        try {
+          const progressData = JSON.parse(e.data);
+          setSearchProgress(progressData);
         } catch (err) { /* ignore */ }
       });
       // Buffer logs to prevent React from freezing due to massive re-renders
@@ -658,13 +672,8 @@ function ScraperDashboard({ user, onLogout }) {
         if (activeInput === 'category') setCategoryQuery(suggestions[suggestionIndex]);
         else setLocationQuery(suggestions[suggestionIndex]);
         setShowSuggestions(false);
-      } else if (suggestions.length > 0) {
-        const bestMatch = suggestions[0];
-        if (activeInput === 'category') setCategoryQuery(bestMatch);
-        else setLocationQuery(bestMatch);
-        setShowSuggestions(false);
-        toast.success(`Auto-corrected to: ${bestMatch}`, { icon: '✨' });
       } else {
+        setShowSuggestions(false);
         startScrape(e);
       }
     } else if (e.key === 'Escape') {
@@ -687,18 +696,41 @@ function ScraperDashboard({ user, onLogout }) {
   };
 
   const [researchData, setResearchData] = useState([]);
+  const lastSyncRef = useRef(0);
 
   async function fetchVendors() {
     try {
+      const since = lastSyncRef.current;
       const [vRes, pRes, oRes] = await Promise.all([
-        axios.get(`${API_URL}/vendors`),
+        axios.get(`${API_URL}/vendors`, { params: { since } }),
         axios.get(`${API_URL}/public/admin/list`),
-        axios.get(`${API_URL}/vendors/out-of-bounds`)
+        axios.get(`${API_URL}/vendors/out-of-bounds`, { params: { since } })
       ]);
-      setVendors(vRes.data);
+      const newTime = Date.now();
+      
+      if (since === 0) {
+        setVendors(vRes.data);
+        setOutOfBoundsVendors(oRes.data);
+      } else {
+        if (vRes.data.length > 0) {
+          setVendors(prev => {
+            const merged = [...vRes.data, ...prev];
+            const unique = Array.from(new Map(merged.map(item => [item.id, item])).values());
+            return unique.sort((a,b) => new Date(b.scrapedAt) - new Date(a.scrapedAt));
+          });
+        }
+        if (oRes.data.length > 0) {
+          setOutOfBoundsVendors(prev => {
+            const merged = [...oRes.data, ...prev];
+            const unique = Array.from(new Map(merged.map(item => [item.id, item])).values());
+            return unique.sort((a,b) => new Date(b.scrapedAt) - new Date(a.scrapedAt));
+          });
+        }
+      }
+      
       setPublicUsers(pRes.data);
-      setOutOfBoundsVendors(oRes.data);
       setBackendConnected(true);
+      lastSyncRef.current = newTime;
     } catch (error) { 
       console.error('Failed to fetch vendors. Network Error details:', error);
       alert('Dashboard Failed to Connect. Check browser console (F12) for exact details. Error: ' + error.message);
@@ -723,6 +755,7 @@ function ScraperDashboard({ user, onLogout }) {
       setVendors([]);
       setActivePoints([]);
       setGridPoints([]);
+      setSearchProgress(null);
     } catch (error) {
       toast.error('Failed to stop all tasks');
     }
@@ -792,6 +825,7 @@ function ScraperDashboard({ user, onLogout }) {
     setVendors([]);
     setActivePoints([]);
     setGridPoints([]);
+    setSearchProgress(null);
     setSearchSessionStart(Date.now());
     
     try {
@@ -980,24 +1014,6 @@ function ScraperDashboard({ user, onLogout }) {
     grouped[activeCategory] = [];
   }
 
-  if (!backendConnected) {
-    return (
-      <div className="min-h-screen text-white font-sans bg-[#0a0a0a] flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mb-6">
-          <ServerCrash size={32} className="text-red-500" />
-        </div>
-        <h2 className="text-2xl font-medium mb-3">Backend Not Connected</h2>
-        <p className="text-white/50 max-w-md mb-8">
-          The Gomandap Scraper API could not be reached at <code className="bg-white/10 px-1.5 py-0.5 rounded mx-1">{API_URL}</code>.<br/><br/>
-          Please make sure you have started the dedicated scraper server by running <code className="bg-white/10 px-1.5 py-0.5 rounded text-blue-400">npm start</code> inside the <code className="bg-white/10 px-1.5 py-0.5 rounded">gomandap-scraper/server</code> directory.
-        </p>
-        <button onClick={() => fetchVendors()} className="px-6 py-3 bg-white text-black font-medium rounded-lg hover:bg-white/90 flex items-center gap-2">
-          <RefreshCw size={16} /> Try Reconnecting
-        </button>
-      </div>
-    );
-  }
-
   // Provide all scraping state/actions to sub-pages via context
   const contextValue = React.useMemo(() => ({
     // Data
@@ -1044,6 +1060,7 @@ function ScraperDashboard({ user, onLogout }) {
     // Model
     modelLoadingStatus,
     activePoints,
+    searchProgress, setSearchProgress,
     // Actions
     fetchVendors,
     startScrape,
@@ -1075,8 +1092,26 @@ function ScraperDashboard({ user, onLogout }) {
     activeCategory, activeTab, employees, stagingVendorsWithPhones, stagingVendorsNoPhones,
     liveVendors, outOfBoundsVendors, verifiedCount, grouped, filteredVendors, displayedVendors,
     cities, selectedCity, searchFilter, activeJobs, selectedJobCategory, selectedFolder,
-    modelLoadingStatus, activePoints, gridPoints, user
+    modelLoadingStatus, activePoints, gridPoints, user, searchProgress
   ]);
+
+  if (!backendConnected) {
+    return (
+      <div className="min-h-screen text-white font-sans bg-[#0a0a0a] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mb-6">
+          <ServerCrash size={32} className="text-red-500" />
+        </div>
+        <h2 className="text-2xl font-medium mb-3">Backend Not Connected</h2>
+        <p className="text-white/50 max-w-md mb-8">
+          The Gomandap Scraper API could not be reached at <code className="bg-white/10 px-1.5 py-0.5 rounded mx-1">{API_URL}</code>.<br/><br/>
+          Please make sure you have started the dedicated scraper server by running <code className="bg-white/10 px-1.5 py-0.5 rounded text-blue-400">npm start</code> inside the <code className="bg-white/10 px-1.5 py-0.5 rounded">gomandap-scraper/server</code> directory.
+        </p>
+        <button onClick={() => fetchVendors()} className="px-6 py-3 bg-white text-black font-medium rounded-lg hover:bg-white/90 flex items-center gap-2">
+          <RefreshCw size={16} /> Try Reconnecting
+        </button>
+      </div>
+    );
+  }
 
   return (
     <ScraperContext.Provider value={contextValue}>

@@ -5,7 +5,7 @@ import { Shield, Loader2, Eye, EyeOff, WifiOff } from 'lucide-react';
 import { API_URL } from './apiConfig';
 
 // Offline fallback credentials (for deployed version without backend access)
-const OFFLINE_ADMIN = { username: 'admin', password: 'password123' };
+const OFFLINE_ADMIN = { username: 'admin', password: 'Manoj@587487' };
 const OFFLINE_EMPLOYEES = [
   { username: 'telecaller1', password: 'password123', name: 'Agent 1', location: 'Guntur', role: 'employee', id: 'emp_1' },
 ];
@@ -152,7 +152,7 @@ export default function Login({ onLogin }) {
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            <p className="text-white/30 text-xs ml-1 mt-1">Default: admin / password123</p>
+            <p className="text-white/30 text-xs ml-1 mt-1">Login: admin / Manoj@587487</p>
           </div>
           
           <button 

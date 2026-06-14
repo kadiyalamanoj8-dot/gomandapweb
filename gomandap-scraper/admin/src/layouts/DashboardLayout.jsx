@@ -123,24 +123,7 @@ export default function DashboardLayout({ user, onLogout }) {
 
         {/* Page Content */}
         <main className="flex-1 w-full flex flex-col">
-          {/* Global Search Bar (Desktop) */}
-          <div className="hidden md:flex h-16 bg-white border-b border-gray-100 items-center justify-between px-8 flex-shrink-0 sticky top-0 z-40">
-            <div className="flex-1 max-w-2xl">
-              <OmniSearch 
-                onSearch={(cat, loc) => {
-                  navigate('/app/overview');
-                  setTimeout(() => scraperContext.startScrape(null, cat, loc), 100);
-                }}
-                knowledge={scraperContext.knowledge}
-                history={scraperContext.searchHistory}
-              />
-            </div>
-            <div className="flex items-center gap-4 ml-4">
-              <button className="p-2 text-gray-400 hover:text-gray-900 rounded-xl hover:bg-gray-50 transition-colors">
-                <Bell size={18} />
-              </button>
-            </div>
-          </div>
+
           <div className="flex-1 w-full overflow-x-hidden">
             <Outlet />
           </div>

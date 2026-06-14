@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const fetch = require('node-fetch');
+const axios = require('axios');
 // Dynamic import for ES modules like @xenova/transformers
 let pipeline = null;
 
@@ -19,20 +19,9 @@ const saveCache = () => fs.writeFileSync(cacheFile, JSON.stringify(geoCache, nul
  * Initializes the Transformers.js pipeline (loads into RAM once for <50ms parsing)
  */
 async function initAI() {
-  if (!pipeline) {
-    console.log('[GeoAI] Loading Transformers.js models into memory...');
-    const transformers = await import('@xenova/transformers');
-    // Using a tiny feature extraction / zero-shot model for blazing fast <50ms latency
-    pipeline = await transformers.pipeline('zero-shot-classification', 'Xenova/mobilebert-uncased-mnli', {
-      quantized: true,
-    });
-    console.log('[GeoAI] Model loaded. NLP ready for sub-50ms inference.');
-  }
-  return pipeline;
+  // Disabled to ensure lightweight server footprint and prevent ERR_MODULE_NOT_FOUND
+  return null;
 }
-
-// Start loading immediately in background
-initAI().catch(console.error);
 
 /**
  * Parses a natural language query into specific location tokens
@@ -115,10 +104,10 @@ async function reverseGeocode(lat, lng) {
   try {
     // OpenStreetMap Nominatim API
     const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`;
-    const res = await fetch(url, {
+    const res = await axios.get(url, {
       headers: { 'User-Agent': 'Gomandap-Scraper-Agent/1.0' }
     });
-    const data = await res.json();
+    const data = res.data;
     
     if (data && data.address) {
       const isUSA = data.address.country_code === 'us';

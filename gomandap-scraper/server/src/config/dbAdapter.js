@@ -1,5 +1,24 @@
 const fs = require('fs');
 const path = require('path');
+const mongoose = require('mongoose');
+
+// Background MongoDB Connection for Persistent Dual-Storage (Disabled as requested)
+/*
+if (process.env.MONGODB_URI) {
+  mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('✅ Connected to MongoDB (Dual-Persistence Active)'))
+    .catch(e => console.error('MongoDB Connection Error:', e.message));
+}
+*/
+
+// Flexible Schema to accept all scraped fields
+const vendorSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  userId: String,
+  name: String
+}, { strict: false });
+
+const VendorModel = mongoose.models.Vendor || mongoose.model('Vendor', vendorSchema);
 
 const dataDir = path.join(__dirname, '../../data');
 const vendorsFile = path.join(dataDir, 'scraped_vendors.json');
@@ -11,7 +30,6 @@ if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 if (!fs.existsSync(vendorsFile)) fs.writeFileSync(vendorsFile, JSON.stringify([]));
 if (!fs.existsSync(outOfBoundsFile)) fs.writeFileSync(outOfBoundsFile, JSON.stringify([]));
 if (!fs.existsSync(usersFile)) {
-  // Default Admin User for testing the SaaS
   const defaultUsers = [{
     id: 'admin_1',
     username: 'admin',
@@ -28,56 +46,124 @@ function getUsers() {
 }
 function saveUsers(data) { fs.writeFileSync(usersFile, JSON.stringify(data, null, 2)); }
 
-// --- MULTI-TENANT VENDORS ---
-function getVendors(userId) {
-  try {
-    const all = JSON.parse(fs.readFileSync(vendorsFile, 'utf-8'));
-    if (!userId) return all; // For legacy operations or superadmin
-    return all.filter(v => v.userId === userId);
-  } catch (e) {
-    return [];
+// --- MEMORY BUFFERED I/O FOR BLAZING FAST SCRAPING ---
+let cachedVendors = null;
+let cachedOutOfBounds = null;
+let vendorsWriteTimeout = null;
+let oobWriteTimeout = null;
+
+let pendingMongoUpdates = {};
+let mongoWriteTimeout = null;
+
+function _flushVendors() {
+  if (cachedVendors) {
+    fs.writeFile(vendorsFile, JSON.stringify(cachedVendors), (err) => {
+      if (err) console.error('Failed to write vendors file:', err.message);
+    });
   }
 }
 
+function _flushMongo() {
+  const updates = Object.values(pendingMongoUpdates);
+  if (updates.length === 0) return;
+  pendingMongoUpdates = {};
+
+  if (mongoose.connection.readyState === 1) {
+    const bulkOps = updates.map(vendor => ({
+      updateOne: {
+        filter: { id: vendor.id },
+        update: { $set: vendor },
+        upsert: true
+      }
+    }));
+    VendorModel.bulkWrite(bulkOps)
+      .then(res => {
+        console.log(`[MongoDB Dual-Persistence] Bulk upserted ${updates.length} vendors to cloud database.`);
+      })
+      .catch(err => {
+        console.error('[MongoDB Dual-Persistence] Bulk write failed, attempting individual fallbacks:', err.message);
+        updates.forEach(vendor => {
+          VendorModel.updateOne({ id: vendor.id }, vendor, { upsert: true })
+            .catch(e => console.error('[MongoDB Dual-Persistence] Fallback write failed:', e.message));
+        });
+      });
+  }
+}
+
+function _flushOutOfBounds() {
+  if (cachedOutOfBounds) {
+    fs.writeFile(outOfBoundsFile, JSON.stringify(cachedOutOfBounds), (err) => {
+      if (err) console.error('Failed to write out of bounds file:', err.message);
+    });
+  }
+}
+
+// --- MULTI-TENANT VENDORS ---
+function getVendors(userId) {
+  if (!cachedVendors) {
+    try { cachedVendors = JSON.parse(fs.readFileSync(vendorsFile, 'utf-8')); } 
+    catch (e) { cachedVendors = []; }
+  }
+  if (!userId) return cachedVendors;
+  return cachedVendors.filter(v => v.userId === userId);
+}
+
 function saveVendor(userId, vendor) {
-  const all = getVendors(); // get all bypassing filter
+  const all = getVendors(); 
   const idx = all.findIndex(v => v.id === vendor.id);
-  vendor.userId = userId || vendor.userId || 'admin_1'; // Enforce tenant tracking
+  vendor.userId = userId || vendor.userId || 'admin_1'; 
   
   if (idx !== -1) {
     all[idx] = vendor;
   } else {
     all.push(vendor);
   }
-  fs.writeFileSync(vendorsFile, JSON.stringify(all, null, 2));
+  
+  // Debounced write (1000ms window) for ultra-fast scraping
+  clearTimeout(vendorsWriteTimeout);
+  vendorsWriteTimeout = setTimeout(_flushVendors, 1000);
+
+  // Buffer and bulk-upsert MongoDB updates (every 2 seconds) for ultra-fast scraping
+  pendingMongoUpdates[vendor.id] = vendor;
+  clearTimeout(mongoWriteTimeout);
+  mongoWriteTimeout = setTimeout(_flushMongo, 2000);
 }
 
 function deleteVendor(userId, vendorId) {
   let all = getVendors();
-  all = all.filter(v => !(v.id === vendorId && v.userId === userId));
-  fs.writeFileSync(vendorsFile, JSON.stringify(all, null, 2));
+  cachedVendors = all.filter(v => !(v.id === vendorId && v.userId === userId));
+  _flushVendors(); // Flush immediately on delete
 }
 
 function updateVendorsBatch(userId, updatedList) {
   const all = getVendors();
   const others = all.filter(v => v.userId !== userId);
   const updatedWithTenant = updatedList.map(v => ({...v, userId: userId}));
-  fs.writeFileSync(vendorsFile, JSON.stringify([...others, ...updatedWithTenant], null, 2));
+  cachedVendors = [...others, ...updatedWithTenant];
+  _flushVendors(); // Flush immediately on batch updates
 }
 
 function saveVendors(data) {
-  // Legacy method for saving the entire array
-  fs.writeFileSync(vendorsFile, JSON.stringify(data, null, 2));
+  cachedVendors = data;
+  _flushVendors();
 }
 
 // --- OUT OF BOUNDS ---
 function getOutOfBounds() {
-  try { return JSON.parse(fs.readFileSync(outOfBoundsFile, 'utf-8')); } catch (e) { return []; }
+  if (!cachedOutOfBounds) {
+    try { cachedOutOfBounds = JSON.parse(fs.readFileSync(outOfBoundsFile, 'utf-8')); } 
+    catch (e) { cachedOutOfBounds = []; }
+  }
+  return cachedOutOfBounds;
 }
-function saveOutOfBounds(data) { fs.writeFileSync(outOfBoundsFile, JSON.stringify(data, null, 2)); }
+
+function saveOutOfBounds(data) { 
+  cachedOutOfBounds = data;
+  _flushOutOfBounds();
+}
+
 function saveOutOfBoundsVendor(vendor) {
   const all = getOutOfBounds();
-  // Deduplicate by ID, MapsLink, or exact Name to prevent duplicates during grid scraping
   const idx = all.findIndex(v => 
     v.id === vendor.id || 
     (v.mapsLink && vendor.mapsLink && v.mapsLink === vendor.mapsLink) || 
@@ -85,13 +171,14 @@ function saveOutOfBoundsVendor(vendor) {
   );
   
   if (idx !== -1) {
-    // Preserve the original ID so UI updates work correctly
     vendor.id = all[idx].id;
     all[idx] = { ...all[idx], ...vendor };
   } else {
     all.push(vendor);
   }
-  fs.writeFileSync(outOfBoundsFile, JSON.stringify(all, null, 2));
+  
+  clearTimeout(oobWriteTimeout);
+  oobWriteTimeout = setTimeout(_flushOutOfBounds, 1000);
 }
 
 // --- EMPLOYEES (Legacy Support) ---

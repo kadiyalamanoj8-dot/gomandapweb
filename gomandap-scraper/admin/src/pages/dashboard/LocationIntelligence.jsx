@@ -46,6 +46,94 @@ export default function LocationIntelligence() {
   const [osmQuery, setOsmQuery] = useState('');
   const [fetchingOSM, setFetchingOSM] = useState(false);
 
+  const [selectedState, setSelectedState] = useState('Telangana');
+  const [warmingActive, setWarmingActive] = useState(false);
+  const [warmingStatus, setWarmingStatus] = useState({
+    active: false,
+    stateName: '',
+    totalDistricts: 0,
+    completedDistricts: 0,
+    activeDistrict: '',
+    totalMandals: 0,
+    completedMandals: 0,
+    activeMandal: '',
+    resolvedPoints: []
+  });
+
+  // Check initial status on mount
+  useEffect(() => {
+    fetchWarmingStatus();
+  }, []);
+
+  async function fetchWarmingStatus() {
+    try {
+      const res = await fetch(`${API_URL}/api/locations/warm-state/status`);
+      const data = await res.json();
+      setWarmingStatus(data);
+      if (data.active) {
+        setWarmingActive(true);
+        if (data.resolvedPoints && data.resolvedPoints.length > 0) {
+          setMapPoints(data.resolvedPoints);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // Polling for warming status
+  useEffect(() => {
+    let intervalId;
+    if (warmingActive) {
+      intervalId = setInterval(async () => {
+        try {
+          const res = await fetch(`${API_URL}/api/locations/warm-state/status`);
+          const data = await res.json();
+          setWarmingStatus(data);
+          if (data.resolvedPoints && data.resolvedPoints.length > 0) {
+            setMapPoints(data.resolvedPoints);
+          }
+          if (!data.active) {
+            setWarmingActive(false);
+            toast.success('State geography warming completed!');
+            fetchMemory();
+          }
+        } catch (err) {
+          console.error('Failed to fetch warming status:', err);
+        }
+      }, 1500);
+    }
+    return () => clearInterval(intervalId);
+  }, [warmingActive]);
+
+  const handleStartWarming = async () => {
+    try {
+      setWarmingActive(true);
+      setMapPoints([]);
+      const res = await fetch(`${API_URL}/api/locations/warm-state`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stateName: selectedState })
+      });
+      const data = await res.json();
+      toast.success(data.message || 'Warming initiated in background.');
+    } catch (err) {
+      setWarmingActive(false);
+      toast.error('Failed to initiate state warming');
+    }
+  };
+
+  const handleStopWarming = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/locations/warm-state/stop`, { method: 'POST' });
+      const data = await res.json();
+      toast.success(data.message || 'Warming stopped.');
+      setWarmingActive(false);
+    } catch (err) {
+      toast.error('Failed to stop state warming');
+    }
+  };
+
   useEffect(() => {
     fetchMemory();
   }, []);
@@ -139,6 +227,72 @@ export default function LocationIntelligence() {
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
           </button>
+        </div>
+
+        {/* ── STATE GEOGRAPHY WARMER (BACKGROUND PROCESS) ── */}
+        <div className="p-4 bg-slate-900 text-white border-b border-gray-800">
+          <p className="text-xs font-bold text-violet-400 mb-2.5 flex items-center gap-1.5 uppercase tracking-wider">
+            <Zap size={14} className="text-violet-400 fill-violet-400/20" /> State Geography Warmer
+          </p>
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <select
+                value={selectedState}
+                onChange={(e) => setSelectedState(e.target.value)}
+                disabled={warmingActive}
+                className="flex-1 bg-black/40 border border-violet-900/40 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500 disabled:opacity-50"
+              >
+                <option value="Telangana">Telangana</option>
+                <option value="Andhra Pradesh">Andhra Pradesh</option>
+                <option value="Karnataka">Karnataka</option>
+                <option value="Tamil Nadu">Tamil Nadu</option>
+                <option value="Maharashtra">Maharashtra</option>
+                <option value="Kerala">Kerala</option>
+              </select>
+              {warmingActive ? (
+                <button
+                  type="button"
+                  onClick={handleStopWarming}
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm"
+                >
+                  Stop
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleStartWarming}
+                  className="bg-violet-600 hover:bg-violet-700 text-white px-3 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm flex items-center gap-1"
+                >
+                  <RefreshCw size={14} /> Warm
+                </button>
+              )}
+            </div>
+
+            {warmingActive && (
+              <div className="space-y-2 bg-black/30 p-3 rounded-lg border border-white/5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-white/60">Active District:</span>
+                  <span className="font-bold text-white truncate max-w-[150px]">{warmingStatus.activeDistrict || 'Initializing...'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/60">Active Mandal:</span>
+                  <span className="font-bold text-white truncate max-w-[150px]">{warmingStatus.activeMandal || 'Initializing...'}</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[10px] text-white/50">
+                    <span>Mandals: {warmingStatus.completedMandals} / {warmingStatus.totalMandals}</span>
+                    <span>{Math.round((warmingStatus.completedMandals / (warmingStatus.totalMandals || 1)) * 100)}%</span>
+                  </div>
+                  <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-violet-500 h-full transition-all duration-300"
+                      style={{ width: `${(warmingStatus.completedMandals / (warmingStatus.totalMandals || 1)) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="p-4 bg-violet-50 border-b border-gray-100">

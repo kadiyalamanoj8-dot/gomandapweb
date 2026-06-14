@@ -1,15 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Play, Square, RefreshCw, ArrowRight, MapPin, Camera,
   MessageCircle, Globe, Database, Briefcase, Image, Clock,
   Trash2, X, Activity, ChevronDown, Check, XCircle, Download,
-  FolderOpen, Filter, Send, Settings, TrendingUp, Zap, Target, Map
+  FolderOpen, Filter, Send, Settings, TrendingUp, Zap, Target, Map,
+  Users, Phone, Star, Wifi, WifiOff, BarChart3, UserCheck
 } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useScraper } from '../../context/ScraperContext';
+
+// ── City coords lookup for Indian cities (for worker map pins) ──
+const CITY_COORDS = {
+  'guntur': [16.3067, 80.4365], 'hyderabad': [17.385, 78.4867],
+  'vijayawada': [16.5062, 80.648], 'vizag': [17.686, 83.2185],
+  'visakhapatnam': [17.686, 83.2185], 'tirupati': [13.6288, 79.4192],
+  'nellore': [14.4426, 79.9865], 'kurnool': [15.828, 78.037],
+  'rajahmundry': [17.0005, 81.804], 'kakinada': [16.9891, 82.2475],
+  'eluru': [16.7107, 81.0952], 'ongole': [15.5057, 80.0499],
+  'anantapur': [14.6819, 77.5997], 'bangalore': [12.9716, 77.5946],
+  'bengaluru': [12.9716, 77.5946], 'chennai': [13.0827, 80.2707],
+  'mumbai': [19.076, 72.8777], 'delhi': [28.7041, 77.1025],
+  'kolkata': [22.5726, 88.3639], 'pune': [18.5204, 73.8567],
+  'ahmedabad': [23.0225, 72.5714], 'surat': [21.1702, 72.8311],
+  'jaipur': [26.9124, 75.7873], 'lucknow': [26.8467, 80.9462],
+};
+
+function getCityCoords(city) {
+  if (!city) return null;
+  const key = city.toLowerCase().trim();
+  return CITY_COORDS[key] || null;
+}
 
 // Fix for default leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -19,24 +42,31 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+// ── Worker Avatar Colors ──
+const WORKER_COLORS = ['#7c3aed', '#2563eb', '#16a34a', '#ea580c', '#db2777', '#0891b2', '#d97706'];
+
 export default function OverviewPage() {
   const {
+    vendors,
     loading, logs, sseStatus, logLevel, setLogLevel,
     omniQuery, setOmniQuery, searchRadius, setSearchRadius,
     enabledEngines, setEnabledEngines,
-    startScrape, handleMasterStop,
+    startScrape, handleMasterStop, pushToProd,
     stagingVendorsWithPhones, stagingVendorsNoPhones,
     outOfBoundsVendors,
     liveVendors, verifiedCount,
+    activeJobs, grouped,
+    employees, fetchEmployees,
     modelLoadingStatus, suggestions, showSuggestions, setShowSuggestions,
     suggestionIndex, searchHistory, setSearchHistory,
     showDirectory, setShowDirectory, knowledge,
-    handleSearchChange, handleKeyDown,
+    handleKeyDown,
     categoryQuery, setCategoryQuery,
     locationQuery, setLocationQuery,
     activeInput, setActiveInput,
     handleCategoryChange, handleLocationChange,
-    triggerPython, triggerCheerio, triggerMaps
+    triggerPython, triggerCheerio, triggerMaps,
+    searchContainerRef, terminalRef,
   } = useScraper();
 
   const [showLog, setShowLog] = useState(true);
@@ -62,16 +92,59 @@ export default function OverviewPage() {
     .map(v => ({...v, safeLat: v.lat || v.latitude, safeLng: v.lng || v.longitude}))
     .slice(0, 50);
 
-  const MapBounds = ({ vendors }) => {
+  // Workers with geocoded coords
+  const workersWithCoords = (employees || []).map((emp, idx) => ({
+    ...emp,
+    coords: getCityCoords(emp.location),
+    color: WORKER_COLORS[idx % WORKER_COLORS.length],
+    leadsCount: (vendors || []).filter(v => v.assignedTo === emp.id).length,
+    isActive: activeJobs?.some(j => j.assignedTo === emp.id) || false,
+  }));
+
+  const workersOnMap = workersWithCoords.filter(w => w.coords);
+
+  // All map points combined
+  const allMapPoints = [
+    ...mapVendors.map(v => ({ lat: v.safeLat, lng: v.safeLng, type: 'vendor' })),
+    ...workersOnMap.map(w => ({ lat: w.coords[0], lng: w.coords[1], type: 'worker' })),
+  ];
+
+  const MapBounds = ({ points }) => {
     const map = useMap();
     useEffect(() => {
-      if (vendors.length > 0) {
-        const bounds = L.latLngBounds(vendors.map(v => [v.safeLat, v.safeLng]));
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+      if (points.length > 0) {
+        const bounds = L.latLngBounds(points.map(p => [p.lat, p.lng]));
+        map.fitBounds(bounds, { padding: [60, 60], maxZoom: 12 });
       }
-    }, [vendors, map]);
+    }, [points.length]);
     return null;
   };
+
+  const makeWorkerIcon = (color, name) => L.divIcon({
+    className: '',
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    html: `<div style="
+      width:40px;height:40px;border-radius:50%;
+      background:${color};border:3px solid white;
+      box-shadow:0 0 0 3px ${color}55, 0 4px 12px rgba(0,0,0,0.4);
+      display:flex;align-items:center;justify-content:center;
+      color:white;font-weight:900;font-size:14px;font-family:Inter,sans-serif;
+      animation:workerPulse 2s ease-in-out infinite;
+    ">${name[0].toUpperCase()}</div>`,
+  });
+
+  const makeVendorDot = (hasPhone) => L.divIcon({
+    className: '',
+    iconSize: [10, 10],
+    iconAnchor: [5, 5],
+    html: `<div style="
+      width:10px;height:10px;border-radius:50%;
+      background:${hasPhone ? '#10b981' : '#f59e0b'};
+      border:2px solid rgba(255,255,255,0.7);
+      box-shadow:0 2px 6px rgba(0,0,0,0.3);
+    "></div>`,
+  });
 
   return (
     <div className="min-h-full bg-[#f7f8fa]">
@@ -420,7 +493,7 @@ export default function OverviewPage() {
                 
                 <button type="button"
                   onClick={() => {
-                    startScrape(null, omniQuery, enabledEngines); // Pass ALL enabled engines
+                    startScrape(null, categoryQuery, locationQuery);
                   }}
                   className="flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-base font-bold shadow-lg shadow-violet-500/20 border bg-violet-600 text-white hover:bg-violet-700 transition-all w-full col-span-2">
                   <span className="text-xl">✨</span> Launch Master Omni-Search
@@ -442,86 +515,269 @@ export default function OverviewPage() {
 
 
 
-        {/* ── LIVE VENDORS FEED ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="font-bold text-gray-900 flex items-center gap-2">
-              <Zap size={18} className="text-violet-500" /> Live Vendor Feed
-            </h2>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Live Updates</span>
-            </div>
-          </div>
+        {/* ── WORKERS COMMAND CENTER ── */}
+        <style>{`
+          @keyframes workerPulse {
+            0%, 100% { box-shadow: 0 0 0 3px rgba(124,58,237,0.4), 0 4px 12px rgba(0,0,0,0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(124,58,237,0.1), 0 4px 20px rgba(0,0,0,0.5); }
+          }
+          .leaflet-control-attribution { display: none !important; }
+          .leaflet-control-zoom { display: none !important; }
+        `}</style>
+        <div className="rounded-3xl overflow-hidden border border-gray-100 shadow-xl" style={{ background: 'linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #0f0f1a 100%)' }}>
           
-          <div className="space-y-3">
-            {stagingVendorsWithPhones.length === 0 && stagingVendorsNoPhones.length === 0 && outOfBoundsVendors.length === 0 ? (
-              <p className="text-sm text-gray-500">No leads extracted yet. Start a scrape!</p>
-            ) : (
-              [...stagingVendorsWithPhones, ...stagingVendorsNoPhones, ...outOfBoundsVendors.map(v => ({ ...v, isOutOfBounds: true }))]
-                .sort((a, b) => new Date(b.scrapedAt || 0) - new Date(a.scrapedAt || 0))
-                .slice(0, 5) // Show top 5 recent
-                .map((v, idx) => (
-                  <div key={idx} className={`flex items-center justify-between p-3 rounded-xl border ${v.isOutOfBounds ? 'border-red-100 bg-red-50 hover:bg-red-100/50' : 'border-gray-50 bg-gray-50 hover:bg-white'} hover:shadow-sm transition-all`}>
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-lg ${v.isOutOfBounds ? 'bg-red-200 text-red-700' : 'bg-violet-100 text-violet-600'} flex items-center justify-center font-bold`}>
-                        {v.name?.[0] || '?'}
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-gray-900">{v.name}</p>
-                        <p className="text-[10px] text-gray-500">{v.category} · {v.city}</p>
-                      </div>
-                    </div>
-                    {v.isOutOfBounds ? (
-                      <span className="px-2 py-1 bg-red-100 text-red-700 text-[10px] font-bold rounded-md flex items-center gap-1">
-                        Out of Bounds ({v.outOfBoundsDistance}km)
-                      </span>
-                    ) : v.phone ? (
-                      <span className="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-md">
-                        {v.phone}
-                      </span>
-                    ) : null}
-                  </div>
-                ))
-            )}
-          </div>
-        </div>
-
-        {/* ── LIVE MAP FEED ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 lg:col-span-2">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="font-bold text-gray-900 flex items-center gap-2">
-              <Map size={18} className="text-violet-500" /> Live Geographic Tracker
-            </h2>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{mapVendors.length} Pins</span>
-            </div>
-          </div>
-          
-          <div className="relative w-full h-[400px] rounded-xl overflow-hidden border border-gray-100">
-            {mapVendors.length > 0 ? (
-              <MapContainer center={[mapVendors[0].safeLat, mapVendors[0].safeLng]} zoom={11} style={{ width: '100%', height: '100%' }} zoomControl={false}>
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
-                <MapBounds vendors={mapVendors} />
-                {mapVendors.map((vendor, i) => (
-                  <Marker key={i} position={[vendor.safeLat, vendor.safeLng]}>
-                    <Popup>
-                      <div className="text-xs p-1">
-                        <p className="font-bold text-gray-900 mb-1">{vendor.name}</p>
-                        <p className="text-gray-500 mb-1">{vendor.category}</p>
-                        {vendor.phone && <p className="text-green-600 font-semibold">{vendor.phone}</p>}
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
-              </MapContainer>
-            ) : (
-              <div className="w-full h-full bg-gray-50 flex items-center justify-center text-gray-400 flex-col gap-3">
-                <Map size={32} className="opacity-20" />
-                <p className="font-bold text-sm">Waiting for geographic data...</p>
+          {/* Header */}
+          <div className="px-7 pt-7 pb-5 flex items-center justify-between border-b border-white/5">
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #7c3aed, #2563eb)' }}>
+                <Users size={20} className="text-white" />
               </div>
-            )}
+              <div>
+                <h2 className="text-white font-black text-lg tracking-tight">Workers Command Center</h2>
+                <p className="text-white/40 text-xs font-medium mt-0.5">Real-time field agent activity & coverage map</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)' }}>
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-emerald-400 text-xs font-bold">{workersOnMap.length} Online</span>
+              </div>
+              <div className="px-3 py-1.5 rounded-full text-white/50 text-xs font-bold" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                {mapVendors.length} Lead Pins
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col lg:flex-row">
+
+            {/* Left: Worker Cards */}
+            <div className="w-full lg:w-72 xl:w-80 flex-shrink-0 p-5 space-y-3 lg:border-r border-white/5 max-h-[460px] overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-4">Field Agents</p>
+              {(employees || []).length === 0 ? (
+                <div className="text-center py-10">
+                  <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <Users size={24} className="text-white/20" />
+                  </div>
+                  <p className="text-white/30 text-sm font-semibold">No agents yet</p>
+                  <p className="text-white/20 text-xs mt-1">Add workers in Settings</p>
+                </div>
+              ) : (
+                workersWithCoords.map((worker, idx) => {
+                  const assignedVendors = (vendors || []).filter(v => v.assignedTo === worker.id);
+                  const verifiedCount = assignedVendors.filter(v => v.verified).length;
+                  return (
+                    <motion.div
+                      key={worker.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.08 }}
+                      className="relative rounded-2xl p-4 cursor-pointer group transition-all"
+                      style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid rgba(255,255,255,0.06)` }}
+                      whileHover={{ scale: 1.01, background: 'rgba(255,255,255,0.07)' }}
+                    >
+                      {/* Colored left bar */}
+                      <div className="absolute left-0 top-4 bottom-4 w-1 rounded-r-full" style={{ background: worker.color }} />
+                      
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="relative flex-shrink-0">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-lg" style={{ background: worker.color }}>
+                            {worker.name[0].toUpperCase()}
+                          </div>
+                          <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center`}
+                            style={{ borderColor: '#1a1a2e', background: worker.isActive ? '#10b981' : '#6b7280' }}>
+                            {worker.isActive && <div className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-ping absolute" />}
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-bold text-sm truncate">{worker.name}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <MapPin size={10} className="text-white/30 flex-shrink-0" />
+                            <p className="text-white/50 text-xs truncate">{worker.location || 'No location'}</p>
+                          </div>
+                        </div>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
+                          worker.isActive
+                            ? 'text-emerald-400 bg-emerald-400/10'
+                            : 'text-white/30 bg-white/5'
+                        }`}>
+                          {worker.isActive ? 'ACTIVE' : 'IDLE'}
+                        </span>
+                      </div>
+
+                      {/* Stats row */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="rounded-xl p-2 text-center" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                          <p className="text-white font-black text-base leading-none">{assignedVendors.length}</p>
+                          <p className="text-white/30 text-[9px] font-semibold uppercase tracking-wide mt-0.5">Leads</p>
+                        </div>
+                        <div className="rounded-xl p-2 text-center" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                          <p className="font-black text-base leading-none" style={{ color: verifiedCount > 0 ? '#10b981' : 'rgba(255,255,255,0.3)' }}>{verifiedCount}</p>
+                          <p className="text-white/30 text-[9px] font-semibold uppercase tracking-wide mt-0.5">Verified</p>
+                        </div>
+                        <div className="rounded-xl p-2 text-center" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                          <p className="font-black text-base leading-none" style={{ color: worker.coords ? '#3b82f6' : 'rgba(255,255,255,0.3)' }}>
+                            {worker.coords ? '📍' : '—'}
+                          </p>
+                          <p className="text-white/30 text-[9px] font-semibold uppercase tracking-wide mt-0.5">On Map</p>
+                        </div>
+                      </div>
+
+                      {/* Progress bar */}
+                      {assignedVendors.length > 0 && (
+                        <div className="mt-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] text-white/30 font-semibold">Completion</span>
+                            <span className="text-[10px] font-bold" style={{ color: worker.color }}>
+                              {Math.round(verifiedCount / assignedVendors.length * 100)}%
+                            </span>
+                          </div>
+                          <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+                            <motion.div
+                              className="h-full rounded-full"
+                              style={{ background: worker.color }}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${Math.round(verifiedCount / assignedVendors.length * 100)}%` }}
+                              transition={{ duration: 1, ease: 'easeOut', delay: idx * 0.1 }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })
+              )}
+
+              {/* Live Vendor Feed below workers */}
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/30 pt-4 pb-2">Recent Leads</p>
+              {[...stagingVendorsWithPhones, ...stagingVendorsNoPhones]
+                .sort((a, b) => new Date(b.scrapedAt || 0) - new Date(a.scrapedAt || 0))
+                .slice(0, 6)
+                .map((v, idx) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="flex items-center gap-2.5 p-2.5 rounded-xl"
+                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}
+                  >
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0"
+                      style={{ background: v.phone ? 'rgba(16,185,129,0.2)', color: v.phone ? '#10b981' : '#f59e0b' }}>
+                      {v.name?.[0] || '?'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white/80 text-xs font-semibold truncate">{v.name}</p>
+                      <p className="text-white/30 text-[10px] truncate">{v.category} · {v.city}</p>
+                    </div>
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${v.phone ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                  </motion.div>
+                ))}
+              {stagingVendorsWithPhones.length === 0 && stagingVendorsNoPhones.length === 0 && (
+                <p className="text-white/20 text-xs text-center py-4">No leads yet. Start a scrape!</p>
+              )}
+            </div>
+
+            {/* Right: Map */}
+            <div className="flex-1 relative" style={{ minHeight: '460px' }}>
+              {allMapPoints.length > 0 || workersOnMap.length > 0 ? (
+                <MapContainer
+                  center={workersOnMap.length > 0 ? workersOnMap[0].coords : (mapVendors.length > 0 ? [mapVendors[0].safeLat, mapVendors[0].safeLng] : [17.385, 78.4867])}
+                  zoom={7}
+                  style={{ width: '100%', height: '100%', minHeight: '460px' }}
+                  zoomControl={false}
+                  attributionControl={false}
+                >
+                  <TileLayer
+                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                    attribution=""
+                  />
+                  <MapBounds points={allMapPoints.length > 0 ? allMapPoints : workersOnMap.map(w => ({ lat: w.coords[0], lng: w.coords[1] }))} />
+                  
+                  {/* Vendor dots */}
+                  {mapVendors.map((vendor, i) => (
+                    <Marker key={`v-${i}`} position={[vendor.safeLat, vendor.safeLng]} icon={makeVendorDot(!!vendor.phone)}>
+                      <Popup className="dark-popup">
+                        <div style={{ background: '#1a1a2e', color: 'white', padding: '8px', borderRadius: '8px', minWidth: '140px', fontSize: '11px' }}>
+                          <p style={{ fontWeight: 900, marginBottom: 4 }}>{vendor.name}</p>
+                          <p style={{ color: '#94a3b8', marginBottom: 2 }}>{vendor.category}</p>
+                          {vendor.phone && <p style={{ color: '#10b981', fontWeight: 700 }}>{vendor.phone}</p>}
+                        </div>
+                      </Popup>
+                    </Marker>
+                  ))}
+
+                  {/* Worker pins */}
+                  {workersOnMap.map((worker, i) => (
+                    <React.Fragment key={`w-${worker.id}`}>
+                      <Circle
+                        center={worker.coords}
+                        radius={15000}
+                        pathOptions={{ color: worker.color, fillColor: worker.color, fillOpacity: 0.08, weight: 1, dashArray: '4 4' }}
+                      />
+                      <Marker position={worker.coords} icon={makeWorkerIcon(worker.color, worker.name)}>
+                        <Popup className="dark-popup">
+                          <div style={{ background: '#1a1a2e', color: 'white', padding: '10px', borderRadius: '10px', minWidth: '160px', fontSize: '11px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                              <div style={{ width: 32, height: 32, borderRadius: 8, background: worker.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: 'white' }}>
+                                {worker.name[0]}
+                              </div>
+                              <div>
+                                <p style={{ fontWeight: 900, margin: 0 }}>{worker.name}</p>
+                                <p style={{ color: '#94a3b8', margin: 0 }}>{worker.location}</p>
+                              </div>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                              <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 6, padding: '4px 8px', textAlign: 'center' }}>
+                                <p style={{ fontWeight: 900, margin: 0 }}>{(vendors || []).filter(v => v.assignedTo === worker.id).length}</p>
+                                <p style={{ color: '#94a3b8', fontSize: 9, margin: 0 }}>LEADS</p>
+                              </div>
+                              <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 6, padding: '4px 8px', textAlign: 'center' }}>
+                                <p style={{ fontWeight: 900, margin: 0, color: worker.isActive ? '#10b981' : '#6b7280' }}>{worker.isActive ? '● ACTIVE' : '○ IDLE'}</p>
+                                <p style={{ color: '#94a3b8', fontSize: 9, margin: 0 }}>STATUS</p>
+                              </div>
+                            </div>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    </React.Fragment>
+                  ))}
+                </MapContainer>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center flex-col gap-4" style={{ minHeight: '460px' }}>
+                  <motion.div
+                    animate={{ opacity: [0.4, 0.8, 0.4] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                    style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)' }}
+                  >
+                    <Map size={28} style={{ color: '#7c3aed' }} />
+                  </motion.div>
+                  <div className="text-center">
+                    <p className="text-white/50 font-bold text-sm">Map activates when scraping starts</p>
+                    <p className="text-white/25 text-xs mt-1">Worker pins appear based on their assigned city</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Map legend overlay */}
+              <div className="absolute top-4 right-4 rounded-xl p-3 z-[500]" style={{ background: 'rgba(15,15,26,0.85)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <p className="text-[9px] text-white/40 font-black uppercase tracking-widest mb-2">Legend</p>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] font-black text-white" style={{ background: '#7c3aed' }}>W</div>
+                    <span className="text-white/60 text-[10px] font-medium">Worker</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: '#10b981', border: '1.5px solid rgba(255,255,255,0.5)' }} />
+                    <span className="text-white/60 text-[10px] font-medium">Lead w/ Phone</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: '#f59e0b', border: '1.5px solid rgba(255,255,255,0.5)' }} />
+                    <span className="text-white/60 text-[10px] font-medium">Lead no Phone</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

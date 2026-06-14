@@ -111,6 +111,15 @@ function emitActivePointEvent(pointInfo) {
   } catch (e) { console.error('Failed to emit active_point SSE', e.message); }
 }
 
+function emitProgressEvent(progressInfo) {
+  try {
+    const safe = JSON.stringify(progressInfo).replace(/\n/g, '\\n');
+    sseClients.forEach(res => {
+      try { res.write('event: progress\n'); res.write(`data: ${safe}\n\n`); } catch (e) {}
+    });
+  } catch (e) { console.error('Failed to emit progress SSE', e.message); }
+}
+
 // Database is now completely local and loads synchronously.
 
 // Initialize the job queue
@@ -122,7 +131,7 @@ let globalAbortSignal = { aborted: false };
 
 // Inject dependencies into routers
 setLogGetter(() => systemLogs);
-setDeps({ logger: addLog, abortSignal: globalAbortSignal, emitVendorEvent, emitGridEvent, emitActivePointEvent, emitInterventionEvent, emitDispatchEvent });
+setDeps({ logger: addLog, abortSignal: globalAbortSignal, emitVendorEvent, emitGridEvent, emitActivePointEvent, emitInterventionEvent, emitDispatchEvent, emitProgressEvent });
 const { setInterventionEmitter } = require('./src/utils/manualIntervention');
 setInterventionEmitter(emitInterventionEvent);
 

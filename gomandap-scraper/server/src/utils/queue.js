@@ -1,15 +1,12 @@
-// Persistent Queue to replace BullMQ and Redis (Removes ECONNREFUSED 127.0.0.1:6379 errors)
+// Persistent Queue with In-Memory Buffering (Removes I/O Blocking and ECONNREFUSED 127.0.0.1:6379 errors)
 const fs = require('fs');
 const path = require('path');
 
 const JOBS_FILE = path.join(__dirname, '../../data/jobs.json');
 
-// Ensure jobs file exists
+// Ensure jobs folder exists
 if (!fs.existsSync(path.dirname(JOBS_FILE))) {
   fs.mkdirSync(path.dirname(JOBS_FILE), { recursive: true });
-}
-if (!fs.existsSync(JOBS_FILE)) {
-  fs.writeFileSync(JOBS_FILE, JSON.stringify([]));
 }
 
 let globalDeps = {
@@ -17,8 +14,40 @@ let globalDeps = {
   abortSignal: { aborted: false }
 };
 
+let inMemoryQueue = [];
+let queueWriteTimeout = null;
+
+function loadQueue() {
+  if (fs.existsSync(JOBS_FILE)) {
+    try {
+      inMemoryQueue = JSON.parse(fs.readFileSync(JOBS_FILE, 'utf-8')) || [];
+      globalDeps.logger(`[Queue] Resumed ${inMemoryQueue.length} jobs from persistent disk store.`);
+    } catch (e) {
+      inMemoryQueue = [];
+    }
+  } else {
+    inMemoryQueue = [];
+  }
+}
+
+function _flushQueueToDisk() {
+  try {
+    fs.writeFile(JOBS_FILE, JSON.stringify(inMemoryQueue), (err) => {
+      if (err) console.error('[Queue] Failed to write persistent jobs file:', err.message);
+    });
+  } catch (err) {
+    console.error('[Queue] Sync write error:', err.message);
+  }
+}
+
+function savePersistentQueue() {
+  clearTimeout(queueWriteTimeout);
+  queueWriteTimeout = setTimeout(_flushQueueToDisk, 500);
+}
+
 function initQueue(deps) {
   globalDeps = { ...globalDeps, ...deps };
+  loadQueue();
   // Resume any jobs that were pending/running when the server restarted
   setTimeout(processQueue, 2000); 
 }
@@ -31,56 +60,95 @@ function registerTask(name, fn) {
 }
 
 function getPersistentQueue() {
-  try {
-    return JSON.parse(fs.readFileSync(JOBS_FILE, 'utf-8')) || [];
-  } catch (e) {
-    return [];
-  }
-}
-
-function savePersistentQueue(queueData) {
-  try {
-    fs.writeFileSync(JOBS_FILE, JSON.stringify(queueData, null, 2));
-  } catch (e) {
-    console.error('[Queue] Failed to save queue state:', e);
-  }
+  return inMemoryQueue;
 }
 
 let isProcessing = false;
 let activeCount = 0;
-// Capped at 1 for ultra-stable sequential scraping
-const CONCURRENCY = 1;
+let playwrightActiveCount = 0;
+// Max total active HTTP/Cheerio jobs for blazing speed
+const MAX_CONCURRENCY = 10; 
+// Max heavy Playwright Chromium jobs - 10 parallel browsers
+const PLAYWRIGHT_CONCURRENCY = 10;
+
+const activeJobs = new Map();
 
 async function processQueue() {
   if (isProcessing) return;
   isProcessing = true;
 
-  while (activeCount < CONCURRENCY) {
-    if (globalDeps.abortSignal.aborted) {
-      savePersistentQueue([]); // Clear queue on abort
-      globalDeps.logger(`[Queue] Queue cleared due to master abort.`);
-      break;
+  try {
+    while (true) {
+      if (globalDeps.abortSignal.aborted) {
+        inMemoryQueue = [];
+        savePersistentQueue();
+        globalDeps.logger(`[Queue] Queue cleared due to master abort.`);
+        break;
+      }
+
+      if (inMemoryQueue.length === 0) break;
+
+      // Find the first job that we have a slot available for
+      let jobIndex = -1;
+      let isPlaywrightJob = false;
+
+      for (let i = 0; i < inMemoryQueue.length; i++) {
+        if (!inMemoryQueue[i]) continue;
+        const isPlaywright = inMemoryQueue[i].taskName === 'scrapeGooglePlaces';
+        if (isPlaywright && playwrightActiveCount < PLAYWRIGHT_CONCURRENCY) {
+          jobIndex = i;
+          isPlaywrightJob = true;
+          break;
+        }
+        if (!isPlaywright && (activeCount - playwrightActiveCount) < MAX_CONCURRENCY) {
+          jobIndex = i;
+          isPlaywrightJob = false;
+          break;
+        }
+      }
+
+      if (jobIndex === -1) {
+        // No slots available for any job in the queue currently
+        break;
+      }
+
+      // Extract the runnable job
+      const job = inMemoryQueue.splice(jobIndex, 1)[0];
+      savePersistentQueue(); // Debounced disk save
+      
+      if (job) {
+        startJobExecution(job, isPlaywrightJob);
+      }
     }
+  } catch (err) {
+    console.error('[Queue Error] Error in processQueue loop:', err.message);
+  } finally {
+    isProcessing = false;
+  }
+}
 
-    const queue = getPersistentQueue();
-    if (queue.length === 0) break;
-
-    // Shift the first job off the disk queue
-    const job = queue.shift();
-    savePersistentQueue(queue); // Update disk state immediately
-    
+// Rest of worker code remains identical for stability
+function startJobExecution(job, isPlaywright) {
     activeCount++;
-    const instanceId = Math.random().toString(36).substr(2, 5).toUpperCase();
+    if (isPlaywright) playwrightActiveCount++;
     
-    // Fire and forget, but handle completion/error
-    processJob(job, instanceId).finally(() => {
+    const instanceId = Math.random().toString(36).substr(2, 5).toUpperCase();
+    activeJobs.set(instanceId, job);
+    
+    // Staged boot logic for Playwright
+    const delay = Promise.resolve(); // No staged delay - launch all workers instantly
+    
+    delay.then(() => processJob(job, instanceId)).finally(() => {
       activeCount--;
+      if (isPlaywright) playwrightActiveCount--;
+      activeJobs.delete(instanceId);
       // Trigger next process loop without blowing up stack
       setImmediate(processQueue);
     });
-  }
+}
 
-  isProcessing = false;
+function getActiveJobs() {
+  return Array.from(activeJobs.values());
 }
 
 async function processJob(job, instanceId) {
@@ -114,16 +182,16 @@ async function processJob(job, instanceId) {
 }
 
 async function addScrapeJob(taskName, args, priority = 10, meta = null) {
-  const queue = getPersistentQueue();
-  queue.push({ taskName, args, priority, meta });
-  queue.sort((a, b) => b.priority - a.priority);
-  savePersistentQueue(queue);
+  inMemoryQueue.push({ taskName, args, priority, meta });
+  inMemoryQueue.sort((a, b) => b.priority - a.priority);
+  savePersistentQueue();
   
   processQueue(); // Kick off processing if not already running
 }
 
 async function clearQueue() {
-  savePersistentQueue([]);
+  inMemoryQueue = [];
+  savePersistentQueue();
   globalDeps.logger(`[Queue] Persistent queue obliterated.`);
 }
 
@@ -131,5 +199,7 @@ module.exports = {
   initQueue,
   registerTask,
   addScrapeJob,
-  clearQueue
+  clearQueue,
+  getPersistentQueue,
+  getActiveJobs
 };

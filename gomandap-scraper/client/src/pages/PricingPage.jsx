@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Check, ArrowLeft, Zap, Sparkles, Building2, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { API_URL } from '../../apiConfig';
+import { API_URL } from '../apiConfig';
 
 export default function PricingPage() {
   const navigate = useNavigate();

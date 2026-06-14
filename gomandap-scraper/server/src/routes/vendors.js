@@ -16,8 +16,13 @@ const saveUpdatedVendor = (vendors, updated) => {
 // API: Get all staging leads (vendors)
 router.get('/', (req, res) => {
   try {
-    const { userId } = req.query;
+    const { userId, since } = req.query;
     let data = dbAdapter.getVendors() || [];
+    
+    if (since && Number(since) > 0) {
+      const sinceTime = new Date(Number(since)).getTime();
+      data = data.filter(v => v.scrapedAt && new Date(v.scrapedAt).getTime() > sinceTime);
+    }
     
     // Sort descending by scrapedAt
     data.sort((a, b) => new Date(b.scrapedAt) - new Date(a.scrapedAt));
@@ -52,7 +57,12 @@ router.get('/', (req, res) => {
 // API: Get all out-of-bounds leads
 router.get('/out-of-bounds', (req, res) => {
   try {
+    const { since } = req.query;
     let data = dbAdapter.getOutOfBounds() || [];
+    if (since && Number(since) > 0) {
+      const sinceTime = new Date(Number(since)).getTime();
+      data = data.filter(v => v.scrapedAt && new Date(v.scrapedAt).getTime() > sinceTime);
+    }
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });

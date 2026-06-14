@@ -29,16 +29,46 @@ function parseNaturalLanguageQuery(rawQuery) {
     const splitIndex = match.index;
     rawCategory = cleanText.substring(0, splitIndex).trim();
     rawLocation = cleanText.substring(splitIndex + match[0].length).trim();
+  } else {
+    // Fallback: split on known states if no preposition is found
+    const stateKeywords = ['telangana', 'andhra pradesh'];
+    for (const state of stateKeywords) {
+      const idx = cleanText.lastIndexOf(state);
+      if (idx !== -1 && idx > 0) {
+        const beforeChar = cleanText[idx - 1];
+        if (beforeChar === ' ' || beforeChar === ',') {
+          rawCategory = cleanText.substring(0, idx).trim();
+          rawLocation = cleanText.substring(idx).trim();
+          break;
+        }
+      }
+    }
   }
 
-  // Pass Category and Location exactly as typed to allow infinite flexibility!
+  // CLEAN CATEGORY: Strip state keywords, administrative prefixes/suffixes, and deduplicate words
   let finalCategory = rawCategory;
-  let finalLocation = rawLocation;
+  if (finalCategory) {
+    let cleanCat = finalCategory.toLowerCase().trim();
+    
+    // Strip administrative keywords at start/end of category
+    cleanCat = cleanCat.replace(/^(state|district|mandal|tehsil|village|districts|states|mandals|villages)\s+/gi, '');
+    cleanCat = cleanCat.replace(/\s+(state|district|mandal|tehsil|village|districts|states|mandals|villages)$/gi, '');
+    
+    const stateKeywords = ['telangana', 'andhra pradesh'];
+    for (const state of stateKeywords) {
+      cleanCat = cleanCat.replace(new RegExp(state, 'gi'), '');
+    }
+    
+    const words = cleanCat.trim().split(/\s+/).filter(Boolean);
+    const uniqueWords = [...new Set(words)];
+    // Capitalize first letter of each word
+    finalCategory = uniqueWords.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
 
   return {
     category: finalCategory,
-    location: finalLocation,
-    correctedQuery: `${finalCategory} ${rawLocation ? 'in ' + finalLocation : ''}`.trim()
+    location: rawLocation,
+    correctedQuery: `${finalCategory} ${rawLocation ? 'in ' + rawLocation : ''}`.trim()
   };
 }
 

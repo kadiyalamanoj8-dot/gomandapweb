@@ -10,6 +10,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useScraper } from '../../context/ScraperContext';
+import { FixedSizeList as VirtualList } from 'react-window';
 
 // Fix Leaflet's default icon path issues
 delete L.Icon.Default.prototype._getIconUrl;
@@ -215,18 +216,32 @@ export default function LeadsPage() {
 
         {/* LIST VIEW */}
         {view === 'list' && (
-          <div className="space-y-3">
+          <div className="h-[600px] w-full rounded-2xl bg-white/50 backdrop-blur-xl border border-white shadow-xl overflow-hidden p-2">
             {(filteredVendors || []).length === 0 ? (
               <div className="py-20 flex flex-col items-center text-gray-400">
                 <Database size={40} className="mb-4 opacity-20" />
                 <p className="font-bold">No leads to display</p>
               </div>
             ) : (
-              (filteredVendors || []).map((vendor, idx) => (
-                <VendorCard key={vendor.id || idx} vendor={vendor} employees={employees || []}
-                  onVerify={handleVerify} onDelete={handleDelete} onAssign={handleAssign}
-                  onClick={() => setSelectedVendor(vendor)} />
-              ))
+              <VirtualList
+                height={580}
+                itemCount={(filteredVendors || []).length}
+                itemSize={95}
+                width="100%"
+                itemData={filteredVendors || []}
+                className="custom-scrollbar"
+              >
+                {({ index, style, data }) => {
+                  const vendor = data[index];
+                  return (
+                    <div style={{ ...style, padding: '0 8px', paddingBottom: '12px' }}>
+                      <VendorCard vendor={vendor} employees={employees || []}
+                        onVerify={handleVerify} onDelete={handleDelete} onAssign={handleAssign}
+                        onClick={() => setSelectedVendor(vendor)} />
+                    </div>
+                  );
+                }}
+              </VirtualList>
             )}
           </div>
         )}
@@ -458,49 +473,49 @@ function ContactRow({ icon, label, value, color }) {
 function VendorCard({ vendor, employees, onVerify, onDelete, onAssign, onClick }) {
   return (
     <div onClick={onClick}
-      className="group bg-white rounded-2xl border border-gray-100 hover:border-violet-200 hover:shadow-lg hover:shadow-violet-50/50 transition-all p-4 cursor-pointer">
-      <div className="flex items-center gap-4">
-        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-50 to-indigo-100 flex items-center justify-center text-violet-600 font-black text-lg flex-shrink-0">
+      className="group bg-white/80 backdrop-blur-md rounded-2xl border border-gray-100 hover:border-violet-300 hover:shadow-xl hover:shadow-violet-100/50 transition-all p-4 cursor-pointer h-full flex items-center relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-r from-violet-50/0 via-violet-50/0 to-violet-50/50 opacity-0 group-hover:opacity-100 transition-opacity" pointerEvents="none" />
+      <div className="flex items-center gap-4 w-full relative z-10">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-fuchsia-100 flex items-center justify-center text-violet-700 font-black text-xl flex-shrink-0 shadow-sm border border-white">
           {vendor.name?.[0] || '?'}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="font-bold text-gray-900 truncate">{vendor.name}</p>
-            {vendor.verified && <CheckCircle2 size={14} className="text-green-500 flex-shrink-0" />}
+            <p className="font-extrabold text-gray-900 truncate tracking-tight">{vendor.name}</p>
+            {vendor.verified && <CheckCircle2 size={15} className="text-emerald-500 flex-shrink-0" fill="currentColor" />}
           </div>
-          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            <span className="text-xs text-gray-400">{vendor.category}</span>
-            {vendor.city && <span className="text-xs text-gray-300">·</span>}
-            {vendor.city && <span className="text-xs text-gray-400 flex items-center gap-0.5"><MapPin size={9} />{vendor.city}</span>}
-            {vendor.rating && <span className="text-xs text-amber-500 flex items-center gap-0.5"><Star size={9} />{vendor.rating}</span>}
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <span className="text-xs font-semibold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">{vendor.category}</span>
+            {vendor.city && <span className="text-xs font-medium text-gray-400 flex items-center gap-1"><MapPin size={10} className="text-gray-300"/>{vendor.city}</span>}
+            {vendor.rating && <span className="text-xs font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md flex items-center gap-1"><Star size={10} className="fill-amber-400 text-amber-400" />{vendor.rating}</span>}
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {vendor.phone && (
-            <span className="flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-lg border border-green-100">
-              <Phone size={10} /> {vendor.phone.length > 13 ? vendor.phone.slice(0, 13) + '...' : vendor.phone}
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-xl border border-emerald-100 shadow-sm">
+              <Phone size={12} /> {vendor.phone.length > 13 ? vendor.phone.slice(0, 13) + '...' : vendor.phone}
             </span>
           )}
           {vendor.Camera && (
-            <span className="flex items-center gap-1 px-2.5 py-1 bg-pink-50 text-pink-700 text-xs font-semibold rounded-lg border border-pink-100">
-              <Camera size={10} />
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-pink-50 text-pink-700 text-xs font-bold rounded-xl border border-pink-100 shadow-sm">
+              <Camera size={12} />
             </span>
           )}
           {vendor.email && (
-            <span className="flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg border border-blue-100">
-              <Mail size={10} />
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-bold rounded-xl border border-blue-100 shadow-sm">
+              <Mail size={12} />
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
           <button onClick={() => onVerify(vendor.id, !vendor.verified)}
-            className={`p-1.5 rounded-lg transition-colors ${vendor.verified ? 'text-green-500 bg-green-50' : 'text-gray-300 hover:text-green-500 hover:bg-green-50'}`}
+            className={`p-2 rounded-xl transition-all shadow-sm ${vendor.verified ? 'text-emerald-600 bg-emerald-100 hover:bg-emerald-200' : 'text-gray-400 bg-gray-50 border border-gray-100 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-100'}`}
             title="Verify">
-            <CheckCircle2 size={15} />
+            <CheckCircle2 size={16} />
           </button>
           <button onClick={() => onDelete(vendor.id)}
-            className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors" title="Delete">
-            <Trash2 size={15} />
+            className="p-2 rounded-xl text-gray-400 bg-gray-50 border border-gray-100 hover:text-red-600 hover:bg-red-50 hover:border-red-100 transition-all shadow-sm" title="Delete">
+            <Trash2 size={16} />
           </button>
         </div>
       </div>

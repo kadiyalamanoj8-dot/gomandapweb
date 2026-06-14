@@ -1,0 +1,3901 @@
+{
+  "telangana": {
+    "level": "state",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Adilabad",
+        "mandals": [
+          "Adilabad",
+          "Bela",
+          "Bazarhatnoor",
+          "Boath",
+          "Dandepalli",
+          "Gudihathnoor",
+          "Ichoda",
+          "Indervelli",
+          "Jainad",
+          "Jainoor",
+          "Kaddam",
+          "Kerameri",
+          "Khanapur",
+          "Laxmanchanda",
+          "Lokeshwaram",
+          "Mancherial",
+          "Mandamarri",
+          "Narnoor",
+          "Neradigonda",
+          "Sarangapur",
+          "Talamadugu",
+          "Tamsi",
+          "Utnoor",
+          "Vemanpalli"
+        ]
+      },
+      {
+        "districtName": "Bhadradri Kothagudem",
+        "mandals": [
+          "Annapureddypally",
+          "Aswaraopeta",
+          "Bhadrachalam",
+          "Chandrugonda",
+          "Cherla",
+          "Dammapeta",
+          "Dummugudem",
+          "Elagandalapalli",
+          "Gundala",
+          "Julloor",
+          "Kamepalli",
+          "Karepalli",
+          "Kothagudem",
+          "Laxmidevipalli",
+          "Manuguru",
+          "Mulakalapalli",
+          "Palwancha",
+          "Sujathanagar",
+          "Tekulapalli",
+          "Yellandu"
+        ]
+      },
+      {
+        "districtName": "Hanumakonda",
+        "mandals": [
+          "Bheemdevarapalli",
+          "Dharmasagar",
+          "Ellanthakunta",
+          "Hanumakonda",
+          "Hasanparthy",
+          "Inavole",
+          "Kamalapur",
+          "Kazipet",
+          "Kodakandla",
+          "Kothapalli",
+          "Mallapur",
+          "Mallial",
+          "Parvathagiri",
+          "Sangem",
+          "Shayampet",
+          "Velair",
+          "Warangal",
+          "Wardhannapet"
+        ]
+      },
+      {
+        "districtName": "Hyderabad",
+        "mandals": [
+          "Ameerpet",
+          "Asifnagar",
+          "Bahadurpura",
+          "Bandlaguda",
+          "Charminar",
+          "Golconda",
+          "Himayatnagar",
+          "Khairatabad",
+          "Kukatpally",
+          "Malkajgiri",
+          "Marredpally",
+          "Musheerabad",
+          "Nampally",
+          "Secunderabad",
+          "Shaikpet",
+          "Shamshabad",
+          "Uppal",
+          "Yakutpura"
+        ]
+      },
+      {
+        "districtName": "Jagtial",
+        "mandals": [
+          "Buggaram",
+          "Dharmapuri",
+          "Gollapalli",
+          "Jagtial",
+          "Kodimial",
+          "Kothapalli",
+          "Mallapur",
+          "Medipalli",
+          "Metpalli",
+          "Mortad",
+          "Raikal",
+          "Sarangapur",
+          "Velpur",
+          "Vemulawada",
+          "Wirur"
+        ]
+      },
+      {
+        "districtName": "Jangaon",
+        "mandals": [
+          "Bachannapet",
+          "Chilpur",
+          "Devaruppula",
+          "Jangaon",
+          "Kodakandla",
+          "Lingalaghanpur",
+          "Madipally",
+          "Narmetta",
+          "Nidigonda",
+          "Palmela",
+          "Raghunathpalle",
+          "Rebarthi",
+          "Tarigoppula",
+          "Zaffergadh"
+        ]
+      },
+      {
+        "districtName": "Jayashankar Bhupalpally",
+        "mandals": [
+          "Bhupalpally",
+          "Chityal",
+          "Choppadandi",
+          "Devaruppula",
+          "Ghanpur (Mulug)",
+          "Ghanpur (Stn)",
+          "Kathalapur",
+          "Malharrao",
+          "Mangapet",
+          "Mulug",
+          "Palimela",
+          "Regonda",
+          "Tekumatla"
+        ]
+      },
+      {
+        "districtName": "Jogulamba Gadwal",
+        "mandals": [
+          "Gadwal",
+          "Dharur",
+          "Maldakal",
+          "Ghattu",
+          "Rajoli",
+          "Manopad",
+          "Itikyal",
+          "Kaloor-Timmanpad",
+          "Undavelly",
+          "Aiza",
+          "Gadwal Rural"
+        ]
+      },
+      {
+        "districtName": "Kamareddy",
+        "mandals": [
+          "Bhiknoor",
+          "Bichkunda",
+          "Domakonda",
+          "Gandhari",
+          "Jukkal",
+          "Kamareddy",
+          "Kodapgal",
+          "Madnoor",
+          "Nagireddy Pet",
+          "Nasrullabad",
+          "Pedda Kodapgal",
+          "Pitlam",
+          "Ramareddy",
+          "Sadashivanagar",
+          "Sadasivanagar",
+          "Tadwai"
+        ]
+      },
+      {
+        "districtName": "Karimnagar",
+        "mandals": [
+          "Bejjam",
+          "Bommakal",
+          "Chandurthi",
+          "Chigurumamidi",
+          "Choppadandi",
+          "Elgaid",
+          "Ellanthakunta",
+          "Gangadhara Nellore",
+          "Gambhiraopet",
+          "Huzurabad",
+          "Jammikunta",
+          "Kamalapur",
+          "Karimnagar",
+          "Kathalapur",
+          "Keshavapatnam",
+          "Kothapalli",
+          "Manakondur",
+          "Mallapur",
+          "Mallial",
+          "Musthabad",
+          "Peddapalli",
+          "Ramadugu",
+          "Rudrangi",
+          "Saidapur",
+          "Shankarapatnam",
+          "Thimmapur"
+        ]
+      },
+      {
+        "districtName": "Khammam",
+        "mandals": [
+          "Kallur",
+          "Khammam (Urban)",
+          "Khammam (Rural)",
+          "Madhira",
+          "Mudigonda",
+          "Nelakondapalli",
+          "Penuballi",
+          "Raghunadhapalem",
+          "Sathupalli",
+          "Thirumalayapalem",
+          "Wazeed",
+          "Bonakal",
+          "Chintakani",
+          "Enkoor",
+          "Kamepalli",
+          "Kusumanchi",
+          "Konijerla",
+          "Kothagudem",
+          "Yerrupalem",
+          "Tallada",
+          "Singareni"
+        ]
+      },
+      {
+        "districtName": "Kumuram Bheem Asifabad",
+        "mandals": [
+          "Asifabad",
+          "Kagaznagar",
+          "Sirpur (T)",
+          "Kouthala",
+          "Bejjur",
+          "Rebbena",
+          "Tiryani",
+          "Wankidi",
+          "Kerameri",
+          "Dahegaon",
+          "Jainoor",
+          "Sirpur (U)",
+          "Kumuram Bheem",
+          "Lingapur",
+          "Chintalamanepalli"
+        ]
+      },
+      {
+        "districtName": "Mahabubabad",
+        "mandals": [
+          "Bayyaram",
+          "Gudur",
+          "Kesamudram",
+          "Kothaguda",
+          "Mahabubabad",
+          "Maripeda",
+          "Nellikudur",
+          "Nerada",
+          "Pedda Bayyaram",
+          "Thorrur",
+          "Gangaram",
+          "Chinnagudur",
+          "Danthalapally",
+          "Kuravi"
+        ]
+      },
+      {
+        "districtName": "Mahabubnagar",
+        "mandals": [
+          "Addakal",
+          "Balanagar",
+          "Bhoothpur",
+          "Bomraspet",
+          "Chinnachintakunta",
+          "Devarakadra",
+          "Dhanwada",
+          "Gadwal",
+          "Ghattu",
+          "Hanwada",
+          "Jadcherla",
+          "Keshampet",
+          "Kodair",
+          "Kothakota",
+          "Kothur",
+          "Maddur",
+          "Mahabubnagar",
+          "Midjil",
+          "Mothkur",
+          "Nagarkurnool",
+          "Narayanpet",
+          "Nawabpet",
+          "Peddamandadi",
+          "Shadnagar",
+          "Shanthinagar",
+          "Utkoor",
+          "Veldanda",
+          "Waddepalle"
+        ]
+      },
+      {
+        "districtName": "Mancherial",
+        "mandals": [
+          "Bellampalli",
+          "Chennur",
+          "Dandepalli",
+          "Hajipur",
+          "Jaipur",
+          "Kannepalli",
+          "Kasipet",
+          "Luxettipet",
+          "Mancherial",
+          "Mandamarri",
+          "Naspur",
+          "Nennal",
+          "Ramakrishnapur"
+        ]
+      },
+      {
+        "districtName": "Medak",
+        "mandals": [
+          "Shankarampet(a)",
+          "Kowdipalli",
+          "Chilipched",
+          "Narsapur",
+          "Toopran",
+          "Gajwel",
+          "Jinnaram",
+          "Dhoolimitta",
+          "Kondapak",
+          "Mirdoddi",
+          "Narayankhed",
+          "Zahirabad",
+          "Kangti",
+          "Siddipet",
+          "Gajwel",
+          "Wargal",
+          "Dubbak",
+          "Manoharabad",
+          "Narsingi",
+          "Chegunt"
+        ]
+      },
+      {
+        "districtName": "Medchal-Malkajgiri",
+        "mandals": [
+          "Alwal",
+          "Dundigal",
+          "Gandipet",
+          "Kapra",
+          "Keesara",
+          "Kukatpally",
+          "Malkajgiri",
+          "Medchal",
+          "Miyapur",
+          "Qutbullapur",
+          "Shamirpet"
+        ]
+      },
+      {
+        "districtName": "Mulugu",
+        "mandals": [
+          "Venkatapur",
+          "Govindaraopet",
+          "Mulugu",
+          "Tadvai",
+          "Mangapet",
+          "Kannaigudem",
+          "Eturunagaram",
+          "Venkatapuram",
+          "Cherla",
+          "Keshavapatnam",
+          "Siddapur"
+        ]
+      },
+      {
+        "districtName": "Nagarkurnool",
+        "mandals": [
+          "Achampet",
+          "Amrabad",
+          "Bijinepally",
+          "Chandampet",
+          "Chauvapally",
+          "Kalwakurthy",
+          "Kollapur",
+          "Lingal",
+          "Nagarkurnool",
+          "Pedda Kothapally",
+          "Pothpur",
+          "Tadoor",
+          "Telkapally",
+          "Thimmajipet",
+          "Uppunuthala",
+          "Vangoor",
+          "Veldanda"
+        ]
+      },
+      {
+        "districtName": "Nalgonda",
+        "mandals": [
+          "Adavidevulapalle",
+          "Anumula",
+          "Atmakur",
+          "Bhongir",
+          "Bibinagar",
+          "Bommalaramaram",
+          "Chandur",
+          "Cheralapalle",
+          "Chinthakomma Dinne",
+          "Chityal",
+          "Devarakonda",
+          "Gundla Pochampally",
+          "Kattangoor",
+          "Kethepalle",
+          "Marriguda",
+          "Miryalaguda",
+          "Munugode",
+          "Nakrekal",
+          "Nalgonda",
+          "Narketpalle",
+          "Pedda Adiserla Palle",
+          "Peddavoora",
+          "Pochampally",
+          "Saligouraram",
+          "Thipparthi",
+          "Thiryal",
+          "Tripluram",
+          "Vemulapally",
+          "Yadadri"
+        ]
+      },
+      {
+        "districtName": "Narayanpet",
+        "mandals": [
+          "Damaragidda",
+          "Dhanwada",
+          "Kosgi",
+          "Maddur",
+          "Makthal",
+          "Marikal",
+          "Narayanpet",
+          "Nagarkurnool",
+          "Utkoor"
+        ]
+      },
+      {
+        "districtName": "Nirmal",
+        "mandals": [
+          "Bhainsa",
+          "Kaddam (Peddur)",
+          "Kubeer",
+          "Laxmanchanda",
+          "Mudhole",
+          "Nirmal",
+          "Soan",
+          "Dilawarpur",
+          "Khanapur",
+          "Kuntala",
+          "Lokeshwaram",
+          "Mamda",
+          "Sarangapur"
+        ]
+      },
+      {
+        "districtName": "Nizamabad",
+        "mandals": [
+          "Armoor",
+          "Balkonda",
+          "Banswada",
+          "Bhiknoor",
+          "Bichkunda",
+          "Bodhan",
+          "Dharpalle",
+          "Dichpalle",
+          "Domakonda",
+          "Gandhari",
+          "Kammarpalle",
+          "Mortad",
+          "Mupkal",
+          "Nandipet",
+          "Nizamabad",
+          "Ranjal",
+          "Sirkonda",
+          "Tadwai",
+          "Varni",
+          "Yellareddy",
+          "Yergatla"
+        ]
+      },
+      {
+        "districtName": "Peddapalli",
+        "mandals": [
+          "Peddapalli",
+          "Julapalli",
+          "Sultanabad",
+          "Idicherla",
+          "Kathalapur",
+          "Palakurthi",
+          "Odar",
+          "Ramagundam",
+          "Dharmaram",
+          "Ramagundam Rural",
+          "Anthergoan",
+          "Mutharam",
+          "Kamanpur"
+        ]
+      },
+      {
+        "districtName": "Rajanna Sircilla",
+        "mandals": [
+          "Yellareddipet",
+          "Gambhiraopet",
+          "Mustabad",
+          "Vemulawada",
+          "Rudrangi",
+          "Ellicpur",
+          "Sircilla",
+          "Thangallapalli",
+          "Veernapalli",
+          "Konaraopeta",
+          "Boinpalli",
+          "Chittapur",
+          "Muthyampet",
+          "Gollapalli"
+        ]
+      },
+      {
+        "districtName": "Rangareddy",
+        "mandals": [
+          "Abdullapurmet",
+          "Amberpet",
+          "Balapur",
+          "Chevella",
+          "Dommara Pochampally",
+          "Gandipet",
+          "Ghatkesar",
+          "Hayathnagar",
+          "Ibrahimpatnam",
+          "Kadthal",
+          "Kandukur",
+          "Keshampet",
+          "Kondurg",
+          "Kothur",
+          "Maheswaram",
+          "Manchal",
+          "Marpalle",
+          "Nandigama",
+          "Narsingi",
+          "Pedda Amberpet",
+          "Rajendranagar",
+          "Saroornagar",
+          "Shadnagar",
+          "Shamshabad",
+          "Tukkuguda",
+          "Uppal",
+          "Yacharam"
+        ]
+      },
+      {
+        "districtName": "Sangareddy",
+        "mandals": [
+          "Andhol",
+          "Ameenpur",
+          "Gummadidala",
+          "Hathnoora",
+          "Jharasangam",
+          "Kandi",
+          "Kongarakalan",
+          "Kondapur",
+          "Kowdipalli",
+          "Manoor",
+          "Munipalli",
+          "Narayankhed",
+          "Narsapur",
+          "Nyalkal",
+          "Patancheru",
+          "Pulkal",
+          "Ramachandrapuram",
+          "Ramadugu",
+          "Sadasivpet",
+          "Sangareddy",
+          "Sankarampet",
+          "Tirumalagiri",
+          "Vatpally",
+          "Zahirabad"
+        ]
+      },
+      {
+        "districtName": "Siddipet",
+        "mandals": [
+          "Akkannapet",
+          "Chinnakodur",
+          "Doultabad",
+          "Gajwel",
+          "Gundlapally",
+          "Jammikunta",
+          "Kondapak",
+          "Mirdoddi",
+          "Muthasani Palli",
+          "Nangnoor",
+          "Narayanraopet",
+          "Siddipet",
+          "Siddipet Rural",
+          "Thoguta",
+          "Wargal"
+        ]
+      },
+      {
+        "districtName": "Suryapet",
+        "mandals": [
+          "Athanapuri",
+          "Chilkur",
+          "Chivvemla",
+          "Garidepally",
+          "Gurrampode",
+          "Jajireddigudem",
+          "Kodad",
+          "Mothey",
+          "Nadigudem",
+          "Neradigonda",
+          "Palakeedu",
+          "Penpahad",
+          "Suryapet",
+          "Thirumalagiri",
+          "Thungathurthy"
+        ]
+      },
+      {
+        "districtName": "Vikarabad",
+        "mandals": [
+          "Bommaraspet",
+          "Bantwaram",
+          "Kodangal",
+          "Kosgi",
+          "Doma",
+          "Pargi",
+          "Dharur",
+          "Marpally",
+          "Mominpet",
+          "Nawabpet",
+          "Vikarabad",
+          "Pudur",
+          "Kulkacharla",
+          "Tandur",
+          "Basheerabad",
+          "Yalal",
+          "Doulatabad",
+          "Peddemul"
+        ]
+      },
+      {
+        "districtName": "Wanaparthy",
+        "mandals": [
+          "Amarachinta",
+          "Atmakur",
+          "Ghanpur",
+          "Gopalpeta",
+          "Kothakota",
+          "Madanapur",
+          "Pangal",
+          "Pebbair",
+          "Peddamandadi",
+          "Srirapuram",
+          "Veerlapally",
+          "Wanaparthy"
+        ]
+      },
+      {
+        "districtName": "Warangal",
+        "mandals": [
+          "Atmakur",
+          "Dharmasagar",
+          "Elkathurthy",
+          "Geesugonda",
+          "Huzurabad",
+          "Kamalapur",
+          "Kazipet",
+          "Khila Warangal",
+          "Kothapally",
+          "Parvathagiri",
+          "Raiparthy",
+          "Sangem",
+          "Shayampet",
+          "Velair",
+          "Warangal"
+        ]
+      },
+      {
+        "districtName": "Yadadri Bhuvanagiri",
+        "mandals": [
+          "Addaguduru",
+          "Aler",
+          "Bibinagar",
+          "Bommalaramaram",
+          "Choutuppal",
+          "Gandipalli",
+          "Keshavapur",
+          "Mothkur",
+          "Narayanpur",
+          "Narketpally",
+          "Pochampally",
+          "Rajapet",
+          "Ramannapet",
+          "Turkayamjal",
+          "Valigonda",
+          "Yadadri",
+          "Bhuvanagiri"
+        ]
+      }
+    ]
+  },
+  "andhra pradesh": {
+    "level": "state",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Alluri Sitharama Raju",
+        "mandals": [
+          "Chintapalle",
+          "Gangaraju Madugula",
+          "Mampa",
+          "Pedabayalu",
+          "Gudem Kotha Veedhi",
+          "Madranguda",
+          "Peda Bayalu",
+          "Y. Ramavaram",
+          "Addateegala",
+          "Etapaka",
+          "Yellesswaram",
+          "Gokavaram",
+          "Rampachodavaram",
+          "Devipatnam",
+          "Maredumilli",
+          "Vararamachandrapuram",
+          "Addatigala",
+          "Gundugolanu"
+        ]
+      },
+      {
+        "districtName": "Anakapalli",
+        "mandals": [
+          "Anakapalle",
+          "Atchutapuram",
+          "Butchayyapeta",
+          "Chodavaram",
+          "Devarapalle",
+          "Kasimkota",
+          "Kotauratla",
+          "Paravada",
+          "Pedagantyada",
+          "Pedapudi",
+          "Rambilli",
+          "Sabbavaram",
+          "Sankaram"
+        ]
+      },
+      {
+        "districtName": "Ananthapuramu",
+        "mandals": []
+      },
+      {
+        "districtName": "Annamayya",
+        "mandals": [
+          "Chandragiri",
+          "Chinnagottigallu",
+          "Gangavaram",
+          "Kalanuru",
+          "Kodur",
+          "Kuppam",
+          "Lakkireddipalli",
+          "Peddathippasamudram",
+          "Peddamandyam",
+          "Pulicherla",
+          "Ramasamudram",
+          "Rayachoti",
+          "Sambepalli",
+          "Tamballapalle",
+          "Thavanampalle",
+          "Veeraballi",
+          "Vepanjeri"
+        ]
+      },
+      {
+        "districtName": "Bapatla",
+        "mandals": [
+          "Amruthalur",
+          "Bapatla",
+          "Chirala",
+          "Karamchedu",
+          "Karempudi",
+          "Karakavalasa",
+          "Kollipara",
+          "Martur",
+          "Nagaram",
+          "Nizampatnam",
+          "Parchur",
+          "Pittalavanipalem",
+          "Santhamaguluru",
+          "Vemuru",
+          "Yeddanapudi"
+        ]
+      },
+      {
+        "districtName": "Chittoor",
+        "mandals": [
+          "B.Kothakota",
+          "Bangarupalem",
+          "Buchinaidu Khandriga",
+          "Chandragiri",
+          "Chinnagottigallu",
+          "Chittoor",
+          "Gangadhara Nellore",
+          "Gudipala",
+          "Gudiyattam",
+          "K.V.Puram",
+          "Kalakada",
+          "Kalikiri",
+          "Kangal",
+          "Kuppam",
+          "Lakkireddipalli",
+          "Mangalam",
+          "Nagari",
+          "Narayanavanam",
+          "Nindra",
+          "Nimbagallu",
+          "Peddanaickenpet",
+          "Peddapanjani",
+          "Penumuru",
+          "Pichatur",
+          "Pulicherla",
+          "Punganoor",
+          "Ramachandranagar",
+          "Ramakuppam",
+          "Ramasamudram",
+          "Reniavasa",
+          "Santhipuram",
+          "Sathyavedu",
+          "Sodam",
+          "Somala",
+          "Srikalahasti",
+          "Thavanampalle",
+          "Thottambedu",
+          "Tirupathur",
+          "Vadamalapeta",
+          "Vakada",
+          "Varadaiahpalem",
+          "Vedurukuppam",
+          "Vepagunta",
+          "Vijayapuram",
+          "Yadamarri",
+          "Yerpedu"
+        ]
+      },
+      {
+        "districtName": "East Godavari",
+        "mandals": [
+          "Addateegala",
+          " Ainavilli",
+          " Alamuru",
+          " Allavaram",
+          " Amalapuram",
+          " Ambajipeta",
+          " Anaparthy",
+          " Atreyapuram",
+          " Biccavolu",
+          " Bodhan",
+          " Devipatnam",
+          " Gandepalli",
+          " Gangavaram",
+          " Gokavaram",
+          " Gollaprolu",
+          " Gollprice",
+          " I. Polavaram",
+          " K. Gangavaram",
+          " K.Gangavaram",
+          " Kapileswarapuram",
+          " Karapa",
+          " Katrenikona",
+          " Kothapalli",
+          " Kothapeta",
+          " Kovvada",
+          " Kuduru",
+          " Malikipuram",
+          " Mandapam",
+          " Mandapeta",
+          " Marrivanipalem",
+          " Pedapudi",
+          " Peddapuram",
+          " P.Gannavaram",
+          " Pithapuram",
+          " Prathipadu",
+          " Razole",
+          " Ravikamatham",
+          " Rayavaram",
+          " Ramachandrapuram",
+          " Ramakrishnanagar",
+          " Rangampeta",
+          " Routhulapudi",
+          " Sakhinetipalli",
+          " Samarlakota",
+          " Saravakota",
+          " Seethanagaram",
+          " Tallapudi",
+          " Tantadi",
+          " Thondangi",
+          " Totharamudi",
+          " Tuni",
+          " Uppalaguptam",
+          " Yeleswaram"
+        ]
+      },
+      {
+        "districtName": "Eluru",
+        "mandals": [
+          "Denduluru",
+          "Pedapadu",
+          "Pedavegi",
+          "Bhimadole",
+          "Eluru",
+          "Dwaraka Tirumala",
+          "Gopalapuram",
+          "Kamvarapukota",
+          "Kovvur",
+          "Lingapalem",
+          "Mandavalli",
+          "Mudinepalli",
+          "Nidamarru",
+          "Nuzvid",
+          "Pedana",
+          "Penchalakoneru",
+          "Reddigudem",
+          "Allavaram",
+          "Chintalapudi",
+          "Devarapalle",
+          "Ganapavaram",
+          "Kalla",
+          "Kalidindi",
+          "Mandavalli"
+        ]
+      },
+      {
+        "districtName": "Guntur",
+        "mandals": [
+          "Achampet",
+          "Amruthalur",
+          "Bapatla",
+          "Bellamkonda",
+          "Cherukupalle",
+          "Chilakaluripet",
+          "Edlapadu",
+          "Guntur East",
+          "Guntur West",
+          "Kakumanu",
+          "Karempudi",
+          "Karlapalem",
+          "Kollipara",
+          "Krosuru",
+          "Machavaram",
+          "Medikonduru",
+          "Muppalla",
+          "Nadendla",
+          "Nizampatnam",
+          "Pedakakani",
+          "Pedakurapadu",
+          "Phirangipuram",
+          "Prathipadu",
+          "Rajupalem",
+          "Sattenapalle",
+          "Tadepalle",
+          "Tadikonda",
+          "Tenali",
+          "Thullur",
+          "Tsundur",
+          "Vatticherukuru",
+          "Vemuru"
+        ]
+      },
+      {
+        "districtName": "Kakinada",
+        "mandals": [
+          "Kakinada Rural",
+          "Kakinada Urban",
+          "Pedapudi",
+          "Peddapudi",
+          "Samalkot",
+          "Tallapudi",
+          "Gandepalli",
+          "Rajanagaram",
+          "Rangampeta",
+          "Jaggampeta",
+          "Gokavaram",
+          "Kotipalli",
+          "Pithapuram",
+          "Gollaprolu",
+          "Anaparthy",
+          "Rowthulapudi",
+          "Yeleswaram",
+          "Karapa",
+          "Kajuluru",
+          "Uppalaguptam",
+          "Sankhavaram"
+        ]
+      },
+      {
+        "districtName": "Konaseema",
+        "mandals": [
+          "Allavaram",
+          "Amalapuram",
+          "Ambajipeta",
+          "Atreyapuram",
+          "Einadu",
+          "Katrenikona",
+          "Kothapalli",
+          "Mandapam",
+          "Mummidivaram",
+          "Nagullapalli",
+          "P.Gannavaram",
+          "Razole",
+          "Ramachandrapuram",
+          "Uppalaguptam"
+        ]
+      },
+      {
+        "districtName": "Krishna",
+        "mandals": [
+          "A.Konduru",
+          "Agiripalle",
+          "Avanigadda",
+          "Bapulapadu",
+          "Challapalli",
+          "Chatyannapadu",
+          "Divi",
+          "G.Konduru",
+          "Gampalagudem",
+          "Gudivada",
+          "Gudlavalleru",
+          "Jaggaiahpeta",
+          "Kanchikacherla",
+          "Koduru",
+          "Kruthivennu",
+          "Mandavalli",
+          "Mopidevi",
+          "Movva",
+          "Mudinepalli",
+          "Musunuru",
+          "Nandivada",
+          "Nandigama",
+          "Pedana",
+          "Pedaparupudi",
+          "Penamaluru",
+          "Penuganchiprolu",
+          "Reddigudem",
+          "Tiruvuru",
+          "Vatsavai",
+          "Vijayawada Rural",
+          "Vijayawada Urban",
+          "Vissannapeta"
+        ]
+      },
+      {
+        "districtName": "Kurnool",
+        "mandals": [
+          "Adoni",
+          "Alur",
+          "Aspari",
+          "Bethamcherla",
+          "Chippagiri",
+          "C.Belagal",
+          "Devanakonda",
+          "Gadivemula",
+          "Gudur",
+          "Holagunda",
+          "Kallur",
+          "Kodumur",
+          "Kowthalam",
+          "Kruduvi",
+          "Kurnool",
+          "Maddikera (East)",
+          "Mantralayam",
+          "Orvakal",
+          "Panyam",
+          "Pattikonda",
+          "Peapally",
+          "Tuggali"
+        ]
+      },
+      {
+        "districtName": "Nandyal",
+        "mandals": [
+          "Atmakur",
+          "Bethamcherla",
+          "Banaganapalle",
+          "Chippagiri",
+          "Gospadu",
+          "Koilkuntla",
+          "Kowthalam",
+          "Lovingal",
+          "Nandikotkur",
+          "Nandyal",
+          "Orvakal",
+          "Panyam",
+          "Pendekal",
+          "Rudravaram",
+          "Sanjamala",
+          "Sirivel"
+        ]
+      },
+      {
+        "districtName": "NTR",
+        "mandals": [
+          "Jaggayyapeta",
+          "Vatsavai",
+          "Bapulapadu",
+          "Gannavaram",
+          "Agiripalle",
+          "Pedaparupudi",
+          "Gudlavalleru",
+          "Gudur",
+          "Nandivada",
+          "Gudivada",
+          "Gampalagudem",
+          "Pedana",
+          "Mandavalli",
+          "Kaikalur",
+          "Mopidevi",
+          "Kruthivennu",
+          "Bantumilli",
+          "Movva",
+          "Pamarru",
+          "Kalanidhi",
+          "Vuyyuru",
+          "Penamaluru",
+          "Penuganchiprolu"
+        ]
+      },
+      {
+        "districtName": "Palnadu",
+        "mandals": [
+          "Nagarjuna Sagar",
+          "Karempudi",
+          "Vinukonda",
+          "Nuzendla",
+          "Gurazala",
+          "Dachepalli",
+          "Sattenapalli",
+          "Pedakurapadu",
+          "Atchampet",
+          "Guntur",
+          "Amaravathi",
+          "Tadikonda",
+          "Tadepalli",
+          "Mangalagiri",
+          "Thullur",
+          "Amaravathi",
+          "Pedanandipadu",
+          "Phirangipuram",
+          "Medikonduru",
+          "Ponnur",
+          "Chilakaluripet",
+          "Nadendla",
+          "Savalyapuram"
+        ]
+      },
+      {
+        "districtName": "Parvathipuram Manyam",
+        "mandals": [
+          "Balijipeta",
+          "Garugubilli",
+          "Jiyyammavalasa",
+          "Komarada",
+          "Kurupam",
+          "Makkuva",
+          "Parvathipuram",
+          "Salur",
+          "Seethampeta",
+          "Bobbili",
+          "Ramabhadrapuram",
+          "Pachipenta",
+          "Gajapathinagaram",
+          "Garividi",
+          "Dattirajeru",
+          "Merang",
+          "Thogurumudi"
+        ]
+      },
+      {
+        "districtName": "Prakasam",
+        "mandals": [
+          "Addanki",
+          "Ballikurava",
+          "Chandra Sekhara Puram",
+          "Chimakurthi",
+          "Cumbum",
+          "Darsi",
+          "Donakonda",
+          "Giddalur",
+          "Kandukur",
+          "Kanuparthi",
+          "Kondapi",
+          "Kurichedu",
+          "Martiur",
+          "Ongole",
+          "Pamur",
+          "Pedda Ardhaveedu",
+          "Podili",
+          "Ponnaluru",
+          "Santhanuthalapadu",
+          "Tangutur",
+          "Tarlapadu",
+          "Velugodu",
+          "Zarugumilli"
+        ]
+      },
+      {
+        "districtName": "Sri Potti Sriramulu Nellore",
+        "mandals": [
+          "Atmakur",
+          "Bogole",
+          "Chandarlapadu",
+          "Chejerla",
+          "Chillakur",
+          "Dakkili",
+          "Doravarisatram",
+          "Gudur",
+          "Kodavalur",
+          "Kovur",
+          "Manubolu",
+          "Muthukur",
+          "Naidupeta",
+          "Ojili",
+          "Pedapudi",
+          "Pellakur",
+          "Podalakur",
+          "Rapur",
+          "Sangam",
+          "Seetharamapuram",
+          "Sullurpeta",
+          "Tada",
+          "Vakadu",
+          "Varikuntapadu",
+          "Venkatachalam",
+          "Vidavalur"
+        ]
+      },
+      {
+        "districtName": "Sri Sathya Sai",
+        "mandals": [
+          "Bukkapatnam",
+          "Chennekothapalli",
+          "Dharmavaram",
+          "Gandlapenta",
+          "Gorantla",
+          "Hindupur",
+          "Kadiri",
+          "Kothacheruvu",
+          "Lepakshi",
+          "Madakasira",
+          "Nallamada",
+          "Nambulapulakunta",
+          "Obuladevaracheruvu",
+          "Pargana",
+          "Puttaparthi",
+          "Roddam",
+          "Somyapeta",
+          "Thondebhavi"
+        ]
+      },
+      {
+        "districtName": "Srikakulam",
+        "mandals": [
+          "Amadalavalasa",
+          "Andhra Pradesh",
+          "Bonnur",
+          "Burja",
+          "Etcherla",
+          "Gangarajupadu",
+          "Hiramandalam",
+          "Kanchili",
+          "Kaviti",
+          "Kothuru",
+          "Lakshminarsupeta",
+          "Laveru",
+          "Mandasa",
+          "Nandigam",
+          "Narasannapeta",
+          "Palakonda",
+          "Palasa",
+          "Pathapatnam",
+          "Polaki",
+          "Ranastalam",
+          "Srikakulam",
+          "Sompeta",
+          "Vajrapukotturu",
+          "Vangara"
+        ]
+      },
+      {
+        "districtName": "Tirupati",
+        "mandals": [
+          "Tirupati (Urban)",
+          "Tirupati (Rural)",
+          "Chandragiri",
+          "Thottambedu",
+          "Pichatur",
+          "Vadamalapeta",
+          "Nindra",
+          "Yerpedu",
+          "Renigunta",
+          "Chinnagottigallu",
+          "Vijayapuram",
+          "Naguluppalapadu",
+          "Panagal",
+          "K.V.B.Puram",
+          "Temple",
+          "Chandragiri",
+          "Ramachandrapuram",
+          "Pedda Panjani"
+        ]
+      },
+      {
+        "districtName": "Visakhapatnam",
+        "mandals": [
+          "Anakapalle",
+          "Anandapuram",
+          "Araku Valley",
+          "Atchutapuram",
+          "Bakkannapalem",
+          "Chinthapalle",
+          "Chodavaram",
+          "Devarapalle",
+          "Gangaraju Madugula",
+          "Gudem Kotha Veedhi",
+          "Kasimkota",
+          "Kotauratla",
+          "Koyyuru",
+          "Madugula",
+          "Munagapaka",
+          "Munchingi Puttu",
+          "Paderu",
+          "Pakalakunta",
+          "Paravada",
+          "Pedagantyada",
+          "Pedapadu",
+          "Rambilli"
+        ]
+      },
+      {
+        "districtName": "Vizianagaram",
+        "mandals": [
+          "Abbagamu",
+          "Bhogapuram",
+          "Bondapalli",
+          "Bobbili",
+          "Cheepurupalli",
+          "Dattirajeru",
+          "Denkada",
+          "Gajapathinagaram",
+          "Gantyada",
+          "Garividi",
+          "Garugubilli",
+          "Jami",
+          "Kommala",
+          "Kothavalasa",
+          "Kurupam",
+          "Lakkavarapukota",
+          "Makkuva",
+          "Merang",
+          "Merkamudidam",
+          "Nellimarla",
+          "Pachipenta",
+          "Parvathipuram",
+          "Pedagantyada",
+          "Ranastalam",
+          "S.Kota",
+          "Salur",
+          "Seethanagaram",
+          "Srungavarapukota",
+          "Vangara",
+          "Vepada",
+          "Vizianagaram"
+        ]
+      },
+      {
+        "districtName": "West Godavari",
+        "mandals": [
+          "Achanta",
+          "Akividu",
+          "Bhimadole",
+          "Chagallu",
+          "Denduluru",
+          "Devarapalle",
+          "Dwaraka Tirumala",
+          "Eluru",
+          "Gopalapuram",
+          "Jangareddigudem",
+          "Kamavarapukota",
+          "Kovvur",
+          "Koyyalagudem",
+          "Nallajerla",
+          "Nidamarru",
+          "Pedapadu",
+          "Pedavegi",
+          "Penugonda",
+          "Penumantra",
+          "Peravali",
+          "Polavaram",
+          "Tadepalligudem",
+          "Tanuku",
+          "Undrajavaram",
+          "Undi"
+        ]
+      },
+      {
+        "districtName": "YSR",
+        "mandals": [
+          "Badvel",
+          "Brahmamgarimattam",
+          "Chandrakona",
+          "Chapadu",
+          "Duvvur",
+          "Gopavaram",
+          "Jammalamadugu",
+          "Kamalapuram",
+          "Kondapuram",
+          "Lakkireddy Palli",
+          "Muddanur",
+          "Mydukur",
+          "Pedda Gadde",
+          "Peddamudium",
+          "Proddatur",
+          "Rajupalem",
+          "Simhadripuram",
+          "S.Mydukur",
+          "Thondur",
+          "Vemula",
+          "Veldurthi",
+          "Yerragollu"
+        ]
+      }
+    ]
+  },
+  "hanumakonda": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Hanumakonda",
+        "mandals": [
+          "Bheemdevarapalli",
+          "Dharmasagar",
+          "Ellanthakunta",
+          "Hanumakonda",
+          "Hasanparthy",
+          "Inavole",
+          "Kamalapur",
+          "Kazipet",
+          "Kodakandla",
+          "Kothapalli",
+          "Mallapur",
+          "Mallial",
+          "Parvathagiri",
+          "Sangem",
+          "Shayampet",
+          "Velair",
+          "Warangal",
+          "Wardhannapet"
+        ]
+      }
+    ]
+  },
+  "hyderabad": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Hyderabad",
+        "mandals": [
+          "Ameerpet",
+          "Asifnagar",
+          "Bahadurpura",
+          "Bandlaguda",
+          "Charminar",
+          "Golconda",
+          "Himayatnagar",
+          "Khairatabad",
+          "Kukatpally",
+          "Malkajgiri",
+          "Marredpally",
+          "Musheerabad",
+          "Nampally",
+          "Secunderabad",
+          "Shaikpet",
+          "Shamshabad",
+          "Uppal",
+          "Yakutpura"
+        ]
+      }
+    ]
+  },
+  "jagtial": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Jagtial",
+        "mandals": [
+          "Buggaram",
+          "Dharmapuri",
+          "Gollapalli",
+          "Jagtial",
+          "Kodimial",
+          "Kothapalli",
+          "Mallapur",
+          "Medipalli",
+          "Metpalli",
+          "Mortad",
+          "Raikal",
+          "Sarangapur",
+          "Velpur",
+          "Vemulawada",
+          "Wirur"
+        ]
+      }
+    ]
+  },
+  "adilabad": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Adilabad",
+        "mandals": [
+          "Adilabad",
+          "Bela",
+          "Bazarhatnoor",
+          "Boath",
+          "Dandepalli",
+          "Gudihathnoor",
+          "Ichoda",
+          "Indervelli",
+          "Jainad",
+          "Jainoor",
+          "Kaddam",
+          "Kerameri",
+          "Khanapur",
+          "Laxmanchanda",
+          "Lokeshwaram",
+          "Mancherial",
+          "Mandamarri",
+          "Narnoor",
+          "Neradigonda",
+          "Sarangapur",
+          "Talamadugu",
+          "Tamsi",
+          "Utnoor",
+          "Vemanpalli"
+        ]
+      }
+    ]
+  },
+  "bhadradri kothagudem": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Bhadradri Kothagudem",
+        "mandals": [
+          "Annapureddypally",
+          "Aswaraopeta",
+          "Bhadrachalam",
+          "Chandrugonda",
+          "Cherla",
+          "Dammapeta",
+          "Dummugudem",
+          "Elagandalapalli",
+          "Gundala",
+          "Julloor",
+          "Kamepalli",
+          "Karepalli",
+          "Kothagudem",
+          "Laxmidevipalli",
+          "Manuguru",
+          "Mulakalapalli",
+          "Palwancha",
+          "Sujathanagar",
+          "Tekulapalli",
+          "Yellandu"
+        ]
+      }
+    ]
+  },
+  "jangaon": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Jangaon",
+        "mandals": [
+          "Bachannapet",
+          "Chilpur",
+          "Devaruppula",
+          "Jangaon",
+          "Kodakandla",
+          "Lingalaghanpur",
+          "Madipally",
+          "Narmetta",
+          "Nidigonda",
+          "Palmela",
+          "Raghunathpalle",
+          "Rebarthi",
+          "Tarigoppula",
+          "Zaffergadh"
+        ]
+      }
+    ]
+  },
+  "karimnagar": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Karimnagar",
+        "mandals": [
+          "Bejjam",
+          "Bommakal",
+          "Chandurthi",
+          "Chigurumamidi",
+          "Choppadandi",
+          "Elgaid",
+          "Ellanthakunta",
+          "Gangadhara Nellore",
+          "Gambhiraopet",
+          "Huzurabad",
+          "Jammikunta",
+          "Kamalapur",
+          "Karimnagar",
+          "Kathalapur",
+          "Keshavapatnam",
+          "Kothapalli",
+          "Manakondur",
+          "Mallapur",
+          "Mallial",
+          "Musthabad",
+          "Peddapalli",
+          "Ramadugu",
+          "Rudrangi",
+          "Saidapur",
+          "Shankarapatnam",
+          "Thimmapur"
+        ]
+      }
+    ]
+  },
+  "jayashankar bhupalpally": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Jayashankar Bhupalpally",
+        "mandals": [
+          "Bhupalpally",
+          "Chityal",
+          "Choppadandi",
+          "Devaruppula",
+          "Ghanpur (Mulug)",
+          "Ghanpur (Stn)",
+          "Kathalapur",
+          "Malharrao",
+          "Mangapet",
+          "Mulug",
+          "Palimela",
+          "Regonda",
+          "Tekumatla"
+        ]
+      }
+    ]
+  },
+  "kamareddy": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Kamareddy",
+        "mandals": [
+          "Bhiknoor",
+          "Bichkunda",
+          "Domakonda",
+          "Gandhari",
+          "Jukkal",
+          "Kamareddy",
+          "Kodapgal",
+          "Madnoor",
+          "Nagireddy Pet",
+          "Nasrullabad",
+          "Pedda Kodapgal",
+          "Pitlam",
+          "Ramareddy",
+          "Sadashivanagar",
+          "Sadasivanagar",
+          "Tadwai"
+        ]
+      }
+    ]
+  },
+  "jogulamba gadwal": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Jogulamba Gadwal",
+        "mandals": [
+          "Gadwal",
+          "Dharur",
+          "Maldakal",
+          "Ghattu",
+          "Rajoli",
+          "Manopad",
+          "Itikyal",
+          "Kaloor-Timmanpad",
+          "Undavelly",
+          "Aiza",
+          "Gadwal Rural"
+        ]
+      }
+    ]
+  },
+  "mancherial": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Mancherial",
+        "mandals": [
+          "Bellampalli",
+          "Chennur",
+          "Dandepalli",
+          "Hajipur",
+          "Jaipur",
+          "Kannepalli",
+          "Kasipet",
+          "Luxettipet",
+          "Mancherial",
+          "Mandamarri",
+          "Naspur",
+          "Nennal",
+          "Ramakrishnapur"
+        ]
+      }
+    ]
+  },
+  "kumuram bheem asifabad": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Kumuram Bheem Asifabad",
+        "mandals": [
+          "Asifabad",
+          "Kagaznagar",
+          "Sirpur (T)",
+          "Kouthala",
+          "Bejjur",
+          "Rebbena",
+          "Tiryani",
+          "Wankidi",
+          "Kerameri",
+          "Dahegaon",
+          "Jainoor",
+          "Sirpur (U)",
+          "Kumuram Bheem",
+          "Lingapur",
+          "Chintalamanepalli"
+        ]
+      }
+    ]
+  },
+  "mahabubabad": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Mahabubabad",
+        "mandals": [
+          "Bayyaram",
+          "Gudur",
+          "Kesamudram",
+          "Kothaguda",
+          "Mahabubabad",
+          "Maripeda",
+          "Nellikudur",
+          "Nerada",
+          "Pedda Bayyaram",
+          "Thorrur",
+          "Gangaram",
+          "Chinnagudur",
+          "Danthalapally",
+          "Kuravi"
+        ]
+      }
+    ]
+  },
+  "khammam": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Khammam",
+        "mandals": [
+          "Kallur",
+          "Khammam (Urban)",
+          "Khammam (Rural)",
+          "Madhira",
+          "Mudigonda",
+          "Nelakondapalli",
+          "Penuballi",
+          "Raghunadhapalem",
+          "Sathupalli",
+          "Thirumalayapalem",
+          "Wazeed",
+          "Bonakal",
+          "Chintakani",
+          "Enkoor",
+          "Kamepalli",
+          "Kusumanchi",
+          "Konijerla",
+          "Kothagudem",
+          "Yerrupalem",
+          "Tallada",
+          "Singareni"
+        ]
+      }
+    ]
+  },
+  "mahabubnagar": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Mahabubnagar",
+        "mandals": [
+          "Addakal",
+          "Balanagar",
+          "Bhoothpur",
+          "Bomraspet",
+          "Chinnachintakunta",
+          "Devarakadra",
+          "Dhanwada",
+          "Gadwal",
+          "Ghattu",
+          "Hanwada",
+          "Jadcherla",
+          "Keshampet",
+          "Kodair",
+          "Kothakota",
+          "Kothur",
+          "Maddur",
+          "Mahabubnagar",
+          "Midjil",
+          "Mothkur",
+          "Nagarkurnool",
+          "Narayanpet",
+          "Nawabpet",
+          "Peddamandadi",
+          "Shadnagar",
+          "Shanthinagar",
+          "Utkoor",
+          "Veldanda",
+          "Waddepalle"
+        ]
+      }
+    ]
+  },
+  "nagarkurnool": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Nagarkurnool",
+        "mandals": [
+          "Achampet",
+          "Amrabad",
+          "Bijinepally",
+          "Chandampet",
+          "Chauvapally",
+          "Kalwakurthy",
+          "Kollapur",
+          "Lingal",
+          "Nagarkurnool",
+          "Pedda Kothapally",
+          "Pothpur",
+          "Tadoor",
+          "Telkapally",
+          "Thimmajipet",
+          "Uppunuthala",
+          "Vangoor",
+          "Veldanda"
+        ]
+      }
+    ]
+  },
+  "medchal-malkajgiri": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Medchal-Malkajgiri",
+        "mandals": [
+          "Alwal",
+          "Dundigal",
+          "Gandipet",
+          "Kapra",
+          "Keesara",
+          "Kukatpally",
+          "Malkajgiri",
+          "Medchal",
+          "Miyapur",
+          "Qutbullapur",
+          "Shamirpet"
+        ]
+      }
+    ]
+  },
+  "mulugu": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Mulugu",
+        "mandals": [
+          "Venkatapur",
+          "Govindaraopet",
+          "Mulugu",
+          "Tadvai",
+          "Mangapet",
+          "Kannaigudem",
+          "Eturunagaram",
+          "Venkatapuram",
+          "Cherla",
+          "Keshavapatnam",
+          "Siddapur"
+        ]
+      }
+    ]
+  },
+  "medak": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Medak",
+        "mandals": [
+          "Shankarampet(a)",
+          "Kowdipalli",
+          "Chilipched",
+          "Narsapur",
+          "Toopran",
+          "Gajwel",
+          "Jinnaram",
+          "Dhoolimitta",
+          "Kondapak",
+          "Mirdoddi",
+          "Narayankhed",
+          "Zahirabad",
+          "Kangti",
+          "Siddipet",
+          "Gajwel",
+          "Wargal",
+          "Dubbak",
+          "Manoharabad",
+          "Narsingi",
+          "Chegunt"
+        ]
+      }
+    ]
+  },
+  "nalgonda": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Nalgonda",
+        "mandals": [
+          "Adavidevulapalle",
+          "Anumula",
+          "Atmakur",
+          "Bhongir",
+          "Bibinagar",
+          "Bommalaramaram",
+          "Chandur",
+          "Cheralapalle",
+          "Chinthakomma Dinne",
+          "Chityal",
+          "Devarakonda",
+          "Gundla Pochampally",
+          "Kattangoor",
+          "Kethepalle",
+          "Marriguda",
+          "Miryalaguda",
+          "Munugode",
+          "Nakrekal",
+          "Nalgonda",
+          "Narketpalle",
+          "Pedda Adiserla Palle",
+          "Peddavoora",
+          "Pochampally",
+          "Saligouraram",
+          "Thipparthi",
+          "Thiryal",
+          "Tripluram",
+          "Vemulapally",
+          "Yadadri"
+        ]
+      }
+    ]
+  },
+  "narayanpet": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Narayanpet",
+        "mandals": [
+          "Damaragidda",
+          "Dhanwada",
+          "Kosgi",
+          "Maddur",
+          "Makthal",
+          "Marikal",
+          "Narayanpet",
+          "Nagarkurnool",
+          "Utkoor"
+        ]
+      }
+    ]
+  },
+  "nirmal": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Nirmal",
+        "mandals": [
+          "Bhainsa",
+          "Kaddam (Peddur)",
+          "Kubeer",
+          "Laxmanchanda",
+          "Mudhole",
+          "Nirmal",
+          "Soan",
+          "Dilawarpur",
+          "Khanapur",
+          "Kuntala",
+          "Lokeshwaram",
+          "Mamda",
+          "Sarangapur"
+        ]
+      }
+    ]
+  },
+  "rajanna sircilla": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Rajanna Sircilla",
+        "mandals": [
+          "Yellareddipet",
+          "Gambhiraopet",
+          "Mustabad",
+          "Vemulawada",
+          "Rudrangi",
+          "Ellicpur",
+          "Sircilla",
+          "Thangallapalli",
+          "Veernapalli",
+          "Konaraopeta",
+          "Boinpalli",
+          "Chittapur",
+          "Muthyampet",
+          "Gollapalli"
+        ]
+      }
+    ]
+  },
+  "nizamabad": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Nizamabad",
+        "mandals": [
+          "Armoor",
+          "Balkonda",
+          "Banswada",
+          "Bhiknoor",
+          "Bichkunda",
+          "Bodhan",
+          "Dharpalle",
+          "Dichpalle",
+          "Domakonda",
+          "Gandhari",
+          "Kammarpalle",
+          "Mortad",
+          "Mupkal",
+          "Nandipet",
+          "Nizamabad",
+          "Ranjal",
+          "Sirkonda",
+          "Tadwai",
+          "Varni",
+          "Yellareddy",
+          "Yergatla"
+        ]
+      }
+    ]
+  },
+  "peddapalli": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Peddapalli",
+        "mandals": [
+          "Peddapalli",
+          "Julapalli",
+          "Sultanabad",
+          "Idicherla",
+          "Kathalapur",
+          "Palakurthi",
+          "Odar",
+          "Ramagundam",
+          "Dharmaram",
+          "Ramagundam Rural",
+          "Anthergoan",
+          "Mutharam",
+          "Kamanpur"
+        ]
+      }
+    ]
+  },
+  "siddipet": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Siddipet",
+        "mandals": [
+          "Akkannapet",
+          "Chinnakodur",
+          "Doultabad",
+          "Gajwel",
+          "Gundlapally",
+          "Jammikunta",
+          "Kondapak",
+          "Mirdoddi",
+          "Muthasani Palli",
+          "Nangnoor",
+          "Narayanraopet",
+          "Siddipet",
+          "Siddipet Rural",
+          "Thoguta",
+          "Wargal"
+        ]
+      }
+    ]
+  },
+  "vikarabad": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Vikarabad",
+        "mandals": [
+          "Bommaraspet",
+          "Bantwaram",
+          "Kodangal",
+          "Kosgi",
+          "Doma",
+          "Pargi",
+          "Dharur",
+          "Marpally",
+          "Mominpet",
+          "Nawabpet",
+          "Vikarabad",
+          "Pudur",
+          "Kulkacharla",
+          "Tandur",
+          "Basheerabad",
+          "Yalal",
+          "Doulatabad",
+          "Peddemul"
+        ]
+      }
+    ]
+  },
+  "suryapet": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Suryapet",
+        "mandals": [
+          "Athanapuri",
+          "Chilkur",
+          "Chivvemla",
+          "Garidepally",
+          "Gurrampode",
+          "Jajireddigudem",
+          "Kodad",
+          "Mothey",
+          "Nadigudem",
+          "Neradigonda",
+          "Palakeedu",
+          "Penpahad",
+          "Suryapet",
+          "Thirumalagiri",
+          "Thungathurthy"
+        ]
+      }
+    ]
+  },
+  "rangareddy": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Rangareddy",
+        "mandals": [
+          "Abdullapurmet",
+          "Amberpet",
+          "Balapur",
+          "Chevella",
+          "Dommara Pochampally",
+          "Gandipet",
+          "Ghatkesar",
+          "Hayathnagar",
+          "Ibrahimpatnam",
+          "Kadthal",
+          "Kandukur",
+          "Keshampet",
+          "Kondurg",
+          "Kothur",
+          "Maheswaram",
+          "Manchal",
+          "Marpalle",
+          "Nandigama",
+          "Narsingi",
+          "Pedda Amberpet",
+          "Rajendranagar",
+          "Saroornagar",
+          "Shadnagar",
+          "Shamshabad",
+          "Tukkuguda",
+          "Uppal",
+          "Yacharam"
+        ]
+      }
+    ]
+  },
+  "sangareddy": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Sangareddy",
+        "mandals": [
+          "Andhol",
+          "Ameenpur",
+          "Gummadidala",
+          "Hathnoora",
+          "Jharasangam",
+          "Kandi",
+          "Kongarakalan",
+          "Kondapur",
+          "Kowdipalli",
+          "Manoor",
+          "Munipalli",
+          "Narayankhed",
+          "Narsapur",
+          "Nyalkal",
+          "Patancheru",
+          "Pulkal",
+          "Ramachandrapuram",
+          "Ramadugu",
+          "Sadasivpet",
+          "Sangareddy",
+          "Sankarampet",
+          "Tirumalagiri",
+          "Vatpally",
+          "Zahirabad"
+        ]
+      }
+    ]
+  },
+  "wanaparthy": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Wanaparthy",
+        "mandals": [
+          "Amarachinta",
+          "Atmakur",
+          "Ghanpur",
+          "Gopalpeta",
+          "Kothakota",
+          "Madanapur",
+          "Pangal",
+          "Pebbair",
+          "Peddamandadi",
+          "Srirapuram",
+          "Veerlapally",
+          "Wanaparthy"
+        ]
+      }
+    ]
+  },
+  "yadadri bhuvanagiri": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Yadadri Bhuvanagiri",
+        "mandals": [
+          "Addaguduru",
+          "Aler",
+          "Bibinagar",
+          "Bommalaramaram",
+          "Choutuppal",
+          "Gandipalli",
+          "Keshavapur",
+          "Mothkur",
+          "Narayanpur",
+          "Narketpally",
+          "Pochampally",
+          "Rajapet",
+          "Ramannapet",
+          "Turkayamjal",
+          "Valigonda",
+          "Yadadri",
+          "Bhuvanagiri"
+        ]
+      }
+    ]
+  },
+  "warangal": {
+    "level": "district",
+    "stateName": "Telangana",
+    "hierarchy": [
+      {
+        "districtName": "Warangal",
+        "mandals": [
+          "Atmakur",
+          "Dharmasagar",
+          "Elkathurthy",
+          "Geesugonda",
+          "Huzurabad",
+          "Kamalapur",
+          "Kazipet",
+          "Khila Warangal",
+          "Kothapally",
+          "Parvathagiri",
+          "Raiparthy",
+          "Sangem",
+          "Shayampet",
+          "Velair",
+          "Warangal"
+        ]
+      }
+    ]
+  },
+  "anakapalli": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Anakapalli",
+        "mandals": [
+          "Anakapalle",
+          "Atchutapuram",
+          "Butchayyapeta",
+          "Chodavaram",
+          "Devarapalle",
+          "Kasimkota",
+          "Kotauratla",
+          "Paravada",
+          "Pedagantyada",
+          "Pedapudi",
+          "Rambilli",
+          "Sabbavaram",
+          "Sankaram"
+        ]
+      }
+    ]
+  },
+  "alluri sitharama raju": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Alluri Sitharama Raju",
+        "mandals": [
+          "Chintapalle",
+          "Gangaraju Madugula",
+          "Mampa",
+          "Pedabayalu",
+          "Gudem Kotha Veedhi",
+          "Madranguda",
+          "Peda Bayalu",
+          "Y. Ramavaram",
+          "Addateegala",
+          "Etapaka",
+          "Yellesswaram",
+          "Gokavaram",
+          "Rampachodavaram",
+          "Devipatnam",
+          "Maredumilli",
+          "Vararamachandrapuram",
+          "Addatigala",
+          "Gundugolanu"
+        ]
+      }
+    ]
+  },
+  "bapatla": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Bapatla",
+        "mandals": [
+          "Amruthalur",
+          "Bapatla",
+          "Chirala",
+          "Karamchedu",
+          "Karempudi",
+          "Karakavalasa",
+          "Kollipara",
+          "Martur",
+          "Nagaram",
+          "Nizampatnam",
+          "Parchur",
+          "Pittalavanipalem",
+          "Santhamaguluru",
+          "Vemuru",
+          "Yeddanapudi"
+        ]
+      }
+    ]
+  },
+  "chittoor": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Chittoor",
+        "mandals": [
+          "B.Kothakota",
+          "Bangarupalem",
+          "Buchinaidu Khandriga",
+          "Chandragiri",
+          "Chinnagottigallu",
+          "Chittoor",
+          "Gangadhara Nellore",
+          "Gudipala",
+          "Gudiyattam",
+          "K.V.Puram",
+          "Kalakada",
+          "Kalikiri",
+          "Kangal",
+          "Kuppam",
+          "Lakkireddipalli",
+          "Mangalam",
+          "Nagari",
+          "Narayanavanam",
+          "Nindra",
+          "Nimbagallu",
+          "Peddanaickenpet",
+          "Peddapanjani",
+          "Penumuru",
+          "Pichatur",
+          "Pulicherla",
+          "Punganoor",
+          "Ramachandranagar",
+          "Ramakuppam",
+          "Ramasamudram",
+          "Reniavasa",
+          "Santhipuram",
+          "Sathyavedu",
+          "Sodam",
+          "Somala",
+          "Srikalahasti",
+          "Thavanampalle",
+          "Thottambedu",
+          "Tirupathur",
+          "Vadamalapeta",
+          "Vakada",
+          "Varadaiahpalem",
+          "Vedurukuppam",
+          "Vepagunta",
+          "Vijayapuram",
+          "Yadamarri",
+          "Yerpedu"
+        ]
+      }
+    ]
+  },
+  "east godavari": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "East Godavari",
+        "mandals": [
+          "Addateegala",
+          " Ainavilli",
+          " Alamuru",
+          " Allavaram",
+          " Amalapuram",
+          " Ambajipeta",
+          " Anaparthy",
+          " Atreyapuram",
+          " Biccavolu",
+          " Bodhan",
+          " Devipatnam",
+          " Gandepalli",
+          " Gangavaram",
+          " Gokavaram",
+          " Gollaprolu",
+          " Gollprice",
+          " I. Polavaram",
+          " K. Gangavaram",
+          " K.Gangavaram",
+          " Kapileswarapuram",
+          " Karapa",
+          " Katrenikona",
+          " Kothapalli",
+          " Kothapeta",
+          " Kovvada",
+          " Kuduru",
+          " Malikipuram",
+          " Mandapam",
+          " Mandapeta",
+          " Marrivanipalem",
+          " Pedapudi",
+          " Peddapuram",
+          " P.Gannavaram",
+          " Pithapuram",
+          " Prathipadu",
+          " Razole",
+          " Ravikamatham",
+          " Rayavaram",
+          " Ramachandrapuram",
+          " Ramakrishnanagar",
+          " Rangampeta",
+          " Routhulapudi",
+          " Sakhinetipalli",
+          " Samarlakota",
+          " Saravakota",
+          " Seethanagaram",
+          " Tallapudi",
+          " Tantadi",
+          " Thondangi",
+          " Totharamudi",
+          " Tuni",
+          " Uppalaguptam",
+          " Yeleswaram"
+        ]
+      }
+    ]
+  },
+  "annamayya": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Annamayya",
+        "mandals": [
+          "Chandragiri",
+          "Chinnagottigallu",
+          "Gangavaram",
+          "Kalanuru",
+          "Kodur",
+          "Kuppam",
+          "Lakkireddipalli",
+          "Peddathippasamudram",
+          "Peddamandyam",
+          "Pulicherla",
+          "Ramasamudram",
+          "Rayachoti",
+          "Sambepalli",
+          "Tamballapalle",
+          "Thavanampalle",
+          "Veeraballi",
+          "Vepanjeri"
+        ]
+      }
+    ]
+  },
+  "konaseema": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Konaseema",
+        "mandals": [
+          "Allavaram",
+          "Amalapuram",
+          "Ambajipeta",
+          "Atreyapuram",
+          "Einadu",
+          "Katrenikona",
+          "Kothapalli",
+          "Mandapam",
+          "Mummidivaram",
+          "Nagullapalli",
+          "P.Gannavaram",
+          "Razole",
+          "Ramachandrapuram",
+          "Uppalaguptam"
+        ]
+      }
+    ]
+  },
+  "kakinada": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Kakinada",
+        "mandals": [
+          "Kakinada Rural",
+          "Kakinada Urban",
+          "Pedapudi",
+          "Peddapudi",
+          "Samalkot",
+          "Tallapudi",
+          "Gandepalli",
+          "Rajanagaram",
+          "Rangampeta",
+          "Jaggampeta",
+          "Gokavaram",
+          "Kotipalli",
+          "Pithapuram",
+          "Gollaprolu",
+          "Anaparthy",
+          "Rowthulapudi",
+          "Yeleswaram",
+          "Karapa",
+          "Kajuluru",
+          "Uppalaguptam",
+          "Sankhavaram"
+        ]
+      }
+    ]
+  },
+  "krishna": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Krishna",
+        "mandals": [
+          "A.Konduru",
+          "Agiripalle",
+          "Avanigadda",
+          "Bapulapadu",
+          "Challapalli",
+          "Chatyannapadu",
+          "Divi",
+          "G.Konduru",
+          "Gampalagudem",
+          "Gudivada",
+          "Gudlavalleru",
+          "Jaggaiahpeta",
+          "Kanchikacherla",
+          "Koduru",
+          "Kruthivennu",
+          "Mandavalli",
+          "Mopidevi",
+          "Movva",
+          "Mudinepalli",
+          "Musunuru",
+          "Nandivada",
+          "Nandigama",
+          "Pedana",
+          "Pedaparupudi",
+          "Penamaluru",
+          "Penuganchiprolu",
+          "Reddigudem",
+          "Tiruvuru",
+          "Vatsavai",
+          "Vijayawada Rural",
+          "Vijayawada Urban",
+          "Vissannapeta"
+        ]
+      }
+    ]
+  },
+  "eluru": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Eluru",
+        "mandals": [
+          "Denduluru",
+          "Pedapadu",
+          "Pedavegi",
+          "Bhimadole",
+          "Eluru",
+          "Dwaraka Tirumala",
+          "Gopalapuram",
+          "Kamvarapukota",
+          "Kovvur",
+          "Lingapalem",
+          "Mandavalli",
+          "Mudinepalli",
+          "Nidamarru",
+          "Nuzvid",
+          "Pedana",
+          "Penchalakoneru",
+          "Reddigudem",
+          "Allavaram",
+          "Chintalapudi",
+          "Devarapalle",
+          "Ganapavaram",
+          "Kalla",
+          "Kalidindi",
+          "Mandavalli"
+        ]
+      }
+    ]
+  },
+  "guntur": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Guntur",
+        "mandals": [
+          "Achampet",
+          "Amruthalur",
+          "Bapatla",
+          "Bellamkonda",
+          "Cherukupalle",
+          "Chilakaluripet",
+          "Edlapadu",
+          "Guntur East",
+          "Guntur West",
+          "Kakumanu",
+          "Karempudi",
+          "Karlapalem",
+          "Kollipara",
+          "Krosuru",
+          "Machavaram",
+          "Medikonduru",
+          "Muppalla",
+          "Nadendla",
+          "Nizampatnam",
+          "Pedakakani",
+          "Pedakurapadu",
+          "Phirangipuram",
+          "Prathipadu",
+          "Rajupalem",
+          "Sattenapalle",
+          "Tadepalle",
+          "Tadikonda",
+          "Tenali",
+          "Thullur",
+          "Tsundur",
+          "Vatticherukuru",
+          "Vemuru"
+        ]
+      }
+    ]
+  },
+  "nandyal": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Nandyal",
+        "mandals": [
+          "Atmakur",
+          "Bethamcherla",
+          "Banaganapalle",
+          "Chippagiri",
+          "Gospadu",
+          "Koilkuntla",
+          "Kowthalam",
+          "Lovingal",
+          "Nandikotkur",
+          "Nandyal",
+          "Orvakal",
+          "Panyam",
+          "Pendekal",
+          "Rudravaram",
+          "Sanjamala",
+          "Sirivel"
+        ]
+      }
+    ]
+  },
+  "palnadu": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Palnadu",
+        "mandals": [
+          "Nagarjuna Sagar",
+          "Karempudi",
+          "Vinukonda",
+          "Nuzendla",
+          "Gurazala",
+          "Dachepalli",
+          "Sattenapalli",
+          "Pedakurapadu",
+          "Atchampet",
+          "Guntur",
+          "Amaravathi",
+          "Tadikonda",
+          "Tadepalli",
+          "Mangalagiri",
+          "Thullur",
+          "Amaravathi",
+          "Pedanandipadu",
+          "Phirangipuram",
+          "Medikonduru",
+          "Ponnur",
+          "Chilakaluripet",
+          "Nadendla",
+          "Savalyapuram"
+        ]
+      }
+    ]
+  },
+  "parvathipuram manyam": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Parvathipuram Manyam",
+        "mandals": [
+          "Balijipeta",
+          "Garugubilli",
+          "Jiyyammavalasa",
+          "Komarada",
+          "Kurupam",
+          "Makkuva",
+          "Parvathipuram",
+          "Salur",
+          "Seethampeta",
+          "Bobbili",
+          "Ramabhadrapuram",
+          "Pachipenta",
+          "Gajapathinagaram",
+          "Garividi",
+          "Dattirajeru",
+          "Merang",
+          "Thogurumudi"
+        ]
+      }
+    ]
+  },
+  "ntr": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "NTR",
+        "mandals": [
+          "Jaggayyapeta",
+          "Vatsavai",
+          "Bapulapadu",
+          "Gannavaram",
+          "Agiripalle",
+          "Pedaparupudi",
+          "Gudlavalleru",
+          "Gudur",
+          "Nandivada",
+          "Gudivada",
+          "Gampalagudem",
+          "Pedana",
+          "Mandavalli",
+          "Kaikalur",
+          "Mopidevi",
+          "Kruthivennu",
+          "Bantumilli",
+          "Movva",
+          "Pamarru",
+          "Kalanidhi",
+          "Vuyyuru",
+          "Penamaluru",
+          "Penuganchiprolu"
+        ]
+      }
+    ]
+  },
+  "kurnool": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Kurnool",
+        "mandals": [
+          "Adoni",
+          "Alur",
+          "Aspari",
+          "Bethamcherla",
+          "Chippagiri",
+          "C.Belagal",
+          "Devanakonda",
+          "Gadivemula",
+          "Gudur",
+          "Holagunda",
+          "Kallur",
+          "Kodumur",
+          "Kowthalam",
+          "Kruduvi",
+          "Kurnool",
+          "Maddikera (East)",
+          "Mantralayam",
+          "Orvakal",
+          "Panyam",
+          "Pattikonda",
+          "Peapally",
+          "Tuggali"
+        ]
+      }
+    ]
+  },
+  "sri sathya sai": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Sri Sathya Sai",
+        "mandals": [
+          "Bukkapatnam",
+          "Chennekothapalli",
+          "Dharmavaram",
+          "Gandlapenta",
+          "Gorantla",
+          "Hindupur",
+          "Kadiri",
+          "Kothacheruvu",
+          "Lepakshi",
+          "Madakasira",
+          "Nallamada",
+          "Nambulapulakunta",
+          "Obuladevaracheruvu",
+          "Pargana",
+          "Puttaparthi",
+          "Roddam",
+          "Somyapeta",
+          "Thondebhavi"
+        ]
+      }
+    ]
+  },
+  "sri potti sriramulu nellore": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Sri Potti Sriramulu Nellore",
+        "mandals": [
+          "Atmakur",
+          "Bogole",
+          "Chandarlapadu",
+          "Chejerla",
+          "Chillakur",
+          "Dakkili",
+          "Doravarisatram",
+          "Gudur",
+          "Kodavalur",
+          "Kovur",
+          "Manubolu",
+          "Muthukur",
+          "Naidupeta",
+          "Ojili",
+          "Pedapudi",
+          "Pellakur",
+          "Podalakur",
+          "Rapur",
+          "Sangam",
+          "Seetharamapuram",
+          "Sullurpeta",
+          "Tada",
+          "Vakadu",
+          "Varikuntapadu",
+          "Venkatachalam",
+          "Vidavalur"
+        ]
+      }
+    ]
+  },
+  "tirupati": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Tirupati",
+        "mandals": [
+          "Tirupati (Urban)",
+          "Tirupati (Rural)",
+          "Chandragiri",
+          "Thottambedu",
+          "Pichatur",
+          "Vadamalapeta",
+          "Nindra",
+          "Yerpedu",
+          "Renigunta",
+          "Chinnagottigallu",
+          "Vijayapuram",
+          "Naguluppalapadu",
+          "Panagal",
+          "K.V.B.Puram",
+          "Temple",
+          "Chandragiri",
+          "Ramachandrapuram",
+          "Pedda Panjani"
+        ]
+      }
+    ]
+  },
+  "srikakulam": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Srikakulam",
+        "mandals": [
+          "Amadalavalasa",
+          "Andhra Pradesh",
+          "Bonnur",
+          "Burja",
+          "Etcherla",
+          "Gangarajupadu",
+          "Hiramandalam",
+          "Kanchili",
+          "Kaviti",
+          "Kothuru",
+          "Lakshminarsupeta",
+          "Laveru",
+          "Mandasa",
+          "Nandigam",
+          "Narasannapeta",
+          "Palakonda",
+          "Palasa",
+          "Pathapatnam",
+          "Polaki",
+          "Ranastalam",
+          "Srikakulam",
+          "Sompeta",
+          "Vajrapukotturu",
+          "Vangara"
+        ]
+      }
+    ]
+  },
+  "prakasam": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Prakasam",
+        "mandals": [
+          "Addanki",
+          "Ballikurava",
+          "Chandra Sekhara Puram",
+          "Chimakurthi",
+          "Cumbum",
+          "Darsi",
+          "Donakonda",
+          "Giddalur",
+          "Kandukur",
+          "Kanuparthi",
+          "Kondapi",
+          "Kurichedu",
+          "Martiur",
+          "Ongole",
+          "Pamur",
+          "Pedda Ardhaveedu",
+          "Podili",
+          "Ponnaluru",
+          "Santhanuthalapadu",
+          "Tangutur",
+          "Tarlapadu",
+          "Velugodu",
+          "Zarugumilli"
+        ]
+      }
+    ]
+  },
+  "west godavari": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "West Godavari",
+        "mandals": [
+          "Achanta",
+          "Akividu",
+          "Bhimadole",
+          "Chagallu",
+          "Denduluru",
+          "Devarapalle",
+          "Dwaraka Tirumala",
+          "Eluru",
+          "Gopalapuram",
+          "Jangareddigudem",
+          "Kamavarapukota",
+          "Kovvur",
+          "Koyyalagudem",
+          "Nallajerla",
+          "Nidamarru",
+          "Pedapadu",
+          "Pedavegi",
+          "Penugonda",
+          "Penumantra",
+          "Peravali",
+          "Polavaram",
+          "Tadepalligudem",
+          "Tanuku",
+          "Undrajavaram",
+          "Undi"
+        ]
+      }
+    ]
+  },
+  "visakhapatnam": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Visakhapatnam",
+        "mandals": [
+          "Anakapalle",
+          "Anandapuram",
+          "Araku Valley",
+          "Atchutapuram",
+          "Bakkannapalem",
+          "Chinthapalle",
+          "Chodavaram",
+          "Devarapalle",
+          "Gangaraju Madugula",
+          "Gudem Kotha Veedhi",
+          "Kasimkota",
+          "Kotauratla",
+          "Koyyuru",
+          "Madugula",
+          "Munagapaka",
+          "Munchingi Puttu",
+          "Paderu",
+          "Pakalakunta",
+          "Paravada",
+          "Pedagantyada",
+          "Pedapadu",
+          "Rambilli"
+        ]
+      }
+    ]
+  },
+  "ysr": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "YSR",
+        "mandals": [
+          "Badvel",
+          "Brahmamgarimattam",
+          "Chandrakona",
+          "Chapadu",
+          "Duvvur",
+          "Gopavaram",
+          "Jammalamadugu",
+          "Kamalapuram",
+          "Kondapuram",
+          "Lakkireddy Palli",
+          "Muddanur",
+          "Mydukur",
+          "Pedda Gadde",
+          "Peddamudium",
+          "Proddatur",
+          "Rajupalem",
+          "Simhadripuram",
+          "S.Mydukur",
+          "Thondur",
+          "Vemula",
+          "Veldurthi",
+          "Yerragollu"
+        ]
+      }
+    ]
+  },
+  "vizianagaram": {
+    "level": "district",
+    "stateName": "Andhra Pradesh",
+    "hierarchy": [
+      {
+        "districtName": "Vizianagaram",
+        "mandals": [
+          "Abbagamu",
+          "Bhogapuram",
+          "Bondapalli",
+          "Bobbili",
+          "Cheepurupalli",
+          "Dattirajeru",
+          "Denkada",
+          "Gajapathinagaram",
+          "Gantyada",
+          "Garividi",
+          "Garugubilli",
+          "Jami",
+          "Kommala",
+          "Kothavalasa",
+          "Kurupam",
+          "Lakkavarapukota",
+          "Makkuva",
+          "Merang",
+          "Merkamudidam",
+          "Nellimarla",
+          "Pachipenta",
+          "Parvathipuram",
+          "Pedagantyada",
+          "Ranastalam",
+          "S.Kota",
+          "Salur",
+          "Seethanagaram",
+          "Srungavarapukota",
+          "Vangara",
+          "Vepada",
+          "Vizianagaram"
+        ]
+      }
+    ]
+  },
+  "localities_bazarhatnoor": [
+    "Bazarhatnoor",
+    "Adilabad",
+    "Nirmal",
+    "Bhainsa",
+    "Utnoor",
+    "Indervelli",
+    "Gudihathnoor",
+    "Ichoda",
+    "Boath",
+    "Neradigonda",
+    "Jainoor",
+    "Talamadugu",
+    "Kaddam"
+  ],
+  "localities_dandepalli": [
+    "Dandepalli",
+    "Telangana",
+    "Adilabad",
+    "Nirmal",
+    "Mancherial",
+    "Kumuram Bheem",
+    "Nalgonda",
+    "Yadadri Bhuvanagiri",
+    "Warangal",
+    "Hanamkonda",
+    "Karimnagar",
+    "Peddapalli",
+    "Jayashankar Bhupalpally",
+    "Jagitial"
+  ],
+  "localities_indervelli": [
+    "Indervelli",
+    "Adilabad",
+    "Asifabad",
+    "Bhainsa",
+    "Bela",
+    "Boath",
+    "Ichoda",
+    "Jainoor",
+    "Kaddam",
+    "Kerameri",
+    "Lakshettipet",
+    "Mudhole",
+    "Narnoor",
+    "Talamadugu",
+    "Utnoor"
+  ],
+  "localities_lokeshwaram": [
+    "Lokeshwaram",
+    "Kasaragod",
+    "Kanhangad",
+    "Hosdurg",
+    "Manjeshwaram",
+    "Trikaripur",
+    "Karadka",
+    "Badiadka",
+    "Chandragiri",
+    "Bekal"
+  ],
+  "localities_vemanpalli": [
+    "Vemanpalli",
+    "Andhra Pradesh",
+    "Chittoor",
+    "Tirupati",
+    "Srikalahasti",
+    "Nagari",
+    "Palamaner",
+    "Kuppam",
+    "Gangavaram",
+    "Punganur"
+  ],
+  "localities_annapureddypally": [
+    "Annapureddypally",
+    "Telangana",
+    "Nalgonda",
+    "Suryapet",
+    "Yadadri Bhuvanagiri",
+    "Hyderabad",
+    "Ranga Reddy",
+    "Medchal-Malkajgiri",
+    "Sangareddy",
+    "Kamareddy",
+    "Sidipet",
+    "Bhongir"
+  ],
+  "localities_elagandalapalli": [
+    "Elagandalapalli",
+    "Andhra Pradesh",
+    "Chittoor",
+    "Tirupati",
+    "Srikalahasti",
+    "Nagari",
+    "Palamaner",
+    "Kuppam",
+    "Gangavaram",
+    "Punganur"
+  ],
+  "localities_julloor": [
+    "Julloor",
+    "Khammam",
+    "Bhadrachalam",
+    "Kallur",
+    "Pinapaka",
+    "Aswaraopeta",
+    "Dammapeta",
+    "Kothagudem",
+    "Yellandu",
+    "Chandrugonda"
+  ],
+  "localities_kamepalli": [
+    "Kamepalli",
+    "Andhra Pradesh",
+    "Prakasam",
+    "Guntur",
+    "Krishna",
+    "West Godavari",
+    "East Godavari",
+    "Visakhapatnam",
+    "Vizianagaram",
+    "Srikakulam"
+  ],
+  "localities_karepalli": [
+    "Karepalli",
+    "Guntur",
+    "Prakasam",
+    "Kurnool",
+    "Anantapur",
+    "Chittoor",
+    "Kadapa",
+    "Nellore",
+    "West Godavari",
+    "East Godavari",
+    "Krishna",
+    "Vizianagaram",
+    "Visakhapatnam",
+    "Srikakulam"
+  ],
+  "localities_laxmidevipalli": [
+    "Laxmidevipalli",
+    "Telangana",
+    "Kamareddy",
+    "Banswada",
+    "Bhainsa",
+    "Nirmal",
+    "Mudhole",
+    "Kuntala",
+    "Lokeshwaram",
+    "Rebbena",
+    "Sarangapur",
+    "Kallur",
+    " Dichpally"
+  ],
+  "localities_mulakalapalli": [
+    "Mulakalapalli",
+    "Andhra Pradesh",
+    "Chittoor",
+    "Tirupati",
+    "Srikalahasti",
+    "Nagari",
+    "Palamaner",
+    "Kuppam",
+    "Punganur",
+    "Madanapalle"
+  ],
+  "localities_tekulapalli": [
+    "Tekulapalli",
+    "Andhra Pradesh",
+    "Chittoor",
+    "Kadapa",
+    "Anantapur",
+    "Kurnool",
+    "Nellore",
+    "Prakasam",
+    "Guntur",
+    "Krishna",
+    "West Godavari",
+    "East Godavari",
+    "Visakhapatnam"
+  ],
+  "localities_bheemdevarapalli": [
+    "Bheemdevarapalli",
+    "Kurnool",
+    "Anantapur",
+    "Chittoor",
+    "Kadapa",
+    "Prakasam",
+    "Guntur",
+    "Krishna",
+    "West Godavari",
+    "East Godavari",
+    "Visakhapatnam",
+    "Vizianagaram",
+    "Srikakulam"
+  ],
+  "localities_hanumakonda": [
+    "Hanumakonda",
+    "Warangal",
+    "Kazipet",
+    "Warangal East",
+    "Warangal West",
+    "Dharmasagar",
+    "Elkaturthy",
+    "Ghanpur",
+    "Hanamkonda",
+    "Hasanparthy",
+    "Jangaon",
+    "Kodakandla",
+    "Mangapet"
+  ],
+  "localities_inavole": [
+    "Inavole",
+    "Toliara",
+    "Tulear",
+    "Ankavandra",
+    "Befotaka",
+    "Benenitra",
+    "Beroroha",
+    "Morombe"
+  ],
+  "localities_kazipet": [
+    "Kazipet",
+    "Hanamkonda",
+    "Warangal",
+    "Jangaon",
+    "Jayashankar Bhupalpally",
+    "Mahabubabad",
+    "Mulugu",
+    "Warangal Rural",
+    "Warangal Urban"
+  ],
+  "localities_kukatpally": [
+    "Kukatpally",
+    "Telangana",
+    "Hyderabad",
+    "Medchal-Malkajgiri",
+    "Kamareddy",
+    "Sangareddy",
+    "Sidipur",
+    "Balanagar",
+    "Quthbullapur",
+    "Patancheru"
+  ],
+  "localities_marredpally": [
+    "Marredpally",
+    "Secunderabad",
+    "Kapra",
+    "Uppal",
+    "Malkajgiri",
+    "Medchal",
+    "Quthbullapur",
+    "Kukatpally",
+    "Serilingampally",
+    "Patancheru"
+  ],
+  "localities_yakutpura": [
+    "Yakutpura",
+    "Telangana",
+    "Hyderabad",
+    "Secunderabad",
+    "Charminar",
+    "Santoshnagar",
+    "Chandrayangutta",
+    "Riyasat Nagar",
+    "Falaknuma",
+    "Old City"
+  ],
+  "localities_medipalli": [
+    "Medipalli",
+    "Telangana",
+    "Medak",
+    "Siddipet",
+    "Sangareddy",
+    "Kamareddy",
+    "Zahirabad",
+    "Narayankhed",
+    "Andole",
+    "Nyalkal",
+    "Jogipet"
+  ],
+  "localities_metpalli": [
+    "Metpalli",
+    "Karimnagar",
+    "Peddapalli",
+    "Jagitial",
+    "Sircilla",
+    "Ramagundam",
+    "Mancherial",
+    "Kamareddy",
+    "Rajanna Sircilla",
+    "Jayashankar Bhupalpally",
+    "Mahabubabad",
+    "Warangal Rural",
+    "Warangal Urban"
+  ],
+  "localities_wirur": [
+    "Wirur",
+    "Kadiri",
+    "Kalyandurg",
+    "Rayadurg",
+    "Hindupur",
+    "Penukonda",
+    "Madakasira",
+    "Gooty",
+    "Kambadur",
+    "Lepakshi",
+    "Chikkaballapur",
+    "Sidlaghatta",
+    "Chintamani",
+    "Gudibanda",
+    "Bagepalli"
+  ],
+  "localities_madipally": [
+    "Madipally",
+    "Telangana",
+    "Yadadri Bhuvanagiri",
+    "Nalgonda",
+    "Suryapet",
+    "Bhongir",
+    "Choutuppal",
+    "Bibinagar",
+    "Mothkur",
+    "Narketpally",
+    "Chityal",
+    "Valigonda"
+  ],
+  "localities_bhupalpally": [
+    "Bhupalpally",
+    "Jayashankar Bhupalpally district",
+    "Bhupalpally mandal",
+    "Ghanpur mandal",
+    "Regonda mandal",
+    "Chityal mandal",
+    "Palimela mandal",
+    "Devaruppula mandal",
+    "Mulug mandal",
+    "Raiparthy mandal",
+    "Kathalapur mandal"
+  ],
+  "localities_ghanpur (mulug)": [
+    "Ghanpur (Mulug)",
+    "Warangal",
+    "Hanamkonda",
+    "Parkal",
+    "Mulug",
+    "Narsampet",
+    "Chennaraopet",
+    "Duggondi",
+    "Nekkonda",
+    "Shyampet",
+    "Wardhannapet",
+    "Geesugonda"
+  ],
+  "localities_ghanpur (stn)": [
+    "Ghanpur (Stn)",
+    "Warangal",
+    "Hanamkonda",
+    "Parkal",
+    "Mahabubabad",
+    "Bhupalpally",
+    "Jangaon",
+    "Jayashankar Bhupalpally",
+    "Warangal Rural",
+    "Warangal Urban"
+  ],
+  "localities_kathalapur": [
+    "Kathalapur",
+    "Bengaluru Urban",
+    "Bengaluru Rural",
+    "Ramanagara",
+    "Tumakuru",
+    "Chikkaballapura",
+    "Kolar",
+    "Chitradurga",
+    "Davangere",
+    "Shimoga",
+    "Hassan",
+    "Mandya",
+    "Mysuru",
+    "Chamarajanagar"
+  ],
+  "localities_palimela": [
+    "Palimela",
+    "Srikakulam",
+    "Vizianagaram",
+    "Visakhapatnam",
+    "East Godavari",
+    "West Godavari",
+    "Krishna",
+    "Guntur",
+    "Prakasam",
+    "Nellore",
+    "Kadapa",
+    "Kurnool",
+    "Anantapur",
+    "Chittoor"
+  ],
+  "localities_kaloor-timmanpad": [
+    "Kaloor-Timmanpad",
+    "Ernakulam",
+    "Idukki",
+    "Kottayam",
+    "Alappuzha",
+    "Kollam",
+    "Pathanamthitta",
+    "Thiruvananthapuram",
+    "Thrissur",
+    "Palakkad",
+    "Malappuram",
+    "Kozhikode",
+    "Wayanad",
+    "Kannur",
+    "Kasaragod"
+  ],
+  "localities_undavelly": [
+    "Undavelly",
+    "Andhra Pradesh"
+  ],
+  "localities_aiza": [
+    "Aiza",
+    "Aizawl District",
+    "Champhai District",
+    "Kolasib District",
+    "Lawngtlai District",
+    "Lunglei District",
+    "Mamit District",
+    "Serchhip District",
+    "Siaha District"
+  ],
+  "localities_gadwal rural": [
+    "Gadwal Rural",
+    "Jogulamba Gadwal district",
+    "Alampur",
+    "Gadwal",
+    "Itikyal",
+    "Maldakal",
+    "Manopad",
+    "Peddakothapalle",
+    "Ghattu",
+    "Kalugotla"
+  ],
+  "localities_kodapgal": [
+    "Kodapgal",
+    "Telangana",
+    "Khammam",
+    "Kothagudem",
+    "Bhadrachalam",
+    "Palwancha",
+    "Yellandu",
+    "Manuguru",
+    "Aswaraopeta",
+    "Dammapeta"
+  ],
+  "localities_nagireddy pet": [
+    "Nagireddy Pet",
+    "Andhra Pradesh",
+    "Chittoor District",
+    "Tirupati District",
+    "Anantapur District",
+    "Kadapa District",
+    "Nellore District",
+    "Prakasam District",
+    "Guntur District",
+    "Krishna District",
+    "West Godavari District",
+    "East Godavari District",
+    "Visakhapatnam District",
+    "Vizianagaram District",
+    "Srikakulam District"
+  ],
+  "localities_sadashivanagar": [
+    "Sadashivanagar",
+    "Bengaluru Urban",
+    "Bengaluru Rural",
+    "Ramanagara",
+    "Chikkaballapura",
+    "Tumakuru",
+    "Kolar",
+    "Chitradurga",
+    "Davangere",
+    "Shimoga",
+    "Hassan",
+    "Mandya",
+    "Mysuru",
+    "Chamarajanagar"
+  ],
+  "localities_bejjam": [
+    "Bejjam",
+    "Adilabad",
+    "Bhadrachalam",
+    "Hyderabad",
+    "Jagtial",
+    "Jangaon",
+    "Jayashankar Bhupalpally",
+    "Jogulamba Gadwal",
+    "Kamareddy",
+    "Karimnagar",
+    "Khammam",
+    "Komaram Bheem",
+    "Mahabubabad",
+    "Mahabubnagar",
+    "Mancherial"
+  ],
+  "localities_musthabad": [
+    "Musthabad",
+    "Medak",
+    "Siddipet",
+    "Kamareddy",
+    "Nizamabad",
+    "Adilabad",
+    "Karimnagar",
+    "Warangal",
+    "Khammam",
+    "Nalgonda",
+    "Mahabubnagar"
+  ],
+  "localities_khammam (urban)": [
+    "Khammam (Urban)",
+    "Khammam",
+    "Kallur",
+    "Tirumalayapalem",
+    "Wyra",
+    "Bonakal",
+    "Chinthakomma Dinne",
+    "Konijerla",
+    "Madhira",
+    "Nelakondapalli",
+    "Kusumanchi",
+    "Yerrupalem"
+  ],
+  "localities_khammam (rural)": [
+    "Khammam (Rural)",
+    "Khammam",
+    "Madhira",
+    "Bonnakal",
+    "Chinthakomma Dinne",
+    "Kamepalli",
+    "Kusumanchi",
+    "Mudigonda",
+    "Nelakondapalli",
+    "Penchikalpet",
+    "Raghunathapalem",
+    "Talluru",
+    "Vemsoor"
+  ],
+  "localities_nelakondapalli": [
+    "Nelakondapalli",
+    "Khammam",
+    "Warangal",
+    "Karimnagar",
+    "Adilabad",
+    "Nalgonda",
+    "Mahabubnagar",
+    "Nizamabad",
+    "Medak",
+    "Rangareddy",
+    "Hyderabad",
+    "Siddipet",
+    "Jogulamba Gadwal",
+    "Wanaparthy",
+    "Nagarkurnool"
+  ],
+  "localities_sathupalli": [
+    "Sathupalli",
+    "Khammam",
+    "Bhadrachalam",
+    "Kothagudem",
+    "Yellandu",
+    "Palwancha",
+    "Madhira",
+    "Wazeed",
+    "Aswaraopeta",
+    "Tallada",
+    "Enkoor",
+    "Kusumanchi",
+    "Penuballi",
+    "Sathupalli Mandal"
+  ],
+  "localities_chintakani": [
+    "Chintakani",
+    "Khammam",
+    "Kallur",
+    "Enkoor",
+    "Bayyaram",
+    "Chintakani Mandal",
+    "Kothagudem",
+    "Bhadrachalam",
+    "Aswaraopeta",
+    "Dammapeta"
+  ],
+  "localities_enkoor": [
+    "Enkoor",
+    "Khammam",
+    "Warangal",
+    "Karimnagar",
+    "Adilabad",
+    "Nalgonda",
+    "Mahabubnagar",
+    "Ranga Reddy",
+    "Medak",
+    "Nizamabad"
+  ],
+  "localities_sirpur (t)": [
+    "Sirpur (T)",
+    "Komaram Bheem",
+    "Asifabad",
+    "Kaghaznagar",
+    "Rebbena",
+    "Dahegaon",
+    "Sirpur",
+    "Tandur",
+    "Kouthala",
+    "Bejjur",
+    "Kannepalli",
+    "Pembi",
+    "Chintalamanepalli",
+    "Tatkapalli",
+    "Rudrapur"
+  ],
+  "localities_sirpur (u)": [
+    "Sirpur (U)",
+    "Khowai",
+    "Sipahijala",
+    "Gomati",
+    "South Tripura",
+    "West Tripura",
+    "North Tripura",
+    "Dhalai",
+    "Unakoti",
+    "Sepahijala"
+  ]
+}

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
-const { axiosWithProxy, getRandomIP } = require('../scrapers/proxyManager');
+
 
 const { getAllLocalities } = require('../utils/intelligentExtractor');
 
@@ -14,7 +14,7 @@ const CATEGORIES = [
   "Instant Photo Booths", "Decorators", "Caterers", "Makeup Artists", 
   "Mehndi Designers", "Wedding Clothes / Boutiques", "Jewelry Shops", 
   "Wedding Cards & Invites", "Cars & Buses (Travel)", "Astrologers / Pundits", 
-  "Honeymoon Packages", "Event Planners"
+  "Honeymoon Packages", "Event Planners", "All Workers", "All Vendors", "All Leads"
 ];
 
 const getFlatLocations = () => {

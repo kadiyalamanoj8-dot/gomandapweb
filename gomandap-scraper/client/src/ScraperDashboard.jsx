@@ -368,6 +368,9 @@ function ScraperDashboard({ user, onLogout }) {
   useEffect(() => {
     setSseStatus('connecting');
     let es;
+    let vendorBuffer = [];
+    let bufferInterval = null;
+
     try {
       es = new EventSource(`${API_URL}/logs/stream`);
       eventSourceRef.current = es;
@@ -376,13 +379,62 @@ function ScraperDashboard({ user, onLogout }) {
       es.addEventListener('init', (e) => {
         try { const arr = JSON.parse(e.data); if (Array.isArray(arr)) setLogs(arr); } catch {}
       });
+      
+      // Batch incoming vendors to avoid React re-render freezing on Ultra-Fast mode
+      bufferInterval = setInterval(() => {
+        if (vendorBuffer.length > 0) {
+          const normalPayloads = [];
+          const oobPayloads = [];
+          
+          vendorBuffer.forEach(payload => {
+            if (payload.action === 'out-of-bounds') {
+              oobPayloads.push(payload.vendor);
+            } else {
+              normalPayloads.push(payload);
+            }
+          });
+
+          if (normalPayloads.length > 0) {
+            setVendors(prev => {
+              const next = [...prev];
+              normalPayloads.forEach(payload => {
+                const idx = next.findIndex(v => v.id === payload.vendor.id);
+                if (payload.action === 'deleted') {
+                  if (idx !== -1) next.splice(idx, 1);
+                } else {
+                  if (idx !== -1) next[idx] = payload.vendor;
+                  else next.push(payload.vendor);
+                }
+              });
+              return next;
+            });
+          }
+
+          if (oobPayloads.length > 0) {
+            setOutOfBoundsVendors(prev => {
+              const next = [...prev];
+              oobPayloads.forEach(vendor => {
+                const idx = next.findIndex(v => v.id === vendor.id);
+                if (idx !== -1) next[idx] = vendor;
+                else next.push(vendor);
+              });
+              return next;
+            });
+          }
+
+          vendorBuffer = []; // clear buffer
+        }
+      }, 500);
+
       es.addEventListener('vendor', (e) => {
         try {
-          // Vendor event received; refresh vendor list
-          fetchVendors();
+          const payload = JSON.parse(e.data);
+          vendorBuffer.push(payload);
         } catch (err) { /* ignore */ }
       });
+      
       es.addEventListener('out-of-bounds', (e) => {
+        // Out of bounds don't freeze main UI, rare event.
         try { fetchVendors(); } catch (err) {}
       });
       es.addEventListener('intervention', (e) => {
@@ -397,7 +449,6 @@ function ScraperDashboard({ user, onLogout }) {
             const next = [...prev, e.data];
             return next.slice(-200);
           });
-          // auto-scroll
           setTimeout(() => {
             if (terminalRef.current) {
               terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
@@ -407,7 +458,6 @@ function ScraperDashboard({ user, onLogout }) {
       };
       es.onerror = () => {
         setSseStatus('error');
-        // EventSource will attempt automatic reconnects; keep the instance
       };
     } catch (err) {
       setSseStatus('error');
@@ -418,9 +468,9 @@ function ScraperDashboard({ user, onLogout }) {
           if (res.data && Array.isArray(res.data)) setLogs(res.data);
         } catch (e) {}
       }, 2000);
-      return () => clearInterval(interval);
+      return () => { clearInterval(interval); if (bufferInterval) clearInterval(bufferInterval); };
     }
-    return () => { try { es && es.close(); eventSourceRef.current = null; } catch (e) {} };
+    return () => { try { es && es.close(); eventSourceRef.current = null; if (bufferInterval) clearInterval(bufferInterval); } catch (e) {} };
   }, []);
 
   // Proactive AI Guidance Toast (Idle for 60s)
@@ -664,13 +714,8 @@ function ScraperDashboard({ user, onLogout }) {
         if (activeInput === 'category') setCategoryQuery(suggestions[suggestionIndex]);
         else setLocationQuery(suggestions[suggestionIndex]);
         setShowSuggestions(false);
-      } else if (suggestions.length > 0) {
-        const bestMatch = suggestions[0];
-        if (activeInput === 'category') setCategoryQuery(bestMatch);
-        else setLocationQuery(bestMatch);
-        setShowSuggestions(false);
-        toast.success(`Auto-corrected to: ${bestMatch}`, { icon: '✨' });
       } else {
+        setShowSuggestions(false);
         startScrape(e);
       }
     } else if (e.key === 'Escape') {
@@ -976,24 +1021,6 @@ function ScraperDashboard({ user, onLogout }) {
     grouped[activeCategory] = [];
   }
 
-  if (!backendConnected) {
-    return (
-      <div className="min-h-screen text-white font-sans bg-[#0a0a0a] flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mb-6">
-          <ServerCrash size={32} className="text-red-500" />
-        </div>
-        <h2 className="text-2xl font-medium mb-3">Backend Not Connected</h2>
-        <p className="text-white/50 max-w-md mb-8">
-          The Gomandap Scraper API could not be reached at <code className="bg-white/10 px-1.5 py-0.5 rounded mx-1">{API_URL}</code>.<br/><br/>
-          Please make sure you have started the dedicated scraper server by running <code className="bg-white/10 px-1.5 py-0.5 rounded text-blue-400">npm start</code> inside the <code className="bg-white/10 px-1.5 py-0.5 rounded">gomandap-scraper/server</code> directory.
-        </p>
-        <button onClick={() => fetchVendors()} className="px-6 py-3 bg-white text-black font-medium rounded-lg hover:bg-white/90 flex items-center gap-2">
-          <RefreshCw size={16} /> Try Reconnecting
-        </button>
-      </div>
-    );
-  }
-
   // Provide all scraping state/actions to sub-pages via context
   const contextValue = {
     // Data
@@ -1062,6 +1089,24 @@ function ScraperDashboard({ user, onLogout }) {
     onLogout,
     user,
   };
+
+  if (!backendConnected) {
+    return (
+      <div className="min-h-screen text-white font-sans bg-[#0a0a0a] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mb-6">
+          <ServerCrash size={32} className="text-red-500" />
+        </div>
+        <h2 className="text-2xl font-medium mb-3">Backend Not Connected</h2>
+        <p className="text-white/50 max-w-md mb-8">
+          The Gomandap Scraper API could not be reached at <code className="bg-white/10 px-1.5 py-0.5 rounded mx-1">{API_URL}</code>.<br/><br/>
+          Please make sure you have started the dedicated scraper server by running <code className="bg-white/10 px-1.5 py-0.5 rounded text-blue-400">npm start</code> inside the <code className="bg-white/10 px-1.5 py-0.5 rounded">gomandap-scraper/server</code> directory.
+        </p>
+        <button onClick={() => fetchVendors()} className="px-6 py-3 bg-white text-black font-medium rounded-lg hover:bg-white/90 flex items-center gap-2">
+          <RefreshCw size={16} /> Try Reconnecting
+        </button>
+      </div>
+    );
+  }
 
   return (
     <ScraperContext.Provider value={contextValue}>

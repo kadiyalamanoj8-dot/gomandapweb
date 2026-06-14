@@ -1,4 +1,30 @@
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
+
+const cacheFile = path.join(__dirname, '../../data/forwardGeocodeCache.json');
+let forwardCache = {};
+
+function loadCache() {
+  if (fs.existsSync(cacheFile)) {
+    try {
+      forwardCache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+    } catch (e) {
+      forwardCache = {};
+    }
+  }
+}
+loadCache();
+
+function saveCache() {
+  try {
+    fs.writeFile(cacheFile, JSON.stringify(forwardCache), (err) => {
+      if (err) console.error('[Geocoding Cache] Failed to write file:', err.message);
+    });
+  } catch (e) {
+    console.error('[Geocoding Cache] Failed to save cache:', e.message);
+  }
+}
 
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -12,6 +38,11 @@ async function sleep(ms) {
 async function geocodeLocation(locationQuery) {
   if (!locationQuery || locationQuery.trim().length === 0) return null;
   
+  const key = locationQuery.toLowerCase().trim();
+  if (forwardCache[key]) {
+    return forwardCache[key];
+  }
+  
   let attempts = 0;
   const maxAttempts = 3;
 
@@ -23,7 +54,8 @@ async function geocodeLocation(locationQuery) {
           q: locationQuery,
           format: 'json',
           limit: 1,
-          addressdetails: 1
+          addressdetails: 1,
+          countrycodes: 'in'
         },
         headers: {
           // Unique user-agent is REQUIRED by Nominatim TOS to prevent blocking
@@ -35,16 +67,56 @@ async function geocodeLocation(locationQuery) {
       if (response.data && response.data.length > 0) {
         const bestMatch = response.data[0];
         console.log(`[OSM Geocoding] Resolved to: ${bestMatch.display_name} (${bestMatch.lat}, ${bestMatch.lon})`);
-        return {
+        const result = {
           formattedLocation: bestMatch.display_name,
           lat: parseFloat(bestMatch.lat),
           lng: parseFloat(bestMatch.lon),
           boundingbox: bestMatch.boundingbox ? bestMatch.boundingbox.map(parseFloat) : null
         };
+        forwardCache[key] = result;
+        saveCache();
+        return result;
+      }
+      
+      // If no match and it's a comma-separated query, try fallback (remove district name)
+      const parts = locationQuery.split(',');
+      if (parts.length >= 3) {
+        const fallbackQuery = `${parts[0].trim()}, ${parts[2].trim()}`;
+        console.log(`[OSM Geocoding] No direct match. Trying broader fallback query: "${fallbackQuery}"`);
+        const fbResponse = await axios.get(`https://nominatim.openstreetmap.org/search`, {
+          params: {
+            q: fallbackQuery,
+            format: 'json',
+            limit: 1,
+            addressdetails: 1,
+            countrycodes: 'in'
+          },
+          headers: {
+            'User-Agent': `GomandapScraperApp/2.0_${Math.random().toString(36).substring(7)} (contact@gomandap.com)`
+          },
+          timeout: 10000
+        });
+
+        if (fbResponse.data && fbResponse.data.length > 0) {
+          const bestMatch = fbResponse.data[0];
+          console.log(`[OSM Geocoding] Resolved (fallback) to: ${bestMatch.display_name} (${bestMatch.lat}, ${bestMatch.lon})`);
+          const result = {
+            formattedLocation: bestMatch.display_name,
+            lat: parseFloat(bestMatch.lat),
+            lng: parseFloat(bestMatch.lon),
+            boundingbox: bestMatch.boundingbox ? bestMatch.boundingbox.map(parseFloat) : null
+          };
+          forwardCache[key] = result;
+          saveCache();
+          return result;
+        }
       }
       
       console.warn(`[OSM Geocoding] No coordinates found for "${locationQuery}"`);
-      return { formattedLocation: locationQuery.trim(), lat: null, lng: null, boundingbox: null };
+      const emptyResult = { formattedLocation: locationQuery.trim(), lat: null, lng: null, boundingbox: null };
+      forwardCache[key] = emptyResult;
+      saveCache();
+      return emptyResult;
       
     } catch (err) {
       attempts++;
@@ -89,7 +161,12 @@ async function autocompleteLocation(text) {
   }
 }
 
+function getCache() {
+  return forwardCache;
+}
+
 module.exports = {
   geocodeLocation,
-  autocompleteLocation
+  autocompleteLocation,
+  getCache
 };

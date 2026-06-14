@@ -273,7 +273,7 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
       const combinedText = `${name} ${address}`;
       
       const coords = extractCoords(page.url());
-      if (centerLat !== null && centerLng !== null && radiusKm !== null && coords && strategy === 'strict') {
+      if (centerLat !== null && centerLng !== null && radiusKm !== null && coords) {
         const distance = getDistanceKm(centerLat, centerLng, coords.lat, coords.lng);
         if (distance > radiusKm) {
           addLog(`[Boundary Filter] Saving '${name}' to Out of Bounds Folder (${distance.toFixed(1)}km > ${radiusKm}km limit)`);
@@ -284,7 +284,9 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
             name, category, city: location || 'Global', address: address || '', 
             phone: '', rating: '', mapsLink: page.url(), 
             latitude: coords.lat, longitude: coords.lng, source: 'Google Maps (Out of Bounds)',
-            outOfBoundsDistance: distance.toFixed(1)
+            outOfBoundsDistance: distance.toFixed(1),
+            scrapedAt: new Date().toISOString(),
+            sessionId
           };
           dbAdapter.saveOutOfBoundsVendor(oobLead);
           try { emitVendorEvent(oobLead, 'out-of-bounds'); } catch (e) {}
@@ -348,14 +350,13 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
         addLog("Scrolling through search results feed... (Fast Mode)");
         
         // Dynamic Fast Scroll - absolute minimum delays
-        for(let i=0; i<50; i++) {
+        for(let i=0; i<100; i++) {
           if (globalAbortSignal.aborted) throw new Error('Master Stop Aborted');
           await scrollable.evaluate(node => node.scrollBy(0, 10000));
-          await page.waitForTimeout(150); // Ultra-fast hardware scroll speed
-          await page.waitForTimeout(150); // Ultra-fast hardware scroll speed
+          await page.waitForTimeout(120); // Ultra-fast hardware scroll speed
           const currentCount = await page.locator('a.hfpxzc').count();
-          if (currentCount >= 300) {
-            addLog(`Reached ${currentCount} cards quickly, stopping scroll.`);
+          if (currentCount >= 200) {
+            addLog(`Reached ${currentCount} cards (10 pages), stopping scroll.`);
             break;
           }
         }
@@ -486,28 +487,33 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
                 if (src) allImages.push(src);
               }
             } catch (e) {}
-            
-            const avatar = allImages.length > 0 ? allImages[0] : '';
+      const avatar = allImages.length > 0 ? allImages[0] : '';
 
             // Fire-and-Forget Background Enrichment (No Blocking!)
             let enrichedData = { email: '', instagram: '', facebook: '', phone: '', instagramFollowers: '', facebookFollowers: '', images: [] };
-            if (websiteUrl) {
-               // We run this in the background so the map extraction never pauses
-               scrapeWebsiteForSocials(browser, websiteUrl, name).then(data => {
-                  const currentVendors = dbAdapter.getVendors();
-                  const vIdx = currentVendors.findIndex(v => v.name === name);
-                  if (vIdx !== -1) {
-                     let existing = currentVendors[vIdx];
-                     let updated = false;
-                     if (data.email) { existing.email = data.email; updated = true; }
-                     if (data.phone && (!existing.phone || existing.phone.includes('Requires'))) { existing.phone = data.phone; updated = true; }
-                     if (updated) {
-                       dbAdapter.saveVendors(currentVendors);
-                       try { emitVendorEvent(existing, 'updated'); } catch(e){}
-                     }
-                  }
-               }).catch(()=>{});
-            }
+             if (websiteUrl) {
+                // We run this in the background so the map extraction never pauses
+                scrapeWebsiteForSocials(browser, websiteUrl, name).then(data => {
+                   const currentVendors = dbAdapter.getVendors();
+                   const vIdx = currentVendors.findIndex(v => v.name === name);
+                   if (vIdx !== -1) {
+                      let existing = currentVendors[vIdx];
+                      let updated = false;
+                      if (data.email && !existing.email) { existing.email = data.email; updated = true; }
+                      if (data.phone && (!existing.phone || existing.phone.includes('Requires'))) { existing.phone = data.phone; updated = true; }
+                      if (data.instagram && !existing.instagram) { existing.instagram = data.instagram; updated = true; }
+                      if (data.facebook && !existing.facebook) { existing.facebook = data.facebook; updated = true; }
+                      if (data.images && data.images.length > 0) {
+                        existing.images = [...new Set([...(existing.images || []), ...data.images])];
+                        updated = true;
+                      }
+                      if (updated) {
+                        dbAdapter.saveVendors(currentVendors);
+                        try { emitVendorEvent(existing, 'updated'); } catch(e){}
+                      }
+                   }
+                }).catch(()=>{});
+             }
 
             const coords = extractCoords(mapsLink);
             const finalPhone = (phone && !phone.includes('Requires')) ? phone : phone;
@@ -538,14 +544,17 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
             // STREAMING INSERTION TO DB
             const combinedText = `${place.name} ${place.address} ${place.operatingHours}`;
 
-            // Apply boundary filter ONLY if strategy is strict
-            if (centerLat !== null && centerLng !== null && radiusKm !== null && place.latitude && place.longitude && strategy === 'strict') {
+            // Apply boundary filter if coordinates and radius are available
+            if (centerLat !== null && centerLng !== null && radiusKm !== null && place.latitude && place.longitude) {
               const distance = getDistanceKm(centerLat, centerLng, place.latitude, place.longitude);
               if (distance > radiusKm) {
                 addLog(`[Boundary Filter] Saving '${place.name}' to Out of Bounds Folder (${distance.toFixed(1)}km > ${radiusKm}km limit)`);
                 place.outOfBoundsDistance = distance.toFixed(1);
                 place.source = 'Google Maps (Out of Bounds)';
+                place.scrapedAt = new Date().toISOString();
+                place.sessionId = sessionId;
                 dbAdapter.saveOutOfBoundsVendor(place);
+                try { emitVendorEvent(place, 'out-of-bounds'); } catch (e) {}
                 continue;
               }
             }

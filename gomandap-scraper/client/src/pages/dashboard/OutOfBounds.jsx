@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Download, RefreshCw, Phone, MapPin, Database, Navigation } from 'lucide-react';
-import { API_BASE_URL } from '../config';
+import { API_URL } from '../../apiConfig';
 
 export default function OutOfBoundsPage() {
   const [vendors, setVendors] = useState([]);
@@ -9,7 +9,7 @@ export default function OutOfBoundsPage() {
   const fetchVendors = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/vendors/out-of-bounds`);
+      const res = await fetch(`${API_URL}/vendors/out-of-bounds`);
       const data = await res.json();
       setVendors(data);
     } catch (err) {
