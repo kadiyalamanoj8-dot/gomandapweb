@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, CheckCircle, XCircle, Clock, MapPin, User, MessageCircle } from 'lucide-react';
 import axios from 'axios';
 import { API_URL } from '../config/api';
-import { useAuth } from '../context/AuthContext';
+import { useVendor } from '../context/VendorContext';
 
 const Bookings = () => {
-  const { vendor } = useAuth();
+  const { vendorProfile: vendor } = useVendor();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
