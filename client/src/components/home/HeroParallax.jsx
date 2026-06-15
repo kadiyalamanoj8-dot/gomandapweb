@@ -283,7 +283,7 @@ const HeroParallax = () => {
         <div className="px-3 sm:px-6 flex flex-col items-start w-full">
           <span className="text-[10px] font-bold text-[#FFD700]/70 uppercase tracking-[0.18em] mb-0.5 ml-1">{t('search_dates')}</span>
           <div className="px-1 py-1 w-full">
-            <AppleDateTimePicker value={selectedDate} onChange={setSelectedDate} placeholder="When?" theme="dark" position="bottom" />
+            <AppleDateTimePicker value={selectedDate} onChange={setSelectedDate} placeholder="When?" theme="dark" position={isMobile ? "top" : "bottom"} />
           </div>
         </div>
         <button onClick={handleSearch} className="btn-liquid text-white rounded-full h-12 md:h-14 w-12 md:w-auto md:px-6 flex items-center justify-center gap-2 font-bold text-[16px] shrink-0 touch-manipulation">
