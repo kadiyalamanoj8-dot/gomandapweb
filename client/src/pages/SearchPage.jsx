@@ -84,6 +84,7 @@ const SearchPage = () => {
         const inHouseDecorations = searchParams.get('inHouseDecorations') === 'true';
         const date = searchParams.get('date');
         const q = searchParams.get('q');
+        const capacity = searchParams.get('capacity');
 
         let url = `${API_URL}/api/vendors?categories=${encodeURIComponent(targetCategories.join(','))}`;
         if (inHouseCatering)    url += `&inHouseCatering=true`;
@@ -93,6 +94,7 @@ const SearchPage = () => {
         if (q) url += `&q=${encodeURIComponent(q)}`;
         if (lat && lng)  url += `&lat=${lat}&lng=${lng}&radiusInKm=50`;
         else if (locName) url += `&locName=${encodeURIComponent(locName)}`;
+        if (capacity) url += `&capacity=${encodeURIComponent(capacity)}`;
 
         searchParams.forEach((val, key) => {
           if (key.startsWith('dynamic_')) {

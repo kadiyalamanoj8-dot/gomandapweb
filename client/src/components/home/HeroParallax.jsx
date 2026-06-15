@@ -27,6 +27,7 @@ const HeroParallax = () => {
   const [eventType, setEventType] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
+  const [capacity, setCapacity] = useState('');
   const [isHeroVisible, setIsHeroVisible] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
@@ -125,6 +126,7 @@ const HeroParallax = () => {
 
     let url = `/search?category=${encodeURIComponent(searchCategory)}`;
     if (selectedLocation) url += `&lat=${selectedLocation.lat}&lng=${selectedLocation.lon}&locName=${encodeURIComponent(selectedLocation.display_name.split(',')[0])}`;
+    if (capacity) url += `&capacity=${encodeURIComponent(capacity)}`;
     setIsMobileSearchOpen(false);
     navigate(url);
   };
@@ -257,6 +259,26 @@ const HeroParallax = () => {
       <div className="hidden md:block w-px h-12 bg-white/20 mx-2"></div>
       <div className="block md:hidden h-px w-[90%] bg-white/10 mx-auto my-2"></div>
 
+      {/* Capacity Block */}
+      <div className="flex-1 w-full md:w-auto relative group rounded-[24px] md:rounded-full hover:bg-white/5 transition-colors cursor-text py-2 md:py-3">
+        <div className="px-3 sm:px-6 flex flex-col items-start w-full">
+          <span className="text-[10px] font-bold text-[#FFD700]/70 uppercase tracking-[0.18em] mb-0.5 ml-1">CAPACITY (GUESTS)</span>
+          <div className="flex items-center gap-1 sm:gap-2 px-1 py-1 w-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#FFD700]/80 shrink-0"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <input 
+              type="number" 
+              value={capacity}
+              onChange={(e) => setCapacity(e.target.value)}
+              placeholder="e.g. 300" 
+              className="w-full bg-transparent text-[#FFD700] font-semibold text-[17px] tracking-tight focus:outline-none placeholder-[#FFD700]/50" 
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="hidden md:block w-px h-12 bg-white/20 mx-2"></div>
+      <div className="block md:hidden h-px w-[90%] bg-white/10 mx-auto my-2"></div>
+
       <div className="flex-1 w-full md:w-auto relative group rounded-[24px] md:rounded-full hover:bg-white/5 transition-colors cursor-text flex items-center justify-between pr-2 py-2 md:py-3">
         <div className="px-3 sm:px-6 flex flex-col items-start w-full">
           <span className="text-[10px] font-bold text-[#FFD700]/70 uppercase tracking-[0.18em] mb-0.5 ml-1">{t('search_dates')}</span>
@@ -310,7 +332,7 @@ const HeroParallax = () => {
         </div>
 
         {/* Mobile UI: Compact Bottom Pill (Airbnb Style) */}
-        <div className="md:hidden absolute bottom-[115px] w-full z-[200] px-4 pointer-events-auto">
+        <div className="md:hidden absolute bottom-[140px] w-full z-[200] px-4 pointer-events-auto">
           <button 
             onClick={() => setIsMobileSearchOpen(true)}
             className="w-full bg-white/5 backdrop-blur-md shadow-[inset_0_2px_15px_rgba(255,255,255,0.5),inset_0_-1px_10px_rgba(255,255,255,0.1),0_25px_50px_rgba(0,0,0,0.5)] border border-white/20 border-t-white/40 rounded-[32px] py-4 px-6 flex items-center justify-between text-white active:scale-95 transition-transform"
@@ -335,7 +357,7 @@ const HeroParallax = () => {
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="fixed inset-0 z-[9999] bg-[#121212]/95 backdrop-blur-3xl overflow-y-auto"
             >
-              <div className="p-6 pb-24 h-full flex flex-col">
+              <div className="px-6 pt-24 pb-24 h-full flex flex-col">
                 <button 
                   onClick={() => setIsMobileSearchOpen(false)}
                   className="mb-8 p-3 bg-white/10 hover:bg-white/20 transition-colors rounded-full text-white inline-flex self-start"

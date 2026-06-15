@@ -184,7 +184,7 @@ const getApprovedVendors = async (req, res) => {
       return res.status(200).json(vendorCache.get(cacheKey));
     }
 
-    const { category, categories, inHouseCatering, inHousePhotography, inHouseDecorations, lat, lng, radiusInKm, locName, date, q } = req.query;
+    const { category, categories, inHouseCatering, inHousePhotography, inHouseDecorations, lat, lng, radiusInKm, locName, date, q, capacity } = req.query;
     
     // Fetch disabled categories from Settings to exclude them
     const settings = await Settings.findOne();
@@ -229,6 +229,11 @@ const getApprovedVendors = async (req, res) => {
         { category: { $regex: q, $options: 'i' } },
         { 'address.city': { $regex: q, $options: 'i' } }
       ];
+    }
+
+    // Capacity Filtering
+    if (capacity) {
+      query.maxCapacity = { $gte: parseInt(capacity) || 0 };
     }
 
     // In-house services filtering (stored in deepFeatures)
