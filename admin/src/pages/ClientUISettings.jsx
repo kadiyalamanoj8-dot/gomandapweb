@@ -3,8 +3,7 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { Settings, Save, Image as ImageIcon, Layout, Box, RefreshCw, SlidersHorizontal } from 'lucide-react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://gomandap-api.onrender.com';
+import { API_URL } from '../config/api';
 
 const ClientUISettings = () => {
   const [isLoading, setIsLoading] = useState(true);

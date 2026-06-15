@@ -47,8 +47,8 @@ const VendorDetailsModal = ({ vendor, onClose, onUpdateStatus, onUpdateAdminSett
     : ['https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1200&q=80'];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center md:p-4 bg-gray-900/40 backdrop-blur-sm">
-      <div className="bg-white w-full h-full md:h-auto md:max-w-4xl md:max-h-[90vh] md:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center md:p-4 bg-gray-900/60 backdrop-blur-md transition-all">
+      <div className="bg-white w-full h-full md:h-auto md:max-w-4xl md:max-h-[90vh] md:rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/20 flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-6 py-4 border-b border-gray-100 bg-gray-50/50 gap-4">

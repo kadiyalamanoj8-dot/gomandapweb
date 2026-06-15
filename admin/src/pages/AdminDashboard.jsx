@@ -5,8 +5,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { Search, Filter, CheckCircle2, XCircle, Clock, Users, Store, TrendingUp, AlertTriangle, ChevronDown, LayoutTemplate, Calendar } from 'lucide-react';
 import VendorDetailsModal from '../components/VendorDetailsModal';
 import BookingInterventionModal from '../components/BookingInterventionModal';
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://gomandap-api.onrender.com';
+import { API_URL } from '../config/api';
 
 // Skeleton loader component
 const SkeletonRow = () => (
@@ -48,21 +47,28 @@ const StatusBadge = ({ status, step }) => {
   );
 };
 
-const StatCard = ({ icon: Icon, value, label, color }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4"
-  >
-    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>
-      <Icon size={22} />
-    </div>
-    <div>
-      <div className="text-2xl font-black text-gray-900">{value}</div>
-      <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-0.5">{label}</div>
-    </div>
-  </motion.div>
-);
+const StatCard = ({ icon: Icon, value, label, color }) => {
+  // Extract color base for gradient shadow (e.g. text-blue-600 -> blue)
+  const colorBase = color.includes('blue') ? 'blue' : color.includes('green') ? 'green' : color.includes('purple') ? 'purple' : 'gray';
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -5 }}
+      className="relative overflow-hidden bg-white/80 backdrop-blur-xl rounded-3xl border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 p-6 flex items-center gap-5 group"
+    >
+      <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-gradient-to-br from-gray-50 to-gray-100 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700 ease-out" />
+      <div className={`relative z-10 w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${color} bg-opacity-20`}>
+        <Icon size={26} className={color.replace('bg-', 'text-').replace('-100', '-600')} />
+      </div>
+      <div className="relative z-10">
+        <div className="text-3xl font-black text-gray-900 tracking-tight">{value}</div>
+        <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">{label}</div>
+      </div>
+    </motion.div>
+  );
+};
 
 const FILTER_TABS = ['all', 'pending', 'approved', 'rejected_with_feedback', 'draft'];
 

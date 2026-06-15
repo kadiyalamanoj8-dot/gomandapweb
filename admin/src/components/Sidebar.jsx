@@ -90,7 +90,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             Ad Packages
           </NavLink>
           <a
-            href="http://localhost:5174"
+            href="https://scraper.gomandap.com"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all text-violet-400 hover:bg-violet-500/10 hover:text-violet-300 border border-violet-500/20 shadow-[0_0_15px_rgba(139,92,246,0.15)] mt-2 group relative overflow-hidden"

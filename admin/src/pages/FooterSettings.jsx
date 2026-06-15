@@ -3,8 +3,7 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { Save, RefreshCw, LayoutTemplate, Plus, Trash2, Link as LinkIcon, Image as ImageIcon, Phone, Mail, FileText } from 'lucide-react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://gomandap-api.onrender.com';
+import { API_URL } from '../config/api';
 
 const defaultFooter = {
   aboutText: "",

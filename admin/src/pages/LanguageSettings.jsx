@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Globe, RefreshCw } from 'lucide-react';
 import IOSToggle from '../components/ui/IOSToggle';
+import { API_URL } from '../config/api';
 
 const ALL_LANGUAGES = [
   { code: 'en', name: 'English', nativeName: 'English' },
@@ -18,7 +19,7 @@ const LanguageSettings = () => {
 
   async function fetchSettings() {
     try {
-      const res = await axios.get('https://gomandap-api.onrender.com/api/settings');
+      const res = await axios.get(`${API_URL}/settings`);
       if (res.data && res.data.data && res.data.data.activeLanguages) {
         setActiveLanguages(res.data.data.activeLanguages);
       }
@@ -46,7 +47,7 @@ const LanguageSettings = () => {
     );
 
     try {
-      await axios.patch('https://gomandap-api.onrender.com/api/settings/languages/toggle', {
+      await axios.patch(`${API_URL}/settings/languages/toggle`, {
         language: languageCode,
         enabled: newEnabledState
       });

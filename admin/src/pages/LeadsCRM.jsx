@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Mail, MessageCircle, MapPin, Loader2, CheckCircle2, UserPlus, Phone } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_URL } from '../config/api';
 
 const LeadsCRM = () => {
   const [leads, setLeads] = useState([]);
@@ -42,7 +41,7 @@ const LeadsCRM = () => {
     let formattedPhone = lead.phone.replace(/[^0-9]/g, '');
     if (formattedPhone.length === 10) formattedPhone = '91' + formattedPhone;
     
-    const message = `Hi ${lead.name} team! We saw your profile on Google Maps. We are inviting premium venues to list on Gomandap.com. You can claim your pre-built profile here: http://localhost:5173/vendor/onboarding?lead_id=${lead._id}`;
+    const message = `Hi ${lead.name} team! We saw your profile on Google Maps. We are inviting premium venues to list on Gomandap.com. You can claim your pre-built profile here: https://vendor.gomandap.com/onboarding?lead_id=${lead._id}`;
     
     // Update local status
     await axios.put(`${API_URL}/leads/${lead._id}`, { whatsappStatus: 'Sent', status: 'Outreach Sent' });

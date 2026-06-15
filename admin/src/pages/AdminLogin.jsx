@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ShieldCheck, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { motion } from 'framer-motion';
+import { Lock, Mail, Loader2, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { API_URL } from '../config/api';
 import { useAdminAuth } from '../context/AdminAuthContext';
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://gomandap-api.onrender.com';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
