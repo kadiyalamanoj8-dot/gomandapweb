@@ -18,21 +18,20 @@ fi
 # 2. Install dependencies & build apps
 echo "Installing Root dependencies..."
 npm install
-npm audit fix --force
 
 echo "Installing Backend dependencies..."
-(cd backend && npm install && npm audit fix --force)
+(cd backend && npm install)
 
 # 3. Handle Frontend builds (Firebase hosting builds or VM local builds)
 echo "Installing and building Frontend Apps (Client, Vendor, Admin)..."
 echo "Building Client..."
-(cd client && npm install && npm audit fix --force && npm run build)
+(cd client && npm install && npm run build)
 
 echo "Building Vendor..."
-(cd vendor && npm install && npm audit fix --force && npm run build)
+(cd vendor && npm install && npm run build)
 
 echo "Building Admin..."
-(cd admin && npm install && npm audit fix --force && npm run build)
+(cd admin && npm install && npm run build)
 
 # 4. Process Management with PM2
 if command -v pm2 > /dev/null 2>&1; then
