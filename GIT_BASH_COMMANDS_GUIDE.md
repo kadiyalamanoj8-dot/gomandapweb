@@ -418,16 +418,14 @@ sudo systemctl enable mongod
 ```
 
 ### 3. Updating Backend Environment for Local Storage
-Since Git ignores `.env` files, you must manually create/update it on the VM so it connects to the local MongoDB instead of Atlas:
+Since Git ignores `.env` files, you must update it on the VM so it connects to the local MongoDB instead of Atlas. You can run this automated block to do it instantly:
+
 ```bash
-nano ~/gomandapweb/backend/.env
-```
-Ensure your configuration looks like this (with your actual Ola credentials):
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/gomandapweb
-UPLOAD_DIR=uploads
-OLA_MAPS_CLIENT_ID=your_id
+sed -i 's|MONGODB_URI=.*|MONGODB_URI=mongodb://localhost:27017/gomandapweb|g' ~/gomandapweb/backend/.env
+sed -i '/CLOUDINARY/d' ~/gomandapweb/backend/.env
+if ! grep -q "UPLOAD_DIR" ~/gomandapweb/backend/.env; then
+  echo "UPLOAD_DIR=uploads" >> ~/gomandapweb/backend/.env
+fi
 ```
 
 ### Note on Node.js Warnings (`EBADENGINE`)
