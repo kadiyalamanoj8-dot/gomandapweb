@@ -430,6 +430,13 @@ UPLOAD_DIR=uploads
 OLA_MAPS_CLIENT_ID=your_id
 ```
 
+### Note on Node.js Warnings (`EBADENGINE`)
+During `npm install`, you may occasionally see warnings like `npm warn EBADENGINE Unsupported engine`. This happens when a package (like `firebase-admin`) prefers a slightly newer version of Node.js (e.g., Node 22) but you are running Node 20. 
+**This is completely safe to ignore.** Node 20 is the stable standard for Oracle Linux and will run these packages perfectly fine.
+
+### Note on Vulnerabilities (`npm audit fix --force`)
+The deployment script automatically runs `npm audit fix --force` after installing dependencies. This automatically updates vulnerable packages to secure versions. If you see warnings about vulnerabilities, the script has already done its best to fix them automatically!
+
 ---
 
 ## How to convert this guide to a PDF:
