@@ -61,9 +61,8 @@ async function scrapeGoogleSerp(query, category, location) {
   let context = null;
   
   try {
-    const factory = await getBrowser(false);
-    browser = factory.browser;
-    context = factory.context;
+    browser = await getBrowser();
+    context = await browser.newContext();
     
     const page = await context.newPage();
     

@@ -223,12 +223,12 @@ export default function LeadsPage() {
                 <p className="font-bold">No leads to display</p>
               </div>
             ) : (
-            {(filteredVendors || []).map((vendor, idx) => (
-              <VendorCard key={vendor.id || idx} vendor={vendor} employees={employees || []}
-                onVerify={handleVerify} onDelete={handleDelete} onAssign={handleAssign}
-                onUnlock={handleUnlock}
-                onClick={() => setSelectedVendor(vendor)} />
-            ))}
+              (filteredVendors || []).map((vendor, idx) => (
+                <VendorCard key={vendor.id || idx} vendor={vendor} employees={employees || []}
+                  onVerify={handleVerify} onDelete={handleDelete} onAssign={handleAssign}
+                  onUnlock={handleUnlock}
+                  onClick={() => setSelectedVendor(vendor)} />
+              ))
             )}
           </div>
         )}

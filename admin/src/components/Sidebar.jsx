@@ -64,6 +64,25 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           >
             <Users size={18} /> Leads CRM
           </NavLink>
+          <NavLink
+            to="/marketing"
+            onClick={() => setIsOpen(false)}
+            className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'btn-liquid text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          >
+            <Users size={18} /> Marketing CRM
+          </NavLink>
+          
+          <a
+            href="http://localhost:5174"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all text-violet-400 hover:bg-violet-500/10 hover:text-violet-300 border border-violet-500/20 shadow-[0_0_15px_rgba(139,92,246,0.15)] mt-2 group relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-violet-600/0 via-violet-600/10 to-violet-600/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+            <Globe size={18} className="animate-pulse" /> 
+            <span>Omni Scraper AI</span>
+            <span className="ml-auto text-[9px] uppercase tracking-wider bg-violet-500/20 px-1.5 py-0.5 rounded text-violet-300 border border-violet-500/30">Live</span>
+          </a>
 
           <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-4 mb-2 mt-6">Configuration</p>
           <NavLink

@@ -32,6 +32,7 @@ const employeesRoutes = require('./src/routes/employees');
 const uploadRoutes = require('./src/routes/upload');
 const publicUsersRoutes = require('./src/routes/publicUsers');
 const locationsRoutes = require('./src/routes/locations');
+const automationsRoutes = require('./src/routes/automations');
 
 const app = express();
 app.use(cors());
@@ -144,6 +145,7 @@ app.use('/api/vendors', vendorsRoutes);
 app.use('/api/employees', employeesRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/locations', locationsRoutes);
+app.use('/api/automations', automationsRoutes);
 
 // Static PDF Downloads
 app.use('/downloads', express.static(path.join(__dirname, 'downloads')));

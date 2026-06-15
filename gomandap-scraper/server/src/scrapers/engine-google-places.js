@@ -128,14 +128,38 @@ async function scrapeWebsiteForSocials(browser, url, vendorName) {
   }
 }
 
-function isListingRelevantToQuery(name, pageText, category, exactQuery) {
-  // Relaxed rule: If it's a search, we generally trust Google Maps placement unless it's obviously wildly wrong
-  return true; 
-}
+function isListingRelevantToQuery(name, address, district, stateName, mandal, location) {
+  if (!address) return true; // Can't prove it's out of bounds
+  
+  const addrLower = address.toLowerCase();
+  
+  // 1. Strict State Filter: If we have a state name, address MUST NOT explicitly mention a DIFFERENT state
+  const knownStates = ['telangana', 'andhra pradesh', 'karnataka', 'tamil nadu', 'maharashtra', 'kerala', 'gujarat', 'rajasthan', 'punjab', 'haryana', 'uttar pradesh', 'bihar', 'west bengal', 'odisha', 'madhya pradesh', 'assam', 'himachal pradesh', 'uttarakhand', 'jharkhand', 'chhattisgarh', 'goa', 'manipur', 'meghalaya', 'mizoram', 'nagaland', 'sikkim', 'tripura', 'arunachal pradesh', 'delhi'];
+  
+  if (stateName) {
+    const myState = stateName.toLowerCase().replace(/[^a-z]/g, '');
+    for (const state of knownStates) {
+      const stateClean = state.replace(/[^a-z]/g, '');
+      if (stateClean !== myState && addrLower.replace(/[^a-z]/g, '').includes(stateClean)) {
+        // Address explicitly mentions a different state!
+        return false;
+      }
+    }
+  }
 
-function isListingRelevantToQueryGeneral(name, pageText, category, exactQuery) {
-  // User requested to register EVERYTHING that flows through. We completely remove filtering.
-  return true;
+  // 2. Strict District/City Filter: Basic heuristic - if another major city/district of the SAME state is found, and not ours, reject.
+  // (We'll rely primarily on Bounding Box for strict geo-accuracy, but this prevents text anomalies)
+  if (district) {
+    const dName = district.toLowerCase().split(' ')[0]; // E.g., 'East' from 'East Godavari'
+    if (addrLower.includes(dName)) return true;
+  }
+  
+  if (mandal) {
+    const mName = mandal.toLowerCase().split(' ')[0];
+    if (addrLower.includes(mName)) return true;
+  }
+
+  return true; 
 }
 
 function extractCoords(url) {
@@ -156,7 +180,26 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "legacy", centerLat = null, centerLng = null, radiusKm = null, strategy = 'broad') {
+// Bounding box format from Nominatim: [minLat, maxLat, minLng, maxLng] (strings)
+function isWithinBounds(lat, lng, bbox, toleranceKm = 30) {
+  if (!bbox || bbox.length !== 4) return true; // No bounds provided
+  
+  const minLat = parseFloat(bbox[0]);
+  const maxLat = parseFloat(bbox[1]);
+  const minLng = parseFloat(bbox[2]);
+  const maxLng = parseFloat(bbox[3]);
+
+  // Rough approximation: 1 degree latitude ~ 111 km, 1 degree longitude ~ 111 km at equator
+  const latTolerance = toleranceKm / 111.0;
+  const lngTolerance = toleranceKm / (111.0 * Math.cos((minLat + maxLat) / 2 * Math.PI / 180));
+
+  if (lat < (minLat - latTolerance) || lat > (maxLat + latTolerance)) return false;
+  if (lng < (minLng - lngTolerance) || lng > (maxLng + lngTolerance)) return false;
+
+  return true;
+}
+
+async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "legacy", centerLat = null, centerLng = null, radiusKm = null, strategy = 'broad', district = null, stateName = null, boundingbox = null) {
   addLog(`Starting Google Maps browser scrape for exact match: "${exactQuery}"`);
 
   // If Playwright not available (production/Render), skip browser scraping
@@ -273,25 +316,39 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
       const combinedText = `${name} ${address}`;
       
       const coords = extractCoords(page.url());
-      if (centerLat !== null && centerLng !== null && radiusKm !== null && coords) {
-        const distance = getDistanceKm(centerLat, centerLng, coords.lat, coords.lng);
-        if (distance > radiusKm) {
-          addLog(`[Boundary Filter] Saving '${name}' to Out of Bounds Folder (${distance.toFixed(1)}km > ${radiusKm}km limit)`);
-          
-          const leadScore = calculateLeadScore({ name, address, phone: null, rating: null });
-          const oobLead = {
-            id: 'place_' + Date.now().toString() + Math.random().toString(36).substring(7),
-            name, category, city: location || 'Global', address: address || '', 
-            phone: '', rating: '', mapsLink: page.url(), 
-            latitude: coords.lat, longitude: coords.lng, source: 'Google Maps (Out of Bounds)',
-            outOfBoundsDistance: distance.toFixed(1),
-            scrapedAt: new Date().toISOString(),
-            sessionId
-          };
-          dbAdapter.saveOutOfBoundsVendor(oobLead);
-          try { emitVendorEvent(oobLead, 'out-of-bounds'); } catch (e) {}
-          return;
+      let outOfBoundsDistance = null;
+      let isOob = false;
+
+      if (coords) {
+        if (boundingbox && boundingbox.length === 4) {
+          if (!isWithinBounds(coords.lat, coords.lng, boundingbox, 30)) {
+            isOob = true;
+            outOfBoundsDistance = centerLat ? getDistanceKm(centerLat, centerLng, coords.lat, coords.lng) : 'OOB';
+          }
+        } else if (centerLat !== null && centerLng !== null && radiusKm !== null) {
+          const distance = getDistanceKm(centerLat, centerLng, coords.lat, coords.lng);
+          if (distance > radiusKm) {
+            isOob = true;
+            outOfBoundsDistance = distance.toFixed(1);
+          }
         }
+      }
+
+      if (isOob) {
+        addLog(`[Boundary Filter] Saving '${name}' to Out of Bounds Folder (Location is strictly out of bounds)`);
+        const leadScore = calculateLeadScore({ name, address, phone: phone || null, rating: null });
+        const oobLead = {
+          id: 'place_' + Date.now().toString() + Math.random().toString(36).substring(7),
+          name, category, city: location || 'Global', address: address || '', 
+          phone: phone || '', rating: '', mapsLink: page.url(), 
+          latitude: coords ? coords.lat : null, longitude: coords ? coords.lng : null, source: 'Google Maps (Out of Bounds)',
+          outOfBoundsDistance: outOfBoundsDistance,
+          scrapedAt: new Date().toISOString(),
+          sessionId
+        };
+        dbAdapter.saveOutOfBoundsVendor(oobLead);
+        try { emitVendorEvent(oobLead, 'out-of-bounds'); } catch (e) {}
+        return;
       }
 
       const mapsLink = page.url();
@@ -300,6 +357,14 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
         const pincodeMatch = address ? address.match(/\b\d{6}\b/) : null;
         const pincode = pincodeMatch ? pincodeMatch[0] : '';
         
+        // Strict Text Boundary Check
+        // Pass mandal extraction from 'location' string if needed (subLoc was passed as location)
+        const isRelevant = isListingRelevantToQuery(name, address, district, stateName, location, location);
+        if (!isRelevant) {
+          addLog(`[Out of Bounds] Skipping ${name} - Address explicitly outside target boundary.`);
+          return;
+        }
+
         // Read local database
         const vendors = dbAdapter.getVendors();
         const existingIndex = vendors.findIndex(v => v.mapsLink === mapsLink || v.name === name);
@@ -544,19 +609,34 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
             // STREAMING INSERTION TO DB
             const combinedText = `${place.name} ${place.address} ${place.operatingHours}`;
 
-            // Apply boundary filter if coordinates and radius are available
-            if (centerLat !== null && centerLng !== null && radiusKm !== null && place.latitude && place.longitude) {
-              const distance = getDistanceKm(centerLat, centerLng, place.latitude, place.longitude);
-              if (distance > radiusKm) {
-                addLog(`[Boundary Filter] Saving '${place.name}' to Out of Bounds Folder (${distance.toFixed(1)}km > ${radiusKm}km limit)`);
-                place.outOfBoundsDistance = distance.toFixed(1);
-                place.source = 'Google Maps (Out of Bounds)';
-                place.scrapedAt = new Date().toISOString();
-                place.sessionId = sessionId;
-                dbAdapter.saveOutOfBoundsVendor(place);
-                try { emitVendorEvent(place, 'out-of-bounds'); } catch (e) {}
-                continue;
+            // Apply strict bounding box filter if available, fallback to radius
+            let outOfBoundsDistance = null;
+            let isOob = false;
+
+            if (place.latitude && place.longitude) {
+              if (boundingbox && boundingbox.length === 4) {
+                if (!isWithinBounds(place.latitude, place.longitude, boundingbox, 30)) {
+                  isOob = true;
+                  outOfBoundsDistance = centerLat ? getDistanceKm(centerLat, centerLng, place.latitude, place.longitude) : 'OOB';
+                }
+              } else if (centerLat !== null && centerLng !== null && radiusKm !== null) {
+                const distance = getDistanceKm(centerLat, centerLng, place.latitude, place.longitude);
+                if (distance > radiusKm) {
+                  isOob = true;
+                  outOfBoundsDistance = distance.toFixed(1);
+                }
               }
+            }
+
+            if (isOob) {
+              addLog(`[Boundary Filter] Saving '${place.name}' to Out of Bounds Folder (Location is strictly out of bounds)`);
+              place.outOfBoundsDistance = outOfBoundsDistance;
+              place.source = 'Google Maps (Out of Bounds)';
+              place.scrapedAt = new Date().toISOString();
+              place.sessionId = sessionId;
+              dbAdapter.saveOutOfBoundsVendor(place);
+              try { emitVendorEvent(place, 'out-of-bounds'); } catch (e) {}
+              continue;
             }
 
             // Strict Address Text Filter (Bypass if Broad Strategy)
@@ -578,6 +658,13 @@ async function scrapeGooglePlaces(exactQuery, category, location, sessionId = "l
             if (place.rating && place.rating !== '-') {
               parsedRating = parseFloat(place.rating);
               if (isNaN(parsedRating)) parsedRating = null;
+            }
+
+            // Strict Text Boundary Check
+            const isRelevant = isListingRelevantToQuery(place.name, place.address, district, stateName, location, location);
+            if (!isRelevant) {
+              addLog(`[Out of Bounds] Skipping ${place.name} - Address explicitly outside target boundary.`);
+              continue;
             }
 
             // Read local database

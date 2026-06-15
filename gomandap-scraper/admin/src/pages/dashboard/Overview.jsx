@@ -7,12 +7,15 @@ import {
   FolderOpen, Filter, Send, Settings, TrendingUp, Zap, Target, Map, Users,
   BrainCircuit, ShieldAlert, Cpu, CheckCircle2
 } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, CircleMarker, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, CircleMarker, Circle, Rectangle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useScraper } from '../../context/ScraperContext';
 import OmniSearch from '../../components/OmniSearch';
 import MarkerClusterGroup from 'react-leaflet-cluster';
+import Papa from 'papaparse';
+import { saveAs } from 'file-saver';
+import toast from 'react-hot-toast';
 
 // Fix for default leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -40,6 +43,23 @@ const oobIcon = new L.Icon({
   popupAnchor: [1, -34],
   shadowSize: [41, 41]
 });
+
+const getWorkerIcon = (instanceId) => {
+  return L.divIcon({
+    className: 'custom-worker-icon',
+    html: `
+      <div class="relative flex items-center justify-center w-8 h-8">
+        <div class="absolute inline-flex w-full h-full rounded-full bg-yellow-400 opacity-75 animate-[ping_1.5s_ease-in-out_infinite]"></div>
+        <div class="relative flex items-center justify-center w-6 h-6 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full border-2 border-white shadow-[0_0_15px_rgba(234,179,8,0.6)]">
+          <span class="text-[9px] font-black text-white">${instanceId || 'W'}</span>
+        </div>
+      </div>
+    `,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -16]
+  });
+};
 
 const PIPELINE_STEPS = [
   {
@@ -410,6 +430,19 @@ export default function OverviewPage() {
     return 'pending';
   };
 
+  const exportMasterCSV = () => {
+    if (!vendors || vendors.length === 0) return toast.error('No data to export');
+    const csvData = Papa.unparse(vendors.map(v => ({
+      ID: v.id || '', Name: v.name || '', Category: v.category || '', City: v.city || '',
+      Address: v.address || '', Phone: v.phone && v.phone.startsWith('+91') ? `'${v.phone}` : v.phone,
+      Rating: v.rating || '', Email: v.email || '', Instagram: v.instagram || '',
+      GoogleMapsLink: v.mapsLink || '', OutOfBounds: v.outOfBounds ? 'Yes' : 'No', CRMStatus: v.crmStatus || 'New'
+    })));
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, `gomandap_master_leads_${new Date().toISOString().split('T')[0]}.csv`);
+    toast.success(`Master CSV downloaded!`);
+  };
+
   return (
     <div className="min-h-full bg-[#f7f8fa]">
 
@@ -421,6 +454,10 @@ export default function OverviewPage() {
             <p className="text-sm text-gray-500 mt-0.5">Search and extract verified business contacts from around the world</p>
           </div>
           <div className="flex items-center gap-3">
+            <button onClick={exportMasterCSV}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200">
+              <Download size={15} /> Export Master CSV
+            </button>
             <button onClick={handleMasterStop}
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 transition-all shadow-sm hover:shadow">
               <XCircle size={15} /> Stop All
@@ -431,7 +468,7 @@ export default function OverviewPage() {
                   ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700 shadow-lg shadow-violet-200'
                   : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
               }`}>
-              <Send size={15} /> Push to Live {verifiedCount > 0 && `(${verifiedCount})`}
+              <CheckCircle2 size={15} /> Push to DB
             </button>
           </div>
         </div>
@@ -1058,130 +1095,36 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* ── LIVE MAP FEED ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-gray-900 flex items-center gap-2">
-              <Map size={18} className="text-violet-500" /> Live Geographic Tracker
-            </h2>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{mapVendors.length} Pins {dashboardOutOfBounds?.length > 0 && `(${dashboardOutOfBounds.length} Out of Bounds)`}</span>
-            </div>
-          </div>
-          
-          {/* Live Active Scanners Overlay HUD - Moved completely OUTSIDE the map to prevent Leaflet Z-Index hiding */}
-          <AnimatePresence>
-            {activePoints?.length > 0 && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                className="mb-4 w-full bg-white rounded-xl border border-amber-200 overflow-hidden shadow-sm">
-                <div className="bg-gradient-to-r from-yellow-500 to-amber-500 px-4 py-1.5 flex items-center justify-between">
-                  <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                    <Zap size={14} className="animate-pulse" /> Live Scanners ({activePoints.length} Instances)
-                  </span>
-                  <span className="flex h-2 w-2 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                  </span>
-                </div>
-                <div className="max-h-24 overflow-y-auto flex flex-wrap gap-2 p-2 bg-amber-50/30" style={{ scrollbarWidth: 'thin' }}>
+        {/* ── LIVE SCANNERS HUD ── */}
+        <AnimatePresence>
+          {activePoints?.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+              className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden lg:col-span-2">
+              <div className="bg-gradient-to-r from-yellow-500 to-amber-500 px-6 py-4 flex items-center justify-between">
+                <span className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <Zap size={18} className="animate-pulse" /> Live Scanners ({activePoints.length} Instances)
+                </span>
+                <span className="flex h-3 w-3 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                </span>
+              </div>
+              <div className="p-6 bg-amber-50/30">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {deferredActivePoints.map((pt, i) => (
-                    <div key={i} className="bg-white border border-amber-100 rounded shadow-sm px-2.5 py-1.5 flex-grow min-w-[200px] max-w-[250px] hover:border-amber-300 transition-colors">
-                      <p className="text-xs font-bold text-gray-800 line-clamp-1">{pt.locationName}</p>
-                      <div className="flex items-center justify-between mt-1">
-                        <p className="text-[10px] text-amber-700 font-bold bg-amber-100 px-1.5 py-0.5 rounded">Worker {pt.instanceId}</p>
+                    <div key={i} className="bg-white border border-amber-100 rounded-xl shadow-sm px-4 py-3 hover:border-amber-300 transition-colors">
+                      <p className="text-sm font-bold text-gray-800 truncate mb-2">{pt.locationName}</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-amber-700 font-bold bg-amber-100 px-2 py-1 rounded-md">Worker {pt.instanceId}</p>
                         <p className="text-[10px] text-gray-400 font-mono">{Number(pt.lat || 0).toFixed(4)}, {Number(pt.lng || 0).toFixed(4)}</p>
                       </div>
                     </div>
                   ))}
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div className="relative w-full h-[400px] rounded-xl overflow-hidden border border-gray-100 group">
-              {/* Custom Map Controls */}
-              <div className="absolute top-4 right-4 z-[400] flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => setAutoCenter(true)} className="bg-white p-2 rounded-xl shadow-lg border border-gray-100 text-violet-600 hover:bg-violet-50 hover:scale-105 transition-all" title="Recenter to active search">
-                  <MapPin size={20} />
-                </button>
               </div>
-
-              <MapContainer 
-                center={userLocation} 
-                zoom={5} 
-                style={{ width: '100%', height: '100%' }} 
-                zoomControl={true}
-              >
-                <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" attribution='&copy; OpenStreetMap &copy; CARTO' />
-                <MapBounds vendors={mapVendors} gridPoints={gridPoints} activePoints={deferredActivePoints} userLocation={userLocation} autoCenter={autoCenter} setAutoCenter={setAutoCenter} />
-                
-                {/* Render Grid Points */}
-                {gridPoints?.length > 0 && gridPoints[0] && (gridPoints[0].activeRadius || gridPoints[0].maxRadiusKm) > 0 && gridPoints[0].lat != null && (
-                  <Circle 
-                    center={[gridPoints[0].lat, gridPoints[0].lng]} 
-                    radius={(gridPoints[0].activeRadius || gridPoints[0].maxRadiusKm) * 1000} 
-                    pathOptions={{ color: 'red', fillColor: '#ef4444', fillOpacity: 0.1, dashArray: '5, 10' }} 
-                  />
-                )}
-
-                {gridPoints?.filter(pt => pt && pt.lat != null).map((pt, i) => (
-                  <CircleMarker key={`grid-${i}`} center={[pt.lat, pt.lng]} radius={i === 0 ? 8 : 4} color={i === 0 ? "#ef4444" : "#8b5cf6"} fillColor={i === 0 ? "#ef4444" : "#8b5cf6"} fillOpacity={0.6}>
-                    <Popup>
-                      <div className="text-xs p-1">
-                        <p className="font-bold mb-1">{i === 0 ? 'Center Pin' : `Search Point ${i+1}`}</p>
-                        <p className="text-gray-500">Radius Dist: {Number(pt.distanceFromCenter || 0).toFixed(2)}km</p>
-                      </div>
-                    </Popup>
-                  </CircleMarker>
-                ))}
-
-                {/* Render Blinking Active Points */}
-                {deferredActivePoints?.filter(pt => pt && pt.lat != null).map((pt, i) => (
-                  <CircleMarker key={`active-${i}`} center={[pt.lat, pt.lng]} radius={10} 
-                    className="animate-ping"
-                    color="#eab308" fillColor="#eab308" fillOpacity={0.9} stroke={false}>
-                  </CircleMarker>
-                ))}
-                {deferredActivePoints?.filter(pt => pt && pt.lat != null).map((pt, i) => (
-                  <CircleMarker key={`active-solid-${i}`} center={[pt.lat, pt.lng]} radius={6} 
-                    color="#ca8a04" fillColor="#fef08a" fillOpacity={1}>
-                    <Popup>
-                      <div className="text-xs p-1">
-                        <p className="font-bold text-yellow-700 mb-1">🔥 Active Scanner (Worker {pt.instanceId})</p>
-                        <p className="text-gray-600 mb-1">{pt.locationName}</p>
-                        <p className="text-gray-500 text-[10px] font-mono">{Number(pt.lat || 0).toFixed(5)}, {Number(pt.lng || 0).toFixed(5)}</p>
-                      </div>
-                    </Popup>
-                  </CircleMarker>
-                ))}
-
-                <MarkerClusterGroup chunkedLoading maxClusterRadius={50}>
-                  {mapVendors.filter(v => v && v.safeLat != null).map((vendor, i) => (
-                    <Marker 
-                      key={`vendor-${i}`} 
-                      position={[vendor.safeLat, vendor.safeLng]}
-                      icon={vendor.source === 'Google Maps (Out of Bounds)' ? oobIcon : validIcon}
-                    >
-                      <Popup>
-                        <div className="text-xs p-1">
-                          <p className="font-bold text-gray-900 mb-1">{vendor.name}</p>
-                          <p className="text-gray-600 mb-2">{vendor.category} &middot; {vendor.city}</p>
-                          <p className="text-gray-500 font-mono mb-2">{vendor.phone}</p>
-                          {vendor.source === 'Google Maps (Out of Bounds)' && (
-                            <p className="text-red-500 font-bold mb-2">Out of Bounds: {vendor.outOfBoundsDistance}km</p>
-                          )}
-                          <a href={vendor.mapsLink} target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:text-violet-700 font-semibold flex items-center gap-1">
-                            View on Maps <ArrowRight size={10} />
-                          </a>
-                        </div>
-                      </Popup>
-                    </Marker>
-                  ))}
-                </MarkerClusterGroup>
-              </MapContainer>
-          </div>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── QUICK STATS BY CATEGORY ── */}
         {dashboardVendors?.length > 0 && (

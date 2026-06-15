@@ -58,6 +58,12 @@ app.use('/api/vendors', vendorRoutes);
 const authRoutes = require('./routes/authRoutes');
 app.use('/api/auth', authRoutes);
 
+const marketingRoutes = require('./routes/marketingRoutes');
+app.use('/api/marketing', marketingRoutes);
+
+const notificationRoutes = require('./routes/notificationRoutes');
+app.use('/api/notifications', notificationRoutes);
+
 const settingsRoutes = require('./routes/settingsRoutes');
 app.use('/api/settings', settingsRoutes);
 

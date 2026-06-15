@@ -67,9 +67,9 @@ let isProcessing = false;
 let activeCount = 0;
 let playwrightActiveCount = 0;
 // Max total active HTTP/Cheerio jobs for blazing speed
-const MAX_CONCURRENCY = 10; 
-// Max heavy Playwright Chromium jobs - 10 parallel browsers
-const PLAYWRIGHT_CONCURRENCY = 10;
+const MAX_CONCURRENCY = 5; 
+// Max heavy Playwright Chromium jobs
+const PLAYWRIGHT_CONCURRENCY = 5;
 
 const activeJobs = new Map();
 
@@ -166,7 +166,7 @@ async function processJob(job, instanceId) {
   }
 
   try {
-    const timeoutMs = 180000; // 3 minutes hard limit
+    const timeoutMs = 600000; // 10 minutes hard limit (Places extraction can take time)
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error(`Job timed out after ${timeoutMs}ms`)), timeoutMs);
     });

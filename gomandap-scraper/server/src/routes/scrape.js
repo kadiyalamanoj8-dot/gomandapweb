@@ -236,9 +236,39 @@ router.get('/jobs', (req, res) => {
 });
 
 router.post('/jobs/update', (req, res) => {
-  const { category, action, intervalMs } = req.body;
-  const job = activeCronJobs[category];
+  const { category, action, intervalMs, location } = req.body;
   
+  if (action === 'create') {
+    if (!category || !location) return res.status(400).json({ error: 'Category and location required' });
+    const ms = intervalMs || 24 * 60 * 60 * 1000; // default 24h
+    if (activeCronJobs[category]) {
+      clearInterval(activeCronJobs[category].timer);
+    }
+    
+    // Create new scheduled job
+    activeCronJobs[category] = {
+      category,
+      location,
+      interval: ms,
+      status: 'running',
+      timer: setInterval(() => {
+        addLog(`[Scheduler] Triggering scheduled scrape for ${category} in ${location}`);
+        const searchString = `${category} in ${location}`;
+        const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}`;
+        addScrapeJob('scrapeGooglePlaces', [searchUrl, category, location, 'scheduled', null, null, 10, 'mandal']);
+      }, ms)
+    };
+    
+    // Also trigger it immediately the first time
+    addLog(`[Scheduler] Triggering initial scrape for ${category} in ${location}`);
+    const searchString = `${category} in ${location}`;
+    const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}`;
+    addScrapeJob('scrapeGooglePlaces', [searchUrl, category, location, 'scheduled', null, null, 10, 'mandal']);
+
+    return res.json({ success: true, message: `Scheduled job created for ${category}` });
+  }
+
+  const job = activeCronJobs[category];
   if (!job) return res.status(404).json({ error: 'Job not found' });
 
   if (action === 'stop') {
@@ -249,13 +279,23 @@ router.post('/jobs/update', (req, res) => {
       const ms = intervalMs || job.interval;
       job.interval = ms;
       job.status = 'running';
-      job.timer = setInterval(() => {}, ms);
+      job.timer = setInterval(() => {
+        addLog(`[Scheduler] Triggering scheduled scrape for ${job.category} in ${job.location}`);
+        const searchString = `${job.category} in ${job.location}`;
+        const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}`;
+        addScrapeJob('scrapeGooglePlaces', [searchUrl, job.category, job.location, 'scheduled', null, null, 10, 'mandal']);
+      }, ms);
     }
   } else if (action === 'update_interval') {
     clearInterval(job.timer);
     job.interval = intervalMs;
     job.status = 'running';
-    job.timer = setInterval(() => {}, intervalMs);
+    job.timer = setInterval(() => {
+        addLog(`[Scheduler] Triggering scheduled scrape for ${job.category} in ${job.location}`);
+        const searchString = `${job.category} in ${job.location}`;
+        const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}`;
+        addScrapeJob('scrapeGooglePlaces', [searchUrl, job.category, job.location, 'scheduled', null, null, 10, 'mandal']);
+    }, intervalMs);
   }
 
   res.json({ success: true, message: `Job for ${category} updated.` });
@@ -309,22 +349,7 @@ router.post('/maps', async (req, res) => {
   res.json({ success: true, message: 'Google Maps scrape initiated' });
 });
 
-router.post('/cheerio', async (req, res) => {
-  const { engine, category, location } = req.body; // engine could be 'justdial' or 'weddingbazaar'
-  if (!category || !location) return res.status(400).json({ error: 'Category and location required for directory scrapers' });
-  
-  if (engine === 'justdial') {
-    addLog(`[JustDial] Manual scrape triggered for: "${category} in ${location}"`);
-    addScrapeJob('scrapeJustDial', [category, location]);
-  } else if (engine === 'weddingbazaar') {
-    addLog(`[WeddingBazaar] Manual scrape triggered for: "${category} in ${location}"`);
-    addScrapeJob('scrapeWeddingBazaar', [category, location]);
-  } else {
-    return res.status(400).json({ error: 'Invalid cheerio engine specified' });
-  }
-  
-  res.json({ success: true, message: `${engine} scrape initiated` });
-});
+
 
 router.get('/keywords', async (req, res) => {
   try {
@@ -458,7 +483,8 @@ function generateGridCoordinates(centerLat, centerLng, radiusKm, pointCount = 20
     lng: parseFloat(centerLng.toFixed(6)),
     distanceFromCenter: 0,
     ring: 0,
-    angle: 0
+    angle: 0,
+    boundingbox: boundingbox
   });
 
   const totalOuterPoints = Math.max(pointCount - 1, 1);
@@ -489,7 +515,8 @@ function generateGridCoordinates(centerLat, centerLng, radiusKm, pointCount = 20
       lng: parseFloat(ptLng.toFixed(6)),
       distanceFromCenter: parseFloat(distKm.toFixed(2)),
       ring,
-      angle: parseFloat((angleDeg % 360).toFixed(1))
+      angle: parseFloat((angleDeg % 360).toFixed(1)),
+      boundingbox: boundingbox
     });
   }
 
@@ -519,7 +546,7 @@ async function queueMandalJob(subLoc, district, mandal, stateName, category, act
 
   // Emit map pin if we have coords
   if (geo && geo.lat) {
-    const gridPoint = { lat: geo.lat, lng: geo.lng, distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: subLoc, activeRadius, isExactPoint: true };
+    const gridPoint = { lat: geo.lat, lng: geo.lng, distanceFromCenter: 0, ring: 0, angle: 0, centerLoc: subLoc, activeRadius, isExactPoint: true, boundingbox: geo.boundingbox };
     try { emitGridEvent([gridPoint]); } catch (e) {}
   }
 
@@ -528,33 +555,27 @@ async function queueMandalJob(subLoc, district, mandal, stateName, category, act
   if (geo && geo.lat) {
     const searchString = `${category} in ${subLoc}, ${district}`;
     searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}/@${geo.lat},${geo.lng},14z`;
-    meta = { lat: geo.lat, lng: geo.lng, locationName: subLoc };
+    meta = { lat: geo.lat, lng: geo.lng, locationName: subLoc, district: district, state: stateName, isVillage };
   } else {
     // Text-only search — scraping still works, just no boundary filter
     const searchString = `${category} in ${subLoc}, ${district}`;
     searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}`;
-    meta = { lat: null, lng: null, locationName: subLoc };
+    meta = { lat: null, lng: null, locationName: subLoc, district: district, state: stateName, isVillage };
   }
 
   // Queue jobs immediately without any await delay
-  if (activeEngines.includes('maps') || activeEngines.includes('google')) {
-    await addScrapeJob('scrapeGooglePlaces', [searchUrl, category, subLoc, sessionId, geo?.lat || null, geo?.lng || null, activeRadius, 'mandal'], 10, meta);
-  }
-  if (activeEngines.includes('google-web')) {
-    await addScrapeJob('scrapeGoogleSerp', [`${category} in ${subLoc}`, category, subLoc, sessionId]);
-  }
-  if (activeEngines.includes('justdial')) {
-    await addScrapeJob('scrapeJustDial', [category, subLoc, null, sessionId]);
-  }
-  if (activeEngines.includes('indiamart')) {
-    await addScrapeJob('scrapePuppeteerIndiaMart', [category, subLoc, null, sessionId]);
-  }
+  await addScrapeJob('scrapeGooglePlaces', [searchUrl, category, subLoc, sessionId, geo?.lat || null, geo?.lng || null, activeRadius, 'mandal', district, stateName], 10, meta);
+  await addScrapeJob('scrapeGoogleSerp', [`${category} in ${subLoc}`, category, subLoc, sessionId], 10, meta);
 }
 
 async function runOmniSearchOrchestrator(category, baseLocation, strategy, radius, gridDensity, enabledEngines, sessionId) {
   const activeEngines = enabledEngines || ['deepseek-ai', 'maps'];
   addLog(`[Orchestrator] Starting Place-by-Place Omni Search session: ${sessionId}`);
   addLog(`[Orchestrator] Query: "${category}" in "${baseLocation}". Strategy: ${strategy}`);
+  
+  // Clear any pending old ghost jobs from the queue to prevent blocking the new district dispatch
+  await clearQueue();
+  addLog(`[Orchestrator] Flushed persistent job queue to unblock sequence.`);
   
   try {
     const isMandal = strategy === 'mandal';
@@ -639,7 +660,7 @@ async function runOmniSearchOrchestrator(category, baseLocation, strategy, radiu
 
           if (strategy === 'full') {
             // Full strategy: expand into sub-localities first
-            const subLocs = await getSubLocations(mandal);
+            const subLocs = await getSubLocations(mandal, hierarchyResult.stateName);
             for (const subLoc of subLocs) {
               if (globalAbortSignal.aborted) break;
               await queueMandalJob(subLoc, district, mandal, hierarchyResult.stateName, category, activeEngines, sessionId, geocodeCache, true);
@@ -661,13 +682,12 @@ async function runOmniSearchOrchestrator(category, baseLocation, strategy, radiu
 
           const currentQueue = getPersistentQueue();
           const running = getActiveJobs();
-          const districtMandalsLower = mandals.map(m => m.toLowerCase().trim());
 
           const pendingDistrict = currentQueue.filter(j =>
-            j.args && districtMandalsLower.some(m => (j.args[2] || '').toLowerCase().includes(m))
+            j.meta && j.meta.district === district && j.args && j.args[3] === sessionId
           );
           const runningDistrict = running.filter(j =>
-            j.args && districtMandalsLower.some(m => (j.args[2] || '').toLowerCase().includes(m))
+            j.meta && j.meta.district === district && j.args && j.args[3] === sessionId
           );
 
           if (pendingDistrict.length === 0 && runningDistrict.length === 0) {
@@ -792,7 +812,7 @@ async function runOmniSearchOrchestrator(category, baseLocation, strategy, radiu
         const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchString)}/@${coord.lat},${coord.lng},14z`;
 
         if (activeEngines.includes('maps') || activeEngines.includes('google')) {
-          await addScrapeJob('scrapeGooglePlaces', [searchUrl, category, baseLocation, sessionId, coord.lat, coord.lng, coord.activeRadius, strategy], 10, meta);
+          await addScrapeJob('scrapeGooglePlaces', [searchUrl, category, baseLocation, sessionId, coord.lat, coord.lng, coord.activeRadius, strategy, null, null, coord.boundingbox], 10, meta);
         }
 
         if (activeEngines.includes('google-web')) {

@@ -165,8 +165,8 @@ async function generateLocalities(broadLocation, stateHint = '') {
   if (indiaGeoData) {
     let targetStates = indiaGeoData;
     if (stateHint) {
-      const hintLower = stateHint.toLowerCase().trim();
-      const stateObj = indiaGeoData.find(s => s.state && s.state.toLowerCase() === hintLower);
+      const hintClean = stateHint.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const stateObj = indiaGeoData.find(s => s.state && s.state.toLowerCase().replace(/[^a-z0-9]/g, '') === hintClean);
       if (stateObj) {
         targetStates = [stateObj];
       }
@@ -516,6 +516,7 @@ async function resolveHierarchy(locationName) {
     return { level: 'specific', stateName: null, hierarchy: [] };
   }
   const searchName = locationName.toLowerCase().trim();
+  const searchNameClean = searchName.replace(/[^a-z0-9]/g, '');
 
   if (!resolvedCache[searchName]) {
     loadCache();
@@ -530,7 +531,7 @@ async function resolveHierarchy(locationName) {
   if (indiaGeoData) {
     // 1a. Check if it's a State name
     for (const state of indiaGeoData) {
-      if (state.state && state.state.toLowerCase() === searchName) {
+      if (state.state && state.state.toLowerCase().replace(/[^a-z0-9]/g, '') === searchNameClean) {
         const hierarchy = [];
         if (state.districts) {
           for (const dist of state.districts) {
@@ -557,7 +558,7 @@ async function resolveHierarchy(locationName) {
     for (const state of indiaGeoData) {
       if (!state.districts) continue;
       for (const dist of state.districts) {
-        if (dist.district && dist.district.toLowerCase() === searchName) {
+        if (dist.district && dist.district.toLowerCase().replace(/[^a-z0-9]/g, '') === searchNameClean) {
           const mandals = (dist.subDistricts || [])
             .map(sd => sd.subDistrict)
             .filter(Boolean);
