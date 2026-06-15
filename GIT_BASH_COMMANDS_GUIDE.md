@@ -459,40 +459,49 @@ npx pm2 stop gomandap-backend
 ```
 
 ### 5. Opening the Firewall (Fixing "Connection Timed Out")
-If you cannot reach `http://68.233.97.93:5000/`, your firewall is blocking the port. You must open it in two places:
+If you cannot reach your server in your browser, your firewall is blocking the ports. You must open Port 5000 (Backend) and Ports 3000-3002 (Frontends) in two places:
 
-**Step A: Open Port on the VM**
+**Step A: Open Ports on the VM**
 ```bash
 sudo firewall-cmd --permanent --add-port=5000/tcp
+sudo firewall-cmd --permanent --add-port=3000-3002/tcp
 sudo firewall-cmd --reload
 ```
 
-**Step B: Open Port in Oracle Cloud Console (CRITICAL)**
+**Step B: Open Ports in Oracle Cloud Console (CRITICAL)**
 1. Log into your **Oracle Cloud Console** in your browser.
 2. Go to **Networking -> Virtual Cloud Networks**.
 3. Click your VCN, then click **Security Lists**.
 4. Click on the Default Security List.
 5. Click **Add Ingress Rules**.
 6. Set **Source CIDR** to `0.0.0.0/0`.
-7. Set **Destination Port Range** to `5000` and click Add.
+7. Set **Destination Port Range** to `3000-5000` and click Add.
 
 ---
 
-## Architecture Summary: How Your Backend & Storage Works Now
+## Architecture Summary: How Your Full Stack Works Now
 
 We have successfully migrated your entire stack to be **100% self-hosted** on your Oracle VM. Here is exactly what I changed and how it works:
 
 ### 1. Database (MongoDB)
 - **Previously:** You were using **MongoDB Atlas** (a third-party cloud database) which had a 512MB storage limit.
 - **Now:** I installed the **MongoDB Community Edition** directly onto your Oracle VM. 
-- **How it works:** Your backend (`backend/server.js`) connects to `mongodb://localhost:27017`. All of your user data, vendor data, and settings are saved directly to your VM's hard drive, using your Oracle Cloud storage capacity (which is typically 50GB-200GB on the Free Tier!).
+- **How it works:** Your backend connects to `mongodb://localhost:27017`. All of your user data, vendor data, and settings are saved directly to your VM's hard drive, using your Oracle Cloud storage capacity (which is typically 50GB-200GB on the Free Tier!).
 
 ### 2. Object Storage (Images/Uploads)
 - **Previously:** You were using **Cloudinary** to store images. Multer would intercept uploads and send them to Cloudinary's servers.
 - **Now:** I removed Cloudinary completely. I rewrote your `backend/middleware/upload.js` to use `multer.diskStorage()`.
-- **How it works:** When a vendor uploads a portfolio image, it is saved directly to the `backend/uploads/` folder on your VM. Your Express server then serves these images statically via the `/uploads/` URL path. This means your images are hosted on your own server, with zero reliance on third-party limits!
+- **How it works:** When a vendor uploads a portfolio image, it is saved directly to the `backend/uploads/` folder on your VM. Your Express server then serves these images statically via the `/uploads/` URL path.
 
-### 3. Environment Variables
+### 3. Serving the Frontend Apps (Client, Vendor, Admin)
+- **Previously:** The frontend apps were not being served.
+- **Now:** I updated `pm2.config.js` to automatically use PM2's built-in static web server to host all three of your Vite apps.
+- **How it works:** 
+  - **Client App:** Available at `http://68.233.97.93:3000`
+  - **Vendor App:** Available at `http://68.233.97.93:3001`
+  - **Admin App:** Available at `http://68.233.97.93:3002`
+
+### 4. Environment Variables Fix
 - Because PM2 launches the backend from the root folder, the backend could not find the `.env` file originally. I updated `backend/server.js` to dynamically locate the `.env` file using the `__dirname` path, ensuring it always connects to the local MongoDB perfectly.
 
 ---
