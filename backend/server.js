@@ -93,8 +93,8 @@ const whatsappRoutes = require('./routes/whatsappRoutes');
 app.use('/api/whatsapp', whatsappRoutes);
 
 const whatsappService = require('./services/whatsappService');
-// Initialize WhatsApp Client (Headless)
-whatsappService.initializeWhatsApp();
+// Temporarily disabled WhatsApp Auto-Initialize to prevent PM2 crash loops due to locked Puppeteer sessions.
+// whatsappService.initializeWhatsApp();
 
 const PORT = process.env.PORT || 5000;
 
