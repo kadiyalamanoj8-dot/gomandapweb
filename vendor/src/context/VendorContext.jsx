@@ -68,7 +68,7 @@ export const VendorProvider = ({ children }) => {
             localStorage.setItem('gomandap_vendor_status', profileData.data.status);
           }
         }
-        return { success: true, action: data.action, email: data.email };
+        return { success: true, action: data.action, email: data.email, googleId: data.googleId, name: data.name, photoUrl: data.photoUrl };
       }
     } catch (error) {
       console.error("Login failed:", error);
