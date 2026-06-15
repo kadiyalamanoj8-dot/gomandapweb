@@ -17,7 +17,8 @@ fi
 
 # 2. Install dependencies & build apps
 echo "Installing Root dependencies..."
-npm install && npm audit fix --force
+npm install
+npm audit fix --force
 
 echo "Installing Backend dependencies..."
 (cd backend && npm install && npm audit fix --force)
