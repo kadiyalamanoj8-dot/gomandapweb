@@ -1,264 +1,269 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { Search as SearchIcon, MapPin, Calendar, ChevronLeft, ChevronRight, SlidersHorizontal, Sparkles, TrendingUp, Award, Crown } from 'lucide-react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import AnimatedVendorCard from '../components/search/AnimatedVendorCard';
-import PromotedVendorCard from '../components/search/PromotedVendorCard';
-import { generateFakeVendors, CATEGORIES } from '../data/mockData';
+import React, { useState, useEffect, useMemo } from 'react';
+import { CATEGORIES } from '../data/mockData';
+import LiquidVendorCard from '../components/common/LiquidVendorCard';
 import FilterSidebar from '../components/search/FilterSidebar';
+import { MapPin, SlidersHorizontal, Search as SearchIcon, ArrowLeft, ChevronRight, Home, ArrowUpDown } from 'lucide-react';
+import { API_URL } from '../config/api';
+import { useLocation, Link, useSearchParams } from 'react-router-dom';
 import CustomDropdown from '../components/ui/CustomDropdown';
+import * as Icons from 'lucide-react';
+import { motion } from 'framer-motion';
 
-// Quick access to mock data for the lanes
-const setFirstAsAd = (vendors) => vendors.map((v, i) => i === 0 ? { ...v, isAd: true } : v);
-
-const MOCK_RECOMMENDED = setFirstAsAd(generateFakeVendors('Banquet Halls', 6));
-const MOCK_TRENDING = setFirstAsAd(generateFakeVendors('Photography & Videography', 8));
-const MOCK_LUXURY = setFirstAsAd(generateFakeVendors('5-Star Hotels', 5));
-const MOCK_CATERING = generateFakeVendors('Catering Service', 6);
-const MOCK_DECOR = generateFakeVendors('Stage & Venue Decor', 5);
-
-const HorizontalLane = ({ title, subtitle, icon: Icon, vendors }) => {
-  const scrollRef = useRef(null);
-
-  const scrollLeft = () => {
-    if (scrollRef.current) scrollRef.current.scrollBy({ left: -320, behavior: 'smooth' });
-  };
-  
-  const scrollRight = () => {
-    if (scrollRef.current) scrollRef.current.scrollBy({ left: 320, behavior: 'smooth' });
-  };
-
-  if (!vendors || vendors.length === 0) return null;
-
-  return (
-    <div className="mb-12">
-      <div className="flex justify-between items-end mb-6 px-4 md:px-8">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            {Icon && <Icon size={20} className="text-brand-primary" />}
-            <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">{title}</h2>
-          </div>
-          {subtitle && <p className="text-sm font-semibold text-gray-500">{subtitle}</p>}
-        </div>
-        <div className="hidden md:flex items-center gap-2">
-          <button onClick={scrollLeft} className="p-2 rounded-full bg-white border border-gray-200 hover:bg-gray-50 hover:text-brand-primary transition-all shadow-sm">
-            <ChevronLeft size={20} />
-          </button>
-          <button onClick={scrollRight} className="p-2 rounded-full bg-white border border-gray-200 hover:bg-gray-50 hover:text-brand-primary transition-all shadow-sm">
-            <ChevronRight size={20} />
-          </button>
-        </div>
-      </div>
-
-      <div 
-        ref={scrollRef}
-        className="flex overflow-x-auto gap-4 md:gap-6 px-4 md:px-8 pb-8 no-scrollbar snap-x scroll-smooth"
-      >
-        {vendors.map((vendor, idx) => (
-          <div key={idx} className="snap-start shrink-0">
-            {vendor.isAd ? (
-              <PromotedVendorCard vendor={vendor} />
-            ) : (
-              <AnimatedVendorCard vendor={vendor} />
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+const IconComponent = ({ name, ...props }) => {
+  const Icon = Icons[name] || Icons.HelpCircle;
+  return <Icon {...props} />;
 };
 
-const HeroSearchBanner = ({ searchParams, setSearchParams }) => {
-  const [localQuery, setLocalQuery] = useState(searchParams.get('q') || '');
-  const [localLoc, setLocalLoc] = useState(searchParams.get('locName') || '');
-  const navigate = useNavigate();
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const p = new URLSearchParams(searchParams);
-    if (localQuery) p.set('q', localQuery); else p.delete('q');
-    if (localLoc) p.set('locName', localLoc); else p.delete('locName');
-    setSearchParams(p);
-  };
-
-  return (
-    <div className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden bg-black flex items-center justify-center">
-      {/* Background Image / Gradient */}
-      <div className="absolute inset-0">
-        <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0a1?w=1600&q=80" alt="Search Hero" className="w-full h-full object-cover opacity-40" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-white" />
-      </div>
-
-      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 md:px-8 text-center space-y-8">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <span className="inline-block py-1 px-3 rounded-full bg-white/10 border border-white/20 text-brand-gold text-[10px] font-black uppercase tracking-widest mb-4 backdrop-blur-md">
-            Discover Excellence
-          </span>
-          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-tight mb-4 drop-shadow-2xl">
-            Find Your <span className="text-brand-gold">Perfect</span> Match
-          </h1>
-          <p className="text-sm md:text-lg text-white/80 font-medium max-w-2xl mx-auto">
-            Browse through thousands of verified venues and vendors for your grand celebration.
-          </p>
-        </motion.div>
-
-        {/* Hero Search Bar */}
-        <motion.form 
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
-          onSubmit={handleSearch}
-          className="bg-white p-2 rounded-2xl md:rounded-full flex flex-col md:flex-row gap-2 shadow-[0_8px_32px_rgba(0,0,0,0.15)] max-w-4xl mx-auto border border-white/20"
-        >
-          <div className="flex-1 flex items-center bg-gray-50 md:bg-transparent rounded-xl md:rounded-l-full px-4 py-3 md:py-0 border md:border-none border-gray-100">
-            <SearchIcon className="text-brand-primary" size={20} />
-            <input 
-              type="text" 
-              placeholder="What are you looking for? (e.g. Banquet Halls)" 
-              value={localQuery}
-              onChange={e => setLocalQuery(e.target.value)}
-              className="w-full bg-transparent border-none outline-none px-3 text-gray-900 font-semibold placeholder:text-gray-400 placeholder:font-medium"
-            />
-          </div>
-          <div className="hidden md:block w-px h-8 bg-gray-200 my-auto" />
-          <div className="flex-1 flex items-center bg-gray-50 md:bg-transparent rounded-xl px-4 py-3 md:py-0 border md:border-none border-gray-100">
-            <MapPin className="text-brand-primary" size={20} />
-            <input 
-              type="text" 
-              placeholder="Where? (e.g. Mumbai)" 
-              value={localLoc}
-              onChange={e => setLocalLoc(e.target.value)}
-              className="w-full bg-transparent border-none outline-none px-3 text-gray-900 font-semibold placeholder:text-gray-400 placeholder:font-medium"
-            />
-          </div>
-          <button type="submit" className="bg-brand-primary text-white px-8 py-3.5 rounded-xl md:rounded-full font-black text-sm hover:bg-brand-primary/90 transition-all shadow-lg active:scale-95 whitespace-nowrap">
-            Search Now
-          </button>
-        </motion.form>
-      </div>
-    </div>
-  );
+const ICON_MAP = {
+  'Banquet Halls':               '/images/resized/3d_venue copy.webp',
+  'Kalyana Mandapams':           '/images/resized/temple_mandap copy.webp',
+  'Open Lawns & Farmhouses':     '/images/resized/3d_lawn_farmhouse_1780657291134 copy.webp',
+  'Resorts & Destination Venues':'/images/resized/modern_gazebo copy.webp',
+  '5-Star Hotels':               '/images/resized/3d_5star_hotel_1780657276128 copy.webp',
+  'Party & Mini Halls':          '/images/resized/neon_sangeet_stage copy.webp',
+  'Temples & Ashrams':           '/images/resized/temple_mandap copy.webp',
+  'Catering Service':            '/images/resized/3d_food copy.webp',
+  'Stage & Venue Decor':         '/images/resized/3d_decor copy.webp',
+  'Photography & Videography':   '/images/resized/3d_camera copy.webp',
+  'DJs & Sound Systems':         '/images/resized/3d_dj copy.webp',
+  'Live Musicians / Band Baaja': '/images/resized/3d_band copy.webp',
+  'Makeup Artists (MUA)':        '/images/resized/3d_makeup copy.webp',
+  'Mehndi Designers':            '/images/resized/3d_mehndi_1780657262687 copy.webp',
+  'Wedding Clothes / Boutiques': '/images/resized/3d_clothes copy.webp',
+  'Jewelry Shops':               '/images/resized/3d_jewelry copy.webp',
+  'Wedding Cards & Invites':     '/images/resized/3d_invitation copy.webp',
+  'Cars & Buses (Travel)':       '/images/resized/3d_car copy.webp',
+  'Astrologers / Pundits':       '/images/resized/3d_astrologer copy.webp',
+  'Honeymoon Packages':          '/images/resized/3d_honeymoon copy.webp',
+  'Event Planners':              '/images/resized/3d_planner copy.webp',
 };
 
 const SearchPage = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('all');
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Categories Filter state
   const targetCategories = searchParams.getAll('category');
+  if (targetCategories.length === 0) {
+    targetCategories.push('Banquet Halls');
+  }
+
+  const lat = searchParams.get('lat');
+  const lng = searchParams.get('lng');
+  const locName = searchParams.get('locName');
+
+  const [sortOption, setSortOption] = useState('Popularity');
+  const [searchResults, setSearchResults] = useState([]);
+  const [recommendedResults, setRecommendedResults] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const toggleCategory = (catLabel) => {
+    const newParams = new URLSearchParams(searchParams);
+    const currentCats = newParams.getAll('category');
+    newParams.delete('category');
+    if (currentCats.includes(catLabel)) {
+      const remaining = currentCats.filter(c => c !== catLabel);
+      if (remaining.length > 0) {
+        remaining.forEach(c => newParams.append('category', c));
+      } else {
+        newParams.append('category', catLabel);
+      }
+    } else {
+      currentCats.forEach(c => newParams.append('category', c));
+      newParams.append('category', catLabel);
+    }
+    setSearchParams(newParams);
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    const fetchVendors = async () => {
+      setIsLoading(true);
+      try {
+        const inHouseCatering    = searchParams.get('inHouseCatering')    === 'true';
+        const inHousePhotography = searchParams.get('inHousePhotography') === 'true';
+        const inHouseDecorations = searchParams.get('inHouseDecorations') === 'true';
+        const date = searchParams.get('date');
+        const q = searchParams.get('q');
+        const capacity = searchParams.get('capacity');
 
-  const TABS = [
-    { id: 'all', label: 'All Discoveries' },
-    { id: 'venues', label: 'Function Places' },
-    { id: 'vendors', label: 'Services & Vendors' },
-  ];
+        let url = `${API_URL}/api/vendors?categories=${encodeURIComponent(targetCategories.join(','))}`;
+        if (inHouseCatering)    url += `&inHouseCatering=true`;
+        if (inHousePhotography) url += `&inHousePhotography=true`;
+        if (inHouseDecorations) url += `&inHouseDecorations=true`;
+        if (date) url += `&date=${encodeURIComponent(date)}`;
+        if (q) url += `&q=${encodeURIComponent(q)}`;
+        if (lat && lng)  url += `&lat=${lat}&lng=${lng}&radiusInKm=50`;
+        else if (locName) url += `&locName=${encodeURIComponent(locName)}`;
+        if (capacity) url += `&capacity=${encodeURIComponent(capacity)}`;
+
+        searchParams.forEach((val, key) => {
+          if (key.startsWith('dynamic_')) {
+            url += `&${key}=${encodeURIComponent(val)}`;
+          }
+        });
+
+        const res  = await fetch(url);
+        const data = await res.json();
+        if (data.success) {
+          const mappedData = data.data.map(v => ({
+            id:             v._id,
+            name:           v.name,
+            category:       v.category,
+            location:       v.address?.city ? `${v.address.city}, India` : 'India',
+            imageUrl:       v.portfolioImages?.length > 0 ? v.portfolioImages[0] : 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=800&q=80',
+            pricePerPlate:  v.customBlocks?.pricingPackages?.[0]?.price || 'Contact for Price',
+            rating:         v.rating || 5.0,
+            reviewsCount:   v.reviewsCount || 0,
+            deepFeatures:   v.deepFeatures,
+            portfolioImages:v.portfolioImages,
+            contact:        v.contact,
+            pricingPackages:v.customBlocks?.pricingPackages || [],
+            isFeatured:     v.isFeatured,
+          }));
+          const recommended = mappedData.filter(v => v.rating >= 4.8 || v.isFeatured);
+          const standard    = mappedData.filter(v => !(v.rating >= 4.8 || v.isFeatured));
+          setRecommendedResults(recommended);
+          setSearchResults(standard.length > 0 ? standard : mappedData);
+        }
+      } catch (error) {
+        console.error('Error fetching vendors:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchVendors();
+  }, [searchParams]);
+
+  const memoizedRecommended = useMemo(() => recommendedResults.map(vendor => (
+    <LiquidVendorCard key={vendor.id} vendor={vendor} layout="carousel" />
+  )), [recommendedResults]);
+
+  const memoizedSearch = useMemo(() => searchResults.map(vendor => (
+    <LiquidVendorCard key={vendor.id} vendor={vendor} layout="list" />
+  )), [searchResults]);
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD]">
-      <HeroSearchBanner searchParams={searchParams} setSearchParams={setSearchParams} />
+    <div className="min-h-screen bg-gray-50/50 pt-28 pb-24 md:pb-16">
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
 
-      {/* Sticky Filter Tabs */}
-      <div className="sticky top-[72px] z-40 bg-white/80 backdrop-blur-xl border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between py-3">
-            <div className="flex overflow-x-auto gap-2 no-scrollbar">
-              {TABS.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all ${
-                    activeTab === tab.id 
-                      ? 'bg-brand-primary text-white shadow-md' 
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-            <button 
+        {/* Breadcrumbs */}
+        <div className="flex items-center gap-2 text-xs font-bold text-gray-400 mb-6 uppercase tracking-widest overflow-x-auto no-scrollbar pb-1">
+          <Link to="/" className="hover:text-brand-primary flex items-center gap-1 transition-colors shrink-0">
+            <Home size={12} /> Home
+          </Link>
+          <ChevronRight size={12} className="shrink-0" />
+          <span className="shrink-0">Vendors</span>
+          <ChevronRight size={12} className="shrink-0" />
+          <span className="text-brand-primary shrink-0">{targetCategories.join(' & ')}</span>
+        </div>
+
+        {/* Results Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 bg-white p-5 md:p-6 rounded-3xl shadow-[0_2px_20px_rgb(0,0,0,0.02)] border border-gray-100">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
+              {targetCategories.length > 1 ? 'Multiple Categories' : targetCategories[0]}{' '}
+              {locName ? `near ${locName}` : 'in India'}
+            </h1>
+            <p className="text-sm font-bold text-gray-500 mt-1">
+              Showing {searchResults.length + recommendedResults.length} handpicked professionals
+            </p>
+          </div>
+
+          <div className="flex w-full md:w-auto items-center justify-between gap-3">
+            <button
               onClick={() => setIsMobileFiltersOpen(true)}
-              className="md:hidden flex items-center gap-2 bg-gray-100 px-4 py-2.5 rounded-full text-sm font-bold text-gray-700 shrink-0"
+              className="md:hidden flex flex-1 justify-center items-center gap-2 bg-brand-primary/10 border border-brand-primary/20 px-4 py-3 rounded-xl text-sm font-black text-brand-primary shadow-sm hover:bg-brand-primary/20 transition-colors"
             >
-              <SlidersHorizontal size={16} /> Filters
+              <SlidersHorizontal size={18} /> Filters
             </button>
+
+            <div className="flex flex-1 md:flex-none justify-between md:justify-start items-center gap-3">
+              <span className="text-sm text-gray-500 font-bold hidden md:inline whitespace-nowrap">Sort by:</span>
+              <div className="w-full md:w-48">
+                <CustomDropdown
+                  options={['Popularity', 'Highest Rated', 'Price: Low to High', 'Price: High to Low']}
+                  value={sortOption}
+                  onChange={setSortOption}
+                  placeholder="Sort by"
+                  variant="light"
+                  icon={ArrowUpDown}
+                  className="bg-gray-50 border border-gray-200"
+                />
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-[1600px] mx-auto py-12">
-        <div className="flex flex-col lg:flex-row gap-8 px-4 md:px-8">
-          {/* Sidebar */}
-          <div className="hidden lg:block w-72 shrink-0">
-            <div className="sticky top-[140px]">
-              <FilterSidebar
-                isMobileOpen={isMobileFiltersOpen}
-                setIsMobileOpen={setIsMobileFiltersOpen}
-                selectedCategories={targetCategories}
-                toggleCategory={() => {}}
-              />
-            </div>
-          </div>
+        {/* Main Content */}
+        <div className="flex flex-col md:flex-row gap-6 lg:gap-8 relative items-start">
+          <FilterSidebar
+            isMobileOpen={isMobileFiltersOpen}
+            setIsMobileOpen={setIsMobileFiltersOpen}
+            selectedCategories={targetCategories}
+            toggleCategory={toggleCategory}
+          />
 
-          {/* Main Content Lanes */}
-          <div className="flex-1 min-w-0 pb-20">
-            {activeTab === 'all' || activeTab === 'venues' ? (
-              <>
-                <HorizontalLane 
-                  title="Recommended for You" 
-                  subtitle="Based on your search preferences"
-                  icon={Sparkles}
-                  vendors={MOCK_RECOMMENDED} 
-                />
-                <HorizontalLane 
-                  title="Trending Venues" 
-                  subtitle="Most booked locations this month"
-                  icon={TrendingUp}
-                  vendors={MOCK_LUXURY} 
-                />
-              </>
-            ) : null}
-
-            {activeTab === 'all' || activeTab === 'vendors' ? (
-              <>
-                <HorizontalLane 
-                  title="Top Rated Photography" 
-                  subtitle="Capture your best moments"
-                  icon={Award}
-                  vendors={MOCK_TRENDING} 
-                />
-                <HorizontalLane 
-                  title="Premium Catering" 
-                  subtitle="Delicious menus for your guests"
-                  icon={Crown}
-                  vendors={MOCK_CATERING} 
-                />
-                <HorizontalLane 
-                  title="Stunning Decorators" 
-                  subtitle="Transform your venue into a dream"
-                  icon={Sparkles}
-                  vendors={MOCK_DECOR} 
-                />
-              </>
-            ) : null}
-
-            {/* End of results message */}
-            <div className="text-center py-12 border-t border-gray-100 mt-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-primary/10 text-brand-primary mb-4">
-                <SearchIcon size={24} />
+          <div className="flex-1 w-full min-w-0">
+            {/* Recommended Carousel */}
+            {!isLoading && recommendedResults.length > 0 && (
+              <div className="mb-10">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-1.5 bg-brand-gold/10 rounded-lg">
+                    <Icons.Award size={18} className="text-brand-gold" />
+                  </div>
+                  <h2 className="text-lg font-black text-gray-900">Recommended for You</h2>
+                </div>
+                <div className="flex overflow-x-auto gap-4 no-scrollbar pb-4 -mx-4 px-4 md:mx-0 md:px-0 snap-x">
+                  {memoizedRecommended}
+                </div>
               </div>
-              <h3 className="text-xl font-black text-gray-900 mb-2">Can't find what you're looking for?</h3>
-              <p className="text-gray-500 font-semibold mb-6">Adjust your filters or try a different search term.</p>
-              <button className="px-8 py-3 bg-white border-2 border-brand-primary text-brand-primary rounded-xl font-black hover:bg-brand-primary hover:text-white transition-all shadow-sm">
-                Clear All Filters
+            )}
+
+            {/* All Results */}
+            <div className="flex flex-col">
+              <h2 className="text-lg font-black text-gray-900 mb-4">All Results</h2>
+              {isLoading ? (
+                <div className="py-20 text-center text-gray-500 font-bold text-lg animate-pulse">
+                  Loading verified professionals...
+                </div>
+              ) : searchResults.length === 0 && recommendedResults.length === 0 ? (
+                <div className="py-16 flex flex-col items-center justify-center text-center">
+                  <div className="w-20 h-20 mb-5 rounded-full bg-brand-primary/8 flex items-center justify-center">
+                    <Icons.SearchX size={36} className="text-brand-primary/50" />
+                  </div>
+                  <h3 className="text-xl font-black text-gray-800 mb-2">No Vendors Near You</h3>
+                  <p className="text-sm font-semibold text-gray-400 max-w-xs mb-6">
+                    We couldn't find any {targetCategories.join(' or ')} vendors in your area yet. Try a different category or broaden your search.
+                  </p>
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    <button
+                      onClick={() => window.history.back()}
+                      className="px-5 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-sm font-black text-gray-600 hover:border-brand-primary hover:text-brand-primary transition-all"
+                    >
+                      ← Go Back
+                    </button>
+                    <button
+                      onClick={() => { const p = new URLSearchParams(); p.set('category','Banquet Halls'); window.location.search = p.toString(); }}
+                      className="px-5 py-2.5 btn-liquid text-white rounded-xl text-sm font-black hover:bg-brand-primary/90 transition-all shadow-sm"
+                    >
+                      Browse All Venues
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                memoizedSearch
+              )}
+            </div>
+
+            {/* Load More */}
+            <div className="mt-8 flex justify-center pb-8">
+              <button className="bg-white border-2 border-brand-primary text-brand-primary px-8 py-3 rounded-xl font-black hover:bg-brand-primary hover:text-white transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5">
+                Load More Results
               </button>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

@@ -11,7 +11,7 @@ import CustomDropdown from '../components/ui/CustomDropdown';
 import DynamicSEO from '../components/DynamicSEO';
 import LocationMapClient from '../components/vendor/LocationMapClient';
 import AnimatedVendorCard from '../components/search/AnimatedVendorCard';
-import { generateFakeVendors } from '../data/mockData';
+
 
 const VendorDetailsPage = () => {
   const { id } = useParams();
@@ -570,32 +570,6 @@ const VendorDetailsPage = () => {
         </div>
       </div>
 
-      {/* --- RICH DATA: Suggested & Trending Vendors --- */}
-      <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 mt-12 pt-12 border-t border-gray-100 mb-10">
-        <div className="flex items-center gap-2 mb-6">
-          <Sparkles size={24} className="text-brand-primary" />
-          <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Similar {vendor.category}</h2>
-        </div>
-        <div className="flex overflow-x-auto gap-4 md:gap-6 pb-8 no-scrollbar snap-x scroll-smooth -mx-4 px-4 md:mx-0 md:px-0">
-          {generateFakeVendors(vendor.category || 'Banquet Halls', 6).map((v, idx) => (
-            <div key={idx} className="snap-start shrink-0">
-              <AnimatedVendorCard vendor={v} />
-            </div>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2 mb-6 mt-8">
-          <TrendingUp size={24} className="text-brand-primary" />
-          <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Trending in {vendor.location.split(',')[0] || 'India'}</h2>
-        </div>
-        <div className="flex overflow-x-auto gap-4 md:gap-6 pb-8 no-scrollbar snap-x scroll-smooth -mx-4 px-4 md:mx-0 md:px-0">
-          {generateFakeVendors('Photography & Videography', 5).map((v, idx) => (
-            <div key={idx} className="snap-start shrink-0">
-              <AnimatedVendorCard vendor={v} />
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Quote/Inquiry Modal */}
       {isQuoteModalOpen && (

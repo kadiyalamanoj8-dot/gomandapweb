@@ -328,27 +328,17 @@ const HeroParallax = () => {
         </div>
 
         {/* Desktop UI: Centered Glass Pill */}
-        <m.div 
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="hidden md:flex absolute top-[65%] w-full z-[200] flex-col items-center justify-start px-4 pointer-events-none"
-        >
+        <div className="hidden md:flex absolute top-[65%] w-full z-[200] flex-col items-center justify-start px-4 pointer-events-none">
           <div className="w-full max-w-5xl pointer-events-auto bg-white/10 backdrop-blur-xl shadow-[inset_0_2px_15px_rgba(255,255,255,0.4),0_25px_60px_rgba(0,0,0,0.6)] border border-white/20 border-t-white/40 rounded-full p-2.5 flex flex-row items-center mx-auto transition-all duration-300 hover:shadow-[inset_0_2px_15px_rgba(255,255,255,0.5),0_30px_70px_rgba(0,0,0,0.7)] hover:bg-white/15">
             {searchContent}
           </div>
-        </m.div>
+        </div>
 
         {/* Mobile UI: Compact Bottom Pill (Airbnb Style) */}
-        <m.div 
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="md:hidden absolute bottom-24 pb-safe w-full z-[200] px-4 pointer-events-auto"
-        >
+        <div className="md:hidden absolute bottom-[140px] w-full z-[200] px-4 pointer-events-auto">
           <button 
             onClick={() => setIsMobileSearchOpen(true)}
-            className="w-full bg-white/5 backdrop-blur-xl shadow-[inset_0_2px_15px_rgba(255,255,255,0.5),inset_0_-1px_10px_rgba(255,255,255,0.1),0_25px_50px_rgba(0,0,0,0.5)] border border-white/20 border-t-white/40 rounded-[32px] py-4 px-6 flex items-center justify-between text-white active:scale-95 transition-transform"
+            className="w-full bg-white/5 backdrop-blur-md shadow-[inset_0_2px_15px_rgba(255,255,255,0.5),inset_0_-1px_10px_rgba(255,255,255,0.1),0_25px_50px_rgba(0,0,0,0.5)] border border-white/20 border-t-white/40 rounded-[32px] py-4 px-6 flex items-center justify-between text-white active:scale-95 transition-transform"
           >
             <div className="flex flex-col items-start text-left">
               <span className="font-extrabold text-[17px] tracking-tight text-white drop-shadow-md">Where to?</span>
@@ -358,7 +348,7 @@ const HeroParallax = () => {
               <Search size={22} strokeWidth={3} />
             </div>
           </button>
-        </m.div>
+        </div>
 
         {/* Mobile Full Screen Search Modal */}
         <AnimatePresence>
