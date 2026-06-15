@@ -299,8 +299,10 @@ const HeroParallax = () => {
       <div 
         ref={heroRef} 
         onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }}
-        className="relative w-full h-screen h-[100svh] min-h-[600px] bg-black z-40 focus-within:z-[60] select-none overflow-hidden"
+        className="relative w-full h-screen h-[100svh] min-h-[600px] bg-black z-[60] select-none"
       >
+      
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
       
         {/* Layer 1: Deep Background */}
         <div ref={containerRef} className="absolute inset-0 w-full h-full z-0 perspective-[1200px]">
@@ -322,6 +324,7 @@ const HeroParallax = () => {
               <img src="/images/couple_transparent.webp" alt="Couple" className="w-[85vw] md:w-[70vw] max-h-[65vh] md:max-h-[70vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)] pointer-events-none" />
             </m.div>
           </m.div>
+        </div>
         </div>
 
         {/* Desktop UI: Centered Glass Pill */}
