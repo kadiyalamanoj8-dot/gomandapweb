@@ -42,9 +42,7 @@ if (corsOrigins) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded files statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
+// Note: Uploads are now served directly from Oracle Cloud Object Storage
 // Basic Route for testing
 app.get('/', (req, res) => {
   res.send('Gomandap API is running...');
@@ -63,6 +61,12 @@ app.use('/api/marketing', marketingRoutes);
 
 const notificationRoutes = require('./routes/notificationRoutes');
 app.use('/api/notifications', notificationRoutes);
+
+const cartOrderRoutes = require('./routes/cartOrderRoutes');
+app.use('/api/cart-orders', cartOrderRoutes);
+
+const aiRoutes = require('./routes/aiRoutes');
+app.use('/api/ai', aiRoutes);
 
 const settingsRoutes = require('./routes/settingsRoutes');
 app.use('/api/settings', settingsRoutes);
@@ -84,6 +88,13 @@ app.use('/api/leads', leadRoutes);
 
 const bookingRoutes = require('./routes/bookingRoutes');
 app.use('/api/bookings', bookingRoutes);
+
+const whatsappRoutes = require('./routes/whatsappRoutes');
+app.use('/api/whatsapp', whatsappRoutes);
+
+const whatsappService = require('./services/whatsappService');
+// Initialize WhatsApp Client (Headless)
+whatsappService.initializeWhatsApp();
 
 const PORT = process.env.PORT || 5000;
 

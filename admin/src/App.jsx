@@ -10,6 +10,8 @@ const ClientUISettings = lazy(() => import('./pages/ClientUISettings'));
 const FooterSettings = lazy(() => import('./pages/FooterSettings'));
 const LeadsCRM = lazy(() => import('./pages/LeadsCRM'));
 const MarketingCRM = lazy(() => import('./pages/MarketingCRM'));
+const WhatsAppBot = lazy(() => import('./pages/WhatsAppBot'));
+const AdManager = lazy(() => import('./pages/AdManager'));
 import Sidebar from './components/Sidebar';
 import { Menu } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
@@ -77,6 +79,8 @@ function AppLayout() {
                   <Route path="/footer-settings" element={<AuthGuard><FooterSettings /></AuthGuard>} />
                   <Route path="/leads" element={<AuthGuard><LeadsCRM /></AuthGuard>} />
                   <Route path="/marketing" element={<AuthGuard><MarketingCRM /></AuthGuard>} />
+                  <Route path="/whatsapp-bot" element={<AuthGuard><WhatsAppBot /></AuthGuard>} />
+                  <Route path="/ad-manager" element={<AuthGuard><AdManager /></AuthGuard>} />
                 </Routes>
               </Suspense>
             </motion.div>

@@ -1,15 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { getCategorySchema } from '../config/categorySchemas';
 import { API_URL } from '../config/api';
-import { Star, MapPin, Heart, Share2, CheckCircle2, ChevronLeft, Info, ShoppingCart } from 'lucide-react';
+import { Star, MapPin, Heart, Share2, CheckCircle2, ChevronLeft, Info, ShoppingCart, ChevronRight, Sparkles, TrendingUp } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import * as Icons from 'lucide-react';
 import CustomDropdown from '../components/ui/CustomDropdown';
 import DynamicSEO from '../components/DynamicSEO';
 import LocationMapClient from '../components/vendor/LocationMapClient';
+import AnimatedVendorCard from '../components/search/AnimatedVendorCard';
+import { generateFakeVendors } from '../data/mockData';
 
 const VendorDetailsPage = () => {
   const { id } = useParams();
@@ -532,29 +534,66 @@ const VendorDetailsPage = () => {
             </motion.div>
           </aside>
           
-          <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-5 py-4 z-50 flex justify-between items-center pb-safe gap-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-            <div className="flex flex-col">
-              <span className="text-[18px] font-bold text-gray-900 leading-none mb-1">{vendor.pricePerPlate}</span>
-              <span className="text-[12px] text-gray-500 font-normal leading-none underline">{schema.pricingUnit}</span>
+          <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 px-4 py-3 z-50 flex justify-between items-center pb-safe gap-3 shadow-[0_-10px_30px_rgba(0,0,0,0.08)]">
+            <div className="flex flex-col shrink-0 min-w-[70px]">
+              <span className="text-lg font-black text-gray-900 leading-none mb-0.5">{vendor.pricePerPlate}</span>
+              <span className="text-[10px] text-gray-500 font-bold leading-none uppercase tracking-wider">{schema.pricingUnit}</span>
             </div>
             
-            {userRole === 'client' ? (
+            <div className="flex flex-1 gap-2 h-11">
               <button 
-                onClick={handleInstantBook}
-                className="flex-1 bg-[#E51D53] text-white py-3.5 rounded-xl font-bold text-[15px] active:scale-95 transition-transform text-center shadow-md"
+                onClick={handleAddToCart}
+                className="w-12 flex-shrink-0 bg-white border-2 border-gray-100 text-gray-900 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-colors active:scale-95 shadow-sm"
+                aria-label="Add to Cart"
               >
-                Book Now (D2C)
+                <ShoppingCart size={20} />
               </button>
-            ) : (
-              <button 
-                onClick={() => setIsQuoteModalOpen(true)}
-                className="flex-1 bg-brand-primary text-white py-3.5 rounded-xl font-bold text-[15px] active:scale-95 transition-transform text-center"
-              >
-                Request Quote
-              </button>
-            )}
+
+              {userRole === 'client' ? (
+                <button 
+                  onClick={handleInstantBook}
+                  className="flex-1 bg-[#E51D53] text-white rounded-xl font-black text-sm active:scale-95 transition-transform text-center shadow-md flex items-center justify-center gap-1.5"
+                >
+                  Book Now
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setIsQuoteModalOpen(true)}
+                  className="flex-1 bg-brand-primary text-white rounded-xl font-black text-sm active:scale-95 transition-transform text-center shadow-md flex items-center justify-center"
+                >
+                  Get Quote
+                </button>
+              )}
+            </div>
           </div>
 
+        </div>
+      </div>
+
+      {/* --- RICH DATA: Suggested & Trending Vendors --- */}
+      <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 mt-12 pt-12 border-t border-gray-100 mb-10">
+        <div className="flex items-center gap-2 mb-6">
+          <Sparkles size={24} className="text-brand-primary" />
+          <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Similar {vendor.category}</h2>
+        </div>
+        <div className="flex overflow-x-auto gap-4 md:gap-6 pb-8 no-scrollbar snap-x scroll-smooth -mx-4 px-4 md:mx-0 md:px-0">
+          {generateFakeVendors(vendor.category || 'Banquet Halls', 6).map((v, idx) => (
+            <div key={idx} className="snap-start shrink-0">
+              <AnimatedVendorCard vendor={v} />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2 mb-6 mt-8">
+          <TrendingUp size={24} className="text-brand-primary" />
+          <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Trending in {vendor.location.split(',')[0] || 'India'}</h2>
+        </div>
+        <div className="flex overflow-x-auto gap-4 md:gap-6 pb-8 no-scrollbar snap-x scroll-smooth -mx-4 px-4 md:mx-0 md:px-0">
+          {generateFakeVendors('Photography & Videography', 5).map((v, idx) => (
+            <div key={idx} className="snap-start shrink-0">
+              <AnimatedVendorCard vendor={v} />
+            </div>
+          ))}
         </div>
       </div>
 

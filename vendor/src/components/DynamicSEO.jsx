@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
+import { API_URL } from '../config/api';
 
 const DynamicSEO = ({ appTarget = 'vendor', pageName = 'global' }) => {
   const [seoConfig, setSeoConfig] = useState(null);
@@ -24,7 +25,7 @@ const DynamicSEO = ({ appTarget = 'vendor', pageName = 'global' }) => {
   useEffect(() => {
     const fetchSeo = async () => {
       try {
-        const res = await axios.get('https://gomandap-api.onrender.com/api/content');
+        const res = await axios.get(`${API_URL}/api/content`);
         if (res.data && res.data.seoSettings) {
           // Find specific page config or fallback to global
           const specificSeo = res.data.seoSettings.find(s => s.targetApp === appTarget && s.page === pageName);

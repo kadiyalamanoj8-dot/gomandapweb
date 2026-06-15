@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { API_URL } from '../config/api';
 
 const SettingsContext = createContext({ disabledCategories: [] });
 
@@ -8,7 +9,7 @@ export const SettingsProvider = ({ children }) => {
   const [disabledCategories, setDisabledCategories] = useState([]);
 
   useEffect(() => {
-    fetch('https://gomandap-api.onrender.com/api/settings')
+    fetch(`${API_URL}/api/settings`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {

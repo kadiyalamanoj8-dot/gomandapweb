@@ -9,6 +9,8 @@ import * as Icons from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getCategorySchema } from '../../config/categorySchemas';
 import ProfileCard from '../../components/auth/ProfileCard';
+import Bookings from '../Bookings';
+import { API_URL } from '../../config/api';
 
 const VendorDashboard = () => {
   const { vendorProfile, vendorStatus, logoutVendor, updateVendorProfile } = useVendor();
@@ -21,6 +23,7 @@ const VendorDashboard = () => {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editForm, setEditForm] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   // Initialize edit form when profile is loaded or changes
   useEffect(() => {
@@ -30,6 +33,8 @@ const VendorDashboard = () => {
         ownerName: vendorProfile.ownerName || '',
         phone: vendorProfile.contact?.phone || '',
         city: vendorProfile.address?.city || '',
+        bio: vendorProfile.bio || '',
+        faqs: vendorProfile.faqs || [],
         customBlocks: vendorProfile.customBlocks || { pricingPackages: [] },
         deepFeatures: vendorProfile.deepFeatures || {},
         bookingSettings: vendorProfile.bookingSettings || { maxCapacity: 1, availability: [] },
@@ -42,7 +47,7 @@ const VendorDashboard = () => {
   const fetchInquiries = async () => {
     if (!vendorProfile?._id) return;
     try {
-      const res = await fetch(`https://gomandap-api.onrender.com/api/inquiries/vendor/${vendorProfile._id}`);
+      const res = await fetch(`${API_URL}/api/inquiries/vendor/${vendorProfile._id}`);
       const data = await res.json();
       if (data.success) {
         setInquiries(data.data);
@@ -93,6 +98,38 @@ const VendorDashboard = () => {
     setEditForm(prev => ({ ...prev, deepFeatures: currentFeatures }));
   };
 
+  const handleGenerateAI = async () => {
+    setIsGeneratingAI(true);
+    try {
+      const res = await fetch(`${API_URL}/api/ai/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editForm.name,
+          category: vendorProfile.category,
+          city: editForm.city,
+          experience: 'Professional vendor with great experience.'
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.bio && data.faqs) {
+        setEditForm(prev => ({
+          ...prev,
+          bio: data.bio,
+          faqs: data.faqs
+        }));
+        alert('Bio and FAQs successfully generated using AI!');
+      } else {
+        alert('AI Generation failed. Ensure API key is set in backend.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error while generating AI content.');
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
   const handleSaveProfile = async () => {
     setIsSaving(true);
     try {
@@ -101,13 +138,15 @@ const VendorDashboard = () => {
         ownerName: editForm.ownerName,
         contact: { ...vendorProfile.contact, phone: editForm.phone },
         address: { ...vendorProfile.address, city: editForm.city },
+        bio: editForm.bio,
+        faqs: editForm.faqs,
         customBlocks: editForm.customBlocks,
         deepFeatures: editForm.deepFeatures,
         bookingSettings: editForm.bookingSettings,
         pricing: editForm.pricing
       };
 
-      const res = await fetch(`https://gomandap-api.onrender.com/api/vendors/draft/${vendorProfile._id}`, {
+      const res = await fetch(`${API_URL}/api/vendors/draft/${vendorProfile._id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -466,6 +505,13 @@ const VendorDashboard = () => {
           </motion.div>
         )}
 
+        {/* Bookings / Leads Tab */}
+        {activeTab === 'bookings' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="relative z-10">
+            <Bookings />
+          </motion.div>
+        )}
+
         {/* Profile Tab */}
         {activeTab === 'profile' && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="relative z-10 max-w-4xl mx-auto space-y-8">
@@ -545,6 +591,73 @@ const VendorDashboard = () => {
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* AI Generator / Bio & FAQs */}
+            <div className="bg-white/5 p-6 md:p-8 rounded-[1.5rem] border border-white/10 shadow-inner mt-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-black text-white">About & FAQs</h3>
+                {isEditingProfile && (
+                  <button 
+                    onClick={handleGenerateAI}
+                    disabled={isGeneratingAI}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/20 to-brand-gold/20 text-brand-gold border border-brand-gold/30 rounded-xl font-bold text-sm hover:from-purple-500/30 hover:to-brand-gold/30 transition-all shadow-lg"
+                  >
+                    <Sparkles size={16} /> {isGeneratingAI ? 'Generating...' : 'Auto-Generate via AI'}
+                  </button>
+                )}
+              </div>
+
+              {isEditingProfile ? (
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Vendor Bio</label>
+                    <textarea 
+                      value={editForm.bio} 
+                      onChange={e => setEditForm({...editForm, bio: e.target.value})}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold focus:bg-white/10 focus:ring-1 focus:ring-brand-gold/50 transition-all min-h-[120px]"
+                      placeholder="Write a beautiful description about your services..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Frequently Asked Questions (JSON format)</label>
+                    <textarea 
+                      value={typeof editForm.faqs === 'string' ? editForm.faqs : JSON.stringify(editForm.faqs, null, 2)} 
+                      onChange={e => {
+                        try {
+                          setEditForm({...editForm, faqs: JSON.parse(e.target.value)});
+                        } catch {
+                          setEditForm({...editForm, faqs: e.target.value});
+                        }
+                      }}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold focus:bg-white/10 focus:ring-1 focus:ring-brand-gold/50 transition-all min-h-[150px] font-mono text-sm"
+                      placeholder='[{"q": "How far in advance should we book?", "a": "At least 3 months."}]'
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Vendor Bio</h4>
+                    <p className="text-sm text-white/80 leading-relaxed bg-black/20 rounded-xl px-4 py-3 border border-transparent">
+                      {vendorProfile.bio || "No bio added yet."}
+                    </p>
+                  </div>
+                  {vendorProfile.faqs && vendorProfile.faqs.length > 0 && (
+                    <div>
+                      <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">FAQs</h4>
+                      <div className="bg-black/20 rounded-xl p-4 space-y-3">
+                        {vendorProfile.faqs.map((faq, i) => (
+                          <div key={i}>
+                            <strong className="text-white text-sm">{faq.q}</strong>
+                            <p className="text-white/60 text-sm mt-1">{faq.a}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Features Editor */}

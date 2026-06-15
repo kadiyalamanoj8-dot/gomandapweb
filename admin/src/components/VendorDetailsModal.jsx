@@ -13,7 +13,8 @@ const VendorDetailsModal = ({ vendor, onClose, onUpdateStatus, onUpdateAdminSett
     monetizationModel: vendor.bookingSettings?.monetizationModel || 'commission',
     commissionRate: vendor.bookingSettings?.commissionRate || 10,
     isFeatured: vendor.isFeatured || false,
-    adminOverridePrice: vendor.pricing?.adminOverridePrice || ''
+    adminOverridePrice: vendor.pricing?.adminOverridePrice || '',
+    customBlocks: vendor.customBlocks || { pricingPackages: [] }
   });
 
   const handleSaveAdminSettings = () => {
@@ -22,7 +23,8 @@ const VendorDetailsModal = ({ vendor, onClose, onUpdateStatus, onUpdateAdminSett
         monetizationModel: adminSettings.monetizationModel,
         commissionRate: Number(adminSettings.commissionRate),
         isFeatured: adminSettings.isFeatured,
-        adminOverridePrice: adminSettings.adminOverridePrice ? Number(adminSettings.adminOverridePrice) : null
+        adminOverridePrice: adminSettings.adminOverridePrice ? Number(adminSettings.adminOverridePrice) : null,
+        customBlocks: adminSettings.customBlocks
       });
     }
   };
@@ -163,15 +165,53 @@ const VendorDetailsModal = ({ vendor, onClose, onUpdateStatus, onUpdateAdminSett
               <section>
                 <h3 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">Pricing Packages</h3>
                 <div className="space-y-3">
-                  {vendor.customBlocks?.pricingPackages?.map((pkg, i) => (
-                    <div key={i} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
-                      <div>
-                        <div className="font-black text-gray-900">{pkg.title}</div>
-                        <div className="text-xs font-semibold text-gray-500">{pkg.desc}</div>
+                  {adminSettings.customBlocks?.pricingPackages?.map((pkg, i) => (
+                    <div key={i} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-2">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={pkg.title}
+                          onChange={(e) => {
+                            const newPkgs = [...adminSettings.customBlocks.pricingPackages];
+                            newPkgs[i].title = e.target.value;
+                            setAdminSettings({ ...adminSettings, customBlocks: { ...adminSettings.customBlocks, pricingPackages: newPkgs } });
+                          }}
+                          className="font-black text-gray-900 bg-gray-50 border border-gray-200 rounded px-2 py-1 flex-1 text-sm focus:outline-brand-primary"
+                        />
+                        <input
+                          type="text"
+                          value={pkg.price}
+                          onChange={(e) => {
+                            const newPkgs = [...adminSettings.customBlocks.pricingPackages];
+                            newPkgs[i].price = e.target.value;
+                            setAdminSettings({ ...adminSettings, customBlocks: { ...adminSettings.customBlocks, pricingPackages: newPkgs } });
+                          }}
+                          className="font-black text-brand-primary text-lg bg-gray-50 border border-gray-200 rounded px-2 py-1 w-32 text-right focus:outline-brand-primary"
+                        />
                       </div>
-                      <div className="font-black text-brand-primary text-lg">{pkg.price}</div>
+                      <textarea
+                        value={pkg.desc}
+                        onChange={(e) => {
+                          const newPkgs = [...adminSettings.customBlocks.pricingPackages];
+                          newPkgs[i].desc = e.target.value;
+                          setAdminSettings({ ...adminSettings, customBlocks: { ...adminSettings.customBlocks, pricingPackages: newPkgs } });
+                        }}
+                        className="w-full text-xs font-semibold text-gray-500 bg-gray-50 border border-gray-200 rounded px-2 py-1 h-16 resize-none focus:outline-brand-primary"
+                      />
                     </div>
                   ))}
+                  {(!adminSettings.customBlocks?.pricingPackages || adminSettings.customBlocks.pricingPackages.length === 0) && (
+                    <div className="text-sm text-gray-500 italic">No packages available.</div>
+                  )}
+                  <button
+                    onClick={() => {
+                      const newPkgs = [...(adminSettings.customBlocks?.pricingPackages || []), { title: 'New Package', price: '₹0', desc: 'Description' }];
+                      setAdminSettings({ ...adminSettings, customBlocks: { ...adminSettings.customBlocks, pricingPackages: newPkgs } });
+                    }}
+                    className="w-full text-xs font-bold text-brand-primary bg-brand-primary/10 py-2 rounded-xl mt-2 hover:bg-brand-primary/20 transition"
+                  >
+                    + Add Package
+                  </button>
                 </div>
               </section>
 

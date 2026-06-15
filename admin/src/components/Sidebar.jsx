@@ -71,7 +71,24 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           >
             <Users size={18} /> Marketing CRM
           </NavLink>
-          
+          <NavLink
+            to="/whatsapp-bot"
+            onClick={() => setIsOpen(false)}
+            className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'bg-green-500 text-white shadow-lg shadow-green-500/30' : 'text-gray-400 hover:bg-white/5 hover:text-green-400'}`}
+          >
+            <div className="bg-green-500 text-white p-1 rounded-md">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            </div>
+            WhatsApp Bot
+          </NavLink>
+          <NavLink
+            to="/ad-manager"
+            onClick={() => setIsOpen(false)}
+            className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'bg-brand-gold/20 text-brand-gold shadow-[0_0_15px_rgba(212,175,55,0.15)] border border-brand-gold/30' : 'text-gray-400 hover:bg-white/5 hover:text-brand-gold'}`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>
+            Ad Packages
+          </NavLink>
           <a
             href="http://localhost:5174"
             target="_blank"

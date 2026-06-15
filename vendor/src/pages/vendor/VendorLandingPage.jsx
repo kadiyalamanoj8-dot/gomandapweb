@@ -549,6 +549,16 @@ const VendorLandingPage = () => {
         </div>
       </section>
 
+      {/* Sticky Mobile CTA */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-4 bg-black/80 backdrop-blur-xl border-t border-white/10 pb-safe">
+        <button 
+          onClick={() => navigate('/onboarding')}
+          className="w-full py-4 bg-brand-gold text-black rounded-xl font-black text-lg shadow-[0_0_20px_rgba(212,175,55,0.3)] active:scale-95 transition-transform"
+        >
+          Join as Vendor — It's Free
+        </button>
+      </div>
+
       {/* Dynamic Footer */}
       <Footer />
 

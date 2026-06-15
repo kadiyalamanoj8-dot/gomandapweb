@@ -1,4 +1,5 @@
 const Vendor = require('../models/Vendor');
+const { uploadToOracleCloud } = require('../utils/oracleStorage');
 const Settings = require('../models/Settings');
 const jwt = require('jsonwebtoken');
 const NodeCache = require('node-cache');
@@ -125,9 +126,18 @@ const updateDraft = async (req, res) => {
     const data = req.body;
     let updateFields = { ...data };
 
-    // Handle Uploaded Files
+    // Handle Uploaded Files via Oracle Cloud
     if (req.files && req.files.length > 0) {
-      updateFields.portfolioImages = req.files.map(file => '/uploads/' + file.filename);
+      try {
+        const uploadPromises = req.files.map(file => 
+          uploadToOracleCloud(file.buffer, file.originalname, 'portfolios')
+        );
+        const uploadedUrls = await Promise.all(uploadPromises);
+        updateFields.portfolioImages = uploadedUrls;
+      } catch (err) {
+        console.error("Image upload failed:", err);
+        return res.status(500).json({ success: false, message: 'Failed to compress and upload images to Oracle Cloud.' });
+      }
     }
 
     // Parse nested JSON strings if present (FormData sends strings)
@@ -404,7 +414,7 @@ const updateVendorSettings = async (req, res) => {
 // @access  Private/Admin
 const updateAdminVendorSettings = async (req, res) => {
   try {
-    const { monetizationModel, commissionRate, subscriptionExpiry, isFeatured, adminOverridePrice } = req.body;
+    const { monetizationModel, commissionRate, subscriptionExpiry, isFeatured, adminOverridePrice, customBlocks } = req.body;
     
     let updateFields = {};
     if (monetizationModel) updateFields['bookingSettings.monetizationModel'] = monetizationModel;
@@ -412,6 +422,7 @@ const updateAdminVendorSettings = async (req, res) => {
     if (subscriptionExpiry) updateFields['bookingSettings.subscriptionExpiry'] = subscriptionExpiry;
     if (isFeatured !== undefined) updateFields.isFeatured = isFeatured;
     if (adminOverridePrice !== undefined) updateFields['pricing.adminOverridePrice'] = adminOverridePrice;
+    if (customBlocks) updateFields.customBlocks = customBlocks;
 
     const vendor = await Vendor.findByIdAndUpdate(
       req.params.id,

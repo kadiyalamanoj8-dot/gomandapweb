@@ -105,64 +105,68 @@ const LiquidVendorCard = ({ vendor, layout = 'carousel' }) => {
     );
   }
 
-  // --- DEFAULT (Grid/Carousel) VIEW (Airbnb Style) ---
+  // --- DEFAULT (Grid/Carousel) VIEW (Airbnb/Premium Style) ---
   return (
     <motion.div
       onClick={handleCardClick}
-      whileHover={{ scale: 1.01, y: -2 }}
-      className={`relative lg-card transition-all duration-300 cursor-pointer overflow-hidden group flex flex-col ${
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ y: -4 }}
+      className={`relative bg-transparent transition-transform duration-500 cursor-pointer overflow-hidden group flex flex-col ${
         layout === 'carousel' 
-          ? 'w-[260px] md:w-[300px] shrink-0 snap-start' 
+          ? 'w-[280px] md:w-[320px] shrink-0 snap-start' 
           : 'w-full h-full'
       }`}
     >
       {/* Cinematic Image Container */}
-      <div className="relative w-full aspect-[4/3] rounded-2xl md:rounded-3xl overflow-hidden shrink-0 shadow-sm border border-gray-100">
+      <div className="relative w-full aspect-[4/3] rounded-[24px] overflow-hidden shrink-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50">
         <ProtectedImage 
           src={vendor.imageUrl} 
           alt={vendor.name} 
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-[1.03]"
           containerClassName="w-full h-full"
         />
         {/* Subtle dark gradient overlay for text readability at bottom */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
         {vendor.isFeatured && (
-          <span className="absolute top-3 left-3 bg-brand-gold text-gray-900 text-[9px] uppercase tracking-wider font-black px-2.5 py-1 rounded-md shadow-sm z-20 flex items-center gap-1">
-            <Star size={8} fill="currentColor" /> Highlighted
+          <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-gray-900 text-[10px] uppercase tracking-widest font-black px-3 py-1.5 rounded-full shadow-sm z-20 flex items-center gap-1.5">
+            <Star size={10} className="text-brand-gold" fill="currentColor" /> Featured
           </span>
         )}
-        <button className="absolute top-3 right-3 bg-white/90 backdrop-blur-md p-1.5 md:p-2 rounded-full text-gray-400 hover:text-red-500 hover:bg-white shadow-sm transition-all z-20">
-          <Heart size={16} />
+        <button className="absolute top-4 right-4 bg-black/20 backdrop-blur-md p-2 rounded-full text-white hover:text-red-500 hover:bg-white shadow-sm transition-all z-20 active:scale-95">
+          <Heart size={18} strokeWidth={2.5} />
         </button>
 
         {/* Dynamic Schema Feature Badge over image on hover */}
-        <div className="absolute bottom-3 left-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:block">
-           <span className="flex items-center gap-1.5 text-[11px] text-white font-semibold backdrop-blur-md bg-black/40 border border-white/20 px-2.5 py-1.5 rounded-lg w-fit">
-             <CheckCircle2 size={12} className="text-white" /> {firstFeature}
+        <div className="absolute bottom-4 left-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-4 group-hover:translate-y-0">
+           <span className="flex items-center gap-2 text-xs text-white font-bold backdrop-blur-xl bg-black/40 border border-white/20 px-3 py-2 rounded-xl w-fit shadow-lg">
+             <CheckCircle2 size={14} className="text-green-400" /> {firstFeature}
            </span>
         </div>
       </div>
       
       {/* Clean Typography Content */}
-      <div className="pt-3 px-1 relative z-20 flex flex-col">
-        <div className="flex justify-between items-start mb-0.5">
-          <h3 className="text-[15px] md:text-base font-bold text-gray-900 leading-tight truncate pr-2 group-hover:text-brand-primary transition-colors">
+      <div className="pt-4 px-1 relative z-20 flex flex-col">
+        <div className="flex justify-between items-start mb-1">
+          <h3 className="text-[17px] font-bold text-gray-900 leading-tight truncate pr-4 group-hover:text-brand-primary transition-colors tracking-tight">
             {vendor.name}
           </h3>
-          <div className="flex items-center gap-1 shrink-0">
-            <Star className="text-gray-900 w-3 h-3 md:w-3.5 md:h-3.5" fill="currentColor" />
-            <span className="text-[13px] md:text-sm font-medium text-gray-900">{vendor.rating}</span>
+          <div className="flex items-center gap-1 shrink-0 bg-gray-50 px-1.5 py-0.5 rounded-md">
+            <Star className="text-gray-900 w-3.5 h-3.5" fill="currentColor" />
+            <span className="text-[13px] font-bold text-gray-900">{vendor.rating}</span>
           </div>
         </div>
         
-        <p className="text-[13px] md:text-sm text-gray-500 font-normal truncate mb-0.5">
-          {vendor.category} • {vendor.location}
+        <p className="text-[14px] text-gray-500 font-medium truncate mb-1">
+          {vendor.category} <span className="mx-1.5 opacity-40">•</span> {vendor.location.split(',')[0]}
         </p>
         
-        <div className="mt-1 flex items-baseline gap-1">
-          <span className="text-[14px] md:text-[15px] font-bold text-gray-900">{vendor.pricePerPlate}</span>
-          <span className="text-[12px] text-gray-500 font-normal truncate">{schema.pricingUnit.replace('/', ' / ')}</span>
+        <div className="mt-1.5 flex items-baseline gap-1.5">
+          <span className="text-[16px] font-black text-gray-900 tracking-tight">{vendor.pricePerPlate}</span>
+          <span className="text-[13px] text-gray-500 font-medium truncate">{schema.pricingUnit.replace('/', ' / ')}</span>
         </div>
       </div>
     </motion.div>

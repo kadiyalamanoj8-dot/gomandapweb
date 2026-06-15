@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVendor } from '../../context/VendorContext';
-import { LayoutDashboard, CalendarCheck, TrendingUp, Settings, LogOut, CheckCircle2, Eye, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, CalendarCheck, TrendingUp, Settings, LogOut, CheckCircle2, Eye, MessageSquare, Crown, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const VendorDashboard = () => {
@@ -49,6 +49,12 @@ const VendorDashboard = () => {
           >
             <CalendarCheck size={18} /> Bookings
             <span className="ml-auto btn-liquid text-white text-[10px] px-2 py-0.5 rounded-full">1 New</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('promotions')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-colors ${activeTab === 'promotions' ? 'bg-brand-gold/10 text-brand-gold border border-brand-gold/20 shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-brand-gold'}`}
+          >
+            <Crown size={18} /> Get Featured Ad
           </button>
           <button 
             onClick={() => setActiveTab('profile')}
@@ -150,6 +156,50 @@ const VendorDashboard = () => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Promotions Tab */}
+        {activeTab === 'promotions' && (
+          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-4xl mx-auto">
+            <div className="bg-gradient-to-br from-brand-gold to-yellow-600 rounded-[32px] p-8 md:p-12 text-white shadow-[0_20px_50px_rgba(212,175,55,0.3)] relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+              
+              <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-12">
+                <div className="flex-1">
+                  <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full text-sm font-bold mb-6 border border-white/30 shadow-sm">
+                    <Crown size={16} className="text-white" /> Gomandap Premium
+                  </div>
+                  <h2 className="text-3xl md:text-5xl font-black mb-4 leading-tight tracking-tight text-white drop-shadow-md">
+                    Become the most <br className="hidden md:block" /> booked vendor in town.
+                  </h2>
+                  <p className="text-white/90 text-lg font-medium mb-8 max-w-lg leading-relaxed">
+                    Stand out with a highly animated, shimmering gold profile card that dominates client search results. 
+                  </p>
+                  
+                  <ul className="space-y-4 mb-8">
+                    <li className="flex items-center gap-3 font-bold text-white drop-shadow-sm"><CheckCircle2 className="text-white" /> Top placement in search results</li>
+                    <li className="flex items-center gap-3 font-bold text-white drop-shadow-sm"><CheckCircle2 className="text-white" /> Distinct shimmering gold animated card</li>
+                    <li className="flex items-center gap-3 font-bold text-white drop-shadow-sm"><CheckCircle2 className="text-white" /> Verified "Sponsored" badge</li>
+                  </ul>
+                </div>
+
+                <div className="w-full md:w-[350px] bg-white rounded-3xl p-8 text-gray-900 shadow-2xl shrink-0 text-center relative">
+                  <div className="absolute -top-4 -right-4 bg-red-500 text-white font-black text-xs uppercase px-3 py-1 rounded-full shadow-lg transform rotate-12">Hot Deal</div>
+                  <h3 className="text-xl font-black mb-2">Featured Plan</h3>
+                  <div className="flex items-baseline justify-center gap-1 mb-2">
+                    <span className="text-4xl font-black text-brand-gold tracking-tight">₹2000</span>
+                    <span className="text-gray-400 font-bold">/ month</span>
+                  </div>
+                  <p className="text-sm text-gray-500 font-semibold mb-8">Cancel anytime. Billed monthly.</p>
+
+                  <button className="w-full bg-gradient-to-r from-brand-gold to-yellow-600 hover:from-yellow-500 hover:to-brand-gold text-white font-black py-4 rounded-xl shadow-[0_10px_20px_rgba(212,175,55,0.3)] transition-all hover:-translate-y-1 active:scale-95 text-lg">
+                    Subscribe Now
+                  </button>
+                  <p className="text-[10px] text-gray-400 font-bold mt-4 uppercase tracking-widest">Secure Payment Processing</p>
                 </div>
               </div>
             </div>

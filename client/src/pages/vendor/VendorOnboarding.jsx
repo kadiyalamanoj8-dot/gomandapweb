@@ -7,6 +7,7 @@ import { Camera, Store, MapPin, DollarSign, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import CustomDropdown from '../../components/ui/CustomDropdown';
 import axios from 'axios';
+import { API_URL } from '../../config/api';
 
 const VendorOnboarding = () => {
   const { submitOnboarding } = useVendor();
@@ -40,7 +41,7 @@ const VendorOnboarding = () => {
       const fetchLead = async () => {
         setIsLoadingLead(true);
         try {
-          const res = await axios.get(`http://localhost:5000/api/leads/${leadId}`);
+          const res = await axios.get(`${API_URL}/api/leads/${leadId}`);
           if (res.data.success) {
             const lead = res.data.data;
             setBasicInfo({
@@ -101,7 +102,7 @@ const VendorOnboarding = () => {
 
     // If there's a leadId, update the lead status to "Claimed"
     if (leadId) {
-      axios.put(`http://localhost:5000/api/leads/${leadId}`, { status: 'Claimed' }).catch(err => console.log('Failed to update lead status'));
+      axios.put(`${API_URL}/api/leads/${leadId}`, { status: 'Claimed' }).catch(err => console.log('Failed to update lead status'));
     }
 
     submitOnboarding(finalProfile);

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe } from 'lucide-react';
 import axios from 'axios';
+import { API_URL } from '../../config/api';
 
 const ALL_LANGUAGES = {
   en: { name: 'English', native: 'English' },
@@ -22,7 +23,7 @@ const GlassLanguageSelector = () => {
   useEffect(() => {
     const fetchLangs = async () => {
       try {
-        const res = await axios.get('https://gomandap-api.onrender.com/api/settings');
+        const res = await axios.get(`${API_URL}/api/settings`);
         if (res.data?.data?.activeLanguages) {
           setActiveLanguages(res.data.data.activeLanguages);
         }

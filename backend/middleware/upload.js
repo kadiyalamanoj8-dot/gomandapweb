@@ -1,23 +1,7 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 
-// Ensure uploads directory exists
-const uploadDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    // Generate a unique filename: fieldname-timestamp.ext
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Store files in memory so they can be compressed and uploaded to Oracle Cloud
+const storage = multer.memoryStorage();
 
 const upload = multer({ 
   storage: storage,
@@ -28,6 +12,9 @@ const upload = multer({
     } else {
       cb(new Error('Invalid file type. Only JPEG, PNG, and WEBP are allowed.'), false);
     }
+  },
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10 MB maximum size limit before compression
   }
 });
 
