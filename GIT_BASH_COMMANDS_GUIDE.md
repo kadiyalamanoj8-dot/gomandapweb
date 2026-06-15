@@ -506,6 +506,45 @@ We have successfully migrated your entire stack to be **100% self-hosted** on yo
 
 ---
 
+## Phase 6: Custom Domains (Cloudflare & Nginx)
+
+If you want to access your sites using a custom domain (like `gomandap.com`) instead of typing IP addresses and ports, we have configured **Nginx** as a Reverse Proxy. Nginx silently forwards traffic from standard web ports (80/443) to your PM2 ports in the background.
+
+### Step 1: Add DNS Records in Cloudflare
+Log into your Cloudflare dashboard, go to **DNS -> Records**, and add these **4 A Records**:
+1. **Type:** `A` | **Name:** `@` *(or gomandap.com)* | **IPv4 address:** `68.233.97.93` | **Proxy status:** Proxied
+2. **Type:** `A` | **Name:** `vendor` | **IPv4 address:** `68.233.97.93` | **Proxy status:** Proxied
+3. **Type:** `A` | **Name:** `admin` | **IPv4 address:** `68.233.97.93` | **Proxy status:** Proxied
+4. **Type:** `A` | **Name:** `api` | **IPv4 address:** `68.233.97.93` | **Proxy status:** Proxied
+
+*Important: Go to Cloudflare's **SSL/TLS -> Overview** page and make sure your encryption mode is set to **Flexible**.*
+
+### Step 2: Run the Nginx Setup Script
+Run this script on your Oracle VM to automatically install Nginx and map the domains to PM2:
+```bash
+cd ~/gomandapweb
+chmod +x setup-nginx.sh
+./setup-nginx.sh
+```
+
+### Step 3: Open Port 80 on Oracle Cloud
+Since real domains use Port 80, you must open it in your Oracle Cloud Console:
+1. Go to **Networking -> Virtual Cloud Networks -> Security Lists**.
+2. Click **Add Ingress Rules**.
+3. **Stateless:** UNCHECKED (No)
+4. **Source CIDR:** `0.0.0.0/0`
+5. **Destination Port Range:** `80`
+
+### Step 4: Fix "Mixed Content" Errors (API URL)
+Once your domains are working via HTTPS, your browser will block the frontends from talking to the old unsecure `http://68.233.97.93:5000` IP. 
+You must update your frontend `.env` files (`client/.env`, `vendor/.env`, `admin/.env`) to point to the secure API:
+```env
+VITE_API_URL=https://api.gomandap.com
+```
+Then run `./start-production.sh` to rebuild the frontends with the new secure URL!
+
+---
+
 ## How to convert this guide to a PDF:
 If you want to view this guide as a PDF:
 1. Open this file (`GIT_BASH_COMMANDS_GUIDE.md`) in **VS Code**.
