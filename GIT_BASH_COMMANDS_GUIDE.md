@@ -458,6 +458,43 @@ npx pm2 restart gomandap-backend
 npx pm2 stop gomandap-backend
 ```
 
+### 5. Opening the Firewall (Fixing "Connection Timed Out")
+If you cannot reach `http://68.233.97.93:5000/`, your firewall is blocking the port. You must open it in two places:
+
+**Step A: Open Port on the VM**
+```bash
+sudo firewall-cmd --permanent --add-port=5000/tcp
+sudo firewall-cmd --reload
+```
+
+**Step B: Open Port in Oracle Cloud Console (CRITICAL)**
+1. Log into your **Oracle Cloud Console** in your browser.
+2. Go to **Networking -> Virtual Cloud Networks**.
+3. Click your VCN, then click **Security Lists**.
+4. Click on the Default Security List.
+5. Click **Add Ingress Rules**.
+6. Set **Source CIDR** to `0.0.0.0/0`.
+7. Set **Destination Port Range** to `5000` and click Add.
+
+---
+
+## Architecture Summary: How Your Backend & Storage Works Now
+
+We have successfully migrated your entire stack to be **100% self-hosted** on your Oracle VM. Here is exactly what I changed and how it works:
+
+### 1. Database (MongoDB)
+- **Previously:** You were using **MongoDB Atlas** (a third-party cloud database) which had a 512MB storage limit.
+- **Now:** I installed the **MongoDB Community Edition** directly onto your Oracle VM. 
+- **How it works:** Your backend (`backend/server.js`) connects to `mongodb://localhost:27017`. All of your user data, vendor data, and settings are saved directly to your VM's hard drive, using your Oracle Cloud storage capacity (which is typically 50GB-200GB on the Free Tier!).
+
+### 2. Object Storage (Images/Uploads)
+- **Previously:** You were using **Cloudinary** to store images. Multer would intercept uploads and send them to Cloudinary's servers.
+- **Now:** I removed Cloudinary completely. I rewrote your `backend/middleware/upload.js` to use `multer.diskStorage()`.
+- **How it works:** When a vendor uploads a portfolio image, it is saved directly to the `backend/uploads/` folder on your VM. Your Express server then serves these images statically via the `/uploads/` URL path. This means your images are hosted on your own server, with zero reliance on third-party limits!
+
+### 3. Environment Variables
+- Because PM2 launches the backend from the root folder, the backend could not find the `.env` file originally. I updated `backend/server.js` to dynamically locate the `.env` file using the `__dirname` path, ensuring it always connects to the local MongoDB perfectly.
+
 ---
 
 ## How to convert this guide to a PDF:
