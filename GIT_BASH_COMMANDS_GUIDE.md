@@ -435,6 +435,29 @@ During `npm install`, you may occasionally see warnings like `npm warn EBADENGIN
 ### Note on Vulnerabilities (`npm audit fix --force`)
 The deployment script automatically runs `npm audit fix --force` after installing dependencies. This automatically updates vulnerable packages to secure versions. If you see warnings about vulnerabilities, the script has already done its best to fix them automatically!
 
+### 4. PM2 Process Management & Logs (Crucial Commands)
+Once your backend is running, it runs invisibly in the background using PM2. You will need these commands to monitor it:
+
+```bash
+# View the live server logs (Press Ctrl+C to exit)
+npx pm2 logs
+
+# View logs for the backend only (if you have multiple apps)
+npx pm2 logs gomandap-backend
+
+# Clear/delete all old logs if they get too big
+npx pm2 flush
+
+# Check the status, uptime, and memory usage of the server
+npx pm2 status
+
+# Restart the backend manually
+npx pm2 restart gomandap-backend
+
+# Stop the backend manually
+npx pm2 stop gomandap-backend
+```
+
 ---
 
 ## How to convert this guide to a PDF:
