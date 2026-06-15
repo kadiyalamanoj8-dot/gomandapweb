@@ -41,6 +41,10 @@ if (corsOrigins) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve uploaded files statically
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Basic Route for testing
 app.get('/', (req, res) => {
   res.send('Gomandap API is running...');

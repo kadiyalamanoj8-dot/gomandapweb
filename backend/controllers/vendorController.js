@@ -127,7 +127,7 @@ const updateDraft = async (req, res) => {
 
     // Handle Uploaded Files
     if (req.files && req.files.length > 0) {
-      updateFields.portfolioImages = req.files.map(file => file.path);
+      updateFields.portfolioImages = req.files.map(file => '/uploads/' + file.filename);
     }
 
     // Parse nested JSON strings if present (FormData sends strings)
