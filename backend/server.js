@@ -11,7 +11,33 @@ const app = express();
 
 // Middleware
 app.use(compression());
-app.use(cors());
+
+const corsOrigins = process.env.CORS_ORIGINS;
+if (corsOrigins) {
+  const allowedOrigins = corsOrigins.split(',').map(origin => origin.trim());
+  app.use(cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+      if (!origin) return callback(null, true);
+      
+      const isAllowed = allowedOrigins.some(allowed => {
+        return origin === allowed || origin.startsWith(allowed);
+      });
+      
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.warn(`Blocked by CORS: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true
+  }));
+} else {
+  // Permissive fallback for dev environment if CORS_ORIGINS is not set
+  app.use(cors());
+}
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
