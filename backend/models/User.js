@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
   phoneNumber: { type: String, unique: true, sparse: true },
   email: { type: String, unique: true, sparse: true },
   googleId: { type: String },
-  firebaseUid: { type: String }, 
+
   name: { type: String },
   profilePicture: { type: String },
   loginHistory: [loginHistorySchema],
