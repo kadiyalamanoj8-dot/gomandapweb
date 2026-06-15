@@ -501,8 +501,13 @@ We have successfully migrated your entire stack to be **100% self-hosted** on yo
   - **Vendor App:** Available at `http://68.233.97.93:3001`
   - **Admin App:** Available at `http://68.233.97.93:3002`
 
-### 4. Environment Variables Fix
-- Because PM2 launches the backend from the root folder, the backend could not find the `.env` file originally. I updated `backend/server.js` to dynamically locate the `.env` file using the `__dirname` path, ensuring it always connects to the local MongoDB perfectly.
+### 5. Deployment Automation (`start-production.sh`)
+- **Previously:** Deployments required manual git pulls and manual PM2 restarts, and sometimes failed if files were edited locally on the server.
+- **Now:** The `start-production.sh` script has been fully upgraded to handle enterprise-level deployment.
+- **How it works:** 
+  1. It uses `git reset --hard HEAD` and `git pull` to guarantee the server always mirrors GitHub perfectly.
+  2. It automatically runs `npm audit fix --force` across all 4 applications (backend, client, vendor, admin) to automatically resolve dependency vulnerabilities during the build process.
+  3. It builds all static Vite apps and triggers a `pm2 reload` for zero-downtime restarts.
 
 ---
 
@@ -526,6 +531,7 @@ cd ~/gomandapweb
 chmod +x setup-nginx.sh
 ./setup-nginx.sh
 ```
+*Note: The Nginx script specifically configures `client_max_body_size 50M;` for the backend. This ensures your users can upload high-resolution images up to 50 Megabytes without Nginx throwing a "413 Payload Too Large" error.*
 
 ### Step 3: Open Port 80 on Oracle Cloud
 Since real domains use Port 80, you must open it in your Oracle Cloud Console:
@@ -542,6 +548,21 @@ You must update your frontend `.env` files (`client/.env`, `vendor/.env`, `admin
 VITE_API_URL=https://api.gomandap.com
 ```
 Then run `./start-production.sh` to rebuild the frontends with the new secure URL!
+
+---
+
+## Phase 7: Data & Storage Limits (No more limits!)
+
+Because we migrated off third-party platforms (MongoDB Atlas and Cloudinary), your entire database and all uploaded images are stored directly on the Oracle Cloud VM's Block Volume Storage. 
+
+You are no longer bound by 512MB free limits! You now have access to your server's entire hard drive capacity (up to 200GB on the Oracle Always Free Tier).
+
+**How to check your remaining storage capacity at any time:**
+```bash
+# Check the total size and available space on your hard drive
+df -h /
+```
+Under the `Size` column you will see your total VM hard drive size, and under `Avail` you will see exactly how many Gigabytes of storage you have remaining for vendor portfolio images and database records.
 
 ---
 
