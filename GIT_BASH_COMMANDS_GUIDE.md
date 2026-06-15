@@ -387,6 +387,51 @@ chmod +x start-production.sh
 
 ---
 
+## Oracle Cloud VM Infrastructure Setup (Dependencies)
+
+If you are setting up a brand new Oracle Cloud VM, you need to install Node.js and the local MongoDB database before your applications will run.
+
+### 1. Install Node.js (v20)
+```bash
+sudo dnf module enable nodejs:20 -y
+sudo dnf install nodejs -y
+```
+
+### 2. Install MongoDB Community Edition (Open-Source)
+```bash
+# Add MongoDB repository
+cat <<EOF | sudo tee /etc/yum.repos.d/mongodb-org-7.0.repo
+[mongodb-org-7.0]
+name=MongoDB Repository
+baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/7.0/x86_64/
+gpgcheck=1
+enabled=1
+gpgkey=https://pgp.mongodb.com/server-7.0.asc
+EOF
+
+# Install MongoDB
+sudo dnf install -y mongodb-org
+
+# Start and enable the MongoDB service so it runs automatically on boot
+sudo systemctl start mongod
+sudo systemctl enable mongod
+```
+
+### 3. Updating Backend Environment for Local Storage
+Since Git ignores `.env` files, you must manually create/update it on the VM so it connects to the local MongoDB instead of Atlas:
+```bash
+nano ~/gomandapweb/backend/.env
+```
+Ensure your configuration looks like this (with your actual Ola credentials):
+```env
+PORT=5000
+MONGODB_URI=mongodb://localhost:27017/gomandapweb
+UPLOAD_DIR=uploads
+OLA_MAPS_CLIENT_ID=your_id
+```
+
+---
+
 ## How to convert this guide to a PDF:
 If you want to view this guide as a PDF:
 1. Open this file (`GIT_BASH_COMMANDS_GUIDE.md`) in **VS Code**.
