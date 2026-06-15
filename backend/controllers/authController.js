@@ -3,7 +3,7 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '525881024479-s9c7umr8e5r5mrtqdld53o6o1mvar4l0.apps.googleusercontent.com');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '565529529704-fgebb7t4aebp3lnpjp70rdn739epv207.apps.googleusercontent.com');
 
 // Generate JWT
 const generateToken = (id, role) => {
@@ -52,7 +52,7 @@ const authGoogle = async (req, res) => {
       // First try as id_token
       const ticket = await googleClient.verifyIdToken({
         idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID || '525881024479-s9c7umr8e5r5mrtqdld53o6o1mvar4l0.apps.googleusercontent.com',
+        audience: process.env.GOOGLE_CLIENT_ID || '565529529704-fgebb7t4aebp3lnpjp70rdn739epv207.apps.googleusercontent.com',
       });
       payload = ticket.getPayload();
     } catch (verifyError) {
