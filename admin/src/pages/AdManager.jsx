@@ -188,7 +188,4 @@ const AdManager = () => {
   );
 };
 
-// We need Eye from lucide-react, I'll add it
-import { Eye } from 'lucide-react';
-
 export default AdManager;
