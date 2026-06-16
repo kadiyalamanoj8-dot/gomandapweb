@@ -93,9 +93,11 @@ const whatsappRoutes = require('./routes/whatsappRoutes');
 app.use('/api/whatsapp', whatsappRoutes);
 
 const whatsappService = require('./services/whatsappService');
-// Temporarily disabled WhatsApp Auto-Initialize to prevent PM2 crash loops due to locked Puppeteer sessions.
-// whatsappService.initializeWhatsApp();
-
+// Only initialize WhatsApp on the primary PM2 cluster instance (instance 0) 
+// to prevent Puppeteer session lock crashes across multiple threads.
+if (process.env.NODE_APP_INSTANCE === '0' || typeof process.env.NODE_APP_INSTANCE === 'undefined') {
+  whatsappService.initializeWhatsApp();
+}
 const PORT = process.env.PORT || 5000;
 
 // Auto-seed Admin
