@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Crown, Save, CheckCircle2, AlertCircle, DollarSign, Image as ImageIcon } from 'lucide-react';
+import { Crown, Save, CheckCircle2, AlertCircle, DollarSign, Image as ImageIcon, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
+import axios from 'axios';
+import { API_URL } from '../config/api';
 
 const AdManager = () => {
   const [adSettings, setAdSettings] = useState({
@@ -16,14 +18,39 @@ const AdManager = () => {
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleSave = () => {
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/api/ads/package`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
+      });
+      if (res.data.success && res.data.data) {
+        setAdSettings(res.data.data);
+      }
+    } catch (error) {
+      toast.error('Failed to load Ad Package settings');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
     setIsSaving(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      await axios.patch(`${API_URL}/api/ads/package`, adSettings, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
+      });
       toast.success('Ad package pricing updated successfully!');
-    }, 1000);
+    } catch (error) {
+      toast.error('Failed to save Ad Package settings');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleFeatureChange = (index, value) => {
