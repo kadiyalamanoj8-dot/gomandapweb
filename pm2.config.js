@@ -10,7 +10,9 @@ module.exports = {
       max_memory_restart: '1G',
       env: {
         NODE_ENV: 'production',
-        PORT: 5000
+        PORT: 5000,
+        AWS_SUPPRESS_NODE_VERSION_WARNING: '1',
+        NODE_NO_WARNINGS: '1'
       }
     },
     {
