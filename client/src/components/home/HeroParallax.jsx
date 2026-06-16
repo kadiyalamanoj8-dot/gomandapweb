@@ -177,8 +177,8 @@ const HeroParallax = () => {
   const smoothX = useSpring(mouseX, springConfig);
   const smoothY = useSpring(mouseY, springConfig);
 
-  const rotateX = useTransform(smoothY, [-0.5, 0.5], [10, -10]);
-  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-15, 15]);
+  const rotateX = useTransform(smoothY, [-0.5, 0.5], [0, 0]); // Locked vertical gyro
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-3, 3]); // Very small horizontal gyro
   
   const bgX = useTransform(smoothX, [-1, 1], [-30, 30]);
   const bgY = useTransform(smoothY, [-1, 1], [-30, 30]);
@@ -199,16 +199,9 @@ const HeroParallax = () => {
   useEffect(() => {
     if (!isHeroVisible) return;
     let rAF;
-    let idleTimeout;
-
-    const resetToCenter = () => {
-      mouseX.set(0);
-      mouseY.set(0);
-    };
 
     const handleMouseMove = (e) => {
       if (rAF) cancelAnimationFrame(rAF);
-      clearTimeout(idleTimeout);
       rAF = requestAnimationFrame(() => {
         // Normalize mouse coordinates to [-1, 1] relative to center
         const x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -217,15 +210,12 @@ const HeroParallax = () => {
         mouseX.set(x * desktopScale);
         mouseY.set(y * desktopScale);
       });
-      // Rubber band effect
-      idleTimeout = setTimeout(resetToCenter, 600);
     };
 
     let baselineX = 0, baselineY = 0, hasBaseline = false;
     const handleOrientation = (e) => {
       if (!e.gamma || !e.beta) return;
       if (rAF) cancelAnimationFrame(rAF);
-      clearTimeout(idleTimeout);
       rAF = requestAnimationFrame(() => {
         let x = 0, y = 0;
         const orientation = window.orientation || 0;
@@ -238,22 +228,17 @@ const HeroParallax = () => {
         baselineY += (y - baselineY) * 0.05;
         const deltaX = x - baselineX;
         const deltaY = y - baselineY;
-        const mobileScale = isMobile ? 2.0 : 1;
+        const mobileScale = isMobile ? 0.3 : 1; // Decreased gyro intensity on mobile
         mouseX.set(Math.max(-1, Math.min(1, deltaX / 30)) * mobileScale);
         mouseY.set(Math.max(-1, Math.min(1, deltaY / 30)) * mobileScale);
       });
-      // Rubber band effect for gyro
-      idleTimeout = setTimeout(resetToCenter, 800);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseleave', resetToCenter);
     window.addEventListener('deviceorientation', handleOrientation);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseleave', resetToCenter);
       window.removeEventListener('deviceorientation', handleOrientation);
-      clearTimeout(idleTimeout);
       if (rAF) cancelAnimationFrame(rAF);
     };
   }, [mouseX, mouseY, isHeroVisible, isMobile]);
