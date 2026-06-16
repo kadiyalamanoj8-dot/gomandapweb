@@ -41,21 +41,14 @@ export const getCategorySchema = (category) => {
     return {
       aboutTitle: 'About the Studio',
       featuresTitle: 'Service Features',
-      pricingUnit: '/ day',
+      pricingUnit: '/ package',
       featuresList: [
         'High Resolution Deliverables', 'Candid Photography', 'Traditional Videography',
         'Drone Shoots', 'Same Day Edit', 'Pre-Wedding Shoots'
       ],
       customBlocks: {
         pricingPackages: [
-          { title: 'Photo Only', price: '₹40,000 / day', desc: 'Candid & Traditional Photography with Album' },
-          { title: 'Photo + Video', price: '₹75,000 / day', desc: 'Full Photography + Cinematic Videography' },
-          { title: 'Pre-Wedding', price: '₹25,000 / day', desc: 'Outdoor shoot with Drone & Props' }
-        ],
-        policies: [
-          { label: 'Advance Payment', value: '50% at booking' },
-          { label: 'Delivery Time', value: '1 Month' },
-          { label: 'Travel Charges', value: 'Outstation travel & stay paid by client' }
+          { title: 'Standard Package', price: '₹50,000 / day', desc: 'Photo + Video coverage' }
         ]
       },
       bookingFields: [
@@ -64,9 +57,12 @@ export const getCategorySchema = (category) => {
         { id: 'package', label: 'Select Package', type: 'select', icon: 'Briefcase', options: ['Basic (Photo Only)', 'Premium (Photo + Video)', 'Luxury (Cinematic + Drone)'] }
       ],
       vendorFormFields: [
-        { id: 'teamSize', label: 'Team Size', type: 'number', placeholder: 'e.g. 4' },
-        { id: 'deliveryTime', label: 'Average Delivery Time (Days)', type: 'number', placeholder: 'e.g. 30' },
-        { id: 'drone', label: 'Drone Available?', type: 'select', options: ['Yes', 'No'] }
+        { id: 'eventsCovered', label: 'Event Types Covered', type: 'multiselect', options: ['Weddings & Receptions', 'Pre-Wedding (Haldi/Mehendi)', 'Corporate Events', 'Birthdays/Anniversaries', 'Concerts/Festivals'] },
+        { id: 'serviceTypes', label: 'Services Offered', type: 'multiselect', options: ['Candid Photography', 'Traditional Photography', 'Cinematic Videography', 'Traditional Videography', 'Drone Shoots', 'Photobooths'] },
+        { id: 'travelPolicy', label: 'Travel Policy', type: 'select', options: ['Outstation travel & stay paid by client', 'Included in package', 'Does not travel outstation'] },
+        { id: 'deliveryTime', label: 'Delivery Timeline', type: 'select', options: ['2 Weeks', '4 Weeks', '8+ Weeks'] },
+        { id: 'advancePayment', label: 'Advance Payment Required', type: 'select', options: ['10%', '20%', '50%', 'Full Payment'] },
+        { id: 'teamSize', label: 'Team Size', type: 'number', placeholder: 'e.g. 4' }
       ]
     };
   }
@@ -301,10 +297,8 @@ export const getCategorySchema = (category) => {
       ],
       customBlocks: {
         pricingPackages: [
-          { title: 'Vegetarian Menu', price: '₹800 / plate', desc: '4 Starters, 4 Mains, 2 Breads, 2 Desserts' },
-          { title: 'Non-Veg Menu', price: '₹1,200 / plate', desc: 'Includes Chicken & Mutton delicacies' }
-        ],
-        cuisineTags: ['North Indian', 'South Indian', 'Mughlai', 'Chinese', 'Italian / Continental', 'Live Chaat Counters']
+          { title: 'Standard Menu', price: '₹800 / plate', desc: 'Starter, Mains, Breads, Desserts' }
+        ]
       },
       bookingFields: [
         { id: 'date', label: 'Event Date', type: 'date', icon: 'Calendar' },
@@ -312,9 +306,14 @@ export const getCategorySchema = (category) => {
         { id: 'menuType', label: 'Menu Selection', type: 'select', icon: 'Utensils', options: ['Standard Veg', 'Premium Veg', 'Standard Non-Veg', 'Premium Non-Veg'] }
       ],
       vendorFormFields: [
-        { id: 'pureVegAvailable', label: 'Pure Veg Kitchen Available?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'liveCounters', label: 'Live Counters Setup Available?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'tastingAvailable', label: 'Food Tasting Available?', type: 'select', options: ['Yes (Paid)', 'Yes (Free)', 'No'] }
+        { id: 'eventsCovered', label: 'Event Types Covered', type: 'multiselect', options: ['Weddings & Receptions', 'Pre-Wedding (Haldi/Mehendi)', 'Corporate Events', 'Birthdays/Anniversaries', 'Concerts/Festivals'] },
+        { id: 'cuisineTypes', label: 'Cuisine Types', type: 'multiselect', options: ['North Indian', 'South Indian', 'Chinese', 'Continental', 'Live Chaat', 'Bakery/Desserts'] },
+        { id: 'dietaryRestrictions', label: 'Dietary Options', type: 'multiselect', options: ['Pure Veg Only', 'Serves Non-Veg', 'Jain Food Available', 'Vegan Options'] },
+        { id: 'vegPlatePrice', label: 'Starting Price (Veg Plate)', type: 'number', placeholder: 'e.g. 800' },
+        { id: 'nonVegPlatePrice', label: 'Starting Price (Non-Veg Plate)', type: 'number', placeholder: 'e.g. 1200' },
+        { id: 'minGuests', label: 'Minimum Guest Requirement', type: 'number', placeholder: 'e.g. 50' },
+        { id: 'includesStaff', label: 'Includes Waitstaff / Service Team?', type: 'select', options: ['Yes', 'No', 'Extra Charge'] },
+        { id: 'includesCrockery', label: 'Includes Crockery & Cutlery?', type: 'select', options: ['Yes', 'No', 'Extra Charge'] }
       ]
     };
   }
@@ -331,10 +330,8 @@ export const getCategorySchema = (category) => {
       ],
       customBlocks: {
         pricingPackages: [
-          { title: 'Indoor Banquet Decor', price: 'Starting ₹50,000', desc: 'Standard Floral Mandap + Stage Setup' },
-          { title: 'Outdoor Lawn Decor', price: 'Starting ₹1,50,000', desc: 'Grand Entrances, Tents, and Premium Lighting' }
-        ],
-        cuisineTags: ['Theme Weddings', 'Floral Arches', 'Mandap Experts', 'Sangeet Decor', 'Mehendi Setup'] // Reusing tag style
+          { title: 'Standard Setup', price: 'Starting ₹50,000', desc: 'Floral Mandap + Stage' }
+        ]
       },
       bookingFields: [
         { id: 'date', label: 'Event Date', type: 'date', icon: 'Calendar' },
@@ -342,9 +339,12 @@ export const getCategorySchema = (category) => {
         { id: 'budget', label: 'Decor Budget', type: 'select', icon: 'Wallet', options: ['Standard (₹50k - ₹1L)', 'Premium (₹1L - ₹3L)', 'Luxury (₹3L+)'] }
       ],
       vendorFormFields: [
-        { id: 'mockupsProvided', label: '3D Mockups Provided?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'inhouseFlorist', label: 'In-house Florist?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'setupTime', label: 'Average Setup Time (Hours)', type: 'number', placeholder: 'e.g. 12' }
+        { id: 'eventsCovered', label: 'Event Types Covered', type: 'multiselect', options: ['Weddings & Receptions', 'Pre-Wedding (Haldi/Mehendi)', 'Corporate Events', 'Birthdays/Anniversaries', 'Concerts/Festivals'] },
+        { id: 'specializations', label: 'Decor Specializations', type: 'multiselect', options: ['Floral Decor', 'Mandap Setup', 'Stage & Reception', 'Corporate Stage & Branding', 'Lighting & Trussing', 'Tents/Shamianas'] },
+        { id: 'venueRestrictions', label: 'Venue Restrictions', type: 'select', options: ['Open to work at any venue', 'Only work at empanelled venues'] },
+        { id: 'setupTime', label: 'Setup Time Required (Hours)', type: 'number', placeholder: 'e.g. 8' },
+        { id: 'indoorPrice', label: 'Starting Price (Indoor Decor)', type: 'number', placeholder: 'e.g. 50000' },
+        { id: 'outdoorPrice', label: 'Starting Price (Outdoor Decor)', type: 'number', placeholder: 'e.g. 100000' }
       ]
     };
   }

@@ -43,12 +43,29 @@ const NATIVE_FILTERS = {
     ]}
   ],
   PHOTO: [
-    { name: 'photoStyle', title: 'Photography Style', type: 'CHECKBOX', options: [
-      { value: 'candid', label: 'Candid' },
-      { value: 'traditional', label: 'Traditional' },
-      { value: 'cinematic', label: 'Cinematic/Videography' },
-      { value: 'drone', label: 'Drone Shots' },
-      { value: 'pre-wedding', label: 'Pre-wedding Shoots' }
+    { name: 'eventsCovered', title: 'Event Type', type: 'CHECKBOX', options: [
+      { value: 'Weddings & Receptions', label: 'Weddings & Receptions' },
+      { value: 'Corporate Events', label: 'Corporate Events' },
+      { value: 'Birthdays/Anniversaries', label: 'Birthdays & Anniversaries' },
+      { value: 'Pre-Wedding (Haldi/Mehendi)', label: 'Pre-Wedding (Haldi/Mehendi)' },
+      { value: 'Concerts/Festivals', label: 'Concerts & Festivals' }
+    ]},
+    { name: 'serviceTypes', title: 'Services Offered', type: 'CHECKBOX', options: [
+      { value: 'Candid Photography', label: 'Candid Photography' },
+      { value: 'Traditional Photography', label: 'Traditional Photography' },
+      { value: 'Cinematic Videography', label: 'Cinematic Videography' },
+      { value: 'Drone Shoots', label: 'Drone Shoots' },
+      { value: 'Photobooths', label: 'Photobooths' }
+    ]},
+    { name: 'travelPolicy', title: 'Travel Policy', type: 'CHECKBOX', options: [
+      { value: 'Outstation travel & stay paid by client', label: 'Outstation (Client pays travel)' },
+      { value: 'Included in package', label: 'Travel Included in Package' },
+      { value: 'Does not travel outstation', label: 'Local Only' }
+    ]},
+    { name: 'deliveryTime', title: 'Delivery Timeline', type: 'CHECKBOX', options: [
+      { value: '2 Weeks', label: '2 Weeks' },
+      { value: '4 Weeks', label: '4 Weeks' },
+      { value: '8+ Weeks', label: '8+ Weeks' }
     ]},
     { name: 'priceRange', title: 'Price Range', type: 'RADIO', options: [
       { value: 'any', label: 'Any Budget' },
@@ -56,13 +73,6 @@ const NATIVE_FILTERS = {
       { value: '50000-100000', label: '₹50K - ₹1L' },
       { value: '100000-200000', label: '₹1L - ₹2L' },
       { value: '200000+', label: '₹2L+' }
-    ]},
-    { name: 'photoPackage', title: 'Package Includes', type: 'CHECKBOX', options: [
-      { value: 'photography', label: 'Photography Only' },
-      { value: 'videography', label: 'Videography' },
-      { value: 'album', label: 'Album Design' },
-      { value: 'editing', label: 'Professional Editing' },
-      { value: 'pre-wedding', label: 'Pre-wedding Shoot' }
     ]}
   ],
   MAKEUP: [
@@ -89,14 +99,30 @@ const NATIVE_FILTERS = {
     ]}
   ],
   CATERING: [
-    { name: 'cuisineType', title: 'Cuisine Type', type: 'CHECKBOX', options: [
-      { value: 'north-indian', label: 'North Indian' },
-      { value: 'south-indian', label: 'South Indian' },
-      { value: 'gujarati', label: 'Gujarati' },
-      { value: 'mughlai', label: 'Mughlai' },
-      { value: 'continental', label: 'Continental' },
-      { value: 'chinese', label: 'Chinese' },
-      { value: 'vegan', label: 'Vegan Options' }
+    { name: 'eventsCovered', title: 'Event Type', type: 'CHECKBOX', options: [
+      { value: 'Weddings & Receptions', label: 'Weddings & Receptions' },
+      { value: 'Corporate Events', label: 'Corporate Events' },
+      { value: 'Birthdays/Anniversaries', label: 'Birthdays & Anniversaries' },
+      { value: 'Pre-Wedding (Haldi/Mehendi)', label: 'Pre-Wedding (Haldi/Mehendi)' },
+      { value: 'Concerts/Festivals', label: 'Concerts & Festivals' }
+    ]},
+    { name: 'cuisineTypes', title: 'Cuisine Types', type: 'CHECKBOX', options: [
+      { value: 'North Indian', label: 'North Indian' },
+      { value: 'South Indian', label: 'South Indian' },
+      { value: 'Chinese', label: 'Chinese' },
+      { value: 'Continental', label: 'Continental' },
+      { value: 'Live Chaat', label: 'Live Chaat Counters' },
+      { value: 'Bakery/Desserts', label: 'Bakery & Desserts' }
+    ]},
+    { name: 'dietaryRestrictions', title: 'Dietary Options', type: 'CHECKBOX', options: [
+      { value: 'Pure Veg Only', label: 'Pure Veg Only' },
+      { value: 'Serves Non-Veg', label: 'Non-Veg Available' },
+      { value: 'Jain Food Available', label: 'Jain Food Available' },
+      { value: 'Vegan Options', label: 'Vegan Options' }
+    ]},
+    { name: 'includesStaff', title: 'Waitstaff Included', type: 'CHECKBOX', options: [
+      { value: 'Yes', label: 'Waitstaff Included' },
+      { value: 'Extra Charge', label: 'Available (Extra Charge)' }
     ]},
     { name: 'pricePerPlate', title: 'Price Per Plate', type: 'RADIO', options: [
       { value: 'any', label: 'Any Budget' },
@@ -104,22 +130,27 @@ const NATIVE_FILTERS = {
       { value: '1000-1500', label: '₹1,000 - ₹1,500' },
       { value: '1500-2000', label: '₹1,500 - ₹2,000' },
       { value: '2000+', label: '₹2,000+' }
-    ]},
-    { name: 'cateringType', title: 'Service Type', type: 'CHECKBOX', options: [
-      { value: 'full-catering', label: 'Full Catering' },
-      { value: 'venue-catering', label: 'Venue Catering' },
-      { value: 'desserts', label: 'Desserts Only' },
-      { value: 'beverages', label: 'Beverages Service' },
-      { value: 'bar-setup', label: 'Bar Setup' }
     ]}
   ],
   DECOR: [
-    { name: 'decorStyle', title: 'Decor Style', type: 'CHECKBOX', options: [
-      { value: 'traditional', label: 'Traditional' },
-      { value: 'modern', label: 'Modern' },
-      { value: 'minimalist', label: 'Minimalist' },
-      { value: 'royal', label: 'Royal/Luxury' },
-      { value: 'floral', label: 'Floral Centric' }
+    { name: 'eventsCovered', title: 'Event Type', type: 'CHECKBOX', options: [
+      { value: 'Weddings & Receptions', label: 'Weddings & Receptions' },
+      { value: 'Corporate Events', label: 'Corporate Events' },
+      { value: 'Birthdays/Anniversaries', label: 'Birthdays & Anniversaries' },
+      { value: 'Pre-Wedding (Haldi/Mehendi)', label: 'Pre-Wedding (Haldi/Mehendi)' },
+      { value: 'Concerts/Festivals', label: 'Concerts & Festivals' }
+    ]},
+    { name: 'specializations', title: 'Decor Specialization', type: 'CHECKBOX', options: [
+      { value: 'Floral Decor', label: 'Floral Decor' },
+      { value: 'Mandap Setup', label: 'Mandap Setup' },
+      { value: 'Stage & Reception', label: 'Stage & Reception' },
+      { value: 'Corporate Stage & Branding', label: 'Corporate Stage & Branding' },
+      { value: 'Lighting & Trussing', label: 'Lighting & Trussing' },
+      { value: 'Tents/Shamianas', label: 'Tents & Shamianas' }
+    ]},
+    { name: 'venueRestrictions', title: 'Venue Flexibility', type: 'CHECKBOX', options: [
+      { value: 'Open to work at any venue', label: 'Works at Any Venue' },
+      { value: 'Only work at empanelled venues', label: 'Only Empanelled Venues' }
     ]},
     { name: 'priceRange', title: 'Price Range', type: 'RADIO', options: [
       { value: 'any', label: 'Any Budget' },
@@ -127,13 +158,6 @@ const NATIVE_FILTERS = {
       { value: '150000-300000', label: '₹1.5L - ₹3L' },
       { value: '300000-500000', label: '₹3L - ₹5L' },
       { value: '500000+', label: '₹5L+' }
-    ]},
-    { name: 'decorElements', title: 'Decor Elements', type: 'CHECKBOX', options: [
-      { value: 'floral-decor', label: 'Floral Arrangements' },
-      { value: 'lighting', label: 'LED/Lighting Design' },
-      { value: 'entrance-setup', label: 'Entrance Setup' },
-      { value: 'stage-decor', label: 'Stage Decoration' },
-      { value: 'table-setup', label: 'Table Setup' }
     ]}
   ],
   DJ: [

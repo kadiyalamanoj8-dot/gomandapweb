@@ -637,6 +637,26 @@ const VendorOnboarding = () => {
                               variant="dark"
                             />
                           </div>
+                        ) : field.type === 'multiselect' ? (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {field.options.map(opt => {
+                              const isSelected = (formResponses[field.id] || []).includes(opt);
+                              return (
+                                <button
+                                  key={opt}
+                                  type="button"
+                                  onClick={() => {
+                                    const current = formResponses[field.id] || [];
+                                    const next = isSelected ? current.filter(c => c !== opt) : [...current, opt];
+                                    setFormResponses({...formResponses, [field.id]: next});
+                                  }}
+                                  className={`px-4 py-2 rounded-xl text-[13px] font-bold border transition-all ${isSelected ? 'bg-brand-gold text-black border-brand-gold shadow-[0_0_10px_rgba(212,175,55,0.4)]' : 'bg-black/30 text-white/70 border-white/10 hover:bg-white/5'}`}
+                                >
+                                  {opt}
+                                </button>
+                              );
+                            })}
+                          </div>
                         ) : (
                           <LazyInput 
                             type={field.type}

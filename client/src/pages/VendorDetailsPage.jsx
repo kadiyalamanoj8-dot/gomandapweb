@@ -400,29 +400,91 @@ const VendorDetailsPage = () => {
             {/* Features/Amenities Section (Uses deep data from DB) */}
             <section className="mb-10 pb-10 border-b border-gray-200">
               <h2 className="text-2xl font-black text-gray-900 mb-6">{schema.featuresTitle || 'Amenities & Policies'}</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-4">
-                {vendor.deepFeatures && Object.entries(vendor.deepFeatures).map(([key, value], i) => {
-                  if (!value) return null;
-                  
-                  // Format camelCase keys
-                  const formattedKey = key
-                    .replace(/([A-Z])/g, ' $1')
-                    .replace(/^./, str => str.toUpperCase())
-                    .replace('in House', 'In-House ')
-                    .replace('In House', 'In-House ');
+              
+              {vendor.deepFeatures && (() => {
+                const feats = vendor.deepFeatures;
+                const eventsCovered = feats.eventsCovered;
+                const serviceTypes = feats.serviceTypes;
+                const specializations = feats.specializations;
+                const cuisineTypes = feats.cuisineTypes;
+                const dietaryRestrictions = feats.dietaryRestrictions;
+                const scalarFeats = Object.entries(feats).filter(([k]) => !['eventsCovered','serviceTypes','specializations','cuisineTypes','dietaryRestrictions'].includes(k));
+                
+                return (
+                  <div className="space-y-8">
+                    {/* Event Types Covered */}
+                    {eventsCovered && Array.isArray(eventsCovered) && eventsCovered.length > 0 && (
+                      <div>
+                        <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Events Covered</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {eventsCovered.map((ev, i) => (
+                            <span key={i} className="px-4 py-2 bg-brand-primary/5 border border-brand-primary/20 text-brand-primary text-sm font-bold rounded-full">{ev}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                  return (
-                    <div key={i} className="flex items-center gap-3">
-                      <CheckCircle2 size={20} className="text-brand-primary shrink-0" />
-                      <span className="text-sm font-semibold text-gray-700">
-                        {value === "Yes" || value === "No" 
-                          ? `${formattedKey}: ${value}` 
-                          : `${formattedKey}: ${value}`}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+                    {/* Services / Specializations */}
+                    {(serviceTypes || specializations) && (
+                      <div>
+                        <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">
+                          {specializations ? 'Decor Specializations' : 'Services Offered'}
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {(serviceTypes || specializations || []).map((s, i) => (
+                            <span key={i} className="px-4 py-2 bg-gray-100 border border-gray-200 text-gray-700 text-sm font-bold rounded-full">{s}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Cuisine Types */}
+                    {cuisineTypes && Array.isArray(cuisineTypes) && cuisineTypes.length > 0 && (
+                      <div>
+                        <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Cuisines Served</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {cuisineTypes.map((c, i) => (
+                            <span key={i} className="px-4 py-2 bg-orange-50 border border-orange-200 text-orange-700 text-sm font-bold rounded-full">{c}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Dietary Restrictions */}
+                    {dietaryRestrictions && Array.isArray(dietaryRestrictions) && dietaryRestrictions.length > 0 && (
+                      <div>
+                        <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Dietary Options</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {dietaryRestrictions.map((d, i) => (
+                            <span key={i} className="px-4 py-2 bg-green-50 border border-green-200 text-green-700 text-sm font-bold rounded-full">{d}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Scalar deep features (text/select) */}
+                    {scalarFeats.length > 0 && (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-y-5 gap-x-4">
+                        {scalarFeats.map(([key, value], i) => {
+                          if (!value) return null;
+                          const formattedKey = key
+                            .replace(/([A-Z])/g, ' $1')
+                            .replace(/^./, str => str.toUpperCase())
+                            .replace('In House', 'In-House ');
+                          return (
+                            <div key={i} className="flex items-start gap-3">
+                              <CheckCircle2 size={18} className="text-brand-primary shrink-0 mt-0.5" />
+                              <span className="text-sm font-semibold text-gray-700">
+                                <span className="font-bold text-gray-900">{formattedKey}:</span> {value}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </section>
 
             {/* Verified Reviews Section */}
