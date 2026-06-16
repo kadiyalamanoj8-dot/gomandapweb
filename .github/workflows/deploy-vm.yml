@@ -30,7 +30,7 @@ jobs:
             # Restart backend and reload nginx
             cd ..
             npx pm2 restart gomandap-backend
-            sudo systemctl reload nginx.
+            sudo systemctl reload nginx
 
             echo "==> Killing PM2 daemon and freeing all ports..."
             npx pm2 kill || true
