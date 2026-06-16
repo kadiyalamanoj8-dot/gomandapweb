@@ -673,32 +673,98 @@ const VendorOnboarding = () => {
               )}
 
               {/* Pricing Packages */}
-              {schemaFields.pricingPackages.length > 0 && (
-                <div>
-                  <h3 className="text-base font-black text-white mb-6">Pricing Packages</h3>
-                  <div className="space-y-4">
-                    {schemaFields.pricingPackages.map((pkg, idx) => (
-                      <div key={idx} className="bg-white/5 p-5 rounded-2xl border border-white/10 flex flex-col md:flex-row md:items-center gap-4">
-                        <div className="flex-1">
-                          <label className="block text-sm font-black text-white">{pkg.title}</label>
-                          <span className="text-xs font-bold text-white/50">{pkg.desc}</span>
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-base font-black text-white">Pricing Packages</h3>
+                  <button
+                    type="button"
+                    onClick={() => setSchemaFields(prev => ({
+                      ...prev,
+                      pricingPackages: [...prev.pricingPackages, { title: '', price: '', desc: '' }]
+                    }))}
+                    className="flex items-center gap-2 px-4 py-2 bg-brand-gold/20 text-brand-gold rounded-xl font-bold text-sm hover:bg-brand-gold/30 transition-colors border border-brand-gold/30"
+                  >
+                    + Add Package
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  {schemaFields.pricingPackages.map((pkg, idx) => (
+                    <div key={idx} className="bg-white/5 p-5 rounded-2xl border border-white/10 space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className={labelClassName}>Package Name</label>
+                          <LazyInput
+                            type="text"
+                            placeholder="e.g. Photo + Video"
+                            value={pkg.title}
+                            onChange={(e) => {
+                              const updated = [...schemaFields.pricingPackages];
+                              updated[idx].title = e.target.value;
+                              setSchemaFields({...schemaFields, pricingPackages: updated});
+                            }}
+                            className={inputClassName}
+                          />
                         </div>
+                        <div>
+                          <label className={labelClassName}>Your Price</label>
+                          <LazyInput 
+                            type="text" 
+                            placeholder="e.g. ₹50,000 / day"
+                            value={pkg.price}
+                            onChange={(e) => {
+                              const updated = [...schemaFields.pricingPackages];
+                              updated[idx].price = e.target.value;
+                              setSchemaFields({...schemaFields, pricingPackages: updated});
+                            }}
+                            className={`${inputClassName}`}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className={labelClassName}>What's Included</label>
                         <LazyInput 
                           type="text" 
-                          placeholder="e.g. ₹50,000"
-                          value={pkg.price}
+                          placeholder="e.g. Candid + Traditional + Album"
+                          value={pkg.desc}
                           onChange={(e) => {
                             const updated = [...schemaFields.pricingPackages];
-                            updated[idx].price = e.target.value;
+                            updated[idx].desc = e.target.value;
                             setSchemaFields({...schemaFields, pricingPackages: updated});
                           }}
-                          className={`${inputClassName} md:w-48`}
+                          className={inputClassName}
                         />
                       </div>
-                    ))}
-                  </div>
+                      {schemaFields.pricingPackages.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setSchemaFields(prev => ({
+                            ...prev,
+                            pricingPackages: prev.pricingPackages.filter((_, i) => i !== idx)
+                          }))}
+                          className="text-red-400 hover:text-red-300 text-xs font-bold hover:underline"
+                        >
+                          Remove Package
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {schemaFields.pricingPackages.length === 0 && (
+                    <div className="text-center py-8 border-2 border-dashed border-white/10 rounded-2xl">
+                      <p className="text-sm text-white/40 mb-3">No packages added yet.</p>
+                      <button
+                        type="button"
+                        onClick={() => setSchemaFields(prev => ({
+                          ...prev,
+                          pricingPackages: [{ title: '', price: '', desc: '' }]
+                        }))}
+                        className="text-brand-gold font-bold text-sm hover:underline"
+                      >
+                        + Add your first package
+                      </button>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
 
               <div className="mt-10 flex justify-between pt-6 border-t border-white/10">
                 <button onClick={handlePrev} className="flex items-center gap-2 text-white/50 font-bold hover:text-white px-4 py-2 transition-colors">

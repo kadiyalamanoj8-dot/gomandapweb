@@ -280,10 +280,19 @@ const getApprovedVendors = async (req, res) => {
     }
 
     // Dynamic deepFeatures filtering from custom schemas
-    Object.keys(req.query).forEach(key => {
-      if (key.startsWith('dynamic_')) {
-        const featureKey = key.replace('dynamic_', '');
-        query[`deepFeatures.${featureKey}`] = req.query[key];
+    // Handles both single-value (select/radio) and multi-value (multiselect checkboxes)
+    const allQueryKeys = Object.keys(req.query);
+    const dynamicKeys = new Set(allQueryKeys.filter(k => k.startsWith('dynamic_')));
+    dynamicKeys.forEach(key => {
+      const featureKey = key.replace('dynamic_', '');
+      const values = Array.isArray(req.query[key]) ? req.query[key] : [req.query[key]];
+      if (values.length === 1) {
+        // Single value - check if this is a stored array field (multiselect)
+        // Use $in so it works for both string and array fields
+        query[`deepFeatures.${featureKey}`] = { $in: values };
+      } else {
+        // Multiple values - match vendors who have ANY of the selected values
+        query[`deepFeatures.${featureKey}`] = { $in: values };
       }
     });
 

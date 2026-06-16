@@ -151,12 +151,26 @@ const VendorDetailsModal = ({ vendor, onClose, onUpdateStatus, onUpdateAdminSett
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                   <table className="w-full text-left text-sm">
                     <tbody className="divide-y divide-gray-100">
-                      {vendor.deepFeatures && Object.entries(vendor.deepFeatures).map(([key, val], i) => (
-                        <tr key={i} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 font-bold text-gray-500 capitalize w-1/2 border-r border-gray-100">{key.replace(/([A-Z])/g, ' $1').trim()}</td>
-                          <td className="px-4 py-3 font-semibold text-gray-900">{val || 'Not specified'}</td>
-                        </tr>
-                      ))}
+                      {vendor.deepFeatures && Object.entries(vendor.deepFeatures).map(([key, val], i) => {
+                        const formattedKey = key.replace(/([A-Z])/g, ' $1').trim();
+                        const displayVal = Array.isArray(val)
+                          ? val.join(', ')
+                          : (val || 'Not specified');
+                        return (
+                          <tr key={i} className="hover:bg-gray-50">
+                            <td className="px-4 py-3 font-bold text-gray-500 capitalize w-1/2 border-r border-gray-100">{formattedKey}</td>
+                            <td className="px-4 py-3 font-semibold text-gray-900">
+                              {Array.isArray(val) ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {val.map((item, idx) => (
+                                    <span key={idx} className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs font-bold rounded-full border border-blue-200">{item}</span>
+                                  ))}
+                                </div>
+                              ) : displayVal}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -407,15 +421,25 @@ const VendorDetailsModal = ({ vendor, onClose, onUpdateStatus, onUpdateAdminSett
                   {/* Amenities */}
                   <section>
                     <h2 className="text-xl font-black text-gray-900 mb-4">{schema.featuresTitle || 'Features'}</h2>
-                    <div className="grid grid-cols-2 gap-4 bg-white p-6 rounded-2xl border border-gray-100">
-                      {vendor.deepFeatures && Object.entries(vendor.deepFeatures).map(([key, value], i) => (
-                        <div key={i} className="flex items-center gap-3">
-                          <CheckCircle2 size={16} className="text-brand-primary shrink-0" />
-                          <span className="text-sm font-semibold text-gray-700 capitalize">
-                            {value === "Yes" || value === "No" ? `${key}: ${value}` : value}
-                          </span>
-                        </div>
-                      ))}
+                    <div className="bg-white p-6 rounded-2xl border border-gray-100 space-y-3">
+                      {vendor.deepFeatures && Object.entries(vendor.deepFeatures).map(([key, value], i) => {
+                        const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim();
+                        return (
+                          <div key={i} className="flex items-start gap-3">
+                            <CheckCircle2 size={16} className="text-brand-primary shrink-0 mt-0.5" />
+                            <div className="text-sm font-semibold text-gray-700">
+                              <span className="font-bold text-gray-900">{formattedKey}: </span>
+                              {Array.isArray(value) ? (
+                                <span className="flex flex-wrap gap-1 mt-1">
+                                  {value.map((item, idx) => (
+                                    <span key={idx} className="px-2 py-0.5 bg-green-50 text-green-700 text-xs font-bold rounded-full border border-green-200">{item}</span>
+                                  ))}
+                                </span>
+                              ) : (value || 'N/A')}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </section>
                 </div>
