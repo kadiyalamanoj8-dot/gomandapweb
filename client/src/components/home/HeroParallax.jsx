@@ -32,6 +32,8 @@ const HeroParallax = () => {
   const [isHeroVisible, setIsHeroVisible] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [activeCategories, setActiveCategories] = useState(['Banquet Halls', 'Photographers', 'Caterers', 'Decorators', 'Makeup Artists']);
+  const [categoryIndex, setCategoryIndex] = useState(0);
   const [clientUI, setClientUI] = useState({ 
     use3DCarousel: true, 
     carouselImages: [],
@@ -46,8 +48,13 @@ const HeroParallax = () => {
       try {
         const res = await fetch(`${API_URL}/api/settings`);
         const data = await res.json();
-        if (data.success && data.data?.clientUI) {
-          setClientUI(data.data.clientUI);
+        if (data.success && data.data) {
+          if (data.data.clientUI) setClientUI(data.data.clientUI);
+          if (data.data.disabledCategories) {
+            const allCats = ['Banquet Halls', 'Photographers', 'Caterers', 'Decorators', 'Makeup Artists', 'Venues'];
+            const active = allCats.filter(c => !data.data.disabledCategories.includes(c));
+            if (active.length > 0) setActiveCategories(active);
+          }
         }
       } catch (err) {
         console.error('Failed to fetch settings:', err);
@@ -55,6 +62,13 @@ const HeroParallax = () => {
     };
     fetchSettings();
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCategoryIndex(prev => (prev + 1) % activeCategories.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [activeCategories.length]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -138,8 +152,8 @@ const HeroParallax = () => {
   const smoothX = useSpring(mouseX, springConfig);
   const smoothY = useSpring(mouseY, springConfig);
 
-  const rotateX = useTransform(smoothY, [-0.5, 0.5], [6, -6]);
-  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-8, 8]);
+  const rotateX = useTransform(smoothY, [-0.5, 0.5], [12, -12]);
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-16, 16]);
   
   const bgX = useTransform(smoothX, [-1, 1], [-10, 10]);
   const bgY = useTransform(smoothY, [-1, 1], [-10, 10]);
@@ -185,9 +199,9 @@ const HeroParallax = () => {
         baselineY += (y - baselineY) * 0.05;
         const deltaX = x - baselineX;
         const deltaY = y - baselineY;
-        const mobileScale = isMobile ? 0.3 : 1;
-        mouseX.set(Math.max(-1, Math.min(1, deltaX / 45)) * mobileScale);
-        mouseY.set(Math.max(-1, Math.min(1, deltaY / 45)) * mobileScale);
+        const mobileScale = isMobile ? 2.0 : 1;
+        mouseX.set(Math.max(-1, Math.min(1, deltaX / 30)) * mobileScale);
+        mouseY.set(Math.max(-1, Math.min(1, deltaY / 30)) * mobileScale);
       });
     };
 
@@ -307,21 +321,48 @@ const HeroParallax = () => {
       
         {/* Layer 1: Deep Background */}
         <div ref={containerRef} className="absolute inset-0 w-full h-full z-0 perspective-[1200px]">
-          <m.div className="absolute inset-[-5%] w-[110%] h-[110%] z-0">
+          <m.div className="absolute inset-[-10%] w-[120%] h-[120%] z-0 scale-[1.15] origin-center">
             <img src="/images/temple_background.webp" alt="Background" className="w-full h-full object-cover opacity-60" loading="eager" />
             <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black z-10" />
           </m.div>
 
           <m.div style={{ rotateX, rotateY, transformStyle: "preserve-3d" }} className="absolute inset-0 w-full h-full flex items-center justify-center">
             
+            {/* Layer 2: Advanced Features Floating Icons */}
+            <m.div style={{ x: floatX1, y: floatY1, translateZ: 50 }} className="absolute top-[15%] left-[5%] md:left-[10%] z-[20] flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-white/20 shadow-2xl">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              <span className="text-white text-[10px] md:text-xs font-bold tracking-wider">100% VERIFIED VENDORS</span>
+            </m.div>
+            <m.div style={{ x: floatX2, y: floatY2, translateZ: 70 }} className="absolute top-[30%] right-[5%] md:right-[10%] z-[20] flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-white/20 shadow-2xl">
+              <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+              <span className="text-white text-[10px] md:text-xs font-bold tracking-wider">SECURE BOOKING</span>
+            </m.div>
+
             {/* Layer 4: Text */}
-            <m.div style={{ translateZ: 30 }} className="absolute top-[20%] md:top-[25%] w-full z-[25] flex flex-col items-center justify-start text-center px-4 pointer-events-none">
+            <m.div style={{ translateZ: 30 }} className="absolute inset-0 top-[-25%] md:top-[-10%] w-full z-[25] flex flex-col items-center justify-center text-center px-4 pointer-events-none">
               <h1 className="text-4xl md:text-[64px] font-black text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] mb-4 tracking-tight leading-[1.2] md:leading-[1.35]" dangerouslySetInnerHTML={{ __html: t('hero_title') }} />
-              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] font-medium">{t('hero_desc')}</p>
+              <div className="text-lg md:text-2xl text-white/90 max-w-2xl mx-auto drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] font-semibold flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+                <span>Find the perfect</span>
+                <span className="relative inline-flex h-[1.4em] md:h-[1.2em] overflow-hidden min-w-[160px] md:min-w-[180px] text-[#FFD700] justify-center items-center">
+                  <AnimatePresence mode="popLayout">
+                    <m.span
+                      key={categoryIndex}
+                      initial={{ y: 40, opacity: 0, rotateX: -90 }}
+                      animate={{ y: 0, opacity: 1, rotateX: 0 }}
+                      exit={{ y: -40, opacity: 0, rotateX: 90 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                      className="absolute font-black drop-shadow-[0_2px_15px_rgba(255,215,0,0.5)]"
+                    >
+                      {activeCategories[categoryIndex]}
+                    </m.span>
+                  </AnimatePresence>
+                </span>
+                <span>for your event.</span>
+              </div>
             </m.div>
 
             {/* Layer 5: The Couple */}
-            <m.div style={{ translateZ: 80, scale: 1.05 }} className="absolute inset-0 z-30 flex items-center justify-center pt-[10vh] md:pt-[5vh]">
+            <m.div style={{ translateZ: 80, scale: 1.05 }} className="absolute inset-0 z-30 flex items-center justify-center pt-[20vh] md:pt-[15vh]">
               <img src="/images/couple_transparent.webp" alt="Couple" className="w-[85vw] md:w-[70vw] max-h-[65vh] md:max-h-[70vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)] pointer-events-none" />
             </m.div>
           </m.div>
