@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { motion, AnimatePresence, m, LazyMotion, domAnimation, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, AnimatePresence, m, LazyMotion, domAnimation, useMotionValue, useSpring, useTransform, useScroll } from 'framer-motion';
 import { Search, MapPin, Calendar, PartyPopper, X, ShieldCheck, Lock, LayoutDashboard, Camera, Sparkles, Utensils, Music, Car, Brush, Building, Tent, Star } from 'lucide-react';
 import { API_URL } from '../../config/api';
 import { useNavigate } from 'react-router-dom';
@@ -10,14 +10,7 @@ import ApplePicker from '../ui/ApplePicker';
 import AppleDateTimePicker from '../ui/AppleDateTimePicker';
 import HeroMarquee from './HeroMarquee';
 
-const BG_TEXTS = [
-  { text: "VENUES", top: "20%", left: "12%", delay: 0 },
-  { text: "DECOR", top: "15%", right: "12%", delay: 0.5 },
-  { text: "PHOTOGRAPHY", top: "45%", left: "8%", delay: 1 },
-  { text: "MAKEUP ARTISTS", top: "50%", right: "6%", delay: 1.5 },
-  { text: "CATERING", top: "75%", left: "15%", delay: 2 },
-  { text: "MUSIC", top: "70%", right: "15%", delay: 2.5 },
-];
+
 
 const EVENT_CATEGORY_MAP = {
   'Pelli / Shaadi (The Grand Wedding)': ['Banquet Halls', 'Kalyana Mandapams', 'Open Lawns & Farmhouses', 'Photography & Videography', 'Makeup Artists (MUA)'],
@@ -225,18 +218,10 @@ const HeroParallax = () => {
   const rotateX = useTransform(smoothY, [-0.5, 0.5], [0, 0]); // Locked vertical gyro
   const rotateY = useTransform(smoothX, [-0.5, 0.5], [-3, 3]); // Very small horizontal gyro
   
-  const bgX = useTransform(smoothX, [-1, 1], [-10, 10]);
-  const bgY = useTransform(smoothY, [-1, 1], [-10, 10]);
-  const doorsX = useTransform(smoothX, [-1, 1], [-5, 5]);
-  const doorsY = useTransform(smoothY, [-1, 1], [-5, 5]);
-  const midX = useTransform(smoothX, [-1, 1], [-10, 10]);
-  const midY = useTransform(smoothY, [-1, 1], [-10, 10]);
-  const frontX = useTransform(smoothX, [-1, 1], [-15, 15]);
-  const frontY = useTransform(smoothY, [-1, 1], [-15, 15]);
-  const floatX1 = useTransform(smoothX, [-1, 1], [15, -15]);
-  const floatY1 = useTransform(smoothY, [-1, 1], [15, -15]);
-  const floatX2 = useTransform(smoothX, [-1, 1], [-20, 20]);
-  const floatY2 = useTransform(smoothY, [-1, 1], [-20, 20]);
+  const { scrollY } = useScroll();
+  const bgScrollY = useTransform(scrollY, [0, 1000], [0, 400]);
+  const textScrollY = useTransform(scrollY, [0, 1000], [0, 200]);
+  const coupleScrollY = useTransform(scrollY, [0, 1000], [0, -100]);
 
   useEffect(() => {
     if (!isHeroVisible) return;
@@ -432,118 +417,40 @@ const HeroParallax = () => {
       
         {/* Layer 1: Deep Background */}
         <div ref={containerRef} className="absolute inset-0 w-full h-full z-0 perspective-[1200px]">
-          <m.div style={{ translateZ: -100 }} className="absolute inset-[-15%] w-[130%] h-[130%] z-0 scale-[1.3] origin-center">
-            <img src="/images/temple_background.webp" alt="Background" className="w-full h-full object-cover opacity-50" loading="eager" />
-            <div className="absolute inset-0 bg-gradient-to-b from-black via-black/30 to-[#0A0A0A] z-10" />
+          <m.div style={{ translateZ: -100, y: bgScrollY }} className="absolute inset-[-15%] w-[130%] h-[130%] z-0 scale-[1.3] origin-center">
+            <img src="/images/south_indian_mandap.png" alt="South Indian Mandap Background" className="w-full h-full object-cover opacity-100" loading="eager" />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-[#0A0A0A] z-10" />
           </m.div>
 
           <m.div style={{ rotateX, rotateY, transformStyle: "preserve-3d" }} className="absolute inset-0 w-full h-full flex items-center justify-center">
-            
-            {/* Layer 1.5: 3D Cinematic Background Typography */}
-            <m.div style={{ translateZ: -50 }} className="absolute inset-0 w-full h-full z-20 pointer-events-none overflow-hidden">
-              {BG_TEXTS.map((item, idx) => (
-                <m.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ 
-                    opacity: [0.1, 0.4, 0.1], 
-                    y: [0, -20, 0] 
-                  }}
-                  transition={{
-                    duration: 12,
-                    repeat: Infinity,
-                    repeatType: "reverse",
-                    ease: "easeInOut",
-                    delay: item.delay
-                  }}
-                  style={{
-                    position: 'absolute',
-                    top: item.top,
-                    left: item.left,
-                    right: item.right,
-                  }}
-                  className="hidden md:block"
-                >
-                  <h3 className="text-4xl lg:text-6xl font-['Montserrat'] font-black text-transparent bg-clip-text bg-gradient-to-br from-white/10 via-[#D4AF37]/20 to-white/5 uppercase tracking-[0.3em] whitespace-nowrap drop-shadow-[0_0_20px_rgba(212,175,55,0.05)]">
-                    {item.text}
-                  </h3>
-                </m.div>
-              ))}
-            </m.div>
 
             {/* Layer 4: Text */}
-            <m.div style={{ translateZ: 40 }} className="absolute inset-0 top-[-25%] md:top-[-25%] left-0 right-0 w-full z-[40] flex flex-col items-center justify-center text-center px-4 pointer-events-none origin-center">
-              <div className="relative w-full h-[200px] flex items-center justify-center">
-                <AnimatePresence mode="wait">
-                  <m.div
-                    key={categoryIndex}
-                    initial={{ clipPath: "polygon(0 0, 0 0, 0 100%, 0% 100%)", opacity: 0, x: -30 }}
-                    animate={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)", opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, filter: 'blur(8px)', scale: 0.95, y: -10 }}
-                    transition={{ duration: 1.5, ease: [0.25, 1, 0.5, 1] }} // Signature drawing ease
-                    className="absolute flex flex-col items-center justify-center w-full"
+            <m.div style={{ translateZ: 40, y: textScrollY }} className="absolute inset-0 top-[-25%] md:top-[-25%] left-0 right-0 w-full z-[40] flex flex-col items-center justify-center text-center px-4 pointer-events-none origin-center">
+              <div className="relative w-full h-[200px] flex flex-col items-center justify-center">
+                <m.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1.5, ease: [0.25, 1, 0.5, 1] }}
+                  className="absolute flex flex-col items-center justify-center w-full"
+                >
+                  <h1 
+                    className="text-5xl md:text-[72px] lg:text-[80px] font-['Playfair_Display'] font-black drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)] mb-4 tracking-tight leading-[1.1] text-transparent bg-clip-text" 
+                    style={{ backgroundImage: cinematicColors[0], paddingRight: '15px' }}
                   >
-                    {/* Floating Emblem Animation */}
-                    {(() => {
-                      const ActiveIcon = CATEGORY_ICONS[activeCategories[categoryIndex]] || Sparkles;
-                      return (
-                        <m.div
-                          initial={{ scale: 0.5, opacity: 0, y: 20 }}
-                          animate={{ scale: [1, 1.1, 1], opacity: 1, y: [0, -10, 0] }}
-                          transition={{ duration: 3, ease: "easeInOut", repeat: Infinity }}
-                          className="mb-6 md:mb-8"
-                        >
-                          <ActiveIcon 
-                            size={72} 
-                            strokeWidth={1.5}
-                            className="text-[#FFD700] drop-shadow-[0_0_25px_rgba(212,175,55,0.6)]" 
-                          />
-                        </m.div>
-                      );
-                    })()}
-
-                    <div className="relative">
-                      <h1 
-                        className="text-6xl md:text-[90px] font-['Great_Vibes'] font-normal drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)] mb-2 tracking-wide leading-[1.2] text-transparent bg-clip-text" 
-                        style={{ 
-                          backgroundImage: cinematicColors[categoryIndex % cinematicColors.length],
-                          paddingRight: '15px'
-                        }}
-                      >
-                        {activeCategories[categoryIndex] || 'Your Dream Event'}
-                      </h1>
-                      {/* Handwriting SVG Flourish */}
-                      <svg className="absolute -bottom-2 md:-bottom-4 left-[10%] w-[80%] h-8 overflow-visible" viewBox="0 0 200 20" preserveAspectRatio="none">
-                        <m.path 
-                          initial={{ pathLength: 0, opacity: 0 }}
-                          animate={{ pathLength: 1, opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 1.2, ease: "easeOut", delay: 0.4 }}
-                          d="M5,10 Q50,-5 100,10 T195,10"
-                          fill="none"
-                          stroke="url(#flourishGrad)"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                        />
-                        <defs>
-                          <linearGradient id="flourishGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stopColor="#D4AF37" stopOpacity="0.2" />
-                            <stop offset="50%" stopColor="#FFD700" stopOpacity="0.8" />
-                            <stop offset="100%" stopColor="#D4AF37" stopOpacity="0.2" />
-                          </linearGradient>
-                        </defs>
-                      </svg>
-                    </div>
-                    <p className="text-sm md:text-xl font-['Montserrat'] text-white/80 max-w-4xl mx-auto drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)] font-medium tracking-[0.3em] uppercase mt-4">
-                      Perfectly orchestrated for your special day.
-                    </p>
-                  </m.div>
-                </AnimatePresence>
+                    Elevating Every Grand <br/> Celebration.
+                  </h1>
+                  <p className="text-[10px] md:text-[13px] font-['Montserrat'] text-[#FFD700] max-w-4xl mx-auto drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)] font-black tracking-[0.3em] uppercase mt-2 mb-4">
+                    Weddings • Engagements • Birthdays • Corporate Events
+                  </p>
+                  <p className="text-xs md:text-lg font-['Montserrat'] text-white/90 max-w-4xl mx-auto drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)] font-medium tracking-[0.2em] uppercase">
+                    Book India's Most Premium Event Vendors
+                  </p>
+                </m.div>
               </div>
             </m.div>
 
             {/* Layer 5: The Couple */}
-            <m.div style={{ translateZ: 180, scale: 0.9 }} className="absolute inset-0 left-0 right-0 z-30 flex items-center justify-center pt-[20vh] md:pt-[15vh] origin-center">
+            <m.div style={{ translateZ: 180, scale: 0.9, y: coupleScrollY }} className="absolute inset-0 left-0 right-0 z-30 flex items-center justify-center pt-[20vh] md:pt-[15vh] origin-center">
               <img src="/images/couple_transparent.webp" alt="Couple" className="w-[85vw] md:w-[70vw] max-h-[65vh] md:max-h-[70vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)] pointer-events-none" />
             </m.div>
           </m.div>

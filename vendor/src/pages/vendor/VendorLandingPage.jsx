@@ -131,7 +131,7 @@ const VendorLandingPage = () => {
                 animate={{ x: ['-100%', '100%'] }}
                 transition={{ repeat: Infinity, duration: 2.5, ease: "linear", repeatDelay: 2 }}
               />
-              <span className="relative z-10 drop-shadow-md whitespace-nowrap font-black">{t('hero_btn_join')}</span>
+              <span className="relative z-10 drop-shadow-md whitespace-nowrap font-black">Login / Register</span>
               <div className="relative z-10 flex items-center justify-center">
                 <img src="/logo.svg?v=2" alt="Gomandap Logo" className="h-5 md:h-6 w-auto object-contain" />
               </div>
@@ -534,13 +534,13 @@ const VendorLandingPage = () => {
           </h2>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
             <button 
-              onClick={() => navigate('/onboarding')}
+              onClick={() => navigate('/login')}
               className="px-10 py-5 bg-brand-gold text-black rounded-full font-black text-xl hover:bg-[#FACC15] hover:scale-105 transition-all shadow-[0_0_50px_rgba(212,175,55,0.4)]"
             >
-              Start Fresh (100% Free)
+              Login / Register
             </button>
             <button 
-              onClick={() => navigate('/claim')}
+              onClick={() => navigate('/login')}
               className="px-10 py-5 bg-transparent border-2 border-brand-gold text-brand-gold rounded-full font-black text-xl hover:bg-brand-gold/10 hover:scale-105 transition-all"
             >
               Claim Pre-Made Profile
@@ -552,10 +552,10 @@ const VendorLandingPage = () => {
       {/* Sticky Mobile CTA */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-4 bg-black/80 backdrop-blur-xl border-t border-white/10 pb-safe">
         <button 
-          onClick={() => navigate('/onboarding')}
+          onClick={() => navigate('/login')}
           className="w-full py-4 bg-brand-gold text-black rounded-xl font-black text-lg shadow-[0_0_20px_rgba(212,175,55,0.3)] active:scale-95 transition-transform"
         >
-          Join as Vendor — It's Free
+          Login / Register
         </button>
       </div>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Building2, Star, ArrowLeft } from 'lucide-react';
@@ -10,6 +10,7 @@ import DynamicSEO from '../../components/DynamicSEO';
 const VendorLogin = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { vendorStatus, loginWithGoogle } = useVendor();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -35,7 +36,7 @@ const VendorLogin = () => {
       const res = await loginWithGoogle(credential);
       if (res.success) {
         if (res.action === 'dashboard') navigate('/dashboard');
-        else navigate('/onboarding', { state: { email: res.email, googleId: res.googleId, name: res.name, photoUrl: res.photoUrl } });
+        else navigate('/onboarding', { state: { email: res.email, googleId: res.googleId, name: res.name, photoUrl: res.photoUrl, selectedCategory: location.state?.selectedCategory } });
       } else {
         alert("Backend sync failed.");
       }

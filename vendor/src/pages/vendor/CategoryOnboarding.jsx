@@ -62,7 +62,7 @@ export default function CategoryOnboarding() {
   };
 
   const handleStartRegistration = () => {
-    navigate('/onboarding', { state: { selectedCategory: category } });
+    navigate('/login', { state: { selectedCategory: category } });
   };
 
   return (
