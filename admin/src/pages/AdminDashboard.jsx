@@ -5,6 +5,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { Search, Filter, CheckCircle2, XCircle, Clock, Users, Store, TrendingUp, AlertTriangle, ChevronDown, LayoutTemplate, Calendar } from 'lucide-react';
 import VendorDetailsModal from '../components/VendorDetailsModal';
 import BookingInterventionModal from '../components/BookingInterventionModal';
+import SecuritySettings from '../components/settings/SecuritySettings';
 import { API_URL } from '../config/api';
 
 // Skeleton loader component
@@ -274,6 +275,12 @@ const AdminDashboard = () => {
             className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'bookings' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
           >
             Interventions
+          </button>
+          <button
+            onClick={() => { setActiveTab('security'); setSearchQuery(''); setStatusFilter('all'); }}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'security' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            Security
           </button>
         </div>
       </div>
@@ -585,6 +592,11 @@ const AdminDashboard = () => {
             )}
           </div>
         </div>
+      )}
+
+      {/* Security Tab */}
+      {activeTab === 'security' && (
+        <SecuritySettings />
       )}
 
       {/* Vendor Modal */}

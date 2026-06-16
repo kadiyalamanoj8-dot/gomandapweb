@@ -2,6 +2,8 @@ const Admin = require('../models/Admin');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
+const speakeasy = require('speakeasy');
+const qrcode = require('qrcode');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '565529529704-fgebb7t4aebp3lnpjp70rdn739epv207.apps.googleusercontent.com');
 
@@ -16,11 +18,32 @@ const generateToken = (id, role) => {
 // @route   POST /api/auth/admin/login
 const authAdmin = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, totpToken } = req.body;
 
     const admin = await Admin.findOne({ username });
 
     if (admin && (await admin.matchPassword(password))) {
+      // Check if 2FA is enabled
+      if (admin.isTwoFactorEnabled) {
+        if (!totpToken) {
+          // Pause login and request the token
+          return res.json({ success: true, requires2FA: true, message: '2FA code required' });
+        }
+
+        // Verify the provided token
+        const verified = speakeasy.totp.verify({
+          secret: admin.twoFactorSecret,
+          encoding: 'base32',
+          token: totpToken,
+          window: 1 // allow 30 seconds clock drift before/after
+        });
+
+        if (!verified) {
+          return res.status(401).json({ success: false, message: 'Invalid authentication code' });
+        }
+      }
+
+      // Valid credentials (and valid 2FA if enabled), issue token
       res.json({
         success: true,
         _id: admin._id,
@@ -29,6 +52,65 @@ const authAdmin = async (req, res) => {
       });
     } else {
       res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Setup 2FA for Admin
+// @route   POST /api/auth/admin/2fa/setup
+// @access  Private (Admin)
+const setup2FA = async (req, res) => {
+  try {
+    const { username } = req.body; // In a real app, use req.user from JWT middleware, but we pass username for simplicity
+    const admin = await Admin.findOne({ username });
+    if (!admin) return res.status(404).json({ success: false, message: 'Admin not found' });
+
+    // Generate a secret
+    const secret = speakeasy.generateSecret({
+      name: `Gomandap Admin (${username})`
+    });
+
+    // Generate QR Code data URL
+    qrcode.toDataURL(secret.otpauth_url, async (err, data_url) => {
+      if (err) return res.status(500).json({ success: false, message: 'Error generating QR Code' });
+      
+      res.json({
+        success: true,
+        secret: secret.base32,
+        qrCode: data_url
+      });
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Verify and Enable 2FA for Admin
+// @route   POST /api/auth/admin/2fa/verify
+// @access  Private (Admin)
+const verify2FA = async (req, res) => {
+  try {
+    const { username, token, secret } = req.body;
+    const admin = await Admin.findOne({ username });
+    if (!admin) return res.status(404).json({ success: false, message: 'Admin not found' });
+
+    // Verify the token using the provided secret
+    const verified = speakeasy.totp.verify({
+      secret: secret,
+      encoding: 'base32',
+      token: token,
+      window: 1
+    });
+
+    if (verified) {
+      admin.twoFactorSecret = secret;
+      admin.isTwoFactorEnabled = true;
+      await admin.save();
+      res.json({ success: true, message: '2FA enabled successfully' });
+    } else {
+      res.status(400).json({ success: false, message: 'Invalid authentication code' });
     }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -155,4 +237,4 @@ const updateUserLocation = async (req, res) => {
   }
 };
 
-module.exports = { authAdmin, authGoogle, getUsers, updateUserLocation };
+module.exports = { authAdmin, setup2FA, verify2FA, authGoogle, getUsers, updateUserLocation };
