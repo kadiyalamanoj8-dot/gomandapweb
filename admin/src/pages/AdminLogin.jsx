@@ -29,7 +29,8 @@ const AdminLogin = () => {
         setError('Invalid response from server.');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid username or password.');
+      console.error("Login Error:", err);
+      setError(err.response?.data?.message || 'Network Error or Invalid Code.');
     } finally {
       setLoading(false);
     }
