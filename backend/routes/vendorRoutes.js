@@ -22,7 +22,13 @@ router.post('/auth/google', syncGoogleAuth);
 // @route   PATCH /api/vendors/draft/:id
 // @desc    Update a draft vendor application with images
 // @access  Public
-router.patch('/draft/:id', upload.array('portfolioImages', 10), updateDraft);
+router.patch('/draft/:id', upload.fields([
+  { name: 'portfolioImages', maxCount: 10 },
+  { name: 'doc_gst', maxCount: 1 },
+  { name: 'doc_pan', maxCount: 1 },
+  { name: 'doc_fssai', maxCount: 1 },
+  { name: 'doc_cheque', maxCount: 1 }
+]), updateDraft);
 
 // @route   GET /api/vendors
 // @desc    Get all approved vendors

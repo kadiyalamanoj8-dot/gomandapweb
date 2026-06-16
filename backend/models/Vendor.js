@@ -90,13 +90,22 @@ const vendorSchema = new mongoose.Schema({
     }]
   },
 
+  // Documents for Verification
+  documents: [{
+    type: { type: String, enum: ['gst', 'pan', 'fssai', 'cheque', 'trade_license', 'other'] },
+    url: { type: String },
+    status: { type: String, enum: ['pending', 'verified', 'rejected'], default: 'pending' },
+    rejectionReason: { type: String }
+  }],
+
   // Banking
   banking: {
     accountName: { type: String, default: '' },
     bankName: { type: String, default: '' },
     accountNumber: { type: String, default: '' }, 
     ifscCode: { type: String, default: '' },
-    upiId: { type: String }
+    upiId: { type: String },
+    verificationStatus: { type: String, enum: ['pending', 'verified', 'rejected'], default: 'pending' }
   },
 
   // Portfolio

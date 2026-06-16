@@ -24,9 +24,14 @@ export const getCategorySchema = (category) => {
         { id: 'rooms', label: 'Number of Rooms', type: 'number', placeholder: 'e.g. 10' },
         { id: 'parking', label: 'Parking Capacity (Cars)', type: 'number', placeholder: 'e.g. 50' },
         { id: 'ac', label: 'Air Conditioning', type: 'select', options: ['Fully AC', 'Non-AC', 'Partial AC'] },
-        { id: 'inHouseCatering', label: 'In-house Catering Available?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'inHousePhotography', label: 'In-house Photography Available?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'inHouseDecorations', label: 'In-house Decorations Available?', type: 'select', options: ['Yes', 'No'] }
+        { id: 'vegPlatePrice', label: 'Veg Plate Price (₹)', type: 'number', placeholder: 'e.g. 800' },
+        { id: 'nonVegPlatePrice', label: 'Non-Veg Plate Price (₹)', type: 'number', placeholder: 'e.g. 1200' },
+        { id: 'rentalPrice', label: 'Standard Venue Rental Price (₹)', type: 'number', placeholder: 'e.g. 150000' },
+        { id: 'inHouseCatering', label: 'Catering Policy', type: 'select', options: ['In-house Only', 'Outside Allowed', 'Both Available'] },
+        { id: 'inHousePhotography', label: 'Photography Policy', type: 'select', options: ['In-house Only', 'Outside Allowed', 'Both Available'] },
+        { id: 'inHouseDecorations', label: 'Decor Policy', type: 'select', options: ['In-house Only', 'Outside Allowed', 'Both Available'] },
+        { id: 'alcoholPolicy', label: 'Alcohol Policy', type: 'select', options: ['Not Allowed', 'Allowed (With License)', 'Allowed (In-house provided)'] },
+        { id: 'djPolicy', label: 'DJ Policy', type: 'select', options: ['In-house Only', 'Outside DJ Allowed', 'Late-night Allowed'] }
       ]
     };
   }

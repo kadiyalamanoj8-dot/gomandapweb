@@ -127,16 +127,38 @@ const updateDraft = async (req, res) => {
     let updateFields = { ...data };
 
     // Handle Uploaded Files via Oracle Cloud
-    if (req.files && req.files.length > 0) {
+    if (req.files) {
       try {
-        const uploadPromises = req.files.map(file => 
-          uploadToOracleCloud(file.buffer, file.originalname, 'portfolios')
-        );
-        const uploadedUrls = await Promise.all(uploadPromises);
-        updateFields.portfolioImages = uploadedUrls;
+        // Handle Portfolio Images
+        if (req.files.portfolioImages && req.files.portfolioImages.length > 0) {
+          const uploadPromises = req.files.portfolioImages.map(file => 
+            uploadToOracleCloud(file.buffer, file.originalname, 'portfolios')
+          );
+          updateFields.portfolioImages = await Promise.all(uploadPromises);
+        }
+
+        // Handle Verification Documents
+        const docTypes = ['gst', 'pan', 'fssai', 'cheque'];
+        let uploadedDocs = [];
+        for (const type of docTypes) {
+          const fieldName = `doc_${type}`;
+          if (req.files[fieldName] && req.files[fieldName][0]) {
+            const file = req.files[fieldName][0];
+            const url = await uploadToOracleCloud(file.buffer, file.originalname, 'documents');
+            uploadedDocs.push({ type, url, status: 'pending' });
+          }
+        }
+        
+        if (uploadedDocs.length > 0) {
+          // Merge with existing docs or create new array
+          // Since it's a patch, we let the client manage full state or we append. 
+          // For simplicity in draft, we just append to the existing documents array in the DB later, 
+          // or we can pass them in updateFields to be pushed.
+          updateFields.$push = { documents: { $each: uploadedDocs } };
+        }
       } catch (err) {
-        console.error("Image upload failed:", err);
-        return res.status(500).json({ success: false, message: 'Failed to compress and upload images to Oracle Cloud.' });
+        console.error("Upload failed:", err);
+        return res.status(500).json({ success: false, message: 'Failed to compress and upload files to Oracle Cloud.' });
       }
     }
 

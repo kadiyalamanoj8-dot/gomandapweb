@@ -13,7 +13,7 @@ const IconComponent = ({ name, ...props }) => {
 // Native fallback filters for each schema type - CATEGORY SPECIFIC
 const NATIVE_FILTERS = {
   VENUE: [
-    { name: 'guestCapacity', title: 'Guest Capacity', type: 'RADIO', options: [
+    { name: 'capacity', title: 'Guest Capacity', type: 'RADIO', options: [
       { value: 'any', label: 'Any' },
       { value: 'less-100', label: 'Less than 100' },
       { value: '100-250', label: '100 to 250' },
@@ -21,27 +21,25 @@ const NATIVE_FILTERS = {
       { value: '500-1000', label: '500 to 1000' },
       { value: '1000+', label: '1000 and above' }
     ]},
-    { name: 'priceRange', title: 'Price Range (Per Plate/Rental)', type: 'RADIO', options: [
-      { value: 'any', label: 'Any Budget' },
-      { value: '500-1000', label: '₹500 - ₹1,000' },
-      { value: '1000-2000', label: '₹1,000 - ₹2,000' },
-      { value: '2000-3000', label: '₹2,000 - ₹3,000' },
-      { value: '3000+', label: '₹3,000 +' }
+    { name: 'inHouseCatering', title: 'Catering Policy', type: 'CHECKBOX', options: [
+      { value: 'In-house Only', label: 'In-house Catering Only' },
+      { value: 'Outside Allowed', label: 'Outside Allowed' },
+      { value: 'Both Available', label: 'Both Available' }
     ]},
-    { name: 'amenities', title: 'Amenities & Rules', type: 'CHECKBOX', options: [
-      { value: 'air-conditioned', label: 'Air Conditioned' },
-      { value: 'rooms-available', label: 'Rooms Available' },
-      { value: 'inhouse-catering', label: 'In-house Catering Only' },
-      { value: 'outside-decorators', label: 'Outside Decorators Allowed' },
-      { value: 'liquor-allowed', label: 'Liquor Allowed' },
-      { value: 'valet-parking', label: 'Valet Parking' }
+    { name: 'inHouseDecorations', title: 'Decor Policy', type: 'CHECKBOX', options: [
+      { value: 'In-house Only', label: 'In-house Decor Only' },
+      { value: 'Outside Allowed', label: 'Outside Allowed' },
+      { value: 'Both Available', label: 'Both Available' }
     ]},
-    { name: 'settingType', title: 'Setting Type', type: 'CHECKBOX', options: [
-      { value: 'indoor-banquet', label: 'Indoor Banquet' },
-      { value: 'outdoor-lawn', label: 'Outdoor Lawn' },
-      { value: 'poolside', label: 'Poolside' },
-      { value: 'rooftop', label: 'Rooftop' },
-      { value: 'garden', label: 'Garden' }
+    { name: 'alcoholPolicy', title: 'Alcohol Policy', type: 'CHECKBOX', options: [
+      { value: 'Allowed (With License)', label: 'Outside Alcohol Allowed' },
+      { value: 'Allowed (In-house provided)', label: 'In-house Alcohol Available' },
+      { value: 'Not Allowed', label: 'Strictly No Alcohol' }
+    ]},
+    { name: 'djPolicy', title: 'DJ & Music Policy', type: 'CHECKBOX', options: [
+      { value: 'In-house Only', label: 'In-house DJ Only' },
+      { value: 'Outside DJ Allowed', label: 'Outside DJ Allowed' },
+      { value: 'Late-night Allowed', label: 'Late Night Music Allowed' }
     ]}
   ],
   PHOTO: [

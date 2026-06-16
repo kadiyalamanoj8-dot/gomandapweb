@@ -70,7 +70,8 @@ const VendorDetailsPage = () => {
         portfolioImages: v.portfolioImages || (v.imageUrl ? [v.imageUrl] : []),
         contact: v.contact,
         pricingPackages: v.pricingPackages || v.customBlocks?.pricingPackages || [],
-        locationData: v.locationData
+        locationData: v.locationData,
+        isVerified: v.documents?.length > 0 || v.isVerified
       });
       setIsLoading(false);
       return;
@@ -96,7 +97,9 @@ const VendorDetailsPage = () => {
             deepFeatures: v.deepFeatures,
             portfolioImages: v.portfolioImages,
             contact: v.contact,
-            pricingPackages: v.customBlocks?.pricingPackages || []
+            pricingPackages: v.customBlocks?.pricingPackages || [],
+            locationData: v.locationData,
+            isVerified: v.documents?.length > 0 || v.isVerified
           });
         } else {
           setFetchError("Vendor not found");
@@ -312,7 +315,9 @@ const VendorDetailsPage = () => {
                 {vendor.rating >= 4.5 && (
                   <span className="badge-top-rated"><Icons.Award size={14} className="mb-0.5" /> Top Rated</span>
                 )}
-                <span className="badge-verified"><Icons.ShieldCheck size={14} className="mb-0.5" /> Verified</span>
+                {vendor.isVerified && (
+                  <span className="badge-verified"><Icons.ShieldCheck size={14} className="mb-0.5" /> Verified</span>
+                )}
               </div>
               
               <div className="flex flex-wrap items-center gap-y-3 gap-x-4 text-sm font-medium text-gray-900">
@@ -394,16 +399,29 @@ const VendorDetailsPage = () => {
 
             {/* Features/Amenities Section (Uses deep data from DB) */}
             <section className="mb-10 pb-10 border-b border-gray-200">
-              <h2 className="text-2xl font-black text-gray-900 mb-6">{schema.featuresTitle || 'Amenities'}</h2>
+              <h2 className="text-2xl font-black text-gray-900 mb-6">{schema.featuresTitle || 'Amenities & Policies'}</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-4">
-                {vendor.deepFeatures && Object.entries(vendor.deepFeatures).map(([key, value], i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <CheckCircle2 size={20} className="text-brand-primary shrink-0" />
-                    <span className="text-sm font-semibold text-gray-700 capitalize">
-                      {value === "Yes" || value === "No" ? `${key}: ${value}` : value}
-                    </span>
-                  </div>
-                ))}
+                {vendor.deepFeatures && Object.entries(vendor.deepFeatures).map(([key, value], i) => {
+                  if (!value) return null;
+                  
+                  // Format camelCase keys
+                  const formattedKey = key
+                    .replace(/([A-Z])/g, ' $1')
+                    .replace(/^./, str => str.toUpperCase())
+                    .replace('in House', 'In-House ')
+                    .replace('In House', 'In-House ');
+
+                  return (
+                    <div key={i} className="flex items-center gap-3">
+                      <CheckCircle2 size={20} className="text-brand-primary shrink-0" />
+                      <span className="text-sm font-semibold text-gray-700">
+                        {value === "Yes" || value === "No" 
+                          ? `${formattedKey}: ${value}` 
+                          : `${formattedKey}: ${value}`}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </section>
 

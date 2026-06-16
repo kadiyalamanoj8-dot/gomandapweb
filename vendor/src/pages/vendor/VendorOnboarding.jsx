@@ -99,6 +99,12 @@ const VendorOnboarding = () => {
   });
 
   const [portfolio, setPortfolio] = useState([]); // Array of File objects
+  const [verificationDocs, setVerificationDocs] = useState({
+    gst: null,
+    pan: null,
+    fssai: null,
+    cheque: null
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -147,10 +153,27 @@ const VendorOnboarding = () => {
     }
   }, [basicInfo.locationData?.parsedAddress]);
 
+  const handlePortfolioUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (portfolio.length + files.length > 10) {
+      toast.error('Maximum 10 images allowed.');
+      return;
+    }
+    setPortfolio([...portfolio, ...files]);
+  };
+
+  const handleVerificationDocUpload = (type, e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setVerificationDocs(prev => ({ ...prev, [type]: file }));
+    }
+  };
+
   const performSaveDraft = async (nextStep, customCategory = null) => {
     setIsSubmitting(true);
-    const formData = new FormData();
     
+    // Auto save draft logic
+    const formData = new FormData();
     formData.append('category', customCategory || basicInfo.category);
     formData.append('name', basicInfo.name);
     formData.append('ownerName', basicInfo.ownerName);
@@ -160,29 +183,45 @@ const VendorOnboarding = () => {
     formData.append('gstin', basicInfo.gstin);
     formData.append('experience', basicInfo.experience);
     formData.append('currentStep', nextStep);
-    
+
     formData.append('contact', JSON.stringify({
       phone: basicInfo.phone,
       whatsapp: basicInfo.whatsapp,
       email: basicInfo.email
     }));
-    
+
     formData.append('address', JSON.stringify({
       street: basicInfo.streetAddress,
       village: basicInfo.village,
       mandal: basicInfo.mandal,
       district: basicInfo.district,
       state: basicInfo.state,
-      pincode: basicInfo.pincode,
-      city: basicInfo.city
+      city: basicInfo.city,
+      pincode: basicInfo.pincode
     }));
 
     formData.append('locationData', JSON.stringify(basicInfo.locationData));
-    formData.append('deepFeatures', JSON.stringify(formResponses));
-    formData.append('customBlocks', JSON.stringify({
-      pricingPackages: schemaFields.pricingPackages.filter(p => p.price)
-    }));
-    formData.append('banking', JSON.stringify(bankingInfo));
+
+    if (step >= 3 || nextStep > 3) {
+      formData.append('deepFeatures', JSON.stringify(formResponses));
+      formData.append('customBlocks', JSON.stringify({
+        pricingPackages: schemaFields.pricingPackages
+      }));
+    }
+
+    if (step >= 4 || nextStep > 4) {
+      formData.append('banking', JSON.stringify(bankingInfo));
+    }
+
+    // Append Files
+    portfolio.forEach(file => {
+      formData.append('portfolioImages', file);
+    });
+    
+    if (verificationDocs.gst) formData.append('doc_gst', verificationDocs.gst);
+    if (verificationDocs.pan) formData.append('doc_pan', verificationDocs.pan);
+    if (verificationDocs.fssai) formData.append('doc_fssai', verificationDocs.fssai);
+    if (verificationDocs.cheque) formData.append('doc_cheque', verificationDocs.cheque);
 
     const loadingToastId = toast.loading('Saving progress...');
     const result = await saveDraft(formData, vendorProfile?._id);
@@ -678,6 +717,49 @@ const VendorOnboarding = () => {
                   <LazyInput type="text" value={bankingInfo.bankName} onChange={(e) => setBankingInfo({...bankingInfo, bankName: e.target.value})} placeholder="e.g. HDFC Bank" className={inputClassName} />
                 </div>
                 <div>
+                  <label className={labelClassName}>Account Number <span className="text-brand-gold">*</span></label>
+                  <LazyInput type="text" value={bankingInfo.accountNumber} onChange={(e) => setBankingInfo({...bankingInfo, accountNumber: e.target.value})} placeholder="e.g. 1234567890" className={inputClassName} />
+                </div>
+                <div>
+                  <label className={labelClassName}>IFSC Code <span className="text-brand-gold">*</span></label>
+                  <LazyInput type="text" value={bankingInfo.ifscCode} onChange={(e) => setBankingInfo({...bankingInfo, ifscCode: e.target.value})} placeholder="e.g. HDFC0001234" className={inputClassName} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className={labelClassName}>UPI ID (Optional)</label>
+                  <LazyInput type="text" value={bankingInfo.upiId} onChange={(e) => setBankingInfo({...bankingInfo, upiId: e.target.value})} placeholder="e.g. business@upi" className={inputClassName} />
+                </div>
+              </div>
+
+              {/* VERIFICATION DOCUMENTS UPLOAD */}
+              <div className="mt-8 pt-8 border-t border-white/10">
+                <h3 className="text-lg font-black text-white mb-2">Verification Documents</h3>
+                <p className="text-sm text-white/50 mb-6">Upload these documents to get the "Verified Provider" badge and receive payouts securely.</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Cancelled Cheque */}
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-3">
+                    <label className={labelClassName}>Cancelled Cheque (Matches Bank Info) <span className="text-brand-gold">*</span></label>
+                    <input type="file" onChange={(e) => handleVerificationDocUpload('cheque', e)} className="text-sm text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-gold file:text-white hover:file:bg-brand-gold/80" />
+                  </div>
+                  {/* PAN Card */}
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-3">
+                    <label className={labelClassName}>PAN Card <span className="text-brand-gold">*</span></label>
+                    <input type="file" onChange={(e) => handleVerificationDocUpload('pan', e)} className="text-sm text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-gold file:text-white hover:file:bg-brand-gold/80" />
+                  </div>
+                  {/* GST */}
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-3">
+                    <label className={labelClassName}>GST Certificate (If Applicable)</label>
+                    <input type="file" onChange={(e) => handleVerificationDocUpload('gst', e)} className="text-sm text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-gold file:text-white hover:file:bg-brand-gold/80" />
+                  </div>
+                  {/* FSSAI */}
+                  {['Banquet Halls', 'Kalyana Mandapams', 'Resorts & Destination Venues', '5-Star Hotels', 'Catering Service'].includes(basicInfo.category) && (
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-3">
+                      <label className={labelClassName}>FSSAI License (For Food Services) <span className="text-brand-gold">*</span></label>
+                      <input type="file" onChange={(e) => handleVerificationDocUpload('fssai', e)} className="text-sm text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-gold file:text-white hover:file:bg-brand-gold/80" />
+                    </div>
+                  )}
+                </div>
+              </div>
                   <label className={labelClassName}>Account Number <span className="text-brand-gold">*</span></label>
                   <LazyInput type="password" value={bankingInfo.accountNumber} onChange={(e) => setBankingInfo({...bankingInfo, accountNumber: e.target.value})} placeholder="Enter Account Number" className={`${inputClassName} font-mono`} />
                 </div>

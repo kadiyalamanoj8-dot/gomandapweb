@@ -301,15 +301,39 @@ const VendorDetailsModal = ({ vendor, onClose, onUpdateStatus, onUpdateAdminSett
                       <span className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">IFSC Code</span>
                       <div className="font-black text-blue-900 font-mono uppercase">{vendor.banking?.ifscCode}</div>
                     </div>
+                    {vendor.banking?.upiId && (
+                      <div className="col-span-2">
+                        <span className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">UPI ID</span>
+                        <div className="font-black text-blue-900">{vendor.banking.upiId}</div>
+                      </div>
+                    )}
                   </div>
-                  {vendor.banking?.upiId && (
-                    <div className="pt-4 border-t border-blue-100">
-                      <span className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">UPI ID</span>
-                      <div className="font-black text-blue-900">{vendor.banking?.upiId}</div>
-                    </div>
-                  )}
                 </div>
               </section>
+
+              {/* VERIFICATION DOCUMENTS SECTION */}
+              {vendor.documents && vendor.documents.length > 0 && (
+                <section>
+                  <h3 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
+                    <CheckCircle2 size={20} className="text-green-500" /> Verification Documents
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {vendor.documents.map((doc, idx) => (
+                      <div key={idx} className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col items-center gap-3">
+                        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{doc.type}</span>
+                        <a 
+                          href={doc.url} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="w-full py-2 bg-gray-100 hover:bg-brand-primary hover:text-white text-gray-800 rounded-lg text-sm font-bold text-center transition-colors"
+                        >
+                          View Document
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
 
               <section>
                 <h3 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">Location & Address</h3>
