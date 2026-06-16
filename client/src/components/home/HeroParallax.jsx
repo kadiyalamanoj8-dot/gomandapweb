@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence, m, LazyMotion, domAnimation, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { Search, MapPin, Calendar, PartyPopper, X, ShieldCheck, Lock, LayoutDashboard } from 'lucide-react';
+import { Search, MapPin, Calendar, PartyPopper, X, ShieldCheck, Lock, LayoutDashboard, Camera, Sparkles, Utensils, Music, Car, Brush, Building, Tent, Star } from 'lucide-react';
 import { API_URL } from '../../config/api';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -28,6 +28,29 @@ const EVENT_CATEGORY_MAP = {
   'Cradle Ceremony / Barasala': ['Party & Mini Halls', 'Catering Service', 'Photography & Videography', 'Event Planners'],
   'Birthday Parties & Anniversaries': ['Party & Mini Halls', 'Open Lawns & Farmhouses', 'Catering Service', 'Stage & Venue Decor', 'DJs & Sound Systems'],
   'Corporate Events & MICE': ['5-Star Hotels', 'Resorts & Destination Venues', 'Banquet Halls', 'Open Lawns & Farmhouses', 'Stage & Venue Decor', 'Catering Service', 'Event Planners', 'Photography & Videography', 'DJs & Sound Systems', 'Cars & Buses (Travel)']
+};
+
+const CATEGORY_ICONS = {
+  'Banquet Halls': Building,
+  'Kalyana Mandapams': Building,
+  'Open Lawns & Farmhouses': Tent,
+  'Photography & Videography': Camera,
+  'Photographers': Camera,
+  'Makeup Artists (MUA)': Brush,
+  'Makeup Artists': Brush,
+  'Party & Mini Halls': PartyPopper,
+  'Stage & Venue Decor': Sparkles,
+  'Decorators': Sparkles,
+  'Mehndi Designers': Brush,
+  'DJs & Sound Systems': Music,
+  '5-Star Hotels': Star,
+  'Catering Service': Utensils,
+  'Caterers': Utensils,
+  'Live Musicians / Band Baaja': Music,
+  'Temples & Ashrams': Building,
+  'Event Planners': Calendar,
+  'Resorts & Destination Venues': Tent,
+  'Cars & Buses (Travel)': Car
 };
 
 const HeroParallax = () => {
@@ -460,6 +483,25 @@ const HeroParallax = () => {
                     transition={{ duration: 1.5, ease: [0.25, 1, 0.5, 1] }} // Signature drawing ease
                     className="absolute flex flex-col items-center justify-center w-full"
                   >
+                    {/* Floating Emblem Animation */}
+                    {(() => {
+                      const ActiveIcon = CATEGORY_ICONS[activeCategories[categoryIndex]] || Sparkles;
+                      return (
+                        <m.div
+                          initial={{ scale: 0.5, opacity: 0, y: 20 }}
+                          animate={{ scale: [1, 1.1, 1], opacity: 1, y: [0, -10, 0] }}
+                          transition={{ duration: 3, ease: "easeInOut", repeat: Infinity }}
+                          className="mb-6 md:mb-8"
+                        >
+                          <ActiveIcon 
+                            size={72} 
+                            strokeWidth={1.5}
+                            className="text-[#FFD700] drop-shadow-[0_0_25px_rgba(212,175,55,0.6)]" 
+                          />
+                        </m.div>
+                      );
+                    })()}
+
                     <div className="relative">
                       <h1 
                         className="text-6xl md:text-[90px] font-['Great_Vibes'] font-normal drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)] mb-2 tracking-wide leading-[1.2] text-transparent bg-clip-text" 
