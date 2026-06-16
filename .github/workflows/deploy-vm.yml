@@ -37,8 +37,13 @@ jobs:
             echo "==> Building admin..."
             cd admin && npm install && npm run build && cd ..
 
-            echo "==> Restarting all PM2 services (clean)..."
-            npx pm2 delete all || true
+            echo "==> Killing PM2 daemon and freeing all ports..."
+            npx pm2 kill || true
+            fuser -k 3000/tcp 3001/tcp 3002/tcp 5000/tcp 2>/dev/null || true
+            sleep 2
+
+            echo "==> Starting all PM2 services fresh..."
+            cd /home/opc/gomandapweb
             npx pm2 start /home/opc/gomandapweb/pm2.config.js
             npx pm2 save
 
