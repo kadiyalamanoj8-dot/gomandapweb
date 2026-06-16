@@ -253,11 +253,6 @@ const VendorOnboarding = () => {
     performSaveDraft(2, categoryLabel);
   };
 
-  const handlePortfolioUpload = (e) => {
-    const files = Array.from(e.target.files);
-    setPortfolio([...portfolio, ...files]);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
