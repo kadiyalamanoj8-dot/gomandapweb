@@ -173,12 +173,12 @@ const HeroParallax = () => {
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  const springConfig = { damping: 20, stiffness: 120, mass: 1, bounce: 0.4 };
+  const springConfig = { damping: 25, stiffness: 200, mass: 0.5 }; // Fast, smooth, no bounce
   const smoothX = useSpring(mouseX, springConfig);
   const smoothY = useSpring(mouseY, springConfig);
 
   const rotateX = useTransform(smoothY, [-0.5, 0.5], [0, 0]); // Locked vertical gyro
-  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-3, 3]); // Very small horizontal gyro
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-8, 8]); // Small horizontal gyro
   
   const bgX = useTransform(smoothX, [-1, 1], [-30, 30]);
   const bgY = useTransform(smoothY, [-1, 1], [-30, 30]);
@@ -199,9 +199,16 @@ const HeroParallax = () => {
   useEffect(() => {
     if (!isHeroVisible) return;
     let rAF;
+    let idleTimeout;
+
+    const resetToCenter = () => {
+      mouseX.set(0);
+      mouseY.set(0);
+    };
 
     const handleMouseMove = (e) => {
       if (rAF) cancelAnimationFrame(rAF);
+      clearTimeout(idleTimeout);
       rAF = requestAnimationFrame(() => {
         // Normalize mouse coordinates to [-1, 1] relative to center
         const x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -210,6 +217,8 @@ const HeroParallax = () => {
         mouseX.set(x * desktopScale);
         mouseY.set(y * desktopScale);
       });
+      // Very quick rubber band effect on desktop
+      idleTimeout = setTimeout(resetToCenter, 200);
     };
 
     let baselineX = 0, baselineY = 0, hasBaseline = false;
@@ -224,21 +233,25 @@ const HeroParallax = () => {
         else { x = e.gamma; y = e.beta - 45; }
 
         if (!hasBaseline) { baselineX = x; baselineY = y; hasBaseline = true; }
-        baselineX += (x - baselineX) * 0.05;
-        baselineY += (y - baselineY) * 0.05;
+        // Fast decay causes a quick rubber band effect to center on mobile
+        baselineX += (x - baselineX) * 0.15;
+        baselineY += (y - baselineY) * 0.15;
         const deltaX = x - baselineX;
         const deltaY = y - baselineY;
-        const mobileScale = isMobile ? 0.3 : 1; // Decreased gyro intensity on mobile
+        const mobileScale = isMobile ? 0.8 : 1; 
         mouseX.set(Math.max(-1, Math.min(1, deltaX / 30)) * mobileScale);
         mouseY.set(Math.max(-1, Math.min(1, deltaY / 30)) * mobileScale);
       });
     };
 
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseleave', resetToCenter);
     window.addEventListener('deviceorientation', handleOrientation);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseleave', resetToCenter);
       window.removeEventListener('deviceorientation', handleOrientation);
+      clearTimeout(idleTimeout);
       if (rAF) cancelAnimationFrame(rAF);
     };
   }, [mouseX, mouseY, isHeroVisible, isMobile]);
