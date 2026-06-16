@@ -354,8 +354,8 @@ const HeroParallax = () => {
             
             {/* Layer 2: Premium 3D Badges (Aligned Horizontal Row) */}
             <m.div 
-              style={{ x: floatX1, y: floatY1, translateZ: 130 }} 
-              className="absolute top-[8%] md:top-[12%] w-full z-[50] flex flex-wrap items-center justify-center gap-3 md:gap-6 px-4"
+              style={{ translateZ: 130 }} 
+              className="absolute top-[12%] md:top-[15%] w-full z-[50] flex flex-wrap items-center justify-center gap-3 md:gap-6 px-4 origin-center"
             >
                {/* 100% Verified Vendors Badge */}
                <div className="flex items-center gap-3 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl px-4 py-2.5 md:px-5 md:py-3.5 rounded-2xl border border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.2)] hover:bg-white/15 transition-colors">
