@@ -418,7 +418,7 @@ const HeroParallax = () => {
         {/* Layer 1: Deep Background */}
         <div ref={containerRef} className="absolute inset-0 w-full h-full z-0 perspective-[1200px]">
           <m.div style={{ translateZ: -100, y: bgScrollY }} className="absolute inset-[-15%] w-[130%] h-[130%] z-0 scale-[1.3] origin-center">
-            <img src="/images/south_indian_mandap.png" alt="South Indian Mandap Background" className="w-full h-full object-cover opacity-100" loading="eager" />
+            <img src="/images/south_indian_mandap.webp" alt="South Indian Mandap Background" className="w-full h-full object-cover opacity-100" loading="eager" fetchpriority="high" />
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-[#0A0A0A] z-10" />
           </m.div>
 
