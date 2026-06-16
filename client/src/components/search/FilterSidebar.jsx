@@ -21,6 +21,14 @@ const NATIVE_FILTERS = {
       { value: '500-1000', label: '500 to 1000' },
       { value: '1000+', label: '1000 and above' }
     ]},
+    { name: 'eventsCovered', title: 'Event Types Covered', type: 'CHECKBOX', options: [
+      { value: 'Weddings', label: 'Weddings & Receptions' },
+      { value: 'Corporate Events', label: 'Corporate Events' },
+      { value: 'Corporate Conferences (MICE)', label: 'Corporate Conferences (MICE)' },
+      { value: 'Corporate Offsites', label: 'Corporate Offsites' },
+      { value: 'Birthdays & Parties', label: 'Birthdays & Parties' },
+      { value: 'Pre-Wedding Functions', label: 'Pre-Wedding (Haldi/Mehendi)' }
+    ]},
     { name: 'inHouseCatering', title: 'Catering Policy', type: 'CHECKBOX', options: [
       { value: 'In-house Only', label: 'In-house Catering Only' },
       { value: 'Outside Allowed', label: 'Outside Allowed' },
@@ -40,6 +48,14 @@ const NATIVE_FILTERS = {
       { value: 'In-house Only', label: 'In-house DJ Only' },
       { value: 'Outside DJ Allowed', label: 'Outside DJ Allowed' },
       { value: 'Late-night Allowed', label: 'Late Night Music Allowed' }
+    ]},
+    { name: 'poolAvailable', title: 'Pool / Water Feature', type: 'CHECKBOX', options: [
+      { value: 'Yes - Available for Events', label: 'Pool Available' }
+    ]},
+    { name: 'avSetup', title: 'AV & Corporate Setup', type: 'CHECKBOX', options: [
+      { value: 'LED Video Walls', label: 'LED Video Walls' },
+      { value: 'High-Lumen Projectors', label: 'High-Lumen Projectors' },
+      { value: 'Live Streaming/Hybrid Setup', label: 'Hybrid Event Support' }
     ]}
   ],
   PHOTO: [
@@ -56,6 +72,11 @@ const NATIVE_FILTERS = {
       { value: 'Cinematic Videography', label: 'Cinematic Videography' },
       { value: 'Drone Shoots', label: 'Drone Shoots' },
       { value: 'Photobooths', label: 'Photobooths' }
+    ]},
+    { name: 'corporateSpecific', title: 'Corporate Services', type: 'CHECKBOX', options: [
+      { value: 'Headshots', label: 'Headshots' },
+      { value: 'Same-day PR Edits', label: 'Same-day PR Edits' },
+      { value: 'Multi-camera Streaming', label: 'Multi-camera Streaming' }
     ]},
     { name: 'travelPolicy', title: 'Travel Policy', type: 'CHECKBOX', options: [
       { value: 'Outstation travel & stay paid by client', label: 'Outstation (Client pays travel)' },
@@ -76,26 +97,21 @@ const NATIVE_FILTERS = {
     ]}
   ],
   MAKEUP: [
-    { name: 'makeupType', title: 'Service Type', type: 'CHECKBOX', options: [
-      { value: 'bridal-makeup', label: 'Bridal Makeup' },
-      { value: 'groom-makeup', label: 'Groom Makeup' },
-      { value: 'guest-makeup', label: 'Guest Makeup' },
-      { value: 'mehndi', label: 'Mehndi' },
-      { value: 'jewelry', label: 'Jewelry Services' }
+    { name: 'makeupTechnique', title: 'Makeup Techniques', type: 'CHECKBOX', options: [
+      { value: 'HD Makeup', label: 'HD Makeup' },
+      { value: 'Airbrush', label: 'Airbrush' },
+      { value: 'Traditional', label: 'Traditional' },
+      { value: 'Mineral/Organic', label: 'Mineral/Organic' }
     ]},
-    { name: 'priceRange', title: 'Price Range', type: 'RADIO', options: [
-      { value: 'any', label: 'Any Budget' },
-      { value: '5000-15000', label: '₹5K - ₹15K' },
-      { value: '15000-30000', label: '₹15K - ₹30K' },
-      { value: '30000-50000', label: '₹30K - ₹50K' },
-      { value: '50000+', label: '₹50K+' }
+    { name: 'corporateSpecific', title: 'Corporate Services', type: 'CHECKBOX', options: [
+      { value: 'Corporate Headshots', label: 'Corporate Headshots' },
+      { value: 'Commercial/Ad Shoots', label: 'Commercial/Ad Shoots' },
+      { value: 'TV/Film Set Makeup', label: 'TV/Film Set Makeup' }
     ]},
-    { name: 'makeupStyle', title: 'Makeup Style', type: 'CHECKBOX', options: [
-      { value: 'traditional', label: 'Traditional' },
-      { value: 'modern', label: 'Modern' },
-      { value: 'bridal-fusion', label: 'Bridal Fusion' },
-      { value: 'hd-makeup', label: 'HD Makeup' },
-      { value: 'airbrush', label: 'Airbrush' }
+    { name: 'trialAvailable', title: 'Trial Policy', type: 'CHECKBOX', options: [
+      { value: 'Yes (Paid)', label: 'Paid Trial Available' },
+      { value: 'Yes (Free)', label: 'Free Trial Available' },
+      { value: 'No Trial', label: 'No Trial' }
     ]}
   ],
   CATERING: [
@@ -119,6 +135,12 @@ const NATIVE_FILTERS = {
       { value: 'Serves Non-Veg', label: 'Non-Veg Available' },
       { value: 'Jain Food Available', label: 'Jain Food Available' },
       { value: 'Vegan Options', label: 'Vegan Options' }
+    ]},
+    { name: 'corporateSpecific', title: 'Corporate Options', type: 'CHECKBOX', options: [
+      { value: 'Coffee Breaks', label: 'Coffee Breaks' },
+      { value: 'High-Tea Setups', label: 'High-Tea Setups' },
+      { value: 'Working Lunches', label: 'Working Lunches' },
+      { value: 'Packed Meals', label: 'Packed Meals' }
     ]},
     { name: 'includesStaff', title: 'Waitstaff Included', type: 'CHECKBOX', options: [
       { value: 'Yes', label: 'Waitstaff Included' },
@@ -148,9 +170,26 @@ const NATIVE_FILTERS = {
       { value: 'Lighting & Trussing', label: 'Lighting & Trussing' },
       { value: 'Tents/Shamianas', label: 'Tents & Shamianas' }
     ]},
+    { name: 'corporateSpecific', title: 'Corporate AV & Stage', type: 'CHECKBOX', options: [
+      { value: 'LED Video Walls', label: 'LED Video Walls' },
+      { value: 'Backdrop Logos', label: 'Backdrop Logos' },
+      { value: 'Stage Ramps/Accessibility', label: 'Stage Ramps' },
+      { value: 'Product Podiums', label: 'Product Podiums' }
+    ]},
     { name: 'venueRestrictions', title: 'Venue Flexibility', type: 'CHECKBOX', options: [
       { value: 'Open to work at any venue', label: 'Works at Any Venue' },
       { value: 'Only work at empanelled venues', label: 'Only Empanelled Venues' }
+    ]},
+    { name: 'planningType', title: 'Planning Scope', type: 'CHECKBOX', options: [
+      { value: 'Full Wedding Planning', label: 'Full Wedding Planning' },
+      { value: 'Partial Planning', label: 'Partial Planning' },
+      { value: 'Month-Of Coordination', label: 'Month-Of Coordination' },
+      { value: 'Corporate (MICE) Planning', label: 'Corporate MICE' }
+    ]},
+    { name: 'specialTrends', title: 'Specialized Event Trends', type: 'CHECKBOX', options: [
+      { value: 'Eco-friendly/Sustainable Weddings', label: 'Eco-Friendly Weddings' },
+      { value: 'Royal/Heritage Themes', label: 'Royal/Heritage Themes' },
+      { value: 'Tech-driven (RSVP Apps/Drones)', label: 'Tech-driven (Drones/Apps)' }
     ]},
     { name: 'priceRange', title: 'Price Range', type: 'RADIO', options: [
       { value: 'any', label: 'Any Budget' },
@@ -161,58 +200,102 @@ const NATIVE_FILTERS = {
     ]}
   ],
   DJ: [
-    { name: 'serviceType', title: 'Service Type', type: 'CHECKBOX', options: [
-      { value: 'dj-only', label: 'DJ Only' },
-      { value: 'live-band', label: 'Live Band' },
-      { value: 'singers', label: 'Live Singers' },
-      { value: 'sound-system', label: 'Sound System Only' },
-      { value: 'orchestra', label: 'Orchestra' }
-    ]},
-    { name: 'priceRange', title: 'Price Range', type: 'RADIO', options: [
-      { value: 'any', label: 'Any Budget' },
-      { value: '10000-30000', label: '₹10K - ₹30K' },
-      { value: '30000-60000', label: '₹30K - ₹60K' },
-      { value: '60000-100000', label: '₹60K - ₹1L' },
-      { value: '100000+', label: '₹1L+' }
+    { name: 'serviceTypes', title: 'Service Type', type: 'CHECKBOX', options: [
+      { value: 'DJ Only', label: 'DJ Only' },
+      { value: 'Live Band', label: 'Live Band' },
+      { value: 'Live Singers', label: 'Live Singers' },
+      { value: 'Orchestra', label: 'Orchestra' },
+      { value: 'Emcee/Anchor', label: 'Emcee/Anchor' },
+      { value: 'Sound System Only', label: 'Sound System Only' }
     ]},
     { name: 'musicGenre', title: 'Music Genre', type: 'CHECKBOX', options: [
-      { value: 'bollywood', label: 'Bollywood' },
-      { value: 'devotional', label: 'Devotional' },
-      { value: 'western', label: 'Western' },
-      { value: 'regional', label: 'Regional' },
-      { value: 'sufi', label: 'Sufi/Classical' }
+      { value: 'Bollywood', label: 'Bollywood' },
+      { value: 'EDM/House', label: 'EDM/House' },
+      { value: 'Sufi/Classical', label: 'Sufi/Classical' },
+      { value: 'Western/Pop', label: 'Western/Pop' },
+      { value: 'Regional/Folk', label: 'Regional/Folk' }
+    ]},
+    { name: 'soundSetup', title: 'Sound Setup Provided', type: 'CHECKBOX', options: [
+      { value: 'Performance Only (Venue has sound)', label: 'Performance Only' },
+      { value: 'Full Setup (Sound + Lights)', label: 'Full Setup (Sound + Lights)' },
+      { value: 'PA System Only', label: 'PA System Only' }
+    ]},
+    { name: 'danceStyles', title: 'Dance Styles', type: 'CHECKBOX', options: [
+      { value: 'Bollywood', label: 'Bollywood' },
+      { value: 'Punjabi / Bhangra', label: 'Punjabi / Bhangra' },
+      { value: 'Classical', label: 'Classical' },
+      { value: 'Hip-Hop', label: 'Hip-Hop' },
+      { value: 'Contemporary', label: 'Contemporary' }
+    ]},
+    { name: 'practiceLocation', title: 'Practice Location', type: 'CHECKBOX', options: [
+      { value: 'Choreographer Studio', label: 'At Studio' },
+      { value: 'Client Venue/Home', label: 'At Client Home' },
+      { value: 'Both Available', label: 'Both' }
+    ]},
+    { name: 'actTypes', title: 'Entertainment Acts', type: 'CHECKBOX', options: [
+      { value: 'Fire Dancers', label: 'Fire Dancers' },
+      { value: 'Magicians / Illusionists', label: 'Magicians' },
+      { value: 'Aerial / Acrobats', label: 'Aerial / Acrobats' },
+      { value: 'Stand-up Comedy', label: 'Stand-up Comedy' },
+      { value: 'Celebrity Appearances', label: 'Celebrity Appearances' }
     ]}
   ],
   JEWELRY: [
-    { name: 'jewelryType', title: 'Jewelry Type', type: 'CHECKBOX', options: [
-      { value: 'bridal-jewelry', label: 'Bridal Jewelry' },
-      { value: 'groom-jewelry', label: 'Groom Jewelry' },
-      { value: 'imitation', label: 'Imitation/Fashion' },
-      { value: 'precious', label: 'Precious Metals' },
-      { value: 'customization', label: 'Customization Available' }
+    { name: 'serviceModel', title: 'Service Model', type: 'CHECKBOX', options: [
+      { value: 'Purchase (Readymade)', label: 'Purchase (Readymade)' },
+      { value: 'Custom Tailoring/Bespoke', label: 'Custom Tailoring/Bespoke' },
+      { value: 'Rental Services', label: 'Rental Services' }
     ]},
-    { name: 'priceRange', title: 'Price Range', type: 'RADIO', options: [
-      { value: 'any', label: 'Any Budget' },
-      { value: '30000-100000', label: '₹30K - ₹1L' },
-      { value: '100000-300000', label: '₹1L - ₹3L' },
-      { value: '300000-500000', label: '₹3L - ₹5L' },
-      { value: '500000+', label: '₹5L+' }
+    { name: 'materialSpecialty', title: 'Jewelry Material', type: 'CHECKBOX', options: [
+      { value: 'Gold 22k/24k', label: 'Gold 22k/24k' },
+      { value: 'Diamond/Platinum', label: 'Diamond/Platinum' },
+      { value: 'Imitation/Kundan', label: 'Imitation/Kundan' },
+      { value: 'Antique Temple Jewelry', label: 'Antique Temple Jewelry' }
     ]},
-    { name: 'clothingType', title: 'Clothing/Apparel', type: 'CHECKBOX', options: [
-      { value: 'bridal-lehenga', label: 'Bridal Lehenga' },
-      { value: 'saree', label: 'Saree' },
-      { value: 'groom-sherwani', label: 'Groom Sherwani' },
-      { value: 'designer-wear', label: 'Designer Wear' },
-      { value: 'customization', label: 'Customization' }
+    { name: 'deliveryTimeline', title: 'Delivery Timeline (Apparel)', type: 'CHECKBOX', options: [
+      { value: 'Immediate (Off the rack)', label: 'Immediate (Off the rack)' },
+      { value: '2-4 Weeks', label: '2-4 Weeks' },
+      { value: '4-6 Months (Custom)', label: '4-6 Months (Custom)' }
     ]}
   ],
   LOGISTICS: [
-    { name: 'serviceType', title: 'Service Type', type: 'CHECKBOX', options: [
-      { value: 'invitation-cards', label: 'Invitation Cards' },
-      { value: 'transportation', label: 'Transportation (Cars/Buses)' },
-      { value: 'honeymoon', label: 'Honeymoon Packages' },
-      { value: 'astrology', label: 'Astrology Services' },
-      { value: 'event-planning', label: 'Event Planning' }
+    { name: 'vehicleTypes', title: 'Transport Options', type: 'CHECKBOX', options: [
+      { value: 'Luxury Bridal Cars (Audi/BMW)', label: 'Luxury Bridal Cars' },
+      { value: 'Vintage & Classic Cars', label: 'Vintage Cars' },
+      { value: 'Large AC Buses (40-50 Seater)', label: 'Buses (40-50 Seater)' },
+      { value: 'Mini Buses (20-30 Seater)', label: 'Mini Buses (20-30 Seater)' },
+      { value: 'Tempo Travellers (12-15 Seater)', label: 'Tempo Travellers' },
+      { value: 'Helicopter/Charter (Entry)', label: 'Helicopter Entry' }
+    ]},
+    { name: 'videoInvites', title: 'Video & Digital Invites', type: 'CHECKBOX', options: [
+      { value: '3D Animation & Caricatures', label: '3D Caricatures' },
+      { value: 'Cinematic Love Story Videos', label: 'Cinematic Videos' },
+      { value: 'WhatsApp Optimized MP4 Templates', label: 'WhatsApp Videos' }
+    ]},
+    { name: 'consultationMode', title: 'Consultation Mode', type: 'CHECKBOX', options: [
+      { value: 'Online/Video Call', label: 'Online / Video Call' },
+      { value: 'AI Chatbot Consultations', label: 'AI Chatbot Consultations' },
+      { value: 'In-Person (At Home/Venue)', label: 'In-Person' }
+    ]},
+    { name: 'servicesProvided', title: 'Astrology/Pundit Services', type: 'CHECKBOX', options: [
+      { value: 'Traditional Horoscope Matching', label: 'Traditional Matching' },
+      { value: 'AI-Powered Kundali Matching', label: 'AI Kundali Matching' },
+      { value: 'Vivah Pooja (Saptapadi/Havan)', label: 'Vivah Pooja (Saptapadi)' }
+    ]},
+    { name: 'languagesSpoken', title: 'Languages', type: 'CHECKBOX', options: [
+      { value: 'Hindi', label: 'Hindi' },
+      { value: 'Sanskrit', label: 'Sanskrit' },
+      { value: 'Telugu', label: 'Telugu' },
+      { value: 'Marathi', label: 'Marathi' }
+    ]},
+    { name: 'destinations', title: 'Honeymoon Destinations', type: 'CHECKBOX', options: [
+      { value: 'Domestic (Kashmir, Kerala, Goa)', label: 'Domestic India' },
+      { value: 'International (Bali, Maldives, Dubai)', label: 'Asia & Middle East' },
+      { value: 'Premium (Europe, Americas)', label: 'Europe & Americas' }
+    ]},
+    { name: 'packageInclusions', title: 'Honeymoon Inclusions', type: 'CHECKBOX', options: [
+      { value: 'Visa Assistance Provided', label: 'Visa Assistance' },
+      { value: 'Flights Included', label: 'Flights Included' }
     ]},
     { name: 'priceRange', title: 'Price Range', type: 'RADIO', options: [
       { value: 'any', label: 'Any Budget' },
@@ -229,7 +312,7 @@ const PHOTO_CATEGORIES = ['Photography & Videography'];
 const MAKEUP_CATEGORIES = ['Makeup Artists (MUA)', 'Mehndi Designers'];
 const CATERING_CATEGORIES = ['Catering Service'];
 const DECOR_CATEGORIES = ['Stage & Venue Decor', 'Event Planners'];
-const DJ_CATEGORIES = ['DJs & Sound Systems', 'Live Musicians / Band Baaja'];
+const DJ_CATEGORIES = ['DJs & Sound Systems', 'Live Musicians / Band Baaja', 'Wedding Choreographers', 'Special Entertainment Acts'];
 const JEWELRY_CATEGORIES = ['Wedding Clothes / Boutiques', 'Jewelry Shops'];
 const LOGISTICS_CATEGORIES = ['Wedding Cards & Invites', 'Cars & Buses (Travel)', 'Astrologers / Pundits', 'Honeymoon Packages'];
 
@@ -262,30 +345,33 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [],
   const [searchParams, setSearchParams] = useSearchParams();
   const { isCategoryEnabled } = useSettings();
   
-  const inHouseCatering = searchParams.get('inHouseCatering') === 'true';
-  const inHousePhotography = searchParams.get('inHousePhotography') === 'true';
-  const inHouseDecorations = searchParams.get('inHouseDecorations') === 'true';
-
-  const handleInHouseChange = (field, checked) => {
-    const newParams = new URLSearchParams(searchParams);
-    if (checked) newParams.set(field, 'true');
-    else newParams.delete(field);
-    setSearchParams(newParams);
-  };
-
   const handleDynamicFilterChange = (field, value, type, checked) => {
     const newParams = new URLSearchParams(searchParams);
-    const paramKey = `dynamic_${field}`;
     
-    if (type === 'RADIO') {
-      newParams.set(paramKey, value);
-    } else if (type === 'CHECKBOX') {
-      const currentVals = newParams.getAll(paramKey);
-      newParams.delete(paramKey);
-      let newVals = [...currentVals];
-      if (checked) newVals.push(value);
-      else newVals = newVals.filter(v => v !== value);
-      newVals.forEach(v => newParams.append(paramKey, v));
+    // Special named params that go to their own API query param (not dynamic_)
+    const NAMED_PARAMS = ['capacity'];
+    
+    if (NAMED_PARAMS.includes(field)) {
+      if (type === 'RADIO') {
+        if (value === 'any') newParams.delete(field);
+        else newParams.set(field, value);
+      } else {
+        if (checked) newParams.set(field, 'true');
+        else newParams.delete(field);
+      }
+    } else {
+      const paramKey = `dynamic_${field}`;
+      if (type === 'RADIO') {
+        if (value === 'any') newParams.delete(paramKey);
+        else newParams.set(paramKey, value);
+      } else if (type === 'CHECKBOX') {
+        const currentVals = newParams.getAll(paramKey);
+        newParams.delete(paramKey);
+        let newVals = [...currentVals];
+        if (checked) newVals.push(value);
+        else newVals = newVals.filter(v => v !== value);
+        newVals.forEach(v => newParams.append(paramKey, v));
+      }
     }
     setSearchParams(newParams);
   };
@@ -338,6 +424,8 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [],
     fetchFilters();
   }, [activeSchemas]);
 
+  const NAMED_PARAMS = ['capacity'];
+
   const renderDynamicBlock = (block, index) => {
     const uniqueKey = `${block.name}-${block.title}-${index}`;
     if (block.type === 'RADIO') {
@@ -346,7 +434,7 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [],
           <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">{block.title}</h3>
           <div className="flex flex-col gap-3">
             {block.options.map((opt, idx) => {
-              const paramKey = `dynamic_${block.name}`;
+              const paramKey = NAMED_PARAMS.includes(block.name) ? block.name : `dynamic_${block.name}`;
               const isChecked = searchParams.get(paramKey) === opt.value || (!searchParams.has(paramKey) && idx === 0);
               return (
               <label key={opt.value} className="flex items-center gap-3 cursor-pointer group">
@@ -372,7 +460,7 @@ const FilterSidebar = ({ isMobileOpen, setIsMobileOpen, selectedCategories = [],
           <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">{block.title}</h3>
           <div className="flex flex-col gap-3">
             {block.options.map((opt) => {
-              const paramKey = `dynamic_${block.name}`;
+              const paramKey = NAMED_PARAMS.includes(block.name) ? block.name : `dynamic_${block.name}`;
               const isChecked = searchParams.getAll(paramKey).includes(opt.value);
               return (
               <label key={opt.value} className="flex items-center gap-3 cursor-pointer group">

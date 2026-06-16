@@ -1,18 +1,15 @@
 export const getCategorySchema = (category) => {
   // 1. Venues Group
-  const venueCategories = [
-    'Banquet Halls', 'Kalyana Mandapams', 'Open Lawns & Farmhouses', 
-    'Resorts & Destination Venues', '5-Star Hotels', 'Party & Mini Halls', 'Temples & Ashrams'
-  ];
-  if (venueCategories.includes(category)) {
+  // 1. Banquet Halls
+  if (category === 'Banquet Halls') {
     return {
-      aboutTitle: 'About this Venue',
-      featuresTitle: 'Venue Amenities',
+      aboutTitle: 'About this Banquet Hall',
+      featuresTitle: 'Banquet Facilities',
       pricingUnit: '/ plate',
       featuresList: [
-        'Air Conditioned Halls', 'Ample Valet Parking', 'Bridal Dressing Room',
-        'In-house Catering', 'Outside Decorators Allowed', 'Liquor License Available',
-        'Power Backup', 'Wheelchair Accessible', 'DJ Services Available'
+        'Air Conditioned Halls', 'Valet Parking Available', 'Bridal Dressing Room',
+        'In-house Catering', 'Liquor License Available', 'Power Backup', 
+        'Wheelchair Accessible', 'Stage Available', 'AV Setup Ready'
       ],
       bookingFields: [
         { id: 'date', label: 'Event Date', type: 'date', icon: 'Calendar' },
@@ -20,18 +17,212 @@ export const getCategorySchema = (category) => {
         { id: 'eventType', label: 'Event Time', type: 'select', icon: 'Clock', options: ['Morning (Lunch)', 'Evening (Dinner)', 'Full Day'] }
       ],
       vendorFormFields: [
-        { id: 'capacity', label: 'Max Guest Capacity', type: 'number', placeholder: 'e.g. 500' },
-        { id: 'rooms', label: 'Number of Rooms', type: 'number', placeholder: 'e.g. 10' },
-        { id: 'parking', label: 'Parking Capacity (Cars)', type: 'number', placeholder: 'e.g. 50' },
-        { id: 'ac', label: 'Air Conditioning', type: 'select', options: ['Fully AC', 'Non-AC', 'Partial AC'] },
+        { id: 'eventsCovered', label: 'Event Types Covered', type: 'multiselect', options: ['Weddings', 'Corporate Events', 'Birthdays & Parties', 'Pre-Wedding Functions'] },
+        { id: 'capacity', label: 'Max Guest Capacity (Floating)', type: 'number', placeholder: 'e.g. 800' },
+        { id: 'noOfHalls', label: 'Number of Indoor Halls', type: 'number', placeholder: 'e.g. 2' },
+        { id: 'stageDimensions', label: 'Stage Dimensions (ft)', type: 'text', placeholder: 'e.g. 20x40' },
+        { id: 'parking', label: 'Parking Capacity (Cars)', type: 'number', placeholder: 'e.g. 150' },
+        { id: 'generatorKVA', label: 'Generator Backup (KVA)', type: 'text', placeholder: 'e.g. 125 KVA' },
         { id: 'vegPlatePrice', label: 'Veg Plate Price (₹)', type: 'number', placeholder: 'e.g. 800' },
         { id: 'nonVegPlatePrice', label: 'Non-Veg Plate Price (₹)', type: 'number', placeholder: 'e.g. 1200' },
-        { id: 'rentalPrice', label: 'Standard Venue Rental Price (₹)', type: 'number', placeholder: 'e.g. 150000' },
+        { id: 'rentalPrice', label: 'Venue Rental Price (₹)', type: 'number', placeholder: 'e.g. 150000' },
         { id: 'inHouseCatering', label: 'Catering Policy', type: 'select', options: ['In-house Only', 'Outside Allowed', 'Both Available'] },
-        { id: 'inHousePhotography', label: 'Photography Policy', type: 'select', options: ['In-house Only', 'Outside Allowed', 'Both Available'] },
         { id: 'inHouseDecorations', label: 'Decor Policy', type: 'select', options: ['In-house Only', 'Outside Allowed', 'Both Available'] },
         { id: 'alcoholPolicy', label: 'Alcohol Policy', type: 'select', options: ['Not Allowed', 'Allowed (With License)', 'Allowed (In-house provided)'] },
-        { id: 'djPolicy', label: 'DJ Policy', type: 'select', options: ['In-house Only', 'Outside DJ Allowed', 'Late-night Allowed'] }
+        { id: 'corkageFee', label: 'Corkage Fee (if external alcohol)', type: 'text', placeholder: 'e.g. ₹500 per bottle' },
+        { id: 'djPolicy', label: 'DJ Policy', type: 'select', options: ['In-house Only', 'Outside DJ Allowed', 'Late-night Allowed'] },
+        { id: 'fireSafetyNOC', label: 'Fire Safety NOC Status', type: 'select', options: ['Active & Valid', 'Pending Renewal', 'Not Available'] }
+      ]
+    };
+  }
+
+  // 2. Kalyana Mandapams
+  if (category === 'Kalyana Mandapams') {
+    return {
+      aboutTitle: 'About this Mandapam',
+      featuresTitle: 'Mandapam Facilities',
+      pricingUnit: '/ day',
+      featuresList: [
+        'Separate Dining Hall', 'Havan Kund Allowed', 'Bridal & Groom Rooms',
+        'Traditional Decor Ready', 'Pure Vegetarian Kitchen', '24/7 Power Backup', 
+        'Ample Guest Seating', 'Priest/Purohit Room'
+      ],
+      bookingFields: [
+        { id: 'date', label: 'Muhurtham Date', type: 'date', icon: 'Calendar' },
+        { id: 'guests', label: 'Guest Count', type: 'select', icon: 'Users', options: ['500 - 1000 Guests', '1000 - 2000 Guests', '2000+ Guests'] },
+        { id: 'time', label: 'Duration', type: 'select', icon: 'Clock', options: ['12 Hours (Half Day)', '24 Hours (Full Day)', '48 Hours (2 Days)'] }
+      ],
+      vendorFormFields: [
+        { id: 'eventsCovered', label: 'Event Types Covered', type: 'multiselect', options: ['Weddings', 'Upanayanam', 'Half-Saree Functions', 'Barasala'] },
+        { id: 'capacity', label: 'Main Hall Capacity (Seating)', type: 'number', placeholder: 'e.g. 1000' },
+        { id: 'diningHallCapacity', label: 'Separate Dining Hall Capacity', type: 'number', placeholder: 'e.g. 500' },
+        { id: 'rooms', label: 'Number of AC/Non-AC Rooms', type: 'number', placeholder: 'e.g. 15' },
+        { id: 'parking', label: 'Parking Capacity (Cars)', type: 'number', placeholder: 'e.g. 100' },
+        { id: 'rentalModel', label: 'Rental Model', type: 'select', options: ['Fixed Rental Fee', 'Dharmic (Voluntary Donation)', 'Cleaning Charges Only'] },
+        { id: 'rentalPrice', label: 'Standard Rental Fee (₹) (Leave blank if Dharmic)', type: 'number', placeholder: 'e.g. 80000' },
+        { id: 'strictVegOnly', label: 'Kitchen Policy', type: 'select', options: ['Strictly Pure Veg Only', 'Both Veg & Non-Veg Allowed'] },
+        { id: 'religiousRestrictions', label: 'Religious/Cultural Restrictions', type: 'select', options: ['No Alcohol Allowed', 'No Meat/Alcohol Allowed', 'No Restrictions'] },
+        { id: 'havanKundSpace', label: 'Dedicated Havan Kund/Fire Pit Space', type: 'select', options: ['Yes', 'No'] },
+        { id: 'noiseCurfew', label: 'Loudspeaker / Nadaswaram Curfew', type: 'text', placeholder: 'e.g. strictly till 10 PM' }
+      ]
+    };
+  }
+
+  // 3. Open Lawns & Farmhouses
+  if (category === 'Open Lawns & Farmhouses') {
+    return {
+      aboutTitle: 'About this Outdoor Venue',
+      featuresTitle: 'Lawn & Estate Amenities',
+      pricingUnit: '/ event',
+      featuresList: [
+        'Lush Green Lawns', 'Swimming Pool', 'Overnight Stay Available',
+        'Pet Friendly', 'Outside Catering Allowed', 'Heavy Generator Backup', 
+        'Tent/Shamiana Support', 'Open Sky Bar Area'
+      ],
+      bookingFields: [
+        { id: 'date', label: 'Event Date', type: 'date', icon: 'Calendar' },
+        { id: 'guests', label: 'Guest Count', type: 'select', icon: 'Users', options: ['Up to 100 Guests', '100 - 500 Guests', '500+ Guests'] },
+        { id: 'eventType', label: 'Event Type', type: 'select', icon: 'PartyPopper', options: ['Wedding/Reception', 'Corporate Offsite', 'Pool Party', 'Mehendi/Sangeet'] }
+      ],
+      vendorFormFields: [
+        { id: 'eventsCovered', label: 'Event Types Covered', type: 'multiselect', options: ['Weddings', 'Corporate Offsites', 'Pool Parties', 'Sangeet & Mehendi'] },
+        { id: 'totalAreaAcres', label: 'Total Area (in Acres or Sq.ft)', type: 'text', placeholder: 'e.g. 2 Acres' },
+        { id: 'capacity', label: 'Max Guest Capacity (Floating)', type: 'number', placeholder: 'e.g. 1500' },
+        { id: 'overnightStayCapacity', label: 'Overnight Stay Capacity (Beds)', type: 'number', placeholder: 'e.g. 40' },
+        { id: 'poolAvailable', label: 'Swimming Pool', type: 'select', options: ['Yes - Available for Events', 'No Pool'] },
+        { id: 'distanceFromCity', label: 'Distance from nearest City Center (km)', type: 'number', placeholder: 'e.g. 25' },
+        { id: 'weatherContingency', label: 'Weather/Rain Contingency Plan', type: 'select', options: ['Waterproof Tents Available', 'Indoor Hall Backup', 'No Backup Available'] },
+        { id: 'rentalPrice', label: 'Lawn Rental Price (₹)', type: 'number', placeholder: 'e.g. 120000' },
+        { id: 'vegPlatePrice', label: 'Veg Plate Price (If in-house) (₹)', type: 'number', placeholder: 'e.g. 600' },
+        { id: 'inHouseCatering', label: 'Catering Policy', type: 'select', options: ['Outside Allowed', 'In-house Only', 'Both Available'] },
+        { id: 'inHouseDecorations', label: 'Decor & Tent Policy', type: 'select', options: ['Outside Allowed', 'In-house Only', 'Both Available'] },
+        { id: 'alcoholPolicy', label: 'Alcohol Policy', type: 'select', options: ['Allowed (With License)', 'Not Allowed', 'Allowed (In-house provided)'] }
+      ]
+    };
+  }
+
+  // 4. Resorts & Destination Venues
+  if (category === 'Resorts & Destination Venues') {
+    return {
+      aboutTitle: 'About this Resort',
+      featuresTitle: 'Resort Amenities & MICE',
+      pricingUnit: 'package',
+      featuresList: [
+        'Luxury Accommodation', 'Multiple Event Spaces', 'Spa & Wellness',
+        'Corporate MICE Facilities', 'Multi-Cuisine Restaurants', 'Airport Transfers', 
+        'Dedicated Event Managers', 'High-Speed Wi-Fi'
+      ],
+      bookingFields: [
+        { id: 'date', label: 'Check-in Date', type: 'date', icon: 'Calendar' },
+        { id: 'nights', label: 'Number of Nights', type: 'select', icon: 'Clock', options: ['1 Night', '2 Nights', '3+ Nights'] },
+        { id: 'guests', label: 'Guest Count', type: 'select', icon: 'Users', options: ['Up to 50 Guests', '50 - 150 Guests', '150+ Guests'] }
+      ],
+      vendorFormFields: [
+        { id: 'eventsCovered', label: 'Event Types Covered', type: 'multiselect', options: ['Destination Weddings', 'Corporate Retreats / MICE', 'Family Getaways'] },
+        { id: 'capacity', label: 'Largest Event Space Capacity', type: 'number', placeholder: 'e.g. 600' },
+        { id: 'totalRooms', label: 'Total Rooms/Villas Available', type: 'number', placeholder: 'e.g. 80' },
+        { id: 'suiteCount', label: 'Number of Luxury Suites', type: 'number', placeholder: 'e.g. 5' },
+        { id: 'eventSpacesCount', label: 'Number of Distinct Event Spaces (Indoor & Outdoor)', type: 'number', placeholder: 'e.g. 4' },
+        { id: 'corporateMICE', label: 'Corporate MICE Capability', type: 'select', options: ['Full MICE Infrastructure', 'Basic Meeting Rooms', 'Leisure Only'] },
+        { id: 'distanceFromAirport', label: 'Distance from nearest Airport (km)', type: 'number', placeholder: 'e.g. 45' },
+        { id: 'minBookingNights', label: 'Minimum Booking for Weddings', type: 'select', options: ['1 Night', '2 Nights', 'No Minimum'] },
+        { id: 'vegPlatePrice', label: 'Standard Meals/Day per Guest (₹)', type: 'number', placeholder: 'e.g. 2500' },
+        { id: 'rentalPrice', label: 'Full Resort Buyout Price / Day (₹)', type: 'number', placeholder: 'e.g. 1500000' }
+      ]
+    };
+  }
+
+  // 5. 5-Star Hotels
+  if (category === '5-Star Hotels') {
+    return {
+      aboutTitle: 'About this Luxury Hotel',
+      featuresTitle: 'Luxury & MICE Amenities',
+      pricingUnit: '/ plate',
+      featuresList: [
+        'Pillar-less Ballrooms', 'Executive Breakout Rooms', 'Advanced AV & Tech',
+        'Gourmet Catering', 'Valet & Concierge', 'Business Center', 
+        'Helipad/VIP Access', 'Hybrid Event Streaming'
+      ],
+      bookingFields: [
+        { id: 'date', label: 'Event Date', type: 'date', icon: 'Calendar' },
+        { id: 'guests', label: 'Guest Count', type: 'select', icon: 'Users', options: ['50 - 200 Guests', '200 - 500 Guests', '500+ Guests'] },
+        { id: 'eventType', label: 'Event Category', type: 'select', icon: 'PartyPopper', options: ['Corporate Conference', 'Luxury Wedding', 'Gala Dinner', 'Exhibition'] }
+      ],
+      vendorFormFields: [
+        { id: 'eventsCovered', label: 'Event Types Covered', type: 'multiselect', options: ['Corporate Conferences (MICE)', 'Luxury Weddings', 'Product Launches', 'Award Nights'] },
+        { id: 'capacity', label: 'Main Ballroom Capacity (Theatre Style)', type: 'number', placeholder: 'e.g. 1200' },
+        { id: 'ballroomCapacityBanquet', label: 'Main Ballroom Capacity (Round Table/Banquet)', type: 'number', placeholder: 'e.g. 800' },
+        { id: 'breakoutRooms', label: 'Number of Meeting/Breakout Rooms', type: 'number', placeholder: 'e.g. 6' },
+        { id: 'pillarFree', label: 'Is Main Ballroom Pillar-free?', type: 'select', options: ['Yes, completely pillar-free', 'No, contains pillars'] },
+        { id: 'ceilingHeight', label: 'Main Ballroom Ceiling Height (ft)', type: 'text', placeholder: 'e.g. 22 ft' },
+        { id: 'avSetup', label: 'Built-in AV Infrastructure', type: 'multiselect', options: ['LED Video Walls', 'High-Lumen Projectors', 'Ceiling Speakers', 'Live Streaming/Hybrid Setup'] },
+        { id: 'wifiBandwidth', label: 'Dedicated Event Wi-Fi Bandwidth', type: 'text', placeholder: 'e.g. Up to 1 Gbps' },
+        { id: 'loadingBay', label: 'Heavy Equipment/Car Loading Bay Access', type: 'select', options: ['Yes', 'No'] },
+        { id: 'rooms', label: 'Total Guest Rooms Available', type: 'number', placeholder: 'e.g. 250' },
+        { id: 'vegPlatePrice', label: 'Veg Plate Starting Price (₹)', type: 'number', placeholder: 'e.g. 2500' },
+        { id: 'nonVegPlatePrice', label: 'Non-Veg Plate Starting Price (₹)', type: 'number', placeholder: 'e.g. 3000' }
+      ]
+    };
+  }
+
+  // 6. Party & Mini Halls
+  if (category === 'Party & Mini Halls') {
+    return {
+      aboutTitle: 'About this Party Hall',
+      featuresTitle: 'Party Amenities',
+      pricingUnit: '/ hour',
+      featuresList: [
+        'Dance Floor', 'Music System Provided', 'Flexible Hourly Booking',
+        'AC Hall', 'Outside Food Allowed', 'BYOB Friendly', 
+        'Basic Decor Included'
+      ],
+      bookingFields: [
+        { id: 'date', label: 'Event Date', type: 'date', icon: 'Calendar' },
+        { id: 'guests', label: 'Guest Count', type: 'select', icon: 'Users', options: ['Up to 30 Guests', '30 - 75 Guests', '75 - 150 Guests'] },
+        { id: 'duration', label: 'Duration', type: 'select', icon: 'Clock', options: ['3 Hours', '5 Hours', 'Full Day'] }
+      ],
+      vendorFormFields: [
+        { id: 'eventsCovered', label: 'Event Types Covered', type: 'multiselect', options: ['Birthdays', 'Anniversaries', 'Baby Showers', 'Small Get-Togethers'] },
+        { id: 'capacity', label: 'Max Guest Capacity', type: 'number', placeholder: 'e.g. 100' },
+        { id: 'minBookingHours', label: 'Minimum Booking Duration (Hours)', type: 'number', placeholder: 'e.g. 3' },
+        { id: 'hourlyRate', label: 'Hourly Rate (₹)', type: 'number', placeholder: 'e.g. 2000' },
+        { id: 'rentalPrice', label: 'Full Day Rate (₹)', type: 'number', placeholder: 'e.g. 15000' },
+        { id: 'danceFloor', label: 'Dance Floor / Stage Area', type: 'select', options: ['Available', 'Not Available'] },
+        { id: 'lateNightMusic', label: 'Late Night Music Allowed?', type: 'select', options: ['Yes (Soundproofed)', 'No (Curfew at 10 PM)'] },
+        { id: 'byobPolicy', label: 'BYOB (Bring Your Own Booze) Policy', type: 'select', options: ['Allowed with permit', 'Not Allowed', 'Strictly dry venue'] },
+        { id: 'cleaningChargesIncluded', label: 'Are cleaning charges included in rent?', type: 'select', options: ['Yes, included', 'No, extra charges apply'] },
+        { id: 'inHouseCatering', label: 'Outside Food Allowed?', type: 'select', options: ['Yes, bring your own food', 'In-house catering only', 'Both Available'] }
+      ]
+    };
+  }
+
+  // 7. Temples & Ashrams
+  if (category === 'Temples & Ashrams') {
+    return {
+      aboutTitle: 'About this Sacred Venue',
+      featuresTitle: 'Temple/Ashram Facilities',
+      pricingUnit: '/ event',
+      featuresList: [
+        'Sacred Sanctum Access', 'Resident Priests Available', 'Traditional Dining Hall',
+        'Pure Veg Prasad/Meals', 'Serene Environment', 'Havan Kund Area', 
+        'Cost-effective/Dharmic Pricing'
+      ],
+      bookingFields: [
+        { id: 'date', label: 'Muhurtham Date', type: 'date', icon: 'Calendar' },
+        { id: 'guests', label: 'Guest Count', type: 'select', icon: 'Users', options: ['Up to 50 Guests', '50 - 200 Guests', '200+ Guests'] },
+        { id: 'ceremony', label: 'Ceremony Type', type: 'select', icon: 'Flame', options: ['Wedding', 'Upanayanam', 'Naming Ceremony', 'Pooja/Homa'] }
+      ],
+      vendorFormFields: [
+        { id: 'eventsCovered', label: 'Ceremonies Supported', type: 'multiselect', options: ['Traditional Weddings', 'Upanayanam', 'Annaprashana', 'Special Poojas'] },
+        { id: 'religiousAffiliation', label: 'Religious/Sect Affiliation (if any)', type: 'text', placeholder: 'e.g. ISKCON, Shaivite, Jain, etc.' },
+        { id: 'capacity', label: 'Main Hall Capacity', type: 'number', placeholder: 'e.g. 300' },
+        { id: 'onSitePriest', label: 'Resident Priest / Purohit Available?', type: 'select', options: ['Yes, available for booking', 'No, bring your own'] },
+        { id: 'photographyRestrictions', label: 'Photography/Videography Rules', type: 'select', options: ['Allowed everywhere', 'Not allowed inside main sanctum', 'Strictly prohibited'] },
+        { id: 'rentalModel', label: 'Pricing Model', type: 'select', options: ['Fixed Trust Fee', 'Voluntary Donation (Dharmic)', 'Free of Cost'] },
+        { id: 'rentalPrice', label: 'Trust Fee/Rent (₹) (Leave blank if donation)', type: 'number', placeholder: 'e.g. 5000' },
+        { id: 'vegPlatePrice', label: 'Prasad/Meals per plate (₹)', type: 'number', placeholder: 'e.g. 150' },
+        { id: 'openToAllCommunities', label: 'Open to all communities/castes?', type: 'select', options: ['Yes, open to all', 'Restricted to specific groups'] },
+        { id: 'strictVegOnly', label: 'Kitchen & Premises Rules', type: 'select', options: ['Strictly Pure Veg & Alcohol Free', 'Onion/Garlic Free (Sattvic)'] }
       ]
     };
   }
@@ -59,6 +250,7 @@ export const getCategorySchema = (category) => {
       vendorFormFields: [
         { id: 'eventsCovered', label: 'Event Types Covered', type: 'multiselect', options: ['Weddings & Receptions', 'Pre-Wedding (Haldi/Mehendi)', 'Corporate Events', 'Birthdays/Anniversaries', 'Concerts/Festivals'] },
         { id: 'serviceTypes', label: 'Services Offered', type: 'multiselect', options: ['Candid Photography', 'Traditional Photography', 'Cinematic Videography', 'Traditional Videography', 'Drone Shoots', 'Photobooths'] },
+        { id: 'corporateSpecific', label: 'Corporate Services', type: 'multiselect', options: ['Headshots', 'Same-day PR Edits', 'Multi-camera Streaming', 'Event Archives'] },
         { id: 'travelPolicy', label: 'Travel Policy', type: 'select', options: ['Outstation travel & stay paid by client', 'Included in package', 'Does not travel outstation'] },
         { id: 'deliveryTime', label: 'Delivery Timeline', type: 'select', options: ['2 Weeks', '4 Weeks', '8+ Weeks'] },
         { id: 'advancePayment', label: 'Advance Payment Required', type: 'select', options: ['10%', '20%', '50%', 'Full Payment'] },
@@ -94,8 +286,10 @@ export const getCategorySchema = (category) => {
         { id: 'makeupTech', label: 'Technique', type: 'select', icon: 'Wand2', options: ['Standard HD', 'Premium Airbrush', 'Signature Look'] }
       ],
       vendorFormFields: [
-        { id: 'travels', label: 'Travels to Venue?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'trialAvailable', label: 'Trial Available?', type: 'select', options: ['Yes (Paid)', 'Yes (Free)', 'No Trial'] },
+        { id: 'makeupTechnique', label: 'Makeup Techniques', type: 'multiselect', options: ['HD Makeup', 'Airbrush', 'Traditional', 'Mineral/Organic'] },
+        { id: 'corporateSpecific', label: 'Corporate Services', type: 'multiselect', options: ['Corporate Headshots', 'Commercial/Ad Shoots', 'TV/Film Set Makeup', 'Event Touch-ups'] },
+        { id: 'travels', label: 'Travels to Venue?', type: 'select', options: ['Yes', 'No (Studio Only)'] },
+        { id: 'trialAvailable', label: 'Trial Policy', type: 'select', options: ['Yes (Paid)', 'Yes (Free)', 'No Trial'] },
         { id: 'brandsUsed', label: 'Top Brands Used (e.g. MAC, Huda)', type: 'text', placeholder: 'Enter top brands...' }
       ]
     };
@@ -140,9 +334,10 @@ export const getCategorySchema = (category) => {
         { id: 'service', label: 'Service', type: 'select', icon: 'Scissors', options: ['Purchase (Readymade)', 'Purchase (Custom Tailored)', 'Rental'] }
       ],
       vendorFormFields: [
-        { id: 'customTailoring', label: 'Custom Tailoring Available?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'rentalAvailable', label: 'Rental Option Available?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'deliveryTime', label: 'Average Delivery Time (Days)', type: 'number', placeholder: 'e.g. 15' }
+        { id: 'serviceModel', label: 'Service Model', type: 'multiselect', options: ['Purchase (Readymade)', 'Custom Tailoring/Bespoke', 'Rental Services'] },
+        { id: 'customization', label: 'Customization Level', type: 'select', options: ['Full Custom Design', 'Basic Alterations Only', 'None (Off the rack)'] },
+        { id: 'deliveryTimeline', label: 'Average Delivery Time', type: 'select', options: ['Immediate (Off the rack)', '2-4 Weeks', '4-6 Months (Custom)'] },
+        { id: 'securityDeposit', label: 'Rental Security Deposit (If applicable)', type: 'select', options: ['None', '25% of value', '50% of value', 'Flat Fee'] }
       ]
     };
   }
@@ -163,9 +358,10 @@ export const getCategorySchema = (category) => {
         { id: 'material', label: 'Preferred Material', type: 'select', icon: 'Sparkles', options: ['Gold 22k', 'Diamond / Platinum', 'Imitation / Rental'] }
       ],
       vendorFormFields: [
-        { id: 'hallmarkCertified', label: 'Hallmark Certified?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'customDesigns', label: 'Custom Designs Available?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'buybackPolicy', label: 'Buyback Policy Available?', type: 'select', options: ['Yes', 'No'] }
+        { id: 'serviceModel', label: 'Service Model', type: 'multiselect', options: ['Purchase (New)', 'Rental Services', 'Jewelry Exchange/Upgrade'] },
+        { id: 'materialSpecialty', label: 'Material Specialty', type: 'multiselect', options: ['Gold 22k/24k', 'Diamond/Platinum', 'Imitation/Kundan', 'Antique Temple Jewelry'] },
+        { id: 'hallmarkCertified', label: 'Hallmark Certified?', type: 'select', options: ['Yes (100% Certified)', 'No'] },
+        { id: 'buybackPolicy', label: 'Buyback/Exchange Policy', type: 'select', options: ['Lifetime Exchange Available', 'Deduction based on current rate', 'No Buyback'] }
       ]
     };
   }
@@ -186,9 +382,12 @@ export const getCategorySchema = (category) => {
         { id: 'setupRequired', label: 'Sound Setup', type: 'select', icon: 'Speaker', options: ['Performance Only (Venue has sound)', 'Full Setup (Sound + Lights + Artist)'] }
       ],
       vendorFormFields: [
-        { id: 'ownSoundEquipment', label: 'Own Sound Equipment?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'genreSpecialties', label: 'Genre Specialties (e.g. Bollywood, EDM)', type: 'text', placeholder: 'Enter genres...' },
-        { id: 'languages', label: 'Languages/Regions', type: 'text', placeholder: 'e.g. Hindi, Telugu, English' }
+        { id: 'serviceTypes', label: 'Service Types', type: 'multiselect', options: ['DJ Only', 'Live Band', 'Live Singers', 'Orchestra', 'Emcee/Anchor', 'Sound System Only'] },
+        { id: 'corporateSpecific', label: 'Corporate Services', type: 'multiselect', options: ['Conference Audio Support', 'Award Show Walk-ons', 'Background Corporate Jazz', 'Gala Dinner Entertainment'] },
+        { id: 'soundSetup', label: 'Sound Setup Provided', type: 'select', options: ['Performance Only (Venue has sound)', 'Full Setup (Sound + Lights)', 'PA System Only'] },
+        { id: 'musicGenre', label: 'Music Genres', type: 'multiselect', options: ['Bollywood', 'EDM/House', 'Sufi/Classical', 'Western/Pop', 'Regional/Folk'] },
+        { id: 'powerRequirements', label: 'Power Requirements (KW)', type: 'number', placeholder: 'e.g. 10' },
+        { id: 'travelsToVenue', label: 'Travels Outstation?', type: 'select', options: ['Yes (Client pays travel)', 'Included in package', 'No (Local Only)'] }
       ]
     };
   }
@@ -209,9 +408,10 @@ export const getCategorySchema = (category) => {
         { id: 'guestSize', label: 'Expected Guests', type: 'select', icon: 'Users', options: ['Intimate (< 150)', 'Standard (150 - 500)', 'Grand (500+)'] }
       ],
       vendorFormFields: [
-        { id: 'destinationWeddings', label: 'Handle Destination Weddings?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'inhouseProduction', label: 'In-house Decor Production?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'minimumBudget', label: 'Minimum Budget Requirement (₹)', type: 'number', placeholder: 'e.g. 500000' }
+        { id: 'planningType', label: 'Planning Scope', type: 'multiselect', options: ['Full Wedding Planning', 'Partial Planning', 'Month-Of Coordination', 'Corporate (MICE) Planning'] },
+        { id: 'destinationWeddings', label: 'Destination Weddings', type: 'multiselect', options: ['Domestic India', 'International', 'Local City Only'] },
+        { id: 'specialTrends', label: 'Specialized Trends', type: 'multiselect', options: ['Eco-friendly/Sustainable Weddings', 'Royal/Heritage Themes', 'Tech-driven (RSVP Apps/Drones)'] },
+        { id: 'inhouseProduction', label: 'In-house Decor Production?', type: 'select', options: ['Yes', 'No (Outsourced)'] }
       ]
     };
   }
@@ -232,9 +432,10 @@ export const getCategorySchema = (category) => {
         { id: 'mode', label: 'Mode of Service', type: 'select', icon: 'MonitorSmartphone', options: ['Online / Video Call', 'In-Person (at Home/Venue)'] }
       ],
       vendorFormFields: [
-        { id: 'languagesSpoken', label: 'Languages Spoken', type: 'text', placeholder: 'e.g. Hindi, Sanskrit, Telugu' },
-        { id: 'onlineConsultations', label: 'Provide Online Consultations?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'poojaSamagri', label: 'Provide Pooja Samagri?', type: 'select', options: ['Yes', 'No'] }
+        { id: 'servicesProvided', label: 'Vedic Services', type: 'multiselect', options: ['Traditional Horoscope Matching', 'AI-Powered Kundali Matching', 'Muhurtham Fixing', 'Vivah Pooja (Saptapadi/Havan)', 'Vastu Consultation'] },
+        { id: 'languagesSpoken', label: 'Languages Supported', type: 'multiselect', options: ['Hindi', 'Sanskrit', 'Telugu', 'Tamil', 'Marathi', 'Bengali', 'English'] },
+        { id: 'consultationMode', label: 'Consultation Mode', type: 'multiselect', options: ['Online/Video Call', 'AI Chatbot Consultations', 'In-Person (At Home/Venue)'] },
+        { id: 'poojaSamagri', label: 'Pooja Samagri Policy', type: 'select', options: ['Pandit brings Samagri', 'Client provides Samagri'] }
       ]
     };
   }
@@ -255,9 +456,9 @@ export const getCategorySchema = (category) => {
         { id: 'duration', label: 'Rental Duration', type: 'select', icon: 'Clock', options: ['Half Day (4 hrs / 40 km)', 'Full Day (8 hrs / 80 km)', 'Outstation Trip'] }
       ],
       vendorFormFields: [
-        { id: 'driverIncluded', label: 'Driver Included?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'minimumHours', label: 'Minimum Rental Hours', type: 'number', placeholder: 'e.g. 4' },
-        { id: 'outstationTravel', label: 'Available for Outstation?', type: 'select', options: ['Yes', 'No'] }
+        { id: 'vehicleTypes', label: 'Vehicle Fleet Options', type: 'multiselect', options: ['Luxury Bridal Cars (Audi/BMW)', 'Vintage & Classic Cars', 'Large AC Buses (40-50 Seater)', 'Mini Buses (20-30 Seater)', 'Tempo Travellers (12-15 Seater)', 'Helicopter/Charter (Entry)'] },
+        { id: 'outstationTravel', label: 'Outstation Travel', type: 'select', options: ['Local City Travel Only', 'Outstation Available'] },
+        { id: 'decorationIncluded', label: 'Floral Decoration', type: 'select', options: ['Included in Price', 'Available (Extra Charge)', 'Not Provided'] }
       ]
     };
   }
@@ -278,9 +479,9 @@ export const getCategorySchema = (category) => {
         { id: 'duration', label: 'Duration', type: 'select', icon: 'Clock', options: ['3-4 Nights', '5-7 Nights', '8+ Nights'] }
       ],
       vendorFormFields: [
-        { id: 'visaAssistance', label: 'Provide Visa Assistance?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'emiOptions', label: 'EMI Options Available?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'customItineraries', label: 'Custom Itineraries Available?', type: 'select', options: ['Yes', 'No'] }
+        { id: 'destinations', label: 'Destinations Offered', type: 'multiselect', options: ['Domestic (Kashmir, Kerala, Goa)', 'International (Bali, Maldives, Dubai)', 'Premium (Europe, Americas)'] },
+        { id: 'packageInclusions', label: 'Package Inclusions', type: 'multiselect', options: ['Flights Included', 'Visa Assistance Provided', 'All-Inclusive (Meals/Stay)', 'Private Transfers'] },
+        { id: 'customization', label: 'Customization Options', type: 'select', options: ['Fully Customizable Itineraries', 'Fixed Group Packages'] }
       ]
     };
   }
@@ -309,6 +510,7 @@ export const getCategorySchema = (category) => {
         { id: 'eventsCovered', label: 'Event Types Covered', type: 'multiselect', options: ['Weddings & Receptions', 'Pre-Wedding (Haldi/Mehendi)', 'Corporate Events', 'Birthdays/Anniversaries', 'Concerts/Festivals'] },
         { id: 'cuisineTypes', label: 'Cuisine Types', type: 'multiselect', options: ['North Indian', 'South Indian', 'Chinese', 'Continental', 'Live Chaat', 'Bakery/Desserts'] },
         { id: 'dietaryRestrictions', label: 'Dietary Options', type: 'multiselect', options: ['Pure Veg Only', 'Serves Non-Veg', 'Jain Food Available', 'Vegan Options'] },
+        { id: 'corporateSpecific', label: 'Corporate & MICE Options', type: 'multiselect', options: ['Coffee Breaks', 'High-Tea Setups', 'Working Lunches', 'Packed Meals'] },
         { id: 'vegPlatePrice', label: 'Starting Price (Veg Plate)', type: 'number', placeholder: 'e.g. 800' },
         { id: 'nonVegPlatePrice', label: 'Starting Price (Non-Veg Plate)', type: 'number', placeholder: 'e.g. 1200' },
         { id: 'minGuests', label: 'Minimum Guest Requirement', type: 'number', placeholder: 'e.g. 50' },
@@ -341,6 +543,7 @@ export const getCategorySchema = (category) => {
       vendorFormFields: [
         { id: 'eventsCovered', label: 'Event Types Covered', type: 'multiselect', options: ['Weddings & Receptions', 'Pre-Wedding (Haldi/Mehendi)', 'Corporate Events', 'Birthdays/Anniversaries', 'Concerts/Festivals'] },
         { id: 'specializations', label: 'Decor Specializations', type: 'multiselect', options: ['Floral Decor', 'Mandap Setup', 'Stage & Reception', 'Corporate Stage & Branding', 'Lighting & Trussing', 'Tents/Shamianas'] },
+        { id: 'corporateSpecific', label: 'Corporate AV & Stage', type: 'multiselect', options: ['LED Video Walls', 'Backdrop Logos', 'Stage Ramps/Accessibility', 'Product Podiums'] },
         { id: 'venueRestrictions', label: 'Venue Restrictions', type: 'select', options: ['Open to work at any venue', 'Only work at empanelled venues'] },
         { id: 'setupTime', label: 'Setup Time Required (Hours)', type: 'number', placeholder: 'e.g. 8' },
         { id: 'indoorPrice', label: 'Starting Price (Indoor Decor)', type: 'number', placeholder: 'e.g. 50000' },
@@ -365,9 +568,52 @@ export const getCategorySchema = (category) => {
         { id: 'quantity', label: 'Quantity (if physical)', type: 'select', icon: 'Layers', options: ['Digital Only (0)', '100 - 300 Copies', '300 - 500 Copies', '500+ Copies'] }
       ],
       vendorFormFields: [
-        { id: 'digitalInvites', label: 'Digital E-Invites Available?', type: 'select', options: ['Yes', 'No'] },
-        { id: 'minimumOrder', label: 'Minimum Order Quantity', type: 'number', placeholder: 'e.g. 100' },
-        { id: 'customCaricatures', label: 'Custom Caricatures Available?', type: 'select', options: ['Yes', 'No'] }
+        { id: 'inviteTypes', label: 'Invitation Formats', type: 'multiselect', options: ['Premium Box/Hamper Invites', 'Physical Paper Cards', 'Digital E-Invites'] },
+        { id: 'videoInvites', label: 'Video & Digital Formats', type: 'multiselect', options: ['3D Animation & Caricatures', 'Cinematic Love Story Videos', 'WhatsApp Optimized MP4 Templates', 'Interactive Web Links'] },
+        { id: 'deliveryTimeline', label: 'Average Delivery Time', type: 'select', options: ['2-3 Days (Digital)', '1-2 Weeks (Paper)', '3-4 Weeks (Custom Boxes)'] }
+      ]
+    };
+  }
+
+  // 15. Wedding Choreographers
+  if (category === 'Wedding Choreographers') {
+    return {
+      aboutTitle: 'About the Choreographer',
+      featuresTitle: 'Dance Styles & Specialties',
+      pricingUnit: '/ performance',
+      featuresList: [
+        'Bollywood & Punjabi', 'Classical & Semi-Classical', 'Hip-Hop & Contemporary',
+        'Couple Entries', 'Family Medleys', 'Sangeet Specials'
+      ],
+      bookingFields: [
+        { id: 'date', label: 'Sangeet / Event Date', type: 'date', icon: 'Calendar' },
+        { id: 'songsCount', label: 'Number of Songs', type: 'select', icon: 'Music', options: ['1-3 Songs', '4-7 Songs', 'Full Sangeet Direction'] }
+      ],
+      vendorFormFields: [
+        { id: 'danceStyles', label: 'Dance Styles', type: 'multiselect', options: ['Bollywood', 'Punjabi / Bhangra', 'Classical', 'Hip-Hop', 'Contemporary'] },
+        { id: 'practiceLocation', label: 'Practice Location', type: 'select', options: ['Choreographer Studio', 'Client Venue/Home', 'Both Available'] },
+        { id: 'backupDancers', label: 'Backup Dancers Provided', type: 'select', options: ['Yes', 'No', 'Available on Request'] }
+      ]
+    };
+  }
+
+  // 16. Special Entertainment Acts
+  if (category === 'Special Entertainment Acts') {
+    return {
+      aboutTitle: 'About the Entertainment Act',
+      featuresTitle: 'Performance Types',
+      pricingUnit: '/ hour',
+      featuresList: [
+        'Fire Dancers', 'Magicians / Illusionists', 'Aerial Acts',
+        'Stand-up Comedy', 'Celebrity Appearances', 'Interactive Crowd Acts'
+      ],
+      bookingFields: [
+        { id: 'date', label: 'Event Date', type: 'date', icon: 'Calendar' },
+        { id: 'duration', label: 'Performance Duration', type: 'select', icon: 'Clock', options: ['15-30 Mins (Entry/Filler)', '1-2 Hours (Main Act)', 'Full Event Engagement'] }
+      ],
+      vendorFormFields: [
+        { id: 'actTypes', label: 'Types of Acts', type: 'multiselect', options: ['Fire Dancers', 'Magicians / Illusionists', 'Aerial / Acrobats', 'Stand-up Comedy', 'Celebrity Appearances'] },
+        { id: 'stageRequirements', label: 'Stage/Space Requirements', type: 'select', options: ['Standard Stage', 'Large Open Space', 'High Ceilings (Aerial)', 'No Special Requirements'] }
       ]
     };
   }

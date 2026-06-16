@@ -16,7 +16,8 @@ const EVENT_CATEGORY_MAP = {
   'Reception': ['Banquet Halls', '5-Star Hotels', 'Stage & Venue Decor', 'Catering Service', 'Live Musicians / Band Baaja'],
   'Half-Saree / Dhoti Functions': ['Party & Mini Halls', 'Temples & Ashrams', 'Catering Service', 'Photography & Videography', 'Makeup Artists (MUA)'],
   'Cradle Ceremony / Barasala': ['Party & Mini Halls', 'Catering Service', 'Photography & Videography', 'Event Planners'],
-  'Birthday Parties & Anniversaries': ['Party & Mini Halls', 'Open Lawns & Farmhouses', 'Catering Service', 'Stage & Venue Decor', 'DJs & Sound Systems']
+  'Birthday Parties & Anniversaries': ['Party & Mini Halls', 'Open Lawns & Farmhouses', 'Catering Service', 'Stage & Venue Decor', 'DJs & Sound Systems'],
+  'Corporate Events & MICE': ['5-Star Hotels', 'Resorts & Destination Venues', 'Banquet Halls', 'Open Lawns & Farmhouses', 'Stage & Venue Decor', 'Catering Service', 'Event Planners', 'Photography & Videography', 'DJs & Sound Systems', 'Cars & Buses (Travel)']
 };
 
 const HeroParallax = () => {

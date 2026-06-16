@@ -833,7 +833,7 @@ const VendorOnboarding = () => {
                     <input type="file" onChange={(e) => handleVerificationDocUpload('gst', e)} className="text-sm text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-gold file:text-white hover:file:bg-brand-gold/80" />
                   </div>
                   {/* FSSAI */}
-                  {['Banquet Halls', 'Kalyana Mandapams', 'Resorts & Destination Venues', '5-Star Hotels', 'Catering Service'].includes(basicInfo.category) && (
+                  {(basicInfo.category === 'Catering Service' || (['Banquet Halls', 'Kalyana Mandapams', 'Resorts & Destination Venues', '5-Star Hotels', 'Open Lawns & Farmhouses', 'Party & Mini Halls', 'Temples & Ashrams'].includes(basicInfo.category) && ['In-house Only', 'Both Available'].includes(formResponses.inHouseCatering))) && (
                     <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-3">
                       <label className={labelClassName}>FSSAI License (For Food Services) <span className="text-brand-gold">*</span></label>
                       <input type="file" onChange={(e) => handleVerificationDocUpload('fssai', e)} className="text-sm text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-gold file:text-white hover:file:bg-brand-gold/80" />

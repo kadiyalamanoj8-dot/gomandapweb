@@ -1,4 +1,4 @@
-// The 7 core Indian cultural event types
+// The 8 core Indian cultural event types (including Corporate)
 export const EVENT_TYPES = [
   'Pelli / Shaadi (The Grand Wedding)',
   'Engagement / Nishchithartham',
@@ -6,7 +6,8 @@ export const EVENT_TYPES = [
   'Reception',
   'Half-Saree / Dhoti Functions',
   'Cradle Ceremony / Barasala',
-  'Birthday Parties & Anniversaries'
+  'Birthday Parties & Anniversaries',
+  'Corporate Events & MICE'
 ];
 
 // 5 Everyday Cultural Buckets containing the expanded categories
@@ -42,7 +43,9 @@ export const CATEGORY_BUCKETS = [
     categories: [
       { id: 'photography', label: 'Photography & Videography', iconName: 'Camera' },
       { id: 'djs', label: 'DJs & Sound Systems', iconName: 'Music' },
-      { id: 'live-musicians', label: 'Live Musicians / Band Baaja', iconName: 'Mic2' }
+      { id: 'live-musicians', label: 'Live Musicians / Band Baaja', iconName: 'Mic2' },
+      { id: 'choreographers', label: 'Wedding Choreographers', iconName: 'Users' },
+      { id: 'entertainment', label: 'Special Entertainment Acts', iconName: 'Wand2' }
     ]
   },
   {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, MapPin, Calendar, Users, PartyPopper } from 'lucide-react';
 import AppleDateTimePicker from '../ui/AppleDateTimePicker';
 import ApplePicker from '../ui/ApplePicker';
+import { EVENT_TYPES } from '../../data/mockData';
 
 const HeroSearch = () => {
   const [eventType, setEventType] = useState('');
@@ -14,12 +15,7 @@ const HeroSearch = () => {
     console.log('Searching:', { eventType, location, date, guests });
   };
 
-  const eventOptions = [
-    { value: 'wedding', label: 'Wedding' },
-    { value: 'reception', label: 'Reception' },
-    { value: 'corporate', label: 'Corporate Event' },
-    { value: 'birthday', label: 'Birthday Party' }
-  ];
+  const eventOptions = EVENT_TYPES.map(type => ({ value: type, label: type }));
 
   return (
     <header className="hero">

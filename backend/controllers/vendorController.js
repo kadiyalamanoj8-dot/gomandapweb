@@ -216,7 +216,7 @@ const getApprovedVendors = async (req, res) => {
       return res.status(200).json(vendorCache.get(cacheKey));
     }
 
-    const { category, categories, inHouseCatering, inHousePhotography, inHouseDecorations, lat, lng, radiusInKm, locName, date, q, capacity } = req.query;
+    const { category, categories, lat, lng, radiusInKm, locName, date, q, capacity } = req.query;
     
     // Fetch disabled categories from Settings to exclude them
     const settings = await Settings.findOne();
@@ -263,20 +263,19 @@ const getApprovedVendors = async (req, res) => {
       ];
     }
 
-    // Capacity Filtering
+    // Capacity Filtering (stored in deepFeatures.capacity for venues)
     if (capacity) {
-      query.maxCapacity = { $gte: parseInt(capacity) || 0 };
-    }
-
-    // In-house services filtering (stored in deepFeatures)
-    if (inHouseCatering === 'true') {
-      query['deepFeatures.inHouseCatering'] = 'Yes';
-    }
-    if (inHousePhotography === 'true') {
-      query['deepFeatures.inHousePhotography'] = 'Yes';
-    }
-    if (inHouseDecorations === 'true') {
-      query['deepFeatures.inHouseDecorations'] = 'Yes';
+      const capMap = {
+        'less-100':  { $lt: 100 },
+        '100-250':   { $gte: 100, $lt: 250 },
+        '250-500':   { $gte: 250, $lt: 500 },
+        '500-1000':  { $gte: 500, $lt: 1000 },
+        '1000+':     { $gte: 1000 }
+      };
+      const capQuery = capMap[capacity];
+      if (capQuery) {
+        query['deepFeatures.capacity'] = { $exists: true };
+      }
     }
 
     // Dynamic deepFeatures filtering from custom schemas
@@ -315,7 +314,27 @@ const getApprovedVendors = async (req, res) => {
       };
     }
 
-    const vendors = await Vendor.find(query).lean();
+    let vendors = await Vendor.find(query).lean();
+
+    // Post-fetch capacity range filtering (deepFeatures.capacity is stored as string)
+    if (capacity) {
+      const capMap = {
+        'less-100':  [0, 99],
+        '100-250':   [100, 250],
+        '250-500':   [250, 500],
+        '500-1000':  [500, 1000],
+        '1000+':     [1000, Infinity]
+      };
+      const range = capMap[capacity];
+      if (range) {
+        vendors = vendors.filter(v => {
+          const cap = parseInt(v.deepFeatures?.capacity);
+          if (isNaN(cap)) return false;
+          return cap >= range[0] && cap <= range[1];
+        });
+      }
+    }
+
     const responseData = { success: true, count: vendors.length, data: vendors };
     vendorCache.set(cacheKey, responseData);
     

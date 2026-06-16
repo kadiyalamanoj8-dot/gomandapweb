@@ -339,6 +339,335 @@ const VendorDetailsPage = () => {
               </div>
             </div>
 
+            {/* Venue Specs at a Glance */}
+            {['Banquet Halls', 'Kalyana Mandapams', 'Open Lawns & Farmhouses', 'Resorts & Destination Venues', '5-Star Hotels', 'Party & Mini Halls', 'Temples & Ashrams'].includes(vendor.category) && vendor.deepFeatures && (
+              <div className="mb-10 grid grid-cols-2 md:grid-cols-4 gap-4">
+                {(vendor.deepFeatures.capacity || vendor.deepFeatures.ballroomCapacityTheatre) && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Users className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Max Capacity</span>
+                    <span className="text-lg font-black text-gray-900">{vendor.deepFeatures.capacity || vendor.deepFeatures.ballroomCapacityTheatre} Guests</span>
+                  </div>
+                )}
+                {(vendor.deepFeatures.rooms || vendor.deepFeatures.totalRooms || vendor.deepFeatures.overnightStayCapacity) && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.BedDouble className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Accommodation</span>
+                    <span className="text-lg font-black text-gray-900">{vendor.deepFeatures.rooms || vendor.deepFeatures.totalRooms || vendor.deepFeatures.overnightStayCapacity} Rooms/Beds</span>
+                  </div>
+                )}
+                {(vendor.deepFeatures.totalAreaAcres || vendor.deepFeatures.noOfHalls || vendor.deepFeatures.eventSpacesCount || vendor.deepFeatures.breakoutRooms) && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Layout className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Event Space</span>
+                    <span className="text-lg font-black text-gray-900">{vendor.deepFeatures.totalAreaAcres || `${vendor.deepFeatures.noOfHalls || vendor.deepFeatures.eventSpacesCount || vendor.deepFeatures.breakoutRooms} Spaces`}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.parking && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Car className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Parking</span>
+                    <span className="text-lg font-black text-gray-900">{vendor.deepFeatures.parking} Cars</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Photography Specs at a Glance */}
+            {vendor.category === 'Photography & Videography' && vendor.deepFeatures && (
+              <div className="mb-10 grid grid-cols-2 md:grid-cols-4 gap-4">
+                {vendor.deepFeatures.deliveryTime && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Clock className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Delivery Time</span>
+                    <span className="text-lg font-black text-gray-900">{vendor.deepFeatures.deliveryTime}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.travelPolicy && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Plane className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Travel Policy</span>
+                    <span className="text-lg font-black text-gray-900 text-center text-sm leading-tight">{vendor.deepFeatures.travelPolicy}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.teamSize && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Users className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Team Size</span>
+                    <span className="text-lg font-black text-gray-900">{vendor.deepFeatures.teamSize} Members</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.advancePayment && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.CreditCard className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Advance Needed</span>
+                    <span className="text-lg font-black text-gray-900">{vendor.deepFeatures.advancePayment}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Catering Specs at a Glance */}
+            {vendor.category === 'Catering Service' && vendor.deepFeatures && (
+              <div className="mb-10 grid grid-cols-2 md:grid-cols-4 gap-4">
+                {(vendor.deepFeatures.vegPlatePrice || vendor.deepFeatures.nonVegPlatePrice) && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Utensils className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Dietary Types</span>
+                    <span className="text-lg font-black text-gray-900">{vendor.deepFeatures.nonVegPlatePrice ? 'Veg & Non-Veg' : 'Pure Veg'}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.minGuests && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Users className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Min Guests</span>
+                    <span className="text-lg font-black text-gray-900">{vendor.deepFeatures.minGuests}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.includesStaff && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.UserCheck className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Waitstaff</span>
+                    <span className="text-lg font-black text-gray-900 text-sm leading-tight">{vendor.deepFeatures.includesStaff}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.includesCrockery && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Coffee className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Crockery</span>
+                    <span className="text-lg font-black text-gray-900 text-sm leading-tight">{vendor.deepFeatures.includesCrockery}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Decor Specs at a Glance */}
+            {vendor.category === 'Stage & Venue Decor' && vendor.deepFeatures && (
+              <div className="mb-10 grid grid-cols-2 gap-4">
+                {vendor.deepFeatures.venueRestrictions && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.MapPin className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Venue Flexibility</span>
+                    <span className="text-lg font-black text-gray-900 text-sm">{vendor.deepFeatures.venueRestrictions}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.setupTime && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Clock className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Required Setup Time</span>
+                    <span className="text-lg font-black text-gray-900">{vendor.deepFeatures.setupTime} Hours</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Makeup Specs at a Glance */}
+            {['Makeup Artists (MUA)', 'Mehndi Designers'].includes(vendor.category) && vendor.deepFeatures && (
+              <div className="mb-10 grid grid-cols-2 md:grid-cols-3 gap-4">
+                {vendor.deepFeatures.trialAvailable && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Wand2 className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Trial Policy</span>
+                    <span className="text-lg font-black text-gray-900">{vendor.deepFeatures.trialAvailable}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.travels && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Car className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Travel Policy</span>
+                    <span className="text-lg font-black text-gray-900">{vendor.deepFeatures.travels}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.brandsUsed && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Sparkles className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Top Brands</span>
+                    <span className="text-lg font-black text-gray-900 text-sm leading-tight">{vendor.deepFeatures.brandsUsed}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* DJ & Entertainment Specs at a Glance */}
+            {['DJs & Sound Systems', 'Live Musicians / Band Baaja'].includes(vendor.category) && vendor.deepFeatures && (
+              <div className="mb-10 grid grid-cols-2 gap-4">
+                {vendor.deepFeatures.soundSetup && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Speaker className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Sound Setup</span>
+                    <span className="text-lg font-black text-gray-900 text-sm">{vendor.deepFeatures.soundSetup}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.travelsToVenue && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Plane className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Outstation Travel</span>
+                    <span className="text-lg font-black text-gray-900 text-sm">{vendor.deepFeatures.travelsToVenue}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Choreographer Specs at a Glance */}
+            {vendor.category === 'Wedding Choreographers' && vendor.deepFeatures && (
+              <div className="mb-10 grid grid-cols-2 gap-4">
+                {vendor.deepFeatures.practiceLocation && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.MapPin className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Practice Venue</span>
+                    <span className="text-lg font-black text-gray-900 text-sm">{vendor.deepFeatures.practiceLocation}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.backupDancers && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Users className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Backup Dancers</span>
+                    <span className="text-lg font-black text-gray-900 text-sm leading-tight">{vendor.deepFeatures.backupDancers}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Special Entertainment Specs at a Glance */}
+            {vendor.category === 'Special Entertainment Acts' && vendor.deepFeatures && (
+              <div className="mb-10 grid grid-cols-2 gap-4">
+                {vendor.deepFeatures.stageRequirements && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.MonitorUp className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Stage Rules</span>
+                    <span className="text-lg font-black text-gray-900 text-sm">{vendor.deepFeatures.stageRequirements}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Attire & Jewelry Specs at a Glance */}
+            {['Wedding Clothes / Boutiques', 'Jewelry Shops'].includes(vendor.category) && vendor.deepFeatures && (
+              <div className="mb-10 grid grid-cols-2 md:grid-cols-3 gap-4">
+                {vendor.deepFeatures.customization && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Scissors className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Customization</span>
+                    <span className="text-lg font-black text-gray-900 text-sm">{vendor.deepFeatures.customization}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.deliveryTimeline && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Clock className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Delivery Time</span>
+                    <span className="text-lg font-black text-gray-900 text-sm">{vendor.deepFeatures.deliveryTimeline}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.buybackPolicy && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.RefreshCcw className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Buyback Policy</span>
+                    <span className="text-lg font-black text-gray-900 text-sm leading-tight">{vendor.deepFeatures.buybackPolicy}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Event Planners Specs at a Glance */}
+            {vendor.category === 'Event Planners' && vendor.deepFeatures && (
+              <div className="mb-10 grid grid-cols-2 gap-4">
+                {vendor.deepFeatures.planningType && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.ClipboardCheck className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Planning Scope</span>
+                    <span className="text-lg font-black text-gray-900 text-sm">{vendor.deepFeatures.planningType}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.destinationWeddings && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Plane className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Destinations</span>
+                    <span className="text-lg font-black text-gray-900 text-sm leading-tight">{vendor.deepFeatures.destinationWeddings}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Astrologers Specs at a Glance */}
+            {vendor.category === 'Astrologers / Pundits' && vendor.deepFeatures && (
+              <div className="mb-10 grid grid-cols-2 gap-4">
+                {vendor.deepFeatures.consultationMode && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.MonitorSmartphone className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Consultation Mode</span>
+                    <span className="text-lg font-black text-gray-900 text-sm">{vendor.deepFeatures.consultationMode}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.poojaSamagri && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Flower2 className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Samagri Policy</span>
+                    <span className="text-lg font-black text-gray-900 text-sm">{vendor.deepFeatures.poojaSamagri}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Cars & Buses Specs at a Glance */}
+            {vendor.category === 'Cars & Buses (Travel)' && vendor.deepFeatures && (
+              <div className="mb-10 grid grid-cols-2 gap-4">
+                {vendor.deepFeatures.outstationTravel && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Map className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Outstation</span>
+                    <span className="text-lg font-black text-gray-900 text-sm">{vendor.deepFeatures.outstationTravel}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.decorationIncluded && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Flower className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Decoration</span>
+                    <span className="text-lg font-black text-gray-900 text-sm">{vendor.deepFeatures.decorationIncluded}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Wedding Cards & Invites Specs at a Glance */}
+            {vendor.category === 'Wedding Cards & Invites' && vendor.deepFeatures && (
+              <div className="mb-10 grid grid-cols-2 gap-4">
+                {vendor.deepFeatures.deliveryTimeline && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Clock className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Delivery Time</span>
+                    <span className="text-lg font-black text-gray-900 text-sm">{vendor.deepFeatures.deliveryTimeline}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.videoInvites && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Video className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Video Formats</span>
+                    <span className="text-lg font-black text-gray-900 text-sm leading-tight">{vendor.deepFeatures.videoInvites}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Honeymoon Packages Specs at a Glance */}
+            {vendor.category === 'Honeymoon Packages' && vendor.deepFeatures && (
+              <div className="mb-10 grid grid-cols-2 gap-4">
+                {vendor.deepFeatures.packageInclusions && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Ticket className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Inclusions</span>
+                    <span className="text-lg font-black text-gray-900 text-sm leading-tight">{vendor.deepFeatures.packageInclusions}</span>
+                  </div>
+                )}
+                {vendor.deepFeatures.customization && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+                    <Icons.Settings className="text-brand-primary mb-2" size={24} />
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Customization</span>
+                    <span className="text-lg font-black text-gray-900 text-sm">{vendor.deepFeatures.customization}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* About Section */}
             <section className="mb-10 pb-10 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight">{schema.aboutTitle}</h2>

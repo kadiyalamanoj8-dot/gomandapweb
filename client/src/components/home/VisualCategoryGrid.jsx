@@ -205,7 +205,7 @@ const VisualCategoryGrid = () => {
           </div>
 
           <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-6 lg:gap-8">
-            {activeVendorCategories.slice(0, 14).map((cat, idx) => (
+            {activeVendorCategories.map((cat, idx) => (
               <SimpleAnimatedIconCard
                 key={cat.id}
                 cat={cat}
