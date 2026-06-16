@@ -296,7 +296,7 @@ const HeroParallax = () => {
               onChange={setEventType}
               placeholder={t('search_event_placeholder')}
               icon={PartyPopper}
-              position="bottom"
+              position="top"
               className="w-full"
               buttonClassName="!bg-transparent !border-none !shadow-none !px-1 !py-1 w-full text-[17px] font-semibold text-[#FFD700] tracking-tight"
             />
@@ -326,7 +326,7 @@ const HeroParallax = () => {
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-80 group-hover:opacity-100"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
             </button>
             {locationResults.length > 0 && (
-              <div className="absolute top-full left-0 mt-2 w-full md:left-1/2 md:-translate-x-1/2 md:w-[420px] bg-black/40 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-[20px] md:rounded-[24px] overflow-hidden z-[9999] max-h-[40vh] sm:max-h-[60vh] overflow-y-auto">
+              <div className="absolute bottom-full left-0 mb-2 w-full md:left-1/2 md:-translate-x-1/2 md:w-[420px] bg-black/40 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-[20px] md:rounded-[24px] overflow-hidden z-[9999] max-h-[40vh] sm:max-h-[60vh] overflow-y-auto">
                 {locationResults.map((loc, i) => (
                   <div key={i} onClick={() => handleLocationSelect(loc)} className="px-5 py-3.5 cursor-pointer flex items-center gap-3 hover:bg-white/10 active:bg-white/20 transition-colors border-b border-white/10 last:border-b-0">
                     <MapPin size={15} className="text-white/50 shrink-0" />
@@ -369,7 +369,7 @@ const HeroParallax = () => {
         <div className="flex flex-col items-start w-full pr-2">
           <span className="text-[10px] font-bold text-[#FFD700]/70 uppercase tracking-[0.18em] mb-0.5 ml-1">{t('search_dates')}</span>
           <div className="px-1 py-1 w-full">
-            <AppleDateTimePicker value={selectedDate} onChange={setSelectedDate} placeholder="When?" theme="dark" position={isMobile ? "top" : "bottom"} />
+            <AppleDateTimePicker value={selectedDate} onChange={setSelectedDate} placeholder="When?" theme="dark" position="top" />
           </div>
         </div>
         <button onClick={handleSearch} className="btn-liquid text-white rounded-full h-12 md:h-14 w-12 md:w-auto md:px-6 flex items-center justify-center gap-2 font-bold text-[16px] shrink-0 touch-manipulation">
@@ -408,12 +408,12 @@ const HeroParallax = () => {
                   transition={{ duration: 1.5, ease: [0.25, 1, 0.5, 1] }}
                   className="absolute flex flex-col items-center justify-center w-full"
                 >
-                  <div className="mb-4 md:mb-6 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-emerald-400/30 shadow-[0_0_20px_rgba(52,211,153,0.3)]">
-                    <div className="relative flex h-3 w-3 items-center justify-center">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  <div className="mb-4 md:mb-6 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border-[2px] border-[#22c55e]/50 shadow-[0_0_25px_rgba(34,197,94,0.4)]">
+                    <div className="relative flex h-3.5 w-3.5 items-center justify-center">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#22c55e] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#16a34a]"></span>
                     </div>
-                    <span className="text-[9px] md:text-xs font-bold text-emerald-400 uppercase tracking-widest">India's First App for Instant Bookings</span>
+                    <span className="text-[10px] md:text-sm font-black text-[#4ade80] uppercase tracking-widest drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">India's First App for Instant Bookings</span>
                   </div>
                   <h1 
                     className="text-5xl md:text-[72px] lg:text-[80px] font-['Playfair_Display'] font-black drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)] mb-4 tracking-tight leading-[1.1] text-transparent bg-clip-text" 
@@ -490,28 +490,28 @@ const HeroParallax = () => {
         </AnimatePresence>
 
         {/* Sleek 2D Trust Badges - Positioned Below Search Bar (Highest z-index) */}
-        <div className="absolute bottom-[130px] md:bottom-auto md:top-[76%] left-0 right-0 w-full z-[300] flex justify-center pointer-events-none px-4">
-          <div className="flex items-center gap-4 md:gap-8 opacity-80 scale-90 md:scale-100">
+        <div className="absolute bottom-[100px] md:bottom-auto md:top-[85%] left-0 right-0 w-full z-[300] flex justify-center pointer-events-none px-4">
+          <div className="flex items-center gap-4 md:gap-8 opacity-90 scale-90 md:scale-100">
             {/* Verified Badge */}
             <div className="flex items-center gap-2">
-              <ShieldCheck className="text-emerald-400 w-4 h-4 md:w-5 md:h-5" />
-              <span className="text-white/90 text-xs md:text-sm font-semibold tracking-wide">100% Verified Vendors</span>
+              <ShieldCheck className="text-[#4ade80] w-4 h-4 md:w-5 md:h-5 drop-shadow-md" />
+              <span className="text-white font-bold text-xs md:text-sm tracking-wide drop-shadow-md">100% Verified Vendors</span>
             </div>
             
-            <div className="w-1 h-1 rounded-full bg-white/20"></div>
+            <div className="w-1.5 h-1.5 rounded-full bg-white/30"></div>
 
             {/* Secure Badge */}
             <div className="flex items-center gap-2">
-              <Lock className="text-blue-400 w-4 h-4 md:w-5 md:h-5" />
-              <span className="text-white/90 text-xs md:text-sm font-semibold tracking-wide">Secure Booking</span>
+              <Lock className="text-[#60a5fa] w-4 h-4 md:w-5 md:h-5 drop-shadow-md" />
+              <span className="text-white font-bold text-xs md:text-sm tracking-wide drop-shadow-md">Secure Booking</span>
             </div>
 
-            <div className="hidden md:block w-1 h-1 rounded-full bg-white/20"></div>
+            <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-white/30"></div>
 
             {/* Smart Panel Badge (Desktop only) */}
             <div className="hidden md:flex items-center gap-2">
-              <LayoutDashboard className="text-purple-400 w-4 h-4 md:w-5 md:h-5" />
-              <span className="text-white/90 text-xs md:text-sm font-semibold tracking-wide">Smart Client Panel</span>
+              <LayoutDashboard className="text-[#c084fc] w-4 h-4 md:w-5 md:h-5 drop-shadow-md" />
+              <span className="text-white font-bold text-xs md:text-sm tracking-wide drop-shadow-md">Smart Client Panel</span>
             </div>
           </div>
         </div>
