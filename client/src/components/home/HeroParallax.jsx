@@ -50,10 +50,22 @@ const HeroParallax = () => {
         const data = await res.json();
         if (data.success && data.data) {
           if (data.data.clientUI) setClientUI(data.data.clientUI);
+          // Generate exhaustive list of categories and venue types
+          const allCats = [
+            'Banquet Halls', 'Kalyana Mandapams', 'Open Lawns & Farmhouses', 
+            'Photography & Videography', 'Makeup Artists (MUA)', 'Party & Mini Halls', 
+            'Stage & Venue Decor', 'Mehndi Designers', 'DJs & Sound Systems', 
+            '5-Star Hotels', 'Catering Service', 'Live Musicians / Band Baaja', 
+            'Temples & Ashrams', 'Event Planners', 'Resorts & Destination Venues', 
+            'Cars & Buses (Travel)'
+          ];
+          
           if (data.data.disabledCategories) {
-            const allCats = ['Banquet Halls', 'Photographers', 'Caterers', 'Decorators', 'Makeup Artists', 'Venues'];
             const active = allCats.filter(c => !data.data.disabledCategories.includes(c));
             if (active.length > 0) setActiveCategories(active);
+            else setActiveCategories(allCats);
+          } else {
+            setActiveCategories(allCats);
           }
         }
       } catch (err) {
@@ -329,21 +341,21 @@ const HeroParallax = () => {
           <m.div style={{ rotateX, rotateY, transformStyle: "preserve-3d" }} className="absolute inset-0 w-full h-full flex items-center justify-center">
             
             {/* Layer 2: Advanced Features Floating Icons */}
-            <m.div style={{ x: floatX1, y: floatY1, translateZ: 50 }} className="absolute top-[15%] left-[5%] md:left-[10%] z-[20] flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-white/20 shadow-2xl">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-white text-[10px] md:text-xs font-bold tracking-wider">100% VERIFIED VENDORS</span>
+            <m.div style={{ x: floatX1, y: floatY1, translateZ: 90 }} className="absolute top-[10%] md:top-[15%] left-[5%] md:left-[15%] z-[40] flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-2 md:px-5 md:py-2.5 rounded-full border border-white/30 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_#4ade80]" />
+              <span className="text-white text-[11px] md:text-sm font-black tracking-widest drop-shadow-md">100% VERIFIED VENDORS</span>
             </m.div>
-            <m.div style={{ x: floatX2, y: floatY2, translateZ: 70 }} className="absolute top-[30%] right-[5%] md:right-[10%] z-[20] flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-white/20 shadow-2xl">
-              <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-              <span className="text-white text-[10px] md:text-xs font-bold tracking-wider">SECURE BOOKING</span>
+            <m.div style={{ x: floatX2, y: floatY2, translateZ: 100 }} className="absolute top-[25%] md:top-[20%] right-[5%] md:right-[15%] z-[40] flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-2 md:px-5 md:py-2.5 rounded-full border border-white/30 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-blue-400 animate-pulse shadow-[0_0_10px_#60a5fa]" />
+              <span className="text-white text-[11px] md:text-sm font-black tracking-widest drop-shadow-md">SECURE BOOKING</span>
             </m.div>
 
             {/* Layer 4: Text */}
-            <m.div style={{ translateZ: 30 }} className="absolute inset-0 top-[-25%] md:top-[-10%] w-full z-[25] flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <h1 className="text-4xl md:text-[64px] font-black text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] mb-4 tracking-tight leading-[1.2] md:leading-[1.35]" dangerouslySetInnerHTML={{ __html: t('hero_title') }} />
-              <div className="text-lg md:text-2xl text-white/90 max-w-2xl mx-auto drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] font-semibold flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+            <m.div style={{ translateZ: 60 }} className="absolute inset-0 top-[-30%] md:top-[-30%] w-full z-[40] flex flex-col items-center justify-center text-center px-4 pointer-events-none">
+              <h1 className="text-4xl md:text-[68px] font-black text-white drop-shadow-[0_10px_25px_rgba(0,0,0,0.9)] mb-4 tracking-tight leading-[1.2] md:leading-[1.2]" dangerouslySetInnerHTML={{ __html: t('hero_title') }} />
+              <div className="text-lg md:text-3xl text-white/95 max-w-4xl mx-auto drop-shadow-[0_6px_15px_rgba(0,0,0,0.9)] font-bold flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1">
                 <span>Find the perfect</span>
-                <span className="relative inline-flex h-[1.4em] md:h-[1.2em] overflow-hidden min-w-[160px] md:min-w-[180px] text-[#FFD700] justify-center items-center">
+                <span className="relative inline-flex h-[1.4em] md:h-[1.2em] overflow-hidden min-w-[200px] md:min-w-[320px] text-[#FFD700] justify-center items-center">
                   <AnimatePresence mode="popLayout">
                     <m.span
                       key={categoryIndex}
