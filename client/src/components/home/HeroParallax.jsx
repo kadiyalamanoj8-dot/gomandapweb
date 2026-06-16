@@ -5,6 +5,7 @@ import { API_URL } from '../../config/api';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { EVENT_TYPES } from '../../data/mockData';
+import { usePermissions } from '../../context/PermissionContext';
 import ApplePicker from '../ui/ApplePicker';
 import AppleDateTimePicker from '../ui/AppleDateTimePicker';
 import HeroMarquee from './HeroMarquee';
@@ -22,6 +23,7 @@ const EVENT_CATEGORY_MAP = {
 
 const HeroParallax = () => {
   const { t } = useTranslation();
+  const { requestPermission } = usePermissions();
   const containerRef = useRef(null);
   const heroRef = useRef(null);
   const navigate = useNavigate();
@@ -137,8 +139,13 @@ const HeroParallax = () => {
     setLocationResults([]);
   };
 
-  const handleAutoLocate = () => {
+  const handleAutoLocate = async () => {
     if ("geolocation" in navigator) {
+      // Show our beautiful Gomandap UI modal first
+      const granted = await requestPermission('location');
+      if (!granted) return; // User clicked "Not Now" in our UI, so we stop here and avoid permanently blocking it in the browser
+
+      // Only trigger the ugly browser prompt if they clicked "Allow" in our UI
       navigator.geolocation.getCurrentPosition(async (position) => {
         const { latitude, longitude } = position.coords;
         try {

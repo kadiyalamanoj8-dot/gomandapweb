@@ -12,6 +12,8 @@ import Preloader from './components/Preloader';
 import { AuthProvider } from './context/AuthContext';
 import LoginModal from './components/auth/LoginModal';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { PermissionProvider } from './context/PermissionContext';
+import ConsentManager from './components/common/ConsentManager';
 import { HelmetProvider } from 'react-helmet-async';
 import DynamicSEO from './components/DynamicSEO';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -60,6 +62,7 @@ function AppContent() {
       <Toaster position="bottom-center" />
       <DynamicSEO appTarget="client" pageName="global" />
       <SpatialNavbar />
+      <ConsentManager />
       <main className="flex-grow w-full pb-20 md:pb-0">
         <CartDrawer />
         <AnimatePresence mode="wait">
@@ -107,8 +110,10 @@ function App() {
             <SettingsProvider>
               <VendorProvider>
                 <CartProvider>
-                  <AppContent />
-                  <LoginModal />
+                  <PermissionProvider>
+                    <AppContent />
+                    <LoginModal />
+                  </PermissionProvider>
                 </CartProvider>
               </VendorProvider>
             </SettingsProvider>
