@@ -18,41 +18,38 @@ const generateToken = (id, role) => {
 // @route   POST /api/auth/admin/login
 const authAdmin = async (req, res) => {
   try {
-    const { username, password, totpToken } = req.body;
+    const { totpToken } = req.body;
 
-    const admin = await Admin.findOne({ username });
+    const admin = await Admin.findOne({ username: 'admin' });
 
-    if (admin && (await admin.matchPassword(password))) {
-      // Check if 2FA is enabled
-      if (admin.isTwoFactorEnabled) {
-        if (!totpToken) {
-          // Pause login and request the token
-          return res.json({ success: true, requires2FA: true, message: '2FA code required' });
-        }
-
-        // Verify the provided token
-        const verified = speakeasy.totp.verify({
-          secret: admin.twoFactorSecret,
-          encoding: 'base32',
-          token: totpToken,
-          window: 1 // allow 30 seconds clock drift before/after
-        });
-
-        if (!verified) {
-          return res.status(401).json({ success: false, message: 'Invalid authentication code' });
-        }
-      }
-
-      // Valid credentials (and valid 2FA if enabled), issue token
-      res.json({
-        success: true,
-        _id: admin._id,
-        username: admin.username,
-        token: generateToken(admin._id, 'admin'),
-      });
-    } else {
-      res.status(401).json({ success: false, message: 'Invalid credentials' });
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'Admin account not found' });
     }
+
+    if (!totpToken) {
+      return res.status(400).json({ success: false, message: 'Authenticator code required' });
+    }
+
+    // Verify the provided token
+    const verified = speakeasy.totp.verify({
+      secret: admin.twoFactorSecret,
+      encoding: 'base32',
+      token: totpToken,
+      window: 1 // allow 30 seconds clock drift before/after
+    });
+
+    if (!verified) {
+      return res.status(401).json({ success: false, message: 'Invalid authentication code' });
+    }
+
+    // Valid 2FA, issue token
+    res.json({
+      success: true,
+      _id: admin._id,
+      username: admin.username,
+      token: generateToken(admin._id, 'admin'),
+    });
+
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
