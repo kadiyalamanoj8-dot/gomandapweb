@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence, m, LazyMotion, domAnimation, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { Search, MapPin, Calendar, PartyPopper, X } from 'lucide-react';
+import { Search, MapPin, Calendar, PartyPopper, X, ShieldCheck, Lock, LayoutDashboard } from 'lucide-react';
 import { API_URL } from '../../config/api';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -169,11 +169,11 @@ const HeroParallax = () => {
   const smoothX = useSpring(mouseX, springConfig);
   const smoothY = useSpring(mouseY, springConfig);
 
-  const rotateX = useTransform(smoothY, [-0.5, 0.5], [12, -12]);
-  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-16, 16]);
+  const rotateX = useTransform(smoothY, [-0.5, 0.5], [20, -20]);
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-30, 30]);
   
-  const bgX = useTransform(smoothX, [-1, 1], [-10, 10]);
-  const bgY = useTransform(smoothY, [-1, 1], [-10, 10]);
+  const bgX = useTransform(smoothX, [-1, 1], [-30, 30]);
+  const bgY = useTransform(smoothY, [-1, 1], [-30, 30]);
   const doorsX = useTransform(smoothX, [-1, 1], [-15, 15]);
   const doorsY = useTransform(smoothY, [-1, 1], [-15, 15]);
   const midX = useTransform(smoothX, [-1, 1], [-25, 25]);
@@ -184,6 +184,9 @@ const HeroParallax = () => {
   const floatY1 = useTransform(smoothY, [-1, 1], [40, -40]);
   const floatX2 = useTransform(smoothX, [-1, 1], [-50, 50]);
   const floatY2 = useTransform(smoothY, [-1, 1], [-50, 50]);
+
+  const lightX = useTransform(smoothX, [-1, 1], [80, -80]);
+  const lightY = useTransform(smoothY, [-1, 1], [80, -80]);
 
   useEffect(() => {
     if (!isHeroVisible) return;
@@ -336,23 +339,56 @@ const HeroParallax = () => {
       
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
       
-        {/* Layer 1: Deep Background */}
+        {/* Layer 1: Deep Background & Cinematic Light Leaks */}
         <div ref={containerRef} className="absolute inset-0 w-full h-full z-0 perspective-[1200px]">
-          <m.div className="absolute inset-[-10%] w-[120%] h-[120%] z-0 scale-[1.15] origin-center">
+          <m.div style={{ translateZ: -100 }} className="absolute inset-[-15%] w-[130%] h-[130%] z-0 scale-[1.3] origin-center">
             <img src="/images/temple_background.webp" alt="Background" className="w-full h-full object-cover opacity-60" loading="eager" />
-            <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black z-10" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black via-black/40 to-black z-10" />
+            
+            {/* Cinematic Light Leaks */}
+            <m.div style={{ x: lightX, y: lightY }} className="absolute top-[10%] left-[20%] w-[600px] h-[600px] bg-amber-500/15 rounded-full blur-[120px] mix-blend-screen pointer-events-none z-20" />
+            <m.div style={{ x: bgX, y: bgY }} className="absolute bottom-[10%] right-[10%] w-[500px] h-[500px] bg-rose-500/15 rounded-full blur-[100px] mix-blend-screen pointer-events-none z-20" />
           </m.div>
 
           <m.div style={{ rotateX, rotateY, transformStyle: "preserve-3d" }} className="absolute inset-0 w-full h-full flex items-center justify-center">
             
-            {/* Layer 2: Advanced Features Floating Icons */}
-            <m.div style={{ x: floatX1, y: floatY1, translateZ: 90 }} className="absolute top-[10%] md:top-[15%] left-[5%] md:left-[15%] z-[40] flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-2 md:px-5 md:py-2.5 rounded-full border border-white/30 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_#4ade80]" />
-              <span className="text-white text-[11px] md:text-sm font-black tracking-widest drop-shadow-md">100% VERIFIED VENDORS</span>
-            </m.div>
-            <m.div style={{ x: floatX2, y: floatY2, translateZ: 100 }} className="absolute top-[25%] md:top-[20%] right-[5%] md:right-[15%] z-[40] flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-2 md:px-5 md:py-2.5 rounded-full border border-white/30 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-blue-400 animate-pulse shadow-[0_0_10px_#60a5fa]" />
-              <span className="text-white text-[11px] md:text-sm font-black tracking-widest drop-shadow-md">SECURE BOOKING</span>
+            {/* Layer 2: Premium 3D Badges (Aligned Horizontal Row) */}
+            <m.div 
+              style={{ x: floatX1, y: floatY1, translateZ: 130 }} 
+              className="absolute top-[8%] md:top-[12%] w-full z-[50] flex flex-wrap items-center justify-center gap-3 md:gap-6 px-4"
+            >
+               {/* 100% Verified Vendors Badge */}
+               <div className="flex items-center gap-3 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl px-4 py-2.5 md:px-5 md:py-3.5 rounded-2xl border border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.2)] hover:bg-white/15 transition-colors">
+                 <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 shadow-[0_0_15px_#4ade80]">
+                   <ShieldCheck className="text-white w-4 h-4 md:w-5 md:h-5" strokeWidth={2.5} />
+                 </div>
+                 <div className="flex flex-col text-left">
+                   <span className="text-white/70 text-[9px] md:text-[10px] font-bold uppercase tracking-widest">Gomandap Promise</span>
+                   <span className="text-white text-xs md:text-sm font-black tracking-wide drop-shadow-md">100% Verified Vendors</span>
+                 </div>
+               </div>
+
+               {/* Secure Booking Badge */}
+               <div className="flex items-center gap-3 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl px-4 py-2.5 md:px-5 md:py-3.5 rounded-2xl border border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.2)] hover:bg-white/15 transition-colors">
+                 <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 shadow-[0_0_15px_#60a5fa]">
+                   <Lock className="text-white w-4 h-4 md:w-5 md:h-5" strokeWidth={2.5} />
+                 </div>
+                 <div className="flex flex-col text-left">
+                   <span className="text-white/70 text-[9px] md:text-[10px] font-bold uppercase tracking-widest">Safe & Reliable</span>
+                   <span className="text-white text-xs md:text-sm font-black tracking-wide drop-shadow-md">Secure Booking</span>
+                 </div>
+               </div>
+
+               {/* Smart Client Panel Badge */}
+               <div className="hidden md:flex items-center gap-3 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl px-4 py-2.5 md:px-5 md:py-3.5 rounded-2xl border border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.2)] hover:bg-white/15 transition-colors">
+                 <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-purple-400 to-fuchsia-600 shadow-[0_0_15px_#c026d3]">
+                   <LayoutDashboard className="text-white w-4 h-4 md:w-5 md:h-5" strokeWidth={2.5} />
+                 </div>
+                 <div className="flex flex-col text-left">
+                   <span className="text-white/70 text-[9px] md:text-[10px] font-bold uppercase tracking-widest">Plan with ease</span>
+                   <span className="text-white text-xs md:text-sm font-black tracking-wide drop-shadow-md">Smart Client Panel</span>
+                 </div>
+               </div>
             </m.div>
             {/* Layer 4: Text */}
             <m.div style={{ translateZ: 60 }} className="absolute inset-0 top-[-30%] md:top-[-30%] w-full z-[40] flex flex-col items-center justify-center text-center px-4 pointer-events-none">
@@ -384,7 +420,7 @@ const HeroParallax = () => {
             </m.div>
 
             {/* Layer 5: The Couple */}
-            <m.div style={{ translateZ: 80, scale: 1.05 }} className="absolute inset-0 z-30 flex items-center justify-center pt-[20vh] md:pt-[15vh]">
+            <m.div style={{ translateZ: 180, scale: 0.9 }} className="absolute inset-0 z-30 flex items-center justify-center pt-[20vh] md:pt-[15vh]">
               <img src="/images/couple_transparent.webp" alt="Couple" className="w-[85vw] md:w-[70vw] max-h-[65vh] md:max-h-[70vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)] pointer-events-none" />
             </m.div>
           </m.div>
