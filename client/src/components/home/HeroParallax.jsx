@@ -169,8 +169,8 @@ const HeroParallax = () => {
   const smoothX = useSpring(mouseX, springConfig);
   const smoothY = useSpring(mouseY, springConfig);
 
-  const rotateX = useTransform(smoothY, [-0.5, 0.5], [20, -20]);
-  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-30, 30]);
+  const rotateX = useTransform(smoothY, [-0.5, 0.5], [10, -10]);
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-15, 15]);
   
   const bgX = useTransform(smoothX, [-1, 1], [-30, 30]);
   const bgY = useTransform(smoothY, [-1, 1], [-30, 30]);
@@ -355,7 +355,7 @@ const HeroParallax = () => {
             {/* Layer 2: Premium 3D Badges (Aligned Horizontal Row) */}
             <m.div 
               style={{ translateZ: 130 }} 
-              className="absolute top-[12%] md:top-[15%] w-full z-[50] flex flex-wrap items-center justify-center gap-3 md:gap-6 px-4 origin-center"
+              className="absolute top-[12%] md:top-[15%] left-0 right-0 w-full z-[50] flex flex-wrap items-center justify-center gap-3 md:gap-6 px-4 origin-center"
             >
                {/* 100% Verified Vendors Badge */}
                <div className="flex items-center gap-3 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl px-4 py-2.5 md:px-5 md:py-3.5 rounded-2xl border border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.2)] hover:bg-white/15 transition-colors">
@@ -391,7 +391,7 @@ const HeroParallax = () => {
                </div>
             </m.div>
             {/* Layer 4: Text */}
-            <m.div style={{ translateZ: 60 }} className="absolute inset-0 top-[-30%] md:top-[-30%] w-full z-[40] flex flex-col items-center justify-center text-center px-4 pointer-events-none">
+            <m.div style={{ translateZ: 60 }} className="absolute inset-0 top-[-30%] md:top-[-30%] left-0 right-0 w-full z-[40] flex flex-col items-center justify-center text-center px-4 pointer-events-none origin-center">
               <div className="relative w-full h-[200px] flex items-center justify-center">
                 <AnimatePresence>
                   <m.div
@@ -420,7 +420,7 @@ const HeroParallax = () => {
             </m.div>
 
             {/* Layer 5: The Couple */}
-            <m.div style={{ translateZ: 180, scale: 0.9 }} className="absolute inset-0 z-30 flex items-center justify-center pt-[20vh] md:pt-[15vh]">
+            <m.div style={{ translateZ: 180, scale: 0.9 }} className="absolute inset-0 left-0 right-0 z-30 flex items-center justify-center pt-[20vh] md:pt-[15vh] origin-center">
               <img src="/images/couple_transparent.webp" alt="Couple" className="w-[85vw] md:w-[70vw] max-h-[65vh] md:max-h-[70vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)] pointer-events-none" />
             </m.div>
           </m.div>
