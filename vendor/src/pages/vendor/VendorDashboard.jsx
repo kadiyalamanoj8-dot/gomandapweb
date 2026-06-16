@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useVendor } from '../../context/VendorContext';
 import { 
   LogOut, Eye, CheckCircle2, ChevronRight, Bell, Menu, X, 
-  MapPin, TrendingUp, Sparkles, CalendarDays, Plus, Trash2 
+  MapPin, TrendingUp, Sparkles, CalendarDays, Plus, Trash2, ShieldCheck 
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -274,6 +274,16 @@ const VendorDashboard = () => {
               <img src="/images/3d_planner copy.webp" alt="Profile" className="w-full h-full object-contain" />
             </div>
             Business Profile
+          </button>
+          
+          <button 
+            onClick={() => { setActiveTab('verification'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-semibold text-[15px] transition-all duration-300 ${activeTab === 'verification' ? 'bg-brand-gold/10 shadow-[0_0_20px_rgba(212,175,55,0.2)] text-brand-gold border border-brand-gold/30' : 'text-white/60 hover:bg-white/5 hover:text-white border border-transparent'}`}
+          >
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-300 ${activeTab === 'verification' ? 'scale-110 drop-shadow-lg' : 'grayscale-[0.3] opacity-80'}`}>
+              <ShieldCheck className="text-white" size={24} />
+            </div>
+            Verification Status
           </button>
         </div>
 
@@ -926,6 +936,77 @@ const VendorDashboard = () => {
                    <p className="text-white/40 font-medium">When clients request a quote on your storefront, they will appear here.</p>
                 </div>
               )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Verification Status Tab */}
+        {activeTab === 'verification' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="bg-black/40 backdrop-blur-2xl rounded-[2.5rem] p-6 md:p-10 border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.5)] min-h-[500px] relative z-10 max-w-4xl mx-auto">
+            <h2 className="text-3xl font-black tracking-tight text-white mb-8 flex items-center gap-3">
+              <ShieldCheck className="text-brand-gold" size={32} /> Verification Status
+            </h2>
+            
+            <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+              <div className="flex items-center justify-between mb-6 pb-6 border-b border-white/10">
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-1">Business Verification</h3>
+                  <p className="text-sm font-medium text-white/50">Your documents are reviewed to ensure trust and safety.</p>
+                </div>
+                {vendorProfile.isVerified ? (
+                  <span className="bg-green-500/20 text-green-400 font-bold px-4 py-2 rounded-full border border-green-500/30 flex items-center gap-2">
+                    <CheckCircle2 size={16} /> Verified
+                  </span>
+                ) : vendorProfile.documents && vendorProfile.documents.length > 0 ? (
+                  <span className="bg-yellow-500/20 text-yellow-400 font-bold px-4 py-2 rounded-full border border-yellow-500/30 flex items-center gap-2">
+                    <Icons.Clock size={16} /> Pending Review
+                  </span>
+                ) : (
+                  <span className="bg-red-500/20 text-red-400 font-bold px-4 py-2 rounded-full border border-red-500/30 flex items-center gap-2">
+                    <X size={16} /> Not Verified
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold text-white/60 uppercase tracking-widest mb-4">Uploaded Documents</h4>
+                {vendorProfile.documents && vendorProfile.documents.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {vendorProfile.documents.map((doc, idx) => (
+                      <div key={idx} className="flex items-center justify-between bg-black/40 p-4 rounded-xl border border-white/5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-brand-gold/10 flex items-center justify-center">
+                            <Icons.FileText size={16} className="text-brand-gold" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-white uppercase">{doc.type}</p>
+                            <p className="text-xs text-brand-gold font-semibold">Under Review</p>
+                          </div>
+                        </div>
+                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-colors">
+                          <Icons.ExternalLink size={16} />
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 bg-black/20 rounded-xl border border-dashed border-white/10">
+                    <p className="text-sm text-white/50 mb-4">No documents uploaded yet.</p>
+                    <button className="text-brand-gold font-bold text-sm hover:underline" onClick={() => setActiveTab('profile')}>Upload in Profile</button>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Profile Completion Score */}
+            <div className="mt-8 bg-brand-gold/10 rounded-2xl p-6 border border-brand-gold/20">
+              <h3 className="text-lg font-black text-brand-gold mb-4">Profile Completion</h3>
+              <div className="w-full bg-black/40 rounded-full h-3 mb-2 overflow-hidden">
+                <div className="bg-brand-gold h-3 rounded-full" style={{ width: `${vendorProfile.documents?.length > 0 ? '90%' : '60%'}` }}></div>
+              </div>
+              <p className="text-sm font-medium text-brand-gold/80">
+                {vendorProfile.documents?.length > 0 ? 'Your profile is almost complete! Waiting for verification.' : 'Upload your verification documents to reach 100% completion and get the Verified badge.'}
+              </p>
             </div>
           </motion.div>
         )}
