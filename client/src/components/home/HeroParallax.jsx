@@ -34,6 +34,7 @@ const HeroParallax = () => {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [activeCategories, setActiveCategories] = useState(['Banquet Halls', 'Photographers', 'Caterers', 'Decorators', 'Makeup Artists']);
   const [categoryIndex, setCategoryIndex] = useState(0);
+  const [activeBadgeIndex, setActiveBadgeIndex] = useState(0);
   const [clientUI, setClientUI] = useState({ 
     use3DCarousel: true, 
     carouselImages: [],
@@ -82,6 +83,13 @@ const HeroParallax = () => {
     }, 3500);
     return () => clearInterval(interval);
   }, [activeCategories.length]);
+
+  useEffect(() => {
+    const badgeInterval = setInterval(() => {
+      setActiveBadgeIndex(prev => (prev + 1) % 3);
+    }, 2000);
+    return () => clearInterval(badgeInterval);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -165,7 +173,7 @@ const HeroParallax = () => {
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  const springConfig = { damping: 15, stiffness: 150, mass: 0.8 };
+  const springConfig = { damping: 20, stiffness: 120, mass: 1, bounce: 0.4 };
   const smoothX = useSpring(mouseX, springConfig);
   const smoothY = useSpring(mouseY, springConfig);
 
@@ -190,8 +198,17 @@ const HeroParallax = () => {
 
   useEffect(() => {
     if (!isHeroVisible) return;
+    let rAF;
+    let idleTimeout;
+
+    const resetToCenter = () => {
+      mouseX.set(0);
+      mouseY.set(0);
+    };
+
     const handleMouseMove = (e) => {
       if (rAF) cancelAnimationFrame(rAF);
+      clearTimeout(idleTimeout);
       rAF = requestAnimationFrame(() => {
         // Normalize mouse coordinates to [-1, 1] relative to center
         const x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -200,13 +217,15 @@ const HeroParallax = () => {
         mouseX.set(x * desktopScale);
         mouseY.set(y * desktopScale);
       });
+      // Rubber band effect
+      idleTimeout = setTimeout(resetToCenter, 600);
     };
 
-    let rAF;
     let baselineX = 0, baselineY = 0, hasBaseline = false;
     const handleOrientation = (e) => {
       if (!e.gamma || !e.beta) return;
       if (rAF) cancelAnimationFrame(rAF);
+      clearTimeout(idleTimeout);
       rAF = requestAnimationFrame(() => {
         let x = 0, y = 0;
         const orientation = window.orientation || 0;
@@ -223,13 +242,19 @@ const HeroParallax = () => {
         mouseX.set(Math.max(-1, Math.min(1, deltaX / 30)) * mobileScale);
         mouseY.set(Math.max(-1, Math.min(1, deltaY / 30)) * mobileScale);
       });
+      // Rubber band effect for gyro
+      idleTimeout = setTimeout(resetToCenter, 800);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseleave', resetToCenter);
     window.addEventListener('deviceorientation', handleOrientation);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseleave', resetToCenter);
       window.removeEventListener('deviceorientation', handleOrientation);
+      clearTimeout(idleTimeout);
+      if (rAF) cancelAnimationFrame(rAF);
     };
   }, [mouseX, mouseY, isHeroVisible, isMobile]);
 
@@ -358,8 +383,8 @@ const HeroParallax = () => {
               className="absolute top-[12%] md:top-[15%] left-0 right-0 w-full z-[50] flex flex-wrap items-center justify-center gap-3 md:gap-6 px-4 origin-center"
             >
                {/* 100% Verified Vendors Badge */}
-               <div className="flex items-center gap-3 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl px-4 py-2.5 md:px-5 md:py-3.5 rounded-2xl border border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.2)] hover:bg-white/15 transition-colors">
-                 <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 shadow-[0_0_15px_#4ade80]">
+               <div className={`flex items-center gap-3 backdrop-blur-xl px-4 py-2.5 md:px-5 md:py-3.5 rounded-2xl border transition-all duration-700 ${activeBadgeIndex === 0 ? 'bg-white/15 border-green-400/80 shadow-[0_0_40px_rgba(74,222,128,0.5)] scale-110 z-10' : 'bg-gradient-to-br from-white/10 to-white/5 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4)] scale-100 opacity-80'}`}>
+                 <div className={`flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 transition-shadow duration-700 ${activeBadgeIndex === 0 ? 'shadow-[0_0_25px_#4ade80]' : 'shadow-[0_0_10px_rgba(74,222,128,0.5)]'}`}>
                    <ShieldCheck className="text-white w-4 h-4 md:w-5 md:h-5" strokeWidth={2.5} />
                  </div>
                  <div className="flex flex-col text-left">
@@ -369,8 +394,8 @@ const HeroParallax = () => {
                </div>
 
                {/* Secure Booking Badge */}
-               <div className="flex items-center gap-3 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl px-4 py-2.5 md:px-5 md:py-3.5 rounded-2xl border border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.2)] hover:bg-white/15 transition-colors">
-                 <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 shadow-[0_0_15px_#60a5fa]">
+               <div className={`flex items-center gap-3 backdrop-blur-xl px-4 py-2.5 md:px-5 md:py-3.5 rounded-2xl border transition-all duration-700 ${activeBadgeIndex === 1 ? 'bg-white/15 border-blue-400/80 shadow-[0_0_40px_rgba(96,165,250,0.5)] scale-110 z-10' : 'bg-gradient-to-br from-white/10 to-white/5 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4)] scale-100 opacity-80'}`}>
+                 <div className={`flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 transition-shadow duration-700 ${activeBadgeIndex === 1 ? 'shadow-[0_0_25px_#60a5fa]' : 'shadow-[0_0_10px_rgba(96,165,250,0.5)]'}`}>
                    <Lock className="text-white w-4 h-4 md:w-5 md:h-5" strokeWidth={2.5} />
                  </div>
                  <div className="flex flex-col text-left">
@@ -380,8 +405,8 @@ const HeroParallax = () => {
                </div>
 
                {/* Smart Client Panel Badge */}
-               <div className="hidden md:flex items-center gap-3 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl px-4 py-2.5 md:px-5 md:py-3.5 rounded-2xl border border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.2)] hover:bg-white/15 transition-colors">
-                 <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-purple-400 to-fuchsia-600 shadow-[0_0_15px_#c026d3]">
+               <div className={`hidden md:flex items-center gap-3 backdrop-blur-xl px-4 py-2.5 md:px-5 md:py-3.5 rounded-2xl border transition-all duration-700 ${activeBadgeIndex === 2 ? 'bg-white/15 border-purple-400/80 shadow-[0_0_40px_rgba(192,38,211,0.5)] scale-110 z-10' : 'bg-gradient-to-br from-white/10 to-white/5 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4)] scale-100 opacity-80'}`}>
+                 <div className={`flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-purple-400 to-fuchsia-600 transition-shadow duration-700 ${activeBadgeIndex === 2 ? 'shadow-[0_0_25px_#c026d3]' : 'shadow-[0_0_10px_rgba(192,38,211,0.5)]'}`}>
                    <LayoutDashboard className="text-white w-4 h-4 md:w-5 md:h-5" strokeWidth={2.5} />
                  </div>
                  <div className="flex flex-col text-left">
