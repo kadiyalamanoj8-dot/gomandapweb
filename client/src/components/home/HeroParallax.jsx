@@ -185,23 +185,20 @@ const HeroParallax = () => {
   const smoothY = useSpring(mouseY, springConfig);
 
   const rotateX = useTransform(smoothY, [-0.5, 0.5], [0, 0]); // Locked vertical gyro
-  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-8, 8]); // Small horizontal gyro
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-3, 3]); // Very small horizontal gyro
   
-  const bgX = useTransform(smoothX, [-1, 1], [-30, 30]);
-  const bgY = useTransform(smoothY, [-1, 1], [-30, 30]);
-  const doorsX = useTransform(smoothX, [-1, 1], [-15, 15]);
-  const doorsY = useTransform(smoothY, [-1, 1], [-15, 15]);
-  const midX = useTransform(smoothX, [-1, 1], [-25, 25]);
-  const midY = useTransform(smoothY, [-1, 1], [-25, 25]);
-  const frontX = useTransform(smoothX, [-1, 1], [-35, 35]);
-  const frontY = useTransform(smoothY, [-1, 1], [-35, 35]);
-  const floatX1 = useTransform(smoothX, [-1, 1], [40, -40]);
-  const floatY1 = useTransform(smoothY, [-1, 1], [40, -40]);
-  const floatX2 = useTransform(smoothX, [-1, 1], [-50, 50]);
-  const floatY2 = useTransform(smoothY, [-1, 1], [-50, 50]);
-
-  const lightX = useTransform(smoothX, [-1, 1], [80, -80]);
-  const lightY = useTransform(smoothY, [-1, 1], [80, -80]);
+  const bgX = useTransform(smoothX, [-1, 1], [-10, 10]);
+  const bgY = useTransform(smoothY, [-1, 1], [-10, 10]);
+  const doorsX = useTransform(smoothX, [-1, 1], [-5, 5]);
+  const doorsY = useTransform(smoothY, [-1, 1], [-5, 5]);
+  const midX = useTransform(smoothX, [-1, 1], [-10, 10]);
+  const midY = useTransform(smoothY, [-1, 1], [-10, 10]);
+  const frontX = useTransform(smoothX, [-1, 1], [-15, 15]);
+  const frontY = useTransform(smoothY, [-1, 1], [-15, 15]);
+  const floatX1 = useTransform(smoothX, [-1, 1], [15, -15]);
+  const floatY1 = useTransform(smoothY, [-1, 1], [15, -15]);
+  const floatX2 = useTransform(smoothX, [-1, 1], [-20, 20]);
+  const floatY2 = useTransform(smoothY, [-1, 1], [-20, 20]);
 
   useEffect(() => {
     if (!isHeroVisible) return;
@@ -245,7 +242,7 @@ const HeroParallax = () => {
         baselineY += (y - baselineY) * 0.15;
         const deltaX = x - baselineX;
         const deltaY = y - baselineY;
-        const mobileScale = isMobile ? 0.8 : 1; 
+        const mobileScale = isMobile ? 0.3 : 1; 
         mouseX.set(Math.max(-1, Math.min(1, deltaX / 30)) * mobileScale);
         mouseY.set(Math.max(-1, Math.min(1, deltaY / 30)) * mobileScale);
       });
@@ -364,64 +361,48 @@ const HeroParallax = () => {
       <div 
         ref={heroRef} 
         onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }}
-        className="relative w-full h-[100dvh] min-h-[600px] bg-black z-[60] select-none overflow-hidden"
+        className="relative w-full h-[100dvh] min-h-[600px] bg-[#0A0A0A] z-[60] select-none overflow-hidden"
       >
+        {/* Sleek 2D Trust Badges (Professional Layout) */}
+        <div className="absolute top-[12%] md:top-[12%] left-0 right-0 w-full z-[100] flex justify-center pointer-events-none px-4">
+          <div className="flex items-center gap-4 md:gap-8 opacity-80 scale-90 md:scale-100">
+            {/* Verified Badge */}
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="text-emerald-400 w-4 h-4 md:w-5 md:h-5" />
+              <span className="text-white/90 text-xs md:text-sm font-semibold tracking-wide">100% Verified Vendors</span>
+            </div>
+            
+            <div className="w-1 h-1 rounded-full bg-white/20"></div>
+
+            {/* Secure Badge */}
+            <div className="flex items-center gap-2">
+              <Lock className="text-blue-400 w-4 h-4 md:w-5 md:h-5" />
+              <span className="text-white/90 text-xs md:text-sm font-semibold tracking-wide">Secure Booking</span>
+            </div>
+
+            <div className="hidden md:block w-1 h-1 rounded-full bg-white/20"></div>
+
+            {/* Smart Panel Badge (Desktop only) */}
+            <div className="hidden md:flex items-center gap-2">
+              <LayoutDashboard className="text-purple-400 w-4 h-4 md:w-5 md:h-5" />
+              <span className="text-white/90 text-xs md:text-sm font-semibold tracking-wide">Smart Client Panel</span>
+            </div>
+          </div>
+        </div>
       
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
       
-        {/* Layer 1: Deep Background & Cinematic Light Leaks */}
+        {/* Layer 1: Deep Background */}
         <div ref={containerRef} className="absolute inset-0 w-full h-full z-0 perspective-[1200px]">
           <m.div style={{ translateZ: -100 }} className="absolute inset-[-15%] w-[130%] h-[130%] z-0 scale-[1.3] origin-center">
-            <img src="/images/temple_background.webp" alt="Background" className="w-full h-full object-cover opacity-60" loading="eager" />
-            <div className="absolute inset-0 bg-gradient-to-b from-black via-black/40 to-black z-10" />
-            
-            {/* Cinematic Light Leaks */}
-            <m.div style={{ x: lightX, y: lightY }} className="absolute top-[10%] left-[20%] w-[600px] h-[600px] bg-amber-500/15 rounded-full blur-[120px] mix-blend-screen pointer-events-none z-20" />
-            <m.div style={{ x: bgX, y: bgY }} className="absolute bottom-[10%] right-[10%] w-[500px] h-[500px] bg-rose-500/15 rounded-full blur-[100px] mix-blend-screen pointer-events-none z-20" />
+            <img src="/images/temple_background.webp" alt="Background" className="w-full h-full object-cover opacity-50" loading="eager" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black via-black/30 to-[#0A0A0A] z-10" />
           </m.div>
 
           <m.div style={{ rotateX, rotateY, transformStyle: "preserve-3d" }} className="absolute inset-0 w-full h-full flex items-center justify-center">
             
-            {/* Layer 2: Premium 3D Badges (Aligned Horizontal Row) */}
-            <m.div 
-              style={{ translateZ: 130 }} 
-              className="absolute top-[12%] md:top-[15%] left-0 right-0 w-full z-[50] flex flex-wrap items-center justify-center gap-3 md:gap-6 px-4 origin-center"
-            >
-               {/* 100% Verified Vendors Badge */}
-               <div className={`flex items-center gap-3 backdrop-blur-xl px-4 py-2.5 md:px-5 md:py-3.5 rounded-2xl border transition-all duration-700 ${activeBadgeIndex === 0 ? 'bg-white/15 border-green-400/80 shadow-[0_0_40px_rgba(74,222,128,0.5)] scale-110 z-10' : 'bg-gradient-to-br from-white/10 to-white/5 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4)] scale-100 opacity-80'}`}>
-                 <div className={`flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 transition-shadow duration-700 ${activeBadgeIndex === 0 ? 'shadow-[0_0_25px_#4ade80]' : 'shadow-[0_0_10px_rgba(74,222,128,0.5)]'}`}>
-                   <ShieldCheck className="text-white w-4 h-4 md:w-5 md:h-5" strokeWidth={2.5} />
-                 </div>
-                 <div className="flex flex-col text-left">
-                   <span className="text-white/70 text-[9px] md:text-[10px] font-bold uppercase tracking-widest">Gomandap Promise</span>
-                   <span className="text-white text-xs md:text-sm font-black tracking-wide drop-shadow-md">100% Verified Vendors</span>
-                 </div>
-               </div>
-
-               {/* Secure Booking Badge */}
-               <div className={`flex items-center gap-3 backdrop-blur-xl px-4 py-2.5 md:px-5 md:py-3.5 rounded-2xl border transition-all duration-700 ${activeBadgeIndex === 1 ? 'bg-white/15 border-blue-400/80 shadow-[0_0_40px_rgba(96,165,250,0.5)] scale-110 z-10' : 'bg-gradient-to-br from-white/10 to-white/5 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4)] scale-100 opacity-80'}`}>
-                 <div className={`flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 transition-shadow duration-700 ${activeBadgeIndex === 1 ? 'shadow-[0_0_25px_#60a5fa]' : 'shadow-[0_0_10px_rgba(96,165,250,0.5)]'}`}>
-                   <Lock className="text-white w-4 h-4 md:w-5 md:h-5" strokeWidth={2.5} />
-                 </div>
-                 <div className="flex flex-col text-left">
-                   <span className="text-white/70 text-[9px] md:text-[10px] font-bold uppercase tracking-widest">Safe & Reliable</span>
-                   <span className="text-white text-xs md:text-sm font-black tracking-wide drop-shadow-md">Secure Booking</span>
-                 </div>
-               </div>
-
-               {/* Smart Client Panel Badge */}
-               <div className={`hidden md:flex items-center gap-3 backdrop-blur-xl px-4 py-2.5 md:px-5 md:py-3.5 rounded-2xl border transition-all duration-700 ${activeBadgeIndex === 2 ? 'bg-white/15 border-purple-400/80 shadow-[0_0_40px_rgba(192,38,211,0.5)] scale-110 z-10' : 'bg-gradient-to-br from-white/10 to-white/5 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4)] scale-100 opacity-80'}`}>
-                 <div className={`flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-purple-400 to-fuchsia-600 transition-shadow duration-700 ${activeBadgeIndex === 2 ? 'shadow-[0_0_25px_#c026d3]' : 'shadow-[0_0_10px_rgba(192,38,211,0.5)]'}`}>
-                   <LayoutDashboard className="text-white w-4 h-4 md:w-5 md:h-5" strokeWidth={2.5} />
-                 </div>
-                 <div className="flex flex-col text-left">
-                   <span className="text-white/70 text-[9px] md:text-[10px] font-bold uppercase tracking-widest">Plan with ease</span>
-                   <span className="text-white text-xs md:text-sm font-black tracking-wide drop-shadow-md">Smart Client Panel</span>
-                 </div>
-               </div>
-            </m.div>
             {/* Layer 4: Text */}
-            <m.div style={{ translateZ: 60 }} className="absolute inset-0 top-[-30%] md:top-[-30%] left-0 right-0 w-full z-[40] flex flex-col items-center justify-center text-center px-4 pointer-events-none origin-center">
+            <m.div style={{ translateZ: 40 }} className="absolute inset-0 top-[-25%] md:top-[-25%] left-0 right-0 w-full z-[40] flex flex-col items-center justify-center text-center px-4 pointer-events-none origin-center">
               <div className="relative w-full h-[200px] flex items-center justify-center">
                 <AnimatePresence>
                   <m.div
