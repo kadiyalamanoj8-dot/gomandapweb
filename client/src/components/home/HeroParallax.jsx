@@ -356,29 +356,31 @@ const HeroParallax = () => {
             </m.div>
             {/* Layer 4: Text */}
             <m.div style={{ translateZ: 60 }} className="absolute inset-0 top-[-30%] md:top-[-30%] w-full z-[40] flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <AnimatePresence mode="wait">
-                <m.div
-                  key={categoryIndex}
-                  initial={{ opacity: 0, rotateX: 90, scale: 0.8 }}
-                  animate={{ opacity: 1, rotateX: 0, scale: 1 }}
-                  exit={{ opacity: 0, rotateX: -90, scale: 1.1 }}
-                  transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
-                  className="flex flex-col items-center justify-center"
-                >
-                  <h1 
-                    className="text-4xl md:text-[68px] font-black drop-shadow-[0_10px_25px_rgba(0,0,0,0.9)] mb-4 tracking-tight leading-[1.2] md:leading-[1.2]" 
-                    style={{ 
-                      color: royalColors[categoryIndex % royalColors.length], 
-                      textShadow: `0 0 30px ${royalColors[categoryIndex % royalColors.length]}60` 
-                    }}
+              <div className="relative w-full h-[200px] flex items-center justify-center">
+                <AnimatePresence>
+                  <m.div
+                    key={categoryIndex}
+                    initial={{ opacity: 0, rotateX: -80, y: 60, scale: 0.9 }}
+                    animate={{ opacity: 1, rotateX: 0, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, rotateX: 80, y: -60, scale: 1.1 }}
+                    transition={{ duration: 1.4, ease: [0.19, 1.0, 0.22, 1.0] }}
+                    className="absolute flex flex-col items-center justify-center w-full"
                   >
-                    {activeCategories[categoryIndex] || 'Your Dream Event'}
-                  </h1>
-                  <p className="text-xl md:text-3xl text-white/95 max-w-4xl mx-auto drop-shadow-[0_6px_15px_rgba(0,0,0,0.9)] font-bold">
-                    Perfectly orchestrated for your dream wedding.
-                  </p>
-                </m.div>
-              </AnimatePresence>
+                    <h1 
+                      className="text-4xl md:text-[68px] font-black drop-shadow-[0_10px_25px_rgba(0,0,0,0.9)] mb-4 tracking-tight leading-[1.2] md:leading-[1.2]" 
+                      style={{ 
+                        color: royalColors[categoryIndex % royalColors.length], 
+                        textShadow: `0 0 40px ${royalColors[categoryIndex % royalColors.length]}90` 
+                      }}
+                    >
+                      {activeCategories[categoryIndex] || 'Your Dream Event'}
+                    </h1>
+                    <p className="text-xl md:text-3xl text-white/95 max-w-4xl mx-auto drop-shadow-[0_6px_15px_rgba(0,0,0,0.9)] font-bold">
+                      Perfectly orchestrated for your special day.
+                    </p>
+                  </m.div>
+                </AnimatePresence>
+              </div>
             </m.div>
 
             {/* Layer 5: The Couple */}
