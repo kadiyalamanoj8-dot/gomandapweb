@@ -10,6 +10,15 @@ import ApplePicker from '../ui/ApplePicker';
 import AppleDateTimePicker from '../ui/AppleDateTimePicker';
 import HeroMarquee from './HeroMarquee';
 
+const BG_TEXTS = [
+  { text: "Premium Decor", top: "20%", left: "15%", delay: 0 },
+  { text: "Candid Photography", top: "15%", right: "15%", delay: 1 },
+  { text: "Grand Venues", top: "45%", left: "8%", delay: 2 },
+  { text: "Bridal Makeup", top: "50%", right: "10%", delay: 3 },
+  { text: "Elite Catering", top: "75%", left: "20%", delay: 4 },
+  { text: "Live Music", top: "70%", right: "20%", delay: 5 },
+];
+
 const EVENT_CATEGORY_MAP = {
   'Pelli / Shaadi (The Grand Wedding)': ['Banquet Halls', 'Kalyana Mandapams', 'Open Lawns & Farmhouses', 'Photography & Videography', 'Makeup Artists (MUA)'],
   'Engagement / Nishchithartham': ['Banquet Halls', 'Party & Mini Halls', 'Stage & Venue Decor', 'Photography & Videography', 'Makeup Artists (MUA)'],
@@ -363,8 +372,8 @@ const HeroParallax = () => {
         onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }}
         className="relative w-full h-[100dvh] min-h-[600px] bg-[#0A0A0A] z-[60] select-none overflow-hidden"
       >
-        {/* Sleek 2D Trust Badges (Professional Layout) */}
-        <div className="absolute top-[12%] md:top-[12%] left-0 right-0 w-full z-[100] flex justify-center pointer-events-none px-4">
+        {/* Sleek 2D Trust Badges (Professional Layout) - Repositioned Lower on Desktop */}
+        <div className="absolute top-[12%] md:top-[56%] left-0 right-0 w-full z-[100] flex justify-center pointer-events-none px-4">
           <div className="flex items-center gap-4 md:gap-8 opacity-80 scale-90 md:scale-100">
             {/* Verified Badge */}
             <div className="flex items-center gap-2">
@@ -401,6 +410,38 @@ const HeroParallax = () => {
 
           <m.div style={{ rotateX, rotateY, transformStyle: "preserve-3d" }} className="absolute inset-0 w-full h-full flex items-center justify-center">
             
+            {/* Layer 1.5: 3D Cinematic Background Typography */}
+            <m.div style={{ translateZ: -50 }} className="absolute inset-0 w-full h-full z-20 pointer-events-none overflow-hidden">
+              {BG_TEXTS.map((item, idx) => (
+                <m.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ 
+                    opacity: [0.1, 0.4, 0.1], 
+                    y: [0, -20, 0] 
+                  }}
+                  transition={{
+                    duration: 12,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    ease: "easeInOut",
+                    delay: item.delay
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: item.top,
+                    left: item.left,
+                    right: item.right,
+                  }}
+                  className="hidden md:block"
+                >
+                  <h3 className="text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white/10 to-white/30 uppercase tracking-[0.2em] whitespace-nowrap drop-shadow-[0_0_15px_rgba(255,255,255,0.05)]">
+                    {item.text}
+                  </h3>
+                </m.div>
+              ))}
+            </m.div>
+
             {/* Layer 4: Text */}
             <m.div style={{ translateZ: 40 }} className="absolute inset-0 top-[-25%] md:top-[-25%] left-0 right-0 w-full z-[40] flex flex-col items-center justify-center text-center px-4 pointer-events-none origin-center">
               <div className="relative w-full h-[200px] flex items-center justify-center">
