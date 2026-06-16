@@ -12,6 +12,9 @@ const LeadsCRM = lazy(() => import('./pages/LeadsCRM'));
 const MarketingCRM = lazy(() => import('./pages/MarketingCRM'));
 const WhatsAppBot = lazy(() => import('./pages/WhatsAppBot'));
 const AdManager = lazy(() => import('./pages/AdManager'));
+const HelpRequestsCRM = lazy(() => import('./pages/HelpRequestsCRM'));
+const TestimonialsManager = lazy(() => import('./pages/TestimonialsManager'));
+const HomeContentSettings = lazy(() => import('./pages/HomeContentSettings'));
 import Sidebar from './components/Sidebar';
 import { Menu } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
@@ -82,6 +85,9 @@ function AppLayout() {
                   <Route path="/marketing" element={<AuthGuard><MarketingCRM /></AuthGuard>} />
                   <Route path="/whatsapp-bot" element={<AuthGuard><WhatsAppBot /></AuthGuard>} />
                   <Route path="/ad-manager" element={<AuthGuard><AdManager /></AuthGuard>} />
+                  <Route path="/help-requests" element={<AuthGuard><HelpRequestsCRM /></AuthGuard>} />
+                  <Route path="/testimonials" element={<AuthGuard><TestimonialsManager /></AuthGuard>} />
+                  <Route path="/home-content" element={<AuthGuard><HomeContentSettings /></AuthGuard>} />
                 </Routes>
               </Suspense>
             </motion.div>

@@ -78,6 +78,7 @@ const HeroParallax = () => {
         const data = await res.json();
         if (data.success && data.data) {
           if (data.data.clientUI) setClientUI(data.data.clientUI);
+          if (data.data.eventTypes) setClientUI(prev => ({ ...prev, eventTypes: data.data.eventTypes }));
           // Generate exhaustive list of categories and venue types
           const allCats = [
             'Banquet Halls', 'Kalyana Mandapams', 'Open Lawns & Farmhouses', 
@@ -215,8 +216,8 @@ const HeroParallax = () => {
   const smoothX = useSpring(mouseX, springConfig);
   const smoothY = useSpring(mouseY, springConfig);
 
-  const rotateX = useTransform(smoothY, [-0.5, 0.5], [0, 0]); // Locked vertical gyro
-  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-3, 3]); // Very small horizontal gyro
+  const rotateX = useTransform(smoothY, [-0.5, 0.5], [-5, 5]); // Vertical gyro
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-8, 8]); // Horizontal gyro
   
   const { scrollY } = useScroll();
   const bgScrollY = useTransform(scrollY, [0, 1000], [0, 400]);
@@ -290,7 +291,7 @@ const HeroParallax = () => {
           <span className="text-[10px] font-bold text-[#FFD700]/70 uppercase tracking-[0.18em] mb-0.5 ml-1">{t('search_event_type')}</span>
           <div className="w-full z-[300]">
             <ApplePicker
-              options={EVENT_TYPES.map(tOption => ({label: tOption, value: tOption}))}
+              options={(clientUI.eventTypes || EVENT_TYPES).map(tOption => ({label: tOption, value: tOption}))}
               value={eventType}
               onChange={setEventType}
               placeholder={t('search_event_placeholder')}
@@ -364,8 +365,8 @@ const HeroParallax = () => {
       <div className="hidden md:block w-px h-12 bg-white/20 mx-2"></div>
       <div className="block md:hidden h-px w-[90%] bg-white/10 mx-auto my-2"></div>
 
-      <div className="flex-1 w-full md:w-auto relative group rounded-[24px] md:rounded-full hover:bg-white/5 transition-colors cursor-text flex items-center justify-between pr-2 py-2 md:py-3">
-        <div className="px-3 sm:px-6 flex flex-col items-start w-full">
+      <div className="flex-1 w-full md:w-auto relative group rounded-[24px] md:rounded-full hover:bg-white/5 transition-colors cursor-text flex items-center justify-between pl-3 sm:pl-6 pr-2 sm:pr-3 py-2 md:py-3">
+        <div className="flex flex-col items-start w-full pr-2">
           <span className="text-[10px] font-bold text-[#FFD700]/70 uppercase tracking-[0.18em] mb-0.5 ml-1">{t('search_dates')}</span>
           <div className="px-1 py-1 w-full">
             <AppleDateTimePicker value={selectedDate} onChange={setSelectedDate} placeholder="When?" theme="dark" position={isMobile ? "top" : "bottom"} />
@@ -386,38 +387,12 @@ const HeroParallax = () => {
         onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }}
         className="relative w-full h-[100dvh] min-h-[600px] bg-[#0A0A0A] z-[60] select-none overflow-hidden"
       >
-        {/* Sleek 2D Trust Badges (Professional Layout) - Repositioned Lower on Desktop */}
-        <div className="absolute top-[12%] md:top-[56%] left-0 right-0 w-full z-[100] flex justify-center pointer-events-none px-4">
-          <div className="flex items-center gap-4 md:gap-8 opacity-80 scale-90 md:scale-100">
-            {/* Verified Badge */}
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="text-emerald-400 w-4 h-4 md:w-5 md:h-5" />
-              <span className="text-white/90 text-xs md:text-sm font-semibold tracking-wide">100% Verified Vendors</span>
-            </div>
-            
-            <div className="w-1 h-1 rounded-full bg-white/20"></div>
 
-            {/* Secure Badge */}
-            <div className="flex items-center gap-2">
-              <Lock className="text-blue-400 w-4 h-4 md:w-5 md:h-5" />
-              <span className="text-white/90 text-xs md:text-sm font-semibold tracking-wide">Secure Booking</span>
-            </div>
-
-            <div className="hidden md:block w-1 h-1 rounded-full bg-white/20"></div>
-
-            {/* Smart Panel Badge (Desktop only) */}
-            <div className="hidden md:flex items-center gap-2">
-              <LayoutDashboard className="text-purple-400 w-4 h-4 md:w-5 md:h-5" />
-              <span className="text-white/90 text-xs md:text-sm font-semibold tracking-wide">Smart Client Panel</span>
-            </div>
-          </div>
-        </div>
-      
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
       
         {/* Layer 1: Deep Background */}
         <div ref={containerRef} className="absolute inset-0 w-full h-full z-0 perspective-[1200px]">
-          <m.div style={{ translateZ: -100, y: bgScrollY }} className="absolute inset-[-15%] w-[130%] h-[130%] z-0 scale-[1.3] origin-center">
+          <m.div style={{ translateZ: -250, y: bgScrollY }} className="absolute inset-[-15%] w-[130%] h-[130%] z-0 scale-[1.3] origin-center">
             <img src="/images/south_indian_mandap.webp" alt="South Indian Mandap Background" className="w-full h-full object-cover opacity-100" loading="eager" fetchpriority="high" />
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-[#0A0A0A] z-10" />
           </m.div>
@@ -425,7 +400,7 @@ const HeroParallax = () => {
           <m.div style={{ rotateX, rotateY, transformStyle: "preserve-3d" }} className="absolute inset-0 w-full h-full flex items-center justify-center">
 
             {/* Layer 4: Text */}
-            <m.div style={{ translateZ: 40, y: textScrollY }} className="absolute inset-0 top-[-25%] md:top-[-25%] left-0 right-0 w-full z-[40] flex flex-col items-center justify-center text-center px-4 pointer-events-none origin-center">
+            <m.div style={{ translateZ: 80, y: textScrollY }} className="absolute inset-0 top-[-25%] md:top-[-25%] left-0 right-0 w-full z-[40] flex flex-col items-center justify-center text-center px-4 pointer-events-none origin-center">
               <div className="relative w-full h-[200px] flex flex-col items-center justify-center">
                 <m.div
                   initial={{ opacity: 0, y: 30 }}
@@ -433,6 +408,13 @@ const HeroParallax = () => {
                   transition={{ duration: 1.5, ease: [0.25, 1, 0.5, 1] }}
                   className="absolute flex flex-col items-center justify-center w-full"
                 >
+                  <div className="mb-4 md:mb-6 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-emerald-400/30 shadow-[0_0_20px_rgba(52,211,153,0.3)]">
+                    <div className="relative flex h-3 w-3 items-center justify-center">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </div>
+                    <span className="text-[9px] md:text-xs font-bold text-emerald-400 uppercase tracking-widest">India's First App for Instant Bookings</span>
+                  </div>
                   <h1 
                     className="text-5xl md:text-[72px] lg:text-[80px] font-['Playfair_Display'] font-black drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)] mb-4 tracking-tight leading-[1.1] text-transparent bg-clip-text" 
                     style={{ backgroundImage: cinematicColors[0], paddingRight: '15px' }}
@@ -450,7 +432,7 @@ const HeroParallax = () => {
             </m.div>
 
             {/* Layer 5: The Couple */}
-            <m.div style={{ translateZ: 180, scale: 0.9, y: coupleScrollY }} className="absolute inset-0 left-0 right-0 z-30 flex items-center justify-center pt-[20vh] md:pt-[15vh] origin-center">
+            <m.div style={{ translateZ: 250, scale: 0.9, y: coupleScrollY }} className="absolute inset-0 left-0 right-0 z-30 flex items-center justify-center pt-[20vh] md:pt-[15vh] origin-center">
               <img src="/images/couple_transparent.webp" alt="Couple" className="w-[85vw] md:w-[70vw] max-h-[65vh] md:max-h-[70vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)] pointer-events-none" />
             </m.div>
           </m.div>
@@ -506,6 +488,33 @@ const HeroParallax = () => {
             </m.div>
           )}
         </AnimatePresence>
+
+        {/* Sleek 2D Trust Badges - Positioned Below Search Bar (Highest z-index) */}
+        <div className="absolute bottom-[130px] md:bottom-auto md:top-[76%] left-0 right-0 w-full z-[300] flex justify-center pointer-events-none px-4">
+          <div className="flex items-center gap-4 md:gap-8 opacity-80 scale-90 md:scale-100">
+            {/* Verified Badge */}
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="text-emerald-400 w-4 h-4 md:w-5 md:h-5" />
+              <span className="text-white/90 text-xs md:text-sm font-semibold tracking-wide">100% Verified Vendors</span>
+            </div>
+            
+            <div className="w-1 h-1 rounded-full bg-white/20"></div>
+
+            {/* Secure Badge */}
+            <div className="flex items-center gap-2">
+              <Lock className="text-blue-400 w-4 h-4 md:w-5 md:h-5" />
+              <span className="text-white/90 text-xs md:text-sm font-semibold tracking-wide">Secure Booking</span>
+            </div>
+
+            <div className="hidden md:block w-1 h-1 rounded-full bg-white/20"></div>
+
+            {/* Smart Panel Badge (Desktop only) */}
+            <div className="hidden md:flex items-center gap-2">
+              <LayoutDashboard className="text-purple-400 w-4 h-4 md:w-5 md:h-5" />
+              <span className="text-white/90 text-xs md:text-sm font-semibold tracking-wide">Smart Client Panel</span>
+            </div>
+          </div>
+        </div>
       </div>
     </LazyMotion>
   );

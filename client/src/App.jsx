@@ -18,6 +18,8 @@ import { HelmetProvider } from 'react-helmet-async';
 import DynamicSEO from './components/DynamicSEO';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
+import HelpRequestPopup from './components/home/HelpRequestPopup';
+import ScrollToTop from './components/common/ScrollToTop';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const LandingClient = lazy(() => import('./pages/LandingClient'));
@@ -27,6 +29,8 @@ const VendorDetailsPage = lazy(() => import('./pages/VendorDetailsPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const TermsPage = lazy(() => import('./pages/TermsPage'));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
 
 // Routes where the Footer should be hidden on MOBILE (bottom nav is enough)
 const MOBILE_NO_FOOTER_ROUTES = ['/profile', '/saved'];
@@ -59,10 +63,12 @@ function AppContent() {
 
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden">
+      <ScrollToTop />
       <Toaster position="bottom-center" />
       <DynamicSEO appTarget="client" pageName="global" />
       <SpatialNavbar />
       <ConsentManager />
+      <HelpRequestPopup />
       <main className="flex-grow w-full pb-20 md:pb-0">
         <CartDrawer />
         <AnimatePresence mode="wait">
@@ -84,6 +90,8 @@ function AppContent() {
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/contact" element={<ContactPage />} />
                 <Route path="*" element={<HomePage />} />
               </Routes>
             </ErrorBoundary>

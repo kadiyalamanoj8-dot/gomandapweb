@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getSettings, toggleCategory, toggleLanguage, updateClientUI } = require('../controllers/settingsController');
+const { getSettings, toggleCategory, toggleLanguage, updateClientUI, updateHomeContent } = require('../controllers/settingsController');
 
 // GET /api/settings - Fetch global settings (used by Client & Vendor apps)
 router.get('/', getSettings);
@@ -13,5 +13,8 @@ router.patch('/languages/toggle', toggleLanguage);
 
 // PATCH /api/settings/client-ui - Update Client UI settings (Admin)
 router.patch('/client-ui', updateClientUI);
+
+// PATCH /api/settings/home-content - Update Home Content (Admin)
+router.patch('/home-content', updateHomeContent);
 
 module.exports = router;

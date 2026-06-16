@@ -95,6 +95,12 @@ app.use('/api/whatsapp', whatsappRoutes);
 const adRoutes = require('./routes/adRoutes');
 app.use('/api/ads', adRoutes);
 
+const helpRequestRoutes = require('./routes/helpRequestRoutes');
+app.use('/api/help-requests', helpRequestRoutes);
+
+const testimonialRoutes = require('./routes/testimonialRoutes');
+app.use('/api/testimonials', testimonialRoutes);
+
 const whatsappService = require('./services/whatsappService');
 // Only initialize WhatsApp on the primary PM2 cluster instance (instance 0) 
 // to prevent Puppeteer session lock crashes across multiple threads.

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Store, LayoutDashboard, Settings, LogOut, X, Sliders, Globe, Users, Languages } from 'lucide-react';
+import { Store, LayoutDashboard, Settings, LogOut, X, Sliders, Globe, Users, Languages, LifeBuoy, Star } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -65,6 +65,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <Users size={18} /> Leads CRM
           </NavLink>
           <NavLink
+            to="/help-requests"
+            onClick={() => setIsOpen(false)}
+            className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'btn-liquid text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          >
+            <LifeBuoy size={18} /> Expert Help CRM
+          </NavLink>
+          <NavLink
             to="/marketing"
             onClick={() => setIsOpen(false)}
             className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'btn-liquid text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
@@ -110,6 +117,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <LayoutDashboard size={18} /> Client UI Settings
           </NavLink>
           <NavLink
+            to="/home-content"
+            onClick={() => setIsOpen(false)}
+            className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'btn-liquid text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          >
+            <LayoutDashboard size={18} /> Home Content
+          </NavLink>
+          <NavLink
             to="/footer-settings"
             onClick={() => setIsOpen(false)}
             className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'btn-liquid text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
@@ -136,6 +150,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'btn-liquid text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
           >
             <Languages size={18} /> Language Settings
+          </NavLink>
+          <NavLink
+            to="/testimonials"
+            onClick={() => setIsOpen(false)}
+            className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive ? 'btn-liquid text-white shadow-lg shadow-brand-primary/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          >
+            <Star size={18} /> Testimonials
           </NavLink>
         </nav>
 

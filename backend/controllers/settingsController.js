@@ -134,4 +134,35 @@ const updateClientUI = async (req, res) => {
   }
 };
 
-module.exports = { getSettings, toggleCategory, toggleLanguage, updateClientUI };
+// @desc    Update home page content settings (Event Types, Why Us)
+// @route   PATCH /api/settings/home-content
+// @access  Admin
+const updateHomeContent = async (req, res) => {
+  try {
+    const { eventTypes, whyUsFeatures } = req.body;
+
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = await Settings.create({});
+    }
+
+    if (eventTypes !== undefined) settings.eventTypes = eventTypes;
+    if (whyUsFeatures !== undefined) {
+      settings.whyUsFeatures = whyUsFeatures;
+      settings.markModified('whyUsFeatures');
+    }
+
+    await settings.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Home content settings updated.',
+      data: settings
+    });
+  } catch (error) {
+    console.error('updateHomeContent Error:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+module.exports = { getSettings, toggleCategory, toggleLanguage, updateClientUI, updateHomeContent };

@@ -28,8 +28,8 @@ const Footer = () => {
       {
         title: "Company",
         links: [
-          { label: "About Us", url: "#" },
-          { label: "Contact", url: "#" }
+          { label: "About Us", url: "/about" },
+          { label: "Contact", url: "/contact" }
         ]
       },
       {

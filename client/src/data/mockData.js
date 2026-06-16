@@ -151,27 +151,27 @@ export const FEATURED_VENDORS = [
 
 const categoryMockConfig = {
   'Banquet Halls': {
-    names: ['The Grand Lotus', 'Royal Palace', 'Crystal Ballroom', 'Imperial Hall', 'Majestic Banquets'],
+    names: ['The Grand Lotus', 'Royal Palace', 'Crystal Ballroom', 'Imperial Hall', 'Majestic Banquets', 'ITC Grand Chola Banquets', 'Taj Mahal Palace Hall'],
     images: ['1519167758481-83f550bb49b3', '1469334031218-e382a71b716b'],
     minPrice: 1000, maxPrice: 3500
   },
   'Kalyana Mandapams': {
-    names: ['Sri Venkateshwara Mandapam', 'Padmavati Kalyana Mandapam', 'Shubh Aarambh Halls'],
+    names: ['Sri Venkateshwara Mandapam', 'Padmavati Kalyana Mandapam', 'Shubh Aarambh Halls', 'Sri Rama Navami Halls', 'Kamakshi Kalyana Mandapam'],
     images: ['1519225421980-a95ce669bfaa', '1511285560929-80b456fea0a1'],
     minPrice: 500, maxPrice: 1500
   },
   'Open Lawns & Farmhouses': {
-    names: ['Green Acres', 'Whispering Willows Lawn', 'Sunset Farmhouse', 'Royal Lawns'],
+    names: ['Green Acres', 'Whispering Willows Lawn', 'Sunset Farmhouse', 'Royal Lawns', 'The Emerald Garden', 'Springfield Lawns'],
     images: ['1519167758481-83f550bb49b3', '1537151608828-ea2b11777ee8'],
     minPrice: 1200, maxPrice: 4000
   },
   'Resorts & Destination Venues': {
-    names: ['Taj Exotica Resort', 'The Oberoi Villas', 'Leela Palace Destination', 'Ananta Resorts'],
+    names: ['Taj Exotica Resort', 'The Oberoi Villas', 'Leela Palace Destination', 'Ananta Resorts', 'Umaid Bhawan Palace', 'Taj Lake Palace', 'Rambagh Palace'],
     images: ['1582719478250-c89cae4dc85b', '1566073771259-6a85e60cb386'],
     minPrice: 4000, maxPrice: 12000
   },
   '5-Star Hotels': {
-    names: ['ITC Grand', 'The Ritz-Carlton', 'JW Marriott', 'Hyatt Regency'],
+    names: ['ITC Grand', 'The Ritz-Carlton', 'JW Marriott', 'Hyatt Regency', 'The Taj Mahal Tower', 'The Leela Palace', 'Trident Hotel'],
     images: ['1542314831-24fe56d81b83', '1551882547-ff40c65fe5fa'],
     minPrice: 3500, maxPrice: 8000
   },
@@ -181,32 +181,32 @@ const categoryMockConfig = {
     minPrice: 400, maxPrice: 1000
   },
   'Temples & Ashrams': {
-    names: ['Iskcon Temple Grounds', 'Sri Krishna Ashram', 'Devi Temple Hall'],
+    names: ['Iskcon Temple Grounds', 'Sri Krishna Ashram', 'Devi Temple Hall', 'Siddhivinayak Temple Halls'],
     images: ['1603513364402-9a572a1f26a1', '1582424883492-9a7ed18b62c1'],
     minPrice: 200, maxPrice: 600
   },
   'Photography & Videography': {
-    names: ['Capture Infinity', 'Candid Tales Studio', 'Wedding Storytellers', 'Lens & Light', 'The Cinematic Frame'],
+    names: ['Capture Infinity', 'Candid Tales Studio', 'Wedding Storytellers', 'Lens & Light', 'The Cinematic Frame', 'Memories by Rahul', 'Epic Shaadi Shoots'],
     images: ['1537151608828-ea2b11777ee8', '1516035069371-29a1b244cc32', '1551316666-41fa9b25126f'],
     minPrice: 40000, maxPrice: 250000
   },
   'Catering Service': {
-    names: ['Golden Spices', 'Royal Feasts', 'Divine Flavors Caterers', 'The Grand Kitchen'],
+    names: ['Golden Spices', 'Royal Feasts', 'Divine Flavors Caterers', 'The Grand Kitchen', 'Maharaja Caterers', 'Saffron Flavors'],
     images: ['1555244162-803834f70033', '1553621042-f6e147245754', '1548946526-f692e7e34c52'],
     minPrice: 800, maxPrice: 3500
   },
   'Stage & Venue Decor': {
-    names: ['Aura Decor', 'Petal & Props', 'Dream Elements Decorators', 'Royal Mandap Setup'],
+    names: ['Aura Decor', 'Petal & Props', 'Dream Elements Decorators', 'Royal Mandap Setup', 'Floral Fantasy Design'],
     images: ['1464366400600-7168b8af9bc3', '1511795409476-69222e4d06a8', '1505236858219-8359eb29e329'],
     minPrice: 50000, maxPrice: 500000
   },
   'Event Planners': {
-    names: ['Perfect Weddings Co.', 'Vows & Tales', 'The Grand Curators', 'Elite Event Managers'],
+    names: ['Perfect Weddings Co.', 'Vows & Tales', 'The Grand Curators', 'Elite Event Managers', 'Shaadi Squad', 'WedMeGood Planners'],
     images: ['1511795409476-69222e4d06a8', '1519225421980-a95ce669bfaa'],
     minPrice: 80000, maxPrice: 400000
   },
   'DJs & Sound Systems': {
-    names: ['DJ Spinzz', 'Beat Drop Audio', 'Nightrider Sounds', 'Bass King DJ'],
+    names: ['DJ Spinzz', 'Beat Drop Audio', 'Nightrider Sounds', 'Bass King DJ', 'DJ Chetas Live', 'Groove Makers'],
     images: ['1516450360452-9312f5e86fc7', '1514525253161-7a46d19cd819', '1598387122177-33a39e8800b4'],
     minPrice: 15000, maxPrice: 60000
   },
@@ -216,22 +216,22 @@ const categoryMockConfig = {
     minPrice: 20000, maxPrice: 80000
   },
   'Makeup Artists (MUA)': {
-    names: ['Glamour Look by Priya', 'Bridal Radiance', 'Flawless Strokes', 'Glow & Tell MUA'],
+    names: ['Glamour Look by Priya', 'Bridal Radiance', 'Flawless Strokes', 'Glow & Tell MUA', 'Anita Dongre Studio MUA', 'Namrata Soni Pro'],
     images: ['1487412720507-e7ab37603c6f', '1596704017254-9bd12364e6e2', '1522337660859-02fbefca4702'],
     minPrice: 15000, maxPrice: 45000
   },
   'Mehndi Designers': {
-    names: ['Heena Arts', 'Bridal Mehndi by Sana', 'Intricate Patterns Design', 'Royal Henna'],
+    names: ['Heena Arts', 'Bridal Mehndi by Sana', 'Intricate Patterns Design', 'Royal Henna', 'Mehendi by Veena'],
     images: ['1594950293078-1a5789f66bb6', '1610444315264-7933182b6b14'],
     minPrice: 3000, maxPrice: 15000
   },
   'Wedding Clothes / Boutiques': {
-    names: ['Bridal Threads', 'The Sherwani Lounge', 'Pattu Silks Collection', 'Regal Boutique'],
+    names: ['Bridal Threads', 'The Sherwani Lounge', 'Pattu Silks Collection', 'Regal Boutique', 'Sabyasachi Heritage', 'Manish Malhotra Store'],
     images: ['1595777457583-95e059f58196', '1550614000-4b95d4ed79d1'],
     minPrice: 15000, maxPrice: 150000
   },
   'Jewelry Shops': {
-    names: ['Gold & Diamond House', 'Antique Jewellers', 'Bridal Sparkle Rentals', 'Kundan Experts'],
+    names: ['Gold & Diamond House', 'Antique Jewellers', 'Bridal Sparkle Rentals', 'Kundan Experts', 'Tanishq Exclusives', 'Kalyan Jewellers Heritage'],
     images: ['1515562141207-8e8cf4cb3ba7', '1599643478524-cece13540455'],
     minPrice: 25000, maxPrice: 500000
   },
@@ -251,11 +251,23 @@ const categoryMockConfig = {
     minPrice: 2000, maxPrice: 11000
   },
   'Honeymoon Packages': {
-    names: ['Tropical Escapes Travels', 'Swiss Dreams Agency', 'Romantic Getaways', 'Maldives Specials'],
+    names: ['Tropical Escapes Travels', 'Swiss Dreams Agency', 'Romantic Getaways', 'Maldives Specials', 'MakeMyTrip Elite'],
     images: ['1499793983690-e29da59ef1c2', '1519046904884-53103b184066', '1506197603052-3cc9c3a201bd'],
     minPrice: 60000, maxPrice: 350000
   }
 };
+
+const ALL_LOCATIONS = [
+  'Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Pune', 
+  'Kolkata', 'Ahmedabad', 'Jaipur', 'Udaipur', 'Jodhpur', 'Goa', 
+  'Kerala', 'Agra', 'Chandigarh', 'Lucknow', 'Kochi', 'Amritsar', 
+  'Indore', 'Surat'
+];
+
+const ALL_FEATURES = [
+  'Wi-Fi', 'Parking', 'AC', 'In-house Catering', 'Decor Provided', 
+  'Bridal Room', 'Liquor Allowed', 'DJ Available', 'Wheelchair Accessible', 'Outdoor Seating'
+];
 
 export const generateFakeVendors = (categoryLabel, count = 8) => {
   const config = categoryMockConfig[categoryLabel] || {
@@ -273,6 +285,11 @@ export const generateFakeVendors = (categoryLabel, count = 8) => {
     const roundedPrice = Math.round(priceRaw / 100) * 100;
     const formattedPrice = `₹${roundedPrice.toLocaleString('en-IN')}`;
 
+    // Select 2-4 random features
+    const shuffledFeatures = [...ALL_FEATURES].sort(() => 0.5 - Math.random());
+    const featuresCount = Math.floor(Math.random() * 3) + 2;
+    const randomFeatures = shuffledFeatures.slice(0, featuresCount);
+
     return {
       id: `${categoryLabel.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${index}`,
       name: randomName,
@@ -280,7 +297,8 @@ export const generateFakeVendors = (categoryLabel, count = 8) => {
       pricePerPlate: formattedPrice,
       rating: (Math.random() * (5.0 - 4.2) + 4.2).toFixed(1), // Ratings between 4.2 and 5.0
       reviewsCount: Math.floor(Math.random() * 450 + 20),
-      location: ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Pune'][Math.floor(Math.random() * 6)],
+      location: ALL_LOCATIONS[Math.floor(Math.random() * ALL_LOCATIONS.length)],
+      features: randomFeatures,
       imageUrl: `https://images.unsplash.com/photo-${config.images[index % config.images.length]}?w=800&q=80`,
       featured: index < 2
     };

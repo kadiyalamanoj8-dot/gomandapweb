@@ -27,11 +27,11 @@ const LiquidVendorCard = ({ vendor, layout = 'carousel' }) => {
     return (
       <motion.div
         onClick={handleCardClick}
-        whileHover={{ y: -2 }}
-        className="relative flex flex-col md:flex-row lg-card hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden group w-full mb-6"
+        whileHover={{ scale: 1.01 }}
+        className="relative flex flex-col md:flex-row bg-white/40 backdrop-blur-xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.05)] hover:shadow-[0_16px_48px_rgba(0,0,0,0.1)] rounded-[24px] p-2 transition-all duration-500 cursor-pointer overflow-hidden group w-full mb-6"
       >
         {/* Image Section */}
-        <div className="relative w-full md:w-[40%] aspect-[4/3] md:aspect-auto md:h-full shrink-0 overflow-hidden">
+        <div className="relative w-full md:w-[40%] aspect-[4/3] md:aspect-auto md:h-full shrink-0 overflow-hidden rounded-[20px]">
           <ProtectedImage 
             src={vendor.imageUrl} 
             alt={vendor.name} 
@@ -113,15 +113,15 @@ const LiquidVendorCard = ({ vendor, layout = 'carousel' }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ y: -4 }}
-      className={`relative bg-transparent transition-transform duration-500 cursor-pointer overflow-hidden group flex flex-col ${
+      whileHover={{ y: -4, scale: 1.02 }}
+      className={`relative bg-white/40 backdrop-blur-xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.05)] hover:shadow-[0_16px_48px_rgba(0,0,0,0.1)] rounded-[28px] p-2 transition-all duration-500 cursor-pointer group flex flex-col ${
         layout === 'carousel' 
           ? 'w-[280px] md:w-[320px] shrink-0 snap-start' 
           : 'w-full h-full'
       }`}
     >
       {/* Cinematic Image Container */}
-      <div className="relative w-full aspect-[4/3] rounded-[24px] overflow-hidden shrink-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50">
+      <div className="relative w-full aspect-[4/3] rounded-[22px] overflow-hidden shrink-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
         <ProtectedImage 
           src={vendor.imageUrl} 
           alt={vendor.name} 

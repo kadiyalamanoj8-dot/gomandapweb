@@ -1,6 +1,8 @@
 import { Suspense, lazy } from 'react';
 import { motion } from 'framer-motion';
 import HeroParallax from '../components/home/HeroParallax';
+import WhyGoMandap from '../components/home/WhyGoMandap';
+import Testimonials from '../components/home/Testimonials';
 
 const VisualCategoryGrid = lazy(() => import('../components/home/VisualCategoryGrid'));
 
@@ -28,6 +30,10 @@ const HomePage = () => {
           </Suspense>
         </div>
       </motion.div>
+
+      {/* New Why GoMandap and Testimonials Sections */}
+      <WhyGoMandap />
+      <Testimonials />
     </div>
   );
 };
