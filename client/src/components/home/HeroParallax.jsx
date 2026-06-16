@@ -76,9 +76,10 @@ const HeroParallax = () => {
   }, []);
 
   useEffect(() => {
+    if (!activeCategories || activeCategories.length === 0) return;
     const interval = setInterval(() => {
       setCategoryIndex(prev => (prev + 1) % activeCategories.length);
-    }, 3000);
+    }, 3500);
     return () => clearInterval(interval);
   }, [activeCategories.length]);
 
@@ -87,6 +88,10 @@ const HeroParallax = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const royalColors = ['#D4AF37', '#FFB6C1', '#F7E7CE', '#98FF98', '#E6E6FA']; // Gold, Rose Gold, Champagne, Emerald/Mint, Lavender
+
+  // Removed floatingParticles block
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => setIsHeroVisible(entry.isIntersecting), { threshold: 0.05 });
@@ -349,28 +354,31 @@ const HeroParallax = () => {
               <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-blue-400 animate-pulse shadow-[0_0_10px_#60a5fa]" />
               <span className="text-white text-[11px] md:text-sm font-black tracking-widest drop-shadow-md">SECURE BOOKING</span>
             </m.div>
-
             {/* Layer 4: Text */}
             <m.div style={{ translateZ: 60 }} className="absolute inset-0 top-[-30%] md:top-[-30%] w-full z-[40] flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <h1 className="text-4xl md:text-[68px] font-black text-white drop-shadow-[0_10px_25px_rgba(0,0,0,0.9)] mb-4 tracking-tight leading-[1.2] md:leading-[1.2]" dangerouslySetInnerHTML={{ __html: t('hero_title') }} />
-              <div className="text-lg md:text-3xl text-white/95 max-w-4xl mx-auto drop-shadow-[0_6px_15px_rgba(0,0,0,0.9)] font-bold flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1">
-                <span>Find the perfect</span>
-                <span className="relative inline-flex h-[1.4em] md:h-[1.2em] overflow-hidden min-w-[200px] md:min-w-[320px] text-[#FFD700] justify-center items-center">
-                  <AnimatePresence mode="popLayout">
-                    <m.span
-                      key={categoryIndex}
-                      initial={{ y: 40, opacity: 0, rotateX: -90 }}
-                      animate={{ y: 0, opacity: 1, rotateX: 0 }}
-                      exit={{ y: -40, opacity: 0, rotateX: 90 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                      className="absolute font-black drop-shadow-[0_2px_15px_rgba(255,215,0,0.5)]"
-                    >
-                      {activeCategories[categoryIndex]}
-                    </m.span>
-                  </AnimatePresence>
-                </span>
-                <span>for your event.</span>
-              </div>
+              <AnimatePresence mode="wait">
+                <m.div
+                  key={categoryIndex}
+                  initial={{ opacity: 0, rotateX: 90, scale: 0.8 }}
+                  animate={{ opacity: 1, rotateX: 0, scale: 1 }}
+                  exit={{ opacity: 0, rotateX: -90, scale: 1.1 }}
+                  transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
+                  className="flex flex-col items-center justify-center"
+                >
+                  <h1 
+                    className="text-4xl md:text-[68px] font-black drop-shadow-[0_10px_25px_rgba(0,0,0,0.9)] mb-4 tracking-tight leading-[1.2] md:leading-[1.2]" 
+                    style={{ 
+                      color: royalColors[categoryIndex % royalColors.length], 
+                      textShadow: `0 0 30px ${royalColors[categoryIndex % royalColors.length]}60` 
+                    }}
+                  >
+                    {activeCategories[categoryIndex] || 'Your Dream Event'}
+                  </h1>
+                  <p className="text-xl md:text-3xl text-white/95 max-w-4xl mx-auto drop-shadow-[0_6px_15px_rgba(0,0,0,0.9)] font-bold">
+                    Perfectly orchestrated for your dream wedding.
+                  </p>
+                </m.div>
+              </AnimatePresence>
             </m.div>
 
             {/* Layer 5: The Couple */}
