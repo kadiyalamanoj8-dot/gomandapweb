@@ -46,5 +46,5 @@ jobs:
             
             echo "Restarting PM2 Services..."
             cd ..
-            npx pm2 stop pm2.config.js
+            npx pm2 delete all
             npx pm2 start pm2.config.js
