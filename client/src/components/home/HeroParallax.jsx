@@ -299,7 +299,7 @@ const HeroParallax = () => {
       <div 
         ref={heroRef} 
         onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }}
-        className="relative w-full h-screen h-[100svh] min-h-[600px] bg-black z-[60] select-none"
+        className="relative w-full h-[100dvh] min-h-[600px] bg-black z-[60] select-none overflow-hidden"
       >
       
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -335,7 +335,7 @@ const HeroParallax = () => {
         </div>
 
         {/* Mobile UI: Compact Bottom Pill (Airbnb Style) */}
-        <div className="md:hidden absolute bottom-[140px] w-full z-[200] px-4 pointer-events-auto">
+        <div className="md:hidden absolute bottom-[180px] w-full z-[200] px-4 pointer-events-auto">
           <button 
             onClick={() => setIsMobileSearchOpen(true)}
             className="w-full bg-white/5 backdrop-blur-md shadow-[inset_0_2px_15px_rgba(255,255,255,0.5),inset_0_-1px_10px_rgba(255,255,255,0.1),0_25px_50px_rgba(0,0,0,0.5)] border border-white/20 border-t-white/40 rounded-[32px] py-4 px-6 flex items-center justify-between text-white active:scale-95 transition-transform"
@@ -360,7 +360,7 @@ const HeroParallax = () => {
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="fixed inset-0 z-[9999] bg-[#121212]/95 backdrop-blur-3xl overflow-y-auto"
             >
-              <div className="px-6 pt-24 pb-24 h-full flex flex-col">
+              <div className="px-6 pt-24 pb-32 h-[100dvh] overflow-y-auto flex flex-col">
                 <button 
                   onClick={() => setIsMobileSearchOpen(false)}
                   className="mb-8 p-3 bg-white/10 hover:bg-white/20 transition-colors rounded-full text-white inline-flex self-start"
