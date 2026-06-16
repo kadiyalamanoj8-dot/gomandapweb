@@ -16,6 +16,7 @@ import Sidebar from './components/Sidebar';
 import { Menu } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { AdminAuthProvider, useAdminAuth } from './context/AdminAuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Guard component — redirects to /login if not authenticated
 const AuthGuard = ({ children }) => {
@@ -110,7 +111,9 @@ function App() {
             error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
           }}
         />
-        <AppLayout />
+        <ErrorBoundary>
+          <AppLayout />
+        </ErrorBoundary>
       </AdminAuthProvider>
     </BrowserRouter>
   );
