@@ -11,12 +11,12 @@ import AppleDateTimePicker from '../ui/AppleDateTimePicker';
 import HeroMarquee from './HeroMarquee';
 
 const BG_TEXTS = [
-  { text: "Premium Decor", top: "20%", left: "15%", delay: 0 },
-  { text: "Candid Photography", top: "15%", right: "15%", delay: 1 },
-  { text: "Grand Venues", top: "45%", left: "8%", delay: 2 },
-  { text: "Bridal Makeup", top: "50%", right: "10%", delay: 3 },
-  { text: "Elite Catering", top: "75%", left: "20%", delay: 4 },
-  { text: "Live Music", top: "70%", right: "20%", delay: 5 },
+  { text: "VENUES", top: "20%", left: "12%", delay: 0 },
+  { text: "DECOR", top: "15%", right: "12%", delay: 0.5 },
+  { text: "PHOTOGRAPHY", top: "45%", left: "8%", delay: 1 },
+  { text: "MAKEUP ARTISTS", top: "50%", right: "6%", delay: 1.5 },
+  { text: "CATERING", top: "75%", left: "15%", delay: 2 },
+  { text: "MUSIC", top: "70%", right: "15%", delay: 2.5 },
 ];
 
 const EVENT_CATEGORY_MAP = {
@@ -91,7 +91,7 @@ const HeroParallax = () => {
     if (!activeCategories || activeCategories.length === 0) return;
     const interval = setInterval(() => {
       setCategoryIndex(prev => (prev + 1) % activeCategories.length);
-    }, 3500);
+    }, 3000); // Exactly 3 seconds
     return () => clearInterval(interval);
   }, [activeCategories.length]);
 
@@ -108,7 +108,13 @@ const HeroParallax = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const royalColors = ['#D4AF37', '#FFB6C1', '#F7E7CE', '#98FF98', '#E6E6FA']; // Gold, Rose Gold, Champagne, Emerald/Mint, Lavender
+  // Cinematic, deep luxury gradients instead of flat hex colors
+  const cinematicColors = [
+    'linear-gradient(to right, #D4AF37, #FFD700, #D4AF37)', // Deep Gold
+    'linear-gradient(to right, #E6E6FA, #FFFFFF, #E6E6FA)', // Pearl White
+    'linear-gradient(to right, #FFB6C1, #FFE4E1, #FFB6C1)', // Rose Quartz
+    'linear-gradient(to right, #F7E7CE, #FFFFFF, #F7E7CE)', // Champagne
+  ];
 
   // Removed floatingParticles block
 
@@ -435,7 +441,7 @@ const HeroParallax = () => {
                   }}
                   className="hidden md:block"
                 >
-                  <h3 className="text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white/10 to-white/30 uppercase tracking-[0.2em] whitespace-nowrap drop-shadow-[0_0_15px_rgba(255,255,255,0.05)]">
+                  <h3 className="text-4xl lg:text-6xl font-['Montserrat'] font-black text-transparent bg-clip-text bg-gradient-to-br from-white/10 via-[#D4AF37]/20 to-white/5 uppercase tracking-[0.3em] whitespace-nowrap drop-shadow-[0_0_20px_rgba(212,175,55,0.05)]">
                     {item.text}
                   </h3>
                 </m.div>
@@ -445,25 +451,24 @@ const HeroParallax = () => {
             {/* Layer 4: Text */}
             <m.div style={{ translateZ: 40 }} className="absolute inset-0 top-[-25%] md:top-[-25%] left-0 right-0 w-full z-[40] flex flex-col items-center justify-center text-center px-4 pointer-events-none origin-center">
               <div className="relative w-full h-[200px] flex items-center justify-center">
-                <AnimatePresence>
+                <AnimatePresence mode="wait">
                   <m.div
                     key={categoryIndex}
-                    initial={{ opacity: 0, rotateX: -80, y: 60, scale: 0.9 }}
-                    animate={{ opacity: 1, rotateX: 0, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, rotateX: 80, y: -60, scale: 1.1 }}
-                    transition={{ duration: 1.4, ease: [0.19, 1.0, 0.22, 1.0] }}
+                    initial={{ opacity: 0, filter: 'blur(20px)', scale: 1.1, y: 10 }}
+                    animate={{ opacity: 1, filter: 'blur(0px)', scale: 1, y: 0 }}
+                    exit={{ opacity: 0, filter: 'blur(10px)', scale: 0.95, y: -10 }}
+                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }} // Cinematic super smooth easing
                     className="absolute flex flex-col items-center justify-center w-full"
                   >
                     <h1 
-                      className="text-4xl md:text-[68px] font-black drop-shadow-[0_10px_25px_rgba(0,0,0,0.9)] mb-4 tracking-tight leading-[1.2] md:leading-[1.2]" 
+                      className="text-4xl md:text-[76px] font-['Playfair_Display'] italic font-black drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)] mb-4 tracking-tight leading-[1.1] text-transparent bg-clip-text" 
                       style={{ 
-                        color: royalColors[categoryIndex % royalColors.length], 
-                        textShadow: `0 0 40px ${royalColors[categoryIndex % royalColors.length]}90` 
+                        backgroundImage: cinematicColors[categoryIndex % cinematicColors.length]
                       }}
                     >
                       {activeCategories[categoryIndex] || 'Your Dream Event'}
                     </h1>
-                    <p className="text-xl md:text-3xl text-white/95 max-w-4xl mx-auto drop-shadow-[0_6px_15px_rgba(0,0,0,0.9)] font-bold">
+                    <p className="text-xl md:text-2xl font-['Montserrat'] text-white/80 max-w-4xl mx-auto drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)] font-light tracking-[0.2em] uppercase">
                       Perfectly orchestrated for your special day.
                     </p>
                   </m.div>
