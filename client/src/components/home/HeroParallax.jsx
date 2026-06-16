@@ -454,21 +454,45 @@ const HeroParallax = () => {
                 <AnimatePresence mode="wait">
                   <m.div
                     key={categoryIndex}
-                    initial={{ opacity: 0, filter: 'blur(20px)', scale: 1.1, y: 10 }}
-                    animate={{ opacity: 1, filter: 'blur(0px)', scale: 1, y: 0 }}
-                    exit={{ opacity: 0, filter: 'blur(10px)', scale: 0.95, y: -10 }}
-                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }} // Cinematic super smooth easing
+                    initial={{ clipPath: "polygon(0 0, 0 0, 0 100%, 0% 100%)", opacity: 0, x: -30 }}
+                    animate={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)", opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, filter: 'blur(8px)', scale: 0.95, y: -10 }}
+                    transition={{ duration: 1.5, ease: [0.25, 1, 0.5, 1] }} // Signature drawing ease
                     className="absolute flex flex-col items-center justify-center w-full"
                   >
-                    <h1 
-                      className="text-4xl md:text-[76px] font-['Playfair_Display'] italic font-black drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)] mb-4 tracking-tight leading-[1.1] text-transparent bg-clip-text" 
-                      style={{ 
-                        backgroundImage: cinematicColors[categoryIndex % cinematicColors.length]
-                      }}
-                    >
-                      {activeCategories[categoryIndex] || 'Your Dream Event'}
-                    </h1>
-                    <p className="text-xl md:text-2xl font-['Montserrat'] text-white/80 max-w-4xl mx-auto drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)] font-light tracking-[0.2em] uppercase">
+                    <div className="relative">
+                      <h1 
+                        className="text-6xl md:text-[90px] font-['Great_Vibes'] font-normal drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)] mb-2 tracking-wide leading-[1.2] text-transparent bg-clip-text" 
+                        style={{ 
+                          backgroundImage: cinematicColors[categoryIndex % cinematicColors.length],
+                          paddingRight: '15px'
+                        }}
+                      >
+                        {activeCategories[categoryIndex] || 'Your Dream Event'}
+                      </h1>
+                      {/* Handwriting SVG Flourish */}
+                      <svg className="absolute -bottom-2 md:-bottom-4 left-[10%] w-[80%] h-8 overflow-visible" viewBox="0 0 200 20" preserveAspectRatio="none">
+                        <m.path 
+                          initial={{ pathLength: 0, opacity: 0 }}
+                          animate={{ pathLength: 1, opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 1.2, ease: "easeOut", delay: 0.4 }}
+                          d="M5,10 Q50,-5 100,10 T195,10"
+                          fill="none"
+                          stroke="url(#flourishGrad)"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                        />
+                        <defs>
+                          <linearGradient id="flourishGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#D4AF37" stopOpacity="0.2" />
+                            <stop offset="50%" stopColor="#FFD700" stopOpacity="0.8" />
+                            <stop offset="100%" stopColor="#D4AF37" stopOpacity="0.2" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                    </div>
+                    <p className="text-sm md:text-xl font-['Montserrat'] text-white/80 max-w-4xl mx-auto drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)] font-medium tracking-[0.3em] uppercase mt-4">
                       Perfectly orchestrated for your special day.
                     </p>
                   </m.div>
