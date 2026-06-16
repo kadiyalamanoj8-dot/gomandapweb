@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D4AF37"/>
+      <stop offset="100%" stop-color="#FACC15"/>
+    </linearGradient>
+    <linearGradient id="businessGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1D1D1F"/>
+      <stop offset="100%" stop-color="#86868B"/>
+    </linearGradient>
+    <linearGradient id="adminGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1D1D1F"/>
+      <stop offset="100%" stop-color="#86868B"/>
+    </linearGradient>
+  </defs>
+  
+      <text x="50%" y="50%" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="90" font-weight="900" fill="url(#brandGradient)" text-anchor="middle" dominant-baseline="central" letter-spacing="-1">Gomandap</text>
+    
+</svg>

@@ -1,0 +1,1 @@
+var e=`http://68.233.97.93:5000`;export{e as t};
