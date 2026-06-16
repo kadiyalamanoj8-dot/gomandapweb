@@ -8,7 +8,6 @@ import { API_URL } from '../config/api';
 const HomeContentSettings = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [eventTypes, setEventTypes] = useState('');
   const [whyUsFeatures, setWhyUsFeatures] = useState([]);
 
   async function fetchSettings() {
@@ -18,7 +17,6 @@ const HomeContentSettings = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success && res.data.data) {
-        setEventTypes((res.data.data.eventTypes || []).join('\n'));
         setWhyUsFeatures(res.data.data.whyUsFeatures || []);
       }
     } catch (error) {
@@ -36,10 +34,7 @@ const HomeContentSettings = () => {
     setIsSaving(true);
     try {
       const token = localStorage.getItem('adminToken');
-      const eventTypesArray = eventTypes.split('\n').map(t => t.trim()).filter(Boolean);
-      
       const payload = {
-        eventTypes: eventTypesArray,
         whyUsFeatures
       };
 
@@ -100,35 +95,7 @@ const HomeContentSettings = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Event Types */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600">
-              <List size={20} />
-            </div>
-            <div>
-              <h2 className="text-lg font-black text-gray-900">Search Dropdown Events</h2>
-              <p className="text-xs text-gray-500 font-medium">Types of events users can search for in the hero banner.</p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-bold text-gray-700">Event Types</label>
-            <p className="text-xs text-gray-500 mb-2">Paste one event type per line.</p>
-            <textarea
-              value={eventTypes}
-              onChange={(e) => setEventTypes(e.target.value)}
-              rows={12}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm focus:outline-none focus:border-brand-primary font-mono text-gray-600"
-            />
-          </div>
-        </motion.div>
-
+      <div className="max-w-3xl mx-auto">
         {/* Why GoMandap Features */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}

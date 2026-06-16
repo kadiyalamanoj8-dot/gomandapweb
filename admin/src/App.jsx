@@ -15,6 +15,7 @@ const AdManager = lazy(() => import('./pages/AdManager'));
 const HelpRequestsCRM = lazy(() => import('./pages/HelpRequestsCRM'));
 const TestimonialsManager = lazy(() => import('./pages/TestimonialsManager'));
 const HomeContentSettings = lazy(() => import('./pages/HomeContentSettings'));
+const EventTypesManager = lazy(() => import('./pages/EventTypesManager'));
 import Sidebar from './components/Sidebar';
 import { Menu } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
@@ -88,6 +89,7 @@ function AppLayout() {
                   <Route path="/help-requests" element={<AuthGuard><HelpRequestsCRM /></AuthGuard>} />
                   <Route path="/testimonials" element={<AuthGuard><TestimonialsManager /></AuthGuard>} />
                   <Route path="/home-content" element={<AuthGuard><HomeContentSettings /></AuthGuard>} />
+                  <Route path="/event-types" element={<AuthGuard><EventTypesManager /></AuthGuard>} />
                 </Routes>
               </Suspense>
             </motion.div>

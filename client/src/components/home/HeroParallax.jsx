@@ -200,8 +200,25 @@ const HeroParallax = () => {
 
   const handleSearch = () => {
     let searchCategory = selectedCategory;
-    if (!searchCategory && eventType && EVENT_CATEGORY_MAP[eventType]) searchCategory = EVENT_CATEGORY_MAP[eventType][0];
-    else if (!searchCategory) searchCategory = 'Banquet Halls';
+
+    // Map Event Type to multiple Vendor Categories if defined
+    if (!searchCategory && eventType) {
+       const eventObj = (clientUI?.eventTypes || []).find(e => (e.name || e) === eventType);
+       if (eventObj && eventObj.mappedCategories && eventObj.mappedCategories.length > 0) {
+         let url = `/search?`;
+         eventObj.mappedCategories.forEach(cat => {
+            url += `category=${encodeURIComponent(cat)}&`;
+         });
+         if (selectedLocation) url += `lat=${selectedLocation.lat}&lng=${selectedLocation.lon}&locName=${encodeURIComponent(selectedLocation.display_name.split(',')[0])}&`;
+         if (capacity) url += `capacity=${encodeURIComponent(capacity)}&`;
+         
+         setIsMobileSearchOpen(false);
+         navigate(url.replace(/&$/, ''));
+         return;
+       }
+    }
+
+    if (!searchCategory) searchCategory = 'Banquet Halls';
 
     let url = `/search?category=${encodeURIComponent(searchCategory)}`;
     if (selectedLocation) url += `&lat=${selectedLocation.lat}&lng=${selectedLocation.lon}&locName=${encodeURIComponent(selectedLocation.display_name.split(',')[0])}`;
@@ -212,12 +229,12 @@ const HeroParallax = () => {
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  const springConfig = { damping: 25, stiffness: 200, mass: 0.5 }; // Fast, smooth, no bounce
+  const springConfig = { damping: 40, stiffness: 150, mass: 0.8 }; // Butter smooth, floating feel
   const smoothX = useSpring(mouseX, springConfig);
   const smoothY = useSpring(mouseY, springConfig);
 
-  const rotateX = useTransform(smoothY, [-0.5, 0.5], [-5, 5]); // Vertical gyro
-  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-8, 8]); // Horizontal gyro
+  const rotateX = useTransform(smoothY, [-0.5, 0.5], [-8, 8]); // Vertical gyro
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-12, 12]); // Horizontal gyro
   
   const { scrollY } = useScroll();
   const bgScrollY = useTransform(scrollY, [0, 1000], [0, 400]);
@@ -245,8 +262,8 @@ const HeroParallax = () => {
         mouseX.set(x * desktopScale);
         mouseY.set(y * desktopScale);
       });
-      // Very quick rubber band effect on desktop
-      idleTimeout = setTimeout(resetToCenter, 200);
+      // Smoothly return to center after 1 second of zero movement
+      idleTimeout = setTimeout(resetToCenter, 1000);
     };
 
     let baselineX = 0, baselineY = 0, hasBaseline = false;
@@ -261,9 +278,9 @@ const HeroParallax = () => {
         else { x = e.gamma; y = e.beta - 45; }
 
         if (!hasBaseline) { baselineX = x; baselineY = y; hasBaseline = true; }
-        // Fast decay causes a quick rubber band effect to center on mobile
-        baselineX += (x - baselineX) * 0.15;
-        baselineY += (y - baselineY) * 0.15;
+        // Slowly update the baseline to recenter smoothly when the device is held still
+        baselineX += (x - baselineX) * 0.05;
+        baselineY += (y - baselineY) * 0.05;
         const deltaX = x - baselineX;
         const deltaY = y - baselineY;
         const mobileScale = isMobile ? 0.3 : 1; 
@@ -291,7 +308,10 @@ const HeroParallax = () => {
           <span className="text-[10px] font-bold text-[#FFD700]/70 uppercase tracking-[0.18em] mb-0.5 ml-1">{t('search_event_type')}</span>
           <div className="w-full z-[300]">
             <ApplePicker
-              options={(clientUI.eventTypes || EVENT_TYPES).map(tOption => ({label: tOption, value: tOption}))}
+              options={(clientUI?.eventTypes || EVENT_TYPES).map(tOption => {
+                const labelStr = typeof tOption === 'string' ? tOption : tOption.name;
+                return { label: labelStr, value: labelStr };
+              })}
               value={eventType}
               onChange={setEventType}
               placeholder={t('search_event_placeholder')}
@@ -393,7 +413,7 @@ const HeroParallax = () => {
         {/* Layer 1: Deep Background */}
         <div ref={containerRef} className="absolute inset-0 w-full h-full z-0 perspective-[1200px]">
           <m.div style={{ translateZ: -250, y: bgScrollY }} className="absolute inset-[-15%] w-[130%] h-[130%] z-0 scale-[1.3] origin-center">
-            <img src="/images/south_indian_mandap.webp" alt="South Indian Mandap Background" className="w-full h-full object-cover opacity-100" loading="eager" fetchpriority="high" />
+            <img src="/images/south_indian_mandap.webp" alt="South Indian Mandap Background" className="w-full h-full object-cover blur-[2px] opacity-100" loading="eager" fetchpriority="high" />
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-[#0A0A0A] z-10" />
           </m.div>
 

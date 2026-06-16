@@ -146,7 +146,10 @@ const updateHomeContent = async (req, res) => {
       settings = await Settings.create({});
     }
 
-    if (eventTypes !== undefined) settings.eventTypes = eventTypes;
+    if (eventTypes !== undefined) {
+      settings.eventTypes = eventTypes;
+      settings.markModified('eventTypes');
+    }
     if (whyUsFeatures !== undefined) {
       settings.whyUsFeatures = whyUsFeatures;
       settings.markModified('whyUsFeatures');

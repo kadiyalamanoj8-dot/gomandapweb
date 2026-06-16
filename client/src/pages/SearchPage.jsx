@@ -231,9 +231,9 @@ const SearchPage = () => {
                   <div className="w-20 h-20 mb-5 rounded-full bg-brand-primary/8 flex items-center justify-center">
                     <Icons.SearchX size={36} className="text-brand-primary/50" />
                   </div>
-                  <h3 className="text-xl font-black text-gray-800 mb-2">No Vendors Near You</h3>
-                  <p className="text-sm font-semibold text-gray-400 max-w-xs mb-6">
-                    We couldn't find any {targetCategories.join(' or ')} vendors in your area yet. Try a different category or broaden your search.
+                  <h3 className="text-xl font-black text-gray-800 mb-2">We're expanding here!</h3>
+                  <p className="text-sm font-semibold text-gray-500 max-w-sm mb-6">
+                    We are actively working right now to acquire the best <span className="text-brand-primary font-black">{targetCategories.join(' or ')}</span> vendors in your area. Please be patient, and we will inform you once we launch in your location.
                   </p>
                   <div className="flex flex-wrap gap-3 justify-center">
                     <button
@@ -246,7 +246,7 @@ const SearchPage = () => {
                       onClick={() => { const p = new URLSearchParams(); p.set('category','Banquet Halls'); window.location.search = p.toString(); }}
                       className="px-5 py-2.5 btn-liquid text-white rounded-xl text-sm font-black hover:bg-brand-primary/90 transition-all shadow-sm"
                     >
-                      Browse All Venues
+                      Browse Available Venues
                     </button>
                   </div>
                 </div>

@@ -13,16 +13,13 @@ const SettingsSchema = new mongoose.Schema(
       default: ['en', 'hi', 'te', 'ta', 'mr']
     },
     eventTypes: {
-      type: [String],
+      type: mongoose.Schema.Types.Mixed,
       default: [
-        'Pelli / Shaadi (The Grand Wedding)',
-        'Engagement / Nishchithartham',
-        'Sangeet & Mehendi Night',
-        'Reception',
-        'Half-Saree / Dhoti Functions',
-        'Cradle Ceremony / Barasala',
-        'Birthday Parties & Anniversaries',
-        'Corporate Events & MICE'
+        { name: 'Pelli / Shaadi (The Grand Wedding)', iconName: 'Heart', mappedCategories: ['Banquet Halls', 'Kalyana Mandapams'] },
+        { name: 'Engagement / Nishchithartham', iconName: 'Ring', mappedCategories: ['Banquet Halls', 'Party & Mini Halls'] },
+        { name: 'Sangeet & Mehendi Night', iconName: 'Music', mappedCategories: ['Open Lawns & Farmhouses', 'Party & Mini Halls'] },
+        { name: 'Reception', iconName: 'GlassWater', mappedCategories: ['Banquet Halls', 'Resorts & Destination Venues'] },
+        { name: 'Corporate Events & MICE', iconName: 'Briefcase', mappedCategories: ['5-Star Hotels', 'Resorts & Destination Venues'] }
       ]
     },
     whyUsFeatures: {
