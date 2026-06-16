@@ -760,18 +760,6 @@ const VendorOnboarding = () => {
                   )}
                 </div>
               </div>
-                  <label className={labelClassName}>Account Number <span className="text-brand-gold">*</span></label>
-                  <LazyInput type="password" value={bankingInfo.accountNumber} onChange={(e) => setBankingInfo({...bankingInfo, accountNumber: e.target.value})} placeholder="Enter Account Number" className={`${inputClassName} font-mono`} />
-                </div>
-                <div>
-                  <label className={labelClassName}>IFSC Code <span className="text-brand-gold">*</span></label>
-                  <LazyInput type="text" value={bankingInfo.ifscCode} onChange={(e) => setBankingInfo({...bankingInfo, ifscCode: e.target.value})} placeholder="e.g. HDFC0001234" className={`${inputClassName} uppercase font-mono`} />
-                </div>
-                <div>
-                  <label className={labelClassName}>Business UPI ID</label>
-                  <LazyInput type="text" value={bankingInfo.upiId} onChange={(e) => setBankingInfo({...bankingInfo, upiId: e.target.value})} placeholder="business@upi" className={inputClassName} />
-                </div>
-              </div>
 
               <div className="mt-10 flex justify-between pt-6 border-t border-white/10">
                 <button onClick={handlePrev} className="flex items-center gap-2 text-white/50 font-bold hover:text-white px-4 py-2 transition-colors">
