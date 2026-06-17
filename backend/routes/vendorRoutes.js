@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const upload = require('../middleware/upload');
-const { createDraft, syncVendorAuth, syncGoogleAuth, updateDraft, getApprovedVendors, getVendorById, getAllVendors, updateVendorStatus, updateLocationLock, updateVendorSettings, updateAdminVendorSettings } = require('../controllers/vendorController');
+const { createDraft, syncVendorAuth, syncGoogleAuth, updateDraft, getApprovedVendors, getVendorById, getAllVendors, updateVendorStatus, updateLocationLock, updateVendorSettings, updateAdminVendorSettings, getVendorAnalytics } = require('../controllers/vendorController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 // @route   POST /api/vendors/draft
@@ -45,6 +45,11 @@ router.get('/admin/all', protect, admin, getAllVendors);
 // @access  Public
 router.get('/:id', getVendorById);
 
+// @route   GET /api/vendors/:id/analytics
+// @desc    Get real analytics data for vendor dashboard
+// @access  Private/Vendor
+router.get('/:id/analytics', protect, getVendorAnalytics);
+
 // @route   PATCH /api/vendors/:id/status
 // @desc    Update vendor status
 // @access  Private/Admin
@@ -57,7 +62,7 @@ router.patch('/:id/location-lock', protect, admin, updateLocationLock);
 
 // @route   PATCH /api/vendors/:id/settings
 // @desc    Update vendor settings (availability, pricing)
-// @access  Private (Needs vendor auth, using protect for now)
+// @access  Private (Vendor)
 router.patch('/:id/settings', protect, updateVendorSettings);
 
 // @route   PATCH /api/vendors/:id/admin-settings

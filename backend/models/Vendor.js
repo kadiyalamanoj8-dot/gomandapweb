@@ -55,6 +55,7 @@ const vendorSchema = new mongoose.Schema({
   isFeatured: { type: Boolean, default: false },
   rating: { type: Number, default: 0 },
   reviewsCount: { type: Number, default: 0 },
+  profileViews: { type: Number, default: 0 }, // Track how many times this profile was viewed
 
   // Booking & Service specifics
   bookingSettings: {

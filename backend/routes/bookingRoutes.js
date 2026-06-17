@@ -7,11 +7,17 @@ const {
   adminUpdateBooking,
   getAllBookings
 } = require('../controllers/bookingController');
+const { protect, admin } = require('../middleware/authMiddleware');
 
+// Public - clients can create bookings
 router.post('/', createBooking);
-router.get('/admin', getAllBookings);
-router.get('/vendor/:vendorId', getVendorBookings);
-router.get('/user/:userId', getClientBookings);
-router.patch('/:id/admin', adminUpdateBooking);
+
+// Admin only - requires valid admin JWT
+router.get('/admin', protect, admin, getAllBookings);
+router.patch('/:id/admin', protect, admin, adminUpdateBooking);
+
+// Vendor/User specific (uses protect for token validation)
+router.get('/vendor/:vendorId', protect, getVendorBookings);
+router.get('/user/:userId', protect, getClientBookings);
 
 module.exports = router;

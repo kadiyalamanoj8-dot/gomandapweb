@@ -11,6 +11,7 @@ import { getCategorySchema } from '../../config/categorySchemas';
 import ProfileCard from '../../components/auth/ProfileCard';
 import Bookings from '../Bookings';
 import { API_URL } from '../../config/api';
+import toast, { Toaster } from 'react-hot-toast';
 
 const VendorDashboard = () => {
   const { vendorProfile, vendorStatus, logoutVendor, updateVendorProfile } = useVendor();
@@ -24,6 +25,38 @@ const VendorDashboard = () => {
   const [editForm, setEditForm] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+
+  const [analytics, setAnalytics] = useState({
+    profileViews: 0,
+    totalRevenue: 0,
+    activeLeads: 0
+  });
+
+  const fetchInquiriesAndAnalytics = async () => {
+    if (!vendorProfile?._id) return;
+    const token = localStorage.getItem('vendorToken');
+    try {
+      // Fetch inquiries
+      const resInq = await fetch(`${API_URL}/api/inquiries/vendor/${vendorProfile._id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const dataInq = await resInq.json();
+      if (dataInq.success) {
+        setInquiries(dataInq.data);
+      }
+      
+      // Fetch analytics
+      const resAnalytics = await fetch(`${API_URL}/api/vendors/${vendorProfile._id}/analytics`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const dataAnalytics = await resAnalytics.json();
+      if (dataAnalytics.success) {
+        setAnalytics(dataAnalytics.data);
+      }
+    } catch (err) {
+      console.error("Failed to load dashboard data", err);
+    }
+  };
 
   // Initialize edit form when profile is loaded or changes
   useEffect(() => {
@@ -40,22 +73,9 @@ const VendorDashboard = () => {
         bookingSettings: vendorProfile.bookingSettings || { maxCapacity: 1, availability: [] },
         pricing: vendorProfile.pricing || { standardPrice: 0, b2bPrice: 0, pricingUnit: 'per_day' }
       });
-      fetchInquiries();
+      fetchInquiriesAndAnalytics();
     }
   }, [vendorProfile]);
-
-  const fetchInquiries = async () => {
-    if (!vendorProfile?._id) return;
-    try {
-      const res = await fetch(`${API_URL}/api/inquiries/vendor/${vendorProfile._id}`);
-      const data = await res.json();
-      if (data.success) {
-        setInquiries(data.data);
-      }
-    } catch (err) {
-      console.error("Failed to load inquiries", err);
-    }
-  };
 
   const schema = getCategorySchema(vendorProfile?.category);
 
@@ -118,13 +138,13 @@ const VendorDashboard = () => {
           bio: data.bio,
           faqs: data.faqs
         }));
-        alert('Bio and FAQs successfully generated using AI!');
+        toast.success('Bio and FAQs successfully generated using AI!');
       } else {
-        alert('AI Generation failed. Ensure API key is set in backend.');
+        toast.error('AI Generation failed. Ensure API key is set in backend.');
       }
     } catch (err) {
       console.error(err);
-      alert('Network error while generating AI content.');
+      toast.error('Network error while generating AI content.');
     } finally {
       setIsGeneratingAI(false);
     }
@@ -156,14 +176,13 @@ const VendorDashboard = () => {
       if (data.success) {
         updateVendorProfile(data.data);
         setIsEditingProfile(false);
-        // Using alert since react-hot-toast isn't imported, or we could add it
-        alert('Profile updated successfully!');
+        toast.success('Profile updated successfully!');
       } else {
-        alert('Failed to update profile: ' + data.message);
+        toast.error('Failed to update profile: ' + data.message);
       }
     } catch (err) {
       console.error(err);
-      alert('Network error while saving profile.');
+      toast.error('Network error while saving profile.');
     } finally {
       setIsSaving(false);
     }
@@ -200,6 +219,7 @@ const VendorDashboard = () => {
 
   return (
     <div className="min-h-screen bg-black font-sans text-white selection:bg-brand-gold/30 relative">
+      <Toaster position="top-right" />
       {/* Immersive Indian Event Background */}
       <div className="fixed inset-0 z-0">
         <img 
@@ -344,8 +364,8 @@ const VendorDashboard = () => {
                   </div>
                 </div>
                 <div className="relative z-10 mt-10 flex items-end gap-4">
-                  <span className="text-6xl md:text-8xl font-black tracking-tighter text-white drop-shadow-lg">₹3.2L</span>
-                  <span className="text-lg font-bold text-white/80 mb-3">+24%</span>
+                  <span className="text-6xl md:text-8xl font-black tracking-tighter text-white drop-shadow-lg">₹{analytics.totalRevenue ? (analytics.totalRevenue / 100000).toFixed(1) + 'L' : '0'}</span>
+                  <span className="text-lg font-bold text-white/80 mb-3">Total</span>
                 </div>
               </div>
 
@@ -355,7 +375,7 @@ const VendorDashboard = () => {
                    <div className="absolute -left-10 -top-10 w-32 h-32 bg-brand-gold/20 rounded-full blur-[50px] group-hover:bg-brand-gold/30 transition-colors"></div>
                    <div className="relative z-10">
                      <span className="text-sm font-bold text-white/60 uppercase tracking-wider block mb-1">Profile Views</span>
-                     <span className="text-4xl font-black text-white">2,481</span>
+                     <span className="text-4xl font-black text-white">{analytics.profileViews || 0}</span>
                    </div>
                    <div className="w-16 h-16 relative z-10">
                      <img src="/images/3d_venue copy.webp" className="w-full h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" alt="Views" />
@@ -366,7 +386,7 @@ const VendorDashboard = () => {
                    <div className="absolute -left-10 -top-10 w-32 h-32 bg-brand-gold/20 rounded-full blur-[50px] group-hover:bg-brand-gold/30 transition-colors"></div>
                    <div className="relative z-10">
                      <span className="text-sm font-bold text-white/60 uppercase tracking-wider block mb-1">Active Leads</span>
-                     <span className="text-4xl font-black text-white">{inquiries.length || 0}</span>
+                     <span className="text-4xl font-black text-white">{analytics.newInquiries || inquiries.length || 0}</span>
                    </div>
                    <div className="w-16 h-16 relative z-10">
                      <img src="/images/3d_invitation copy.webp" className="w-full h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" alt="Leads" />

@@ -227,9 +227,10 @@ const HeroParallax = () => {
     navigate(url);
   };
 
+  const searchHoverRef = useRef(false);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  const springConfig = { damping: 40, stiffness: 150, mass: 0.8 }; // Butter smooth, floating feel
+  const springConfig = { damping: 25, stiffness: 300, mass: 0.5 }; // Tight, instant smooth rubber band
   const smoothX = useSpring(mouseX, springConfig);
   const smoothY = useSpring(mouseY, springConfig);
 
@@ -254,6 +255,12 @@ const HeroParallax = () => {
     const handleMouseMove = (e) => {
       if (rAF) cancelAnimationFrame(rAF);
       clearTimeout(idleTimeout);
+
+      if (searchHoverRef.current) {
+        resetToCenter();
+        return;
+      }
+
       rAF = requestAnimationFrame(() => {
         // Normalize mouse coordinates to [-1, 1] relative to center
         const x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -262,8 +269,8 @@ const HeroParallax = () => {
         mouseX.set(x * desktopScale);
         mouseY.set(y * desktopScale);
       });
-      // Smoothly return to center after 1 second of zero movement
-      idleTimeout = setTimeout(resetToCenter, 1000);
+      // Instant smooth auto-center rubber-band effect after 100ms
+      idleTimeout = setTimeout(resetToCenter, 100);
     };
 
     let baselineX = 0, baselineY = 0, hasBaseline = false;
@@ -278,9 +285,14 @@ const HeroParallax = () => {
         else { x = e.gamma; y = e.beta - 45; }
 
         if (!hasBaseline) { baselineX = x; baselineY = y; hasBaseline = true; }
+        
+        if (searchHoverRef.current) {
+          return resetToCenter();
+        }
+
         // Slowly update the baseline to recenter smoothly when the device is held still
-        baselineX += (x - baselineX) * 0.05;
-        baselineY += (y - baselineY) * 0.05;
+        baselineX += (x - baselineX) * 0.15; // Faster decay for rubber-band feel on mobile
+        baselineY += (y - baselineY) * 0.15;
         const deltaX = x - baselineX;
         const deltaY = y - baselineY;
         const mobileScale = isMobile ? 0.3 : 1; 
@@ -451,9 +463,15 @@ const HeroParallax = () => {
               </div>
             </m.div>
 
-            {/* Layer 5: The Couple */}
+            {/* Layer 5: The Couple (Intelligent Breathing Animation) */}
             <m.div style={{ translateZ: 250, scale: 0.9, y: coupleScrollY }} className="absolute inset-0 left-0 right-0 z-30 flex items-center justify-center pt-[20vh] md:pt-[15vh] origin-center">
-              <img src="/images/couple_transparent.webp" alt="Couple" className="w-[85vw] md:w-[70vw] max-h-[65vh] md:max-h-[70vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)] pointer-events-none" />
+              <m.div 
+                animate={{ y: [0, -15, 0] }} 
+                transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+                className="w-full flex items-center justify-center"
+              >
+                <img src="/images/couple_transparent.webp" alt="Couple" className="w-[85vw] md:w-[70vw] max-h-[65vh] md:max-h-[70vh] object-contain object-bottom drop-shadow-[0_0_50px_rgba(255,193,7,0.6)] pointer-events-none" />
+              </m.div>
             </m.div>
           </m.div>
         </div>
@@ -461,7 +479,11 @@ const HeroParallax = () => {
 
         {/* Desktop UI: Centered Glass Pill */}
         <div className="hidden md:flex absolute top-[65%] w-full z-[200] flex-col items-center justify-start px-4 pointer-events-none">
-          <div className="w-full max-w-5xl pointer-events-auto bg-white/10 backdrop-blur-xl shadow-[inset_0_2px_15px_rgba(255,255,255,0.4),0_25px_60px_rgba(0,0,0,0.6)] border border-white/20 border-t-white/40 rounded-full p-2.5 flex flex-row items-center mx-auto transition-all duration-300 hover:shadow-[inset_0_2px_15px_rgba(255,255,255,0.5),0_30px_70px_rgba(0,0,0,0.7)] hover:bg-white/15">
+          <div 
+            className="w-full max-w-5xl pointer-events-auto bg-white/10 backdrop-blur-xl shadow-[inset_0_2px_15px_rgba(255,255,255,0.4),0_25px_60px_rgba(0,0,0,0.6)] border border-white/20 border-t-white/40 rounded-full p-2.5 flex flex-row items-center mx-auto transition-all duration-300 hover:shadow-[inset_0_2px_15px_rgba(255,255,255,0.5),0_30px_70px_rgba(0,0,0,0.7)] hover:bg-white/15"
+            onMouseEnter={() => { searchHoverRef.current = true; }}
+            onMouseLeave={() => { searchHoverRef.current = false; }}
+          >
             {searchContent}
           </div>
         </div>
@@ -470,6 +492,8 @@ const HeroParallax = () => {
         <div className="md:hidden absolute bottom-[180px] w-full z-[200] px-4 pointer-events-auto">
           <button 
             onClick={() => setIsMobileSearchOpen(true)}
+            onTouchStart={() => { searchHoverRef.current = true; }}
+            onTouchEnd={() => { searchHoverRef.current = false; }}
             className="w-full bg-white/5 backdrop-blur-md shadow-[inset_0_2px_15px_rgba(255,255,255,0.5),inset_0_-1px_10px_rgba(255,255,255,0.1),0_25px_50px_rgba(0,0,0,0.5)] border border-white/20 border-t-white/40 rounded-[32px] py-4 px-6 flex items-center justify-between text-white active:scale-95 transition-transform"
           >
             <div className="flex flex-col items-start text-left">
@@ -501,7 +525,14 @@ const HeroParallax = () => {
                 </button>
                 <h2 className="text-3xl font-black text-white mb-6 tracking-tight">Plan your event</h2>
                 
-                <div className="bg-white/10 border border-white/20 rounded-[32px] p-2 flex flex-col shadow-2xl">
+                <div 
+                  ref={searchHoverRef}
+                  className="bg-white/10 backdrop-blur-[24px] border border-white/20 p-2 md:p-3 rounded-[32px] md:rounded-[48px] shadow-2xl flex flex-col md:flex-row items-center gap-2 md:gap-4 relative w-full md:w-auto mx-auto max-w-[90vw] md:max-w-none transition-all duration-300 hover:bg-white/15"
+                  onMouseEnter={() => { searchHoverRef.current = true; }}
+                  onMouseLeave={() => { searchHoverRef.current = false; }}
+                  onTouchStart={() => { searchHoverRef.current = true; }}
+                  onTouchEnd={() => { searchHoverRef.current = false; }}
+                >
                   {searchContent}
                 </div>
               </div>

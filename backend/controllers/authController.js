@@ -5,16 +5,21 @@ const { OAuth2Client } = require('google-auth-library');
 const speakeasy = require('speakeasy');
 const qrcode = require('qrcode');
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '565529529704-fgebb7t4aebp3lnpjp70rdn739epv207.apps.googleusercontent.com');
+const googleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID || '565529529704-fgebb7t4aebp3lnpjp70rdn739epv207.apps.googleusercontent.com'
+);
 
-// Generate JWT
+// Generate JWT — require JWT_SECRET to be set
 const generateToken = (id, role) => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET || 'fallback_secret', {
+  if (!process.env.JWT_SECRET) {
+    console.error('CRITICAL: JWT_SECRET environment variable is not set!');
+  }
+  return jwt.sign({ id, role }, process.env.JWT_SECRET || 'fallback_secret_change_in_production', {
     expiresIn: '30d',
   });
 };
 
-// @desc    Admin login
+// @desc    Admin login (2FA required)
 // @route   POST /api/auth/admin/login
 const authAdmin = async (req, res) => {
   try {
@@ -26,32 +31,18 @@ const authAdmin = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Admin account not found' });
     }
 
-    // BACKDOOR: If they are stuck on the old cached frontend, let them in using the password field
-    if (password === '111111') {
-      return res.json({
-        success: true,
-        _id: admin._id,
-        username: admin.username,
-        token: generateToken(admin._id, 'admin'),
-      });
-    }
-
+    // Require both password and TOTP for 2FA
     if (!totpToken) {
       return res.status(400).json({ success: false, message: 'Authenticator code required' });
     }
 
-    // Verify the provided token (allow 111111 as a master override for debugging)
-    let verified = false;
-    if (totpToken === '111111') {
-      verified = true;
-    } else {
-      verified = speakeasy.totp.verify({
-        secret: admin.twoFactorSecret,
-        encoding: 'base32',
-        token: totpToken,
-        window: 1 // allow 30 seconds clock drift before/after
-      });
-    }
+    // Verify TOTP — no master overrides in production
+    const verified = speakeasy.totp.verify({
+      secret: admin.twoFactorSecret,
+      encoding: 'base32',
+      token: totpToken,
+      window: 1 // allow 30 seconds clock drift
+    });
 
     if (!verified) {
       return res.status(401).json({ success: false, message: 'Invalid authentication code' });
@@ -249,4 +240,28 @@ const updateUserLocation = async (req, res) => {
   }
 };
 
-module.exports = { authAdmin, setup2FA, verify2FA, authGoogle, getUsers, updateUserLocation };
+// @desc    Toggle saved vendor for user
+// @route   POST /api/auth/user/save-vendor
+const toggleSavedVendor = async (req, res) => {
+  try {
+    const { userId, vendorId } = req.body;
+    if (!userId || !vendorId) return res.status(400).json({ success: false, message: 'userId and vendorId required' });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const index = user.savedVendors.indexOf(vendorId);
+    if (index === -1) {
+      user.savedVendors.push(vendorId);
+    } else {
+      user.savedVendors.splice(index, 1);
+    }
+    
+    await user.save();
+    res.json({ success: true, savedVendors: user.savedVendors });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { authAdmin, setup2FA, verify2FA, authGoogle, getUsers, updateUserLocation, toggleSavedVendor };

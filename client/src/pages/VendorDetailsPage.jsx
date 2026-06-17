@@ -11,6 +11,7 @@ import CustomDropdown from '../components/ui/CustomDropdown';
 import DynamicSEO from '../components/DynamicSEO';
 import LocationMapClient from '../components/vendor/LocationMapClient';
 import AnimatedVendorCard from '../components/search/AnimatedVendorCard';
+import toast, { Toaster } from 'react-hot-toast';
 
 
 const VendorDetailsPage = () => {
@@ -33,6 +34,16 @@ const VendorDetailsPage = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
+
+  const [isSaved, setIsSaved] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    if (user?.savedVendors && vendor?.id) {
+      setIsSaved(user.savedVendors.includes(vendor.id) || user.savedVendors.some(v => v._id === vendor.id));
+    }
+  }, [user, vendor]);
 
   // Initialize form data based on schema defaults
   useEffect(() => {
@@ -58,9 +69,9 @@ const VendorDetailsPage = () => {
     if (location.state?.vendor) {
       const v = location.state.vendor;
       setVendor({
-        id: v.id || v._id,
         name: v.name,
         category: v.category,
+        bio: v.bio,
         location: v.location || (v.address?.city ? `${v.address.city}, India` : 'India'),
         imageUrl: v.imageUrl || (v.portfolioImages?.length > 0 ? v.portfolioImages[0] : 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1200&q=80'),
         pricePerPlate: v.pricing?.adminOverridePrice || (user?.role === 'business_client' ? v.pricing?.b2bPrice : v.pricing?.standardPrice) || v.pricePerPlate || v.customBlocks?.pricingPackages?.[0]?.price || 'Contact for Price',
@@ -86,9 +97,9 @@ const VendorDetailsPage = () => {
         if (data.success) {
           const v = data.data;
           setVendor({
-            id: v._id,
             name: v.name,
             category: v.category,
+            bio: v.bio,
             location: v.address?.city ? `${v.address.city}, India` : 'India',
             imageUrl: v.portfolioImages?.length > 0 ? v.portfolioImages[0] : 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1200&q=80',
             pricePerPlate: v.pricing?.adminOverridePrice || (user?.role === 'business_client' ? v.pricing?.b2bPrice : v.pricing?.standardPrice) || v.customBlocks?.pricingPackages?.[0]?.price || 'Contact for Price',
@@ -152,7 +163,7 @@ const VendorDetailsPage = () => {
 
   const handleSendQuote = async () => {
     if (!quoteForm.name || !quoteForm.phone || !quoteForm.message) {
-      alert("Please fill out your name, phone number, and message.");
+      toast.error("Please fill out your name, phone number, and message.");
       return;
     }
     setIsSendingQuote(true);
@@ -178,13 +189,13 @@ const VendorDetailsPage = () => {
       if (data.success) {
         setIsQuoteModalOpen(false);
         setQuoteForm({ name: '', phone: '', message: '' });
-        alert(userRole === 'client' ? 'Booking request submitted successfully! The vendor will confirm shortly.' : 'Your B2B quote request has been sent to the vendor! They will contact you shortly.');
+        toast.success(userRole === 'client' ? 'Booking request submitted successfully! The vendor will confirm shortly.' : 'Your B2B quote request has been sent to the vendor! They will contact you shortly.');
       } else {
-        alert(data.message || 'Failed to send inquiry.');
+        toast.error(data.message || 'Failed to send inquiry.');
       }
     } catch (error) {
       console.error(error);
-      alert('Network error. Please try again.');
+      toast.error('Network error. Please try again.');
     } finally {
       setIsSendingQuote(false);
     }
@@ -192,6 +203,11 @@ const VendorDetailsPage = () => {
 
   const handleInstantBook = () => {
     requireAuth(() => {
+      setQuoteForm(prev => ({
+        ...prev,
+        name: user?.name || prev.name,
+        phone: user?.phone || prev.phone,
+      }));
       setIsQuoteModalOpen(true);
     });
   };
@@ -239,13 +255,39 @@ const VendorDetailsPage = () => {
       }
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
+      toast.success('Link copied to clipboard!');
     }
+  };
+
+  const handleToggleSave = () => {
+    requireAuth(async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/auth/user/save-vendor`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user._id, vendorId: vendor.id })
+        });
+        const data = await res.json();
+        if (data.success) {
+          setIsSaved(!isSaved);
+          toast.success(isSaved ? 'Removed from wishlist' : 'Added to wishlist');
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error('Failed to update wishlist');
+      }
+    });
+  };
+
+  const openLightbox = (index) => {
+    setCurrentImageIndex(index);
+    setIsLightboxOpen(true);
   };
 
   return (
     <div className="min-h-screen bg-white pt-16 md:pt-24 pb-24 md:pb-16">
       <DynamicSEO customSchema={vendorSchema} />
+      <Toaster position="top-right" />
       
       {/* Mobile Title & Actions (Visible only on mobile) */}
       <div className="md:hidden px-4 pt-4 pb-2 flex justify-between items-center bg-white z-10 sticky top-16">
@@ -257,7 +299,7 @@ const VendorDetailsPage = () => {
         </button>
         <div className="flex gap-2">
           <button onClick={handleShare} className="p-2 text-gray-900 bg-gray-100 rounded-full active:scale-95 transition-transform"><Share2 size={16} /></button>
-          <button className="p-2 text-gray-900 bg-gray-100 rounded-full active:scale-95 transition-transform hover:text-red-500"><Heart size={16} /></button>
+          <button onClick={handleToggleSave} className={`p-2 rounded-full active:scale-95 transition-transform ${isSaved ? 'text-red-500 bg-red-50' : 'text-gray-900 bg-gray-100 hover:text-red-500'}`}><Heart size={16} fill={isSaved ? "currentColor" : "none"} /></button>
         </div>
       </div>
 
@@ -265,28 +307,28 @@ const VendorDetailsPage = () => {
       <div className="max-w-[1200px] mx-auto md:px-6 lg:px-8 mb-6 md:mb-10">
         <div className="flex md:grid md:grid-cols-4 md:grid-rows-2 gap-1 md:gap-2 lg:gap-3 h-[30vh] md:h-[50vh] lg:h-[60vh] md:rounded-[2rem] overflow-x-auto overflow-y-hidden snap-x snap-mandatory md:snap-none md:overflow-hidden no-scrollbar">
           
-          <div className="w-full shrink-0 snap-center md:col-span-2 md:row-span-2 relative group cursor-pointer md:rounded-l-[2rem] overflow-hidden">
+          <div onClick={() => openLightbox(0)} className="w-full shrink-0 snap-center md:col-span-2 md:row-span-2 relative group cursor-pointer md:rounded-l-[2rem] overflow-hidden">
             <img src={gallery[0]} alt="Main" className="w-full h-full object-cover transition-transform duration-700 md:group-hover:scale-105" />
             <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors hidden md:block"></div>
           </div>
 
           {gallery.length > 1 && (
-            <div className="w-4/5 shrink-0 snap-center md:w-auto md:col-span-1 md:row-span-1 relative group cursor-pointer overflow-hidden">
+            <div onClick={() => openLightbox(1)} className="w-4/5 shrink-0 snap-center md:w-auto md:col-span-1 md:row-span-1 relative group cursor-pointer overflow-hidden">
               <img src={gallery[1]} alt="View 2" className="w-full h-full object-cover transition-transform duration-700 md:group-hover:scale-110" />
             </div>
           )}
           {gallery.length > 2 && (
-            <div className="w-4/5 shrink-0 snap-center md:w-auto md:col-span-1 md:row-span-1 relative group cursor-pointer overflow-hidden md:rounded-tr-[2rem]">
+            <div onClick={() => openLightbox(2)} className="w-4/5 shrink-0 snap-center md:w-auto md:col-span-1 md:row-span-1 relative group cursor-pointer overflow-hidden md:rounded-tr-[2rem]">
               <img src={gallery[2]} alt="View 3" className="w-full h-full object-cover transition-transform duration-700 md:group-hover:scale-110" />
             </div>
           )}
           {gallery.length > 3 && (
-            <div className="w-4/5 shrink-0 snap-center md:w-auto md:col-span-1 md:row-span-1 relative group cursor-pointer overflow-hidden">
+            <div onClick={() => openLightbox(3)} className="w-4/5 shrink-0 snap-center md:w-auto md:col-span-1 md:row-span-1 relative group cursor-pointer overflow-hidden">
               <img src={gallery[3]} alt="View 4" className="w-full h-full object-cover transition-transform duration-700 md:group-hover:scale-110" />
             </div>
           )}
           {gallery.length > 4 && (
-            <div className="w-4/5 shrink-0 snap-center md:w-auto md:col-span-1 md:row-span-1 relative group cursor-pointer overflow-hidden md:rounded-br-[2rem]">
+            <div onClick={() => openLightbox(4)} className="w-4/5 shrink-0 snap-center md:w-auto md:col-span-1 md:row-span-1 relative group cursor-pointer overflow-hidden md:rounded-br-[2rem]">
               <img src={gallery[4]} alt="View 5" className="w-full h-full object-cover transition-transform duration-700 md:group-hover:scale-110" />
               {gallery.length > 5 && (
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
@@ -671,8 +713,8 @@ const VendorDetailsPage = () => {
             {/* About Section */}
             <section className="mb-10 pb-10 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight">{schema.aboutTitle}</h2>
-              <p className="text-gray-600 leading-relaxed font-normal text-base md:text-[17px]">
-                Experience unparalleled quality and elegance at {vendor.name}. Known for breathtaking work and impeccable service, this vendor is the perfect choice for your dream event. We ensure every moment of your celebration is flawless and memorable. Located centrally in {vendor.location.split(',')[0]}, we pride ourselves on delivering exactly what you envision.
+              <p className="text-gray-600 leading-relaxed font-normal text-base md:text-[17px] whitespace-pre-wrap">
+                {vendor.bio || `Experience unparalleled quality and elegance at ${vendor.name}. Known for breathtaking work and impeccable service, this vendor is the perfect choice for your dream event. We ensure every moment of your celebration is flawless and memorable. Located centrally in ${vendor.location.split(',')[0]}, we pride ourselves on delivering exactly what you envision.`}
               </p>
             </section>
 
@@ -935,6 +977,14 @@ const VendorDetailsPage = () => {
                     <ShoppingCart size={18} /> Add to Cart
                   </button>
                 </div>
+                <div className="hidden md:flex items-center gap-3">
+                  <button onClick={handleShare} className="flex items-center gap-2 px-5 py-3 rounded-xl border-2 border-gray-100 font-bold text-gray-700 hover:border-gray-200 hover:bg-gray-50 transition-all active:scale-95">
+                    <Share2 size={18} /> Share
+                  </button>
+                  <button onClick={handleToggleSave} className={`flex items-center gap-2 px-5 py-3 rounded-xl border-2 font-bold transition-all active:scale-95 ${isSaved ? 'border-red-100 bg-red-50 text-red-500' : 'border-gray-100 text-gray-700 hover:border-red-100 hover:text-red-500 hover:bg-red-50'}`}>
+                    <Heart size={18} fill={isSaved ? "currentColor" : "none"} /> {isSaved ? 'Saved' : 'Save'}
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-center justify-center gap-2 text-[13px] text-gray-500 mt-4 text-center">
@@ -1040,6 +1090,49 @@ const VendorDetailsPage = () => {
           </div>
         </div>
       )}
+
+      {/* Lightbox Modal */}
+      <AnimatePresence>
+        {isLightboxOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[999999] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <button 
+              onClick={() => setIsLightboxOpen(false)}
+              className="absolute top-4 right-4 md:top-8 md:right-8 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-50"
+            >
+              <Icons.X size={24} />
+            </button>
+            
+            <button 
+              onClick={() => setCurrentImageIndex((prev) => (prev - 1 + gallery.length) % gallery.length)}
+              className="absolute left-4 md:left-8 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-50"
+            >
+              <ChevronLeft size={32} />
+            </button>
+
+            <img 
+              src={gallery[currentImageIndex]} 
+              alt="Lightbox view" 
+              className="max-w-full max-h-[90vh] object-contain rounded-xl select-none"
+            />
+
+            <button 
+              onClick={() => setCurrentImageIndex((prev) => (prev + 1) % gallery.length)}
+              className="absolute right-4 md:right-8 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-50"
+            >
+              <ChevronRight size={32} />
+            </button>
+            
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 font-medium text-sm bg-black/50 px-4 py-2 rounded-full">
+              {currentImageIndex + 1} / {gallery.length}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

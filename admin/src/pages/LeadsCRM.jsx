@@ -11,12 +11,14 @@ const LeadsCRM = () => {
   const [sendingEmailId, setSendingEmailId] = useState(null);
 
 
-  async function fetchLeads() {
+  const fetchLeads = async () => {
     setLoading(true);
     try {
-      const url = filterStatus === 'All' ? `${API_URL}/leads` : `${API_URL}/leads?status=${filterStatus}`;
+      const url = filterStatus === 'All'
+        ? `${API_URL}/api/leads`
+        : `${API_URL}/api/leads?status=${filterStatus}`;
       const res = await axios.get(url);
-      setLeads(res.data.data);
+      setLeads(res.data.data || []);
     } catch (err) {
       toast.error('Failed to fetch leads');
     } finally {
@@ -24,9 +26,13 @@ const LeadsCRM = () => {
     }
   };
 
+  useEffect(() => {
+    fetchLeads();
+  }, [filterStatus]);
+
   const handleStatusChange = async (id, newStatus) => {
     try {
-      await axios.put(`${API_URL}/leads/${id}`, { status: newStatus });
+      await axios.put(`${API_URL}/api/leads/${id}`, { status: newStatus });
       toast.success('Lead status updated');
       fetchLeads();
     } catch (err) {
@@ -44,7 +50,7 @@ const LeadsCRM = () => {
     const message = `Hi ${lead.name} team! We saw your profile on Google Maps. We are inviting premium venues to list on Gomandap.com. You can claim your pre-built profile here: https://vendor.gomandap.com/onboarding?lead_id=${lead._id}`;
     
     // Update local status
-    await axios.put(`${API_URL}/leads/${lead._id}`, { whatsappStatus: 'Sent', status: 'Outreach Sent' });
+    await axios.put(`${API_URL}/api/leads/${lead._id}`, { whatsappStatus: 'Sent', status: 'Outreach Sent' });
     
     // Open WhatsApp Web/App
     window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
@@ -57,7 +63,7 @@ const LeadsCRM = () => {
 
     setSendingEmailId(lead._id);
     try {
-      await axios.post(`${API_URL}/leads/${lead._id}/send-email`, { targetEmail });
+      await axios.post(`${API_URL}/api/leads/${lead._id}/send-email`, { targetEmail });
       toast.success('Email dispatched successfully via Gomandap SMTP!');
       fetchLeads();
     } catch (err) {

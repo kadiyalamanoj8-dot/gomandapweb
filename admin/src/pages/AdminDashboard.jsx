@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
-import { Search, Filter, CheckCircle2, XCircle, Clock, Users, Store, TrendingUp, AlertTriangle, ChevronDown, LayoutTemplate, Calendar } from 'lucide-react';
+import { Search, Filter, CheckCircle2, XCircle, Clock, Users, Store, TrendingUp, AlertTriangle, ChevronDown, LayoutTemplate, Calendar, Square, CheckSquare, DollarSign, BarChart3 } from 'lucide-react';
 import VendorDetailsModal from '../components/VendorDetailsModal';
 import BookingInterventionModal from '../components/BookingInterventionModal';
 import SecuritySettings from '../components/settings/SecuritySettings';
@@ -83,6 +83,53 @@ const AdminDashboard = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  // Bulk selection state
+  const [selectedVendorIds, setSelectedVendorIds] = useState(new Set());
+
+  const handleBulkApprove = async () => {
+    if (selectedVendorIds.size === 0) return;
+    try {
+      const promises = Array.from(selectedVendorIds).map(id =>
+        axios.patch(`${API_URL}/api/vendors/${id}/status`, { status: 'approved' }, { withCredentials: true })
+      );
+      await Promise.all(promises);
+      toast.success(`${selectedVendorIds.size} vendors approved successfully`);
+      setSelectedVendorIds(new Set());
+      fetchVendors();
+    } catch (err) {
+      toast.error('Failed to process bulk approval');
+    }
+  };
+
+  const handleBulkReject = async () => {
+    if (selectedVendorIds.size === 0) return;
+    try {
+      const promises = Array.from(selectedVendorIds).map(id =>
+        axios.patch(`${API_URL}/api/vendors/${id}/status`, { status: 'rejected' }, { withCredentials: true })
+      );
+      await Promise.all(promises);
+      toast.success(`${selectedVendorIds.size} vendors rejected successfully`);
+      setSelectedVendorIds(new Set());
+      fetchVendors();
+    } catch (err) {
+      toast.error('Failed to process bulk rejection');
+    }
+  };
+
+  const toggleVendorSelection = (id) => {
+    const newSelection = new Set(selectedVendorIds);
+    if (newSelection.has(id)) newSelection.delete(id);
+    else newSelection.add(id);
+    setSelectedVendorIds(newSelection);
+  };
+
+  const toggleAllSelection = () => {
+    if (selectedVendorIds.size === filteredVendors.length) {
+      setSelectedVendorIds(new Set());
+    } else {
+      setSelectedVendorIds(new Set(filteredVendors.map(v => v._id)));
+    }
+  };
 
   const fetchVendors = async () => {
     setIsLoading(true);
@@ -198,10 +245,11 @@ const AdminDashboard = () => {
     }
   };
 
-  // Stats derived from vendors
+  // Stats derived from vendors — BUG-18 FIX: draft count is now separate
   const stats = useMemo(() => ({
     total: vendors.length,
-    pending: vendors.filter(v => v.status === 'pending' || v.status === 'draft').length,
+    pending: vendors.filter(v => v.status === 'pending').length,
+    draft: vendors.filter(v => v.status === 'draft').length,
     approved: vendors.filter(v => v.status === 'approved').length,
     feedback: vendors.filter(v => v.status === 'rejected_with_feedback' || v.status === 'rejected').length,
   }), [vendors]);
@@ -287,12 +335,21 @@ const AdminDashboard = () => {
 
       {/* Stats Row — only for vendors */}
       {activeTab === 'vendors' && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard icon={Store} value={stats.total} label="Total Vendors" color="bg-blue-100 text-blue-600" />
-          <StatCard icon={Clock} value={stats.pending} label="Pending Review" color="bg-amber-100 text-amber-600" />
-          <StatCard icon={CheckCircle2} value={stats.approved} label="Approved Live" color="bg-green-100 text-green-600" />
-          <StatCard icon={AlertTriangle} value={stats.feedback} label="Needs Attention" color="bg-red-100 text-red-600" />
-        </div>
+        <>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <StatCard icon={Store} value={stats.total} label="Total Vendors" color="bg-blue-100 text-blue-600" />
+            <StatCard icon={Clock} value={stats.pending} label="Pending Review" color="bg-amber-100 text-amber-600" />
+            <StatCard icon={CheckCircle2} value={stats.approved} label="Approved Live" color="bg-green-100 text-green-600" />
+            <StatCard icon={AlertTriangle} value={stats.feedback} label="Needs Attention" color="bg-red-100 text-red-600" />
+          </div>
+          {/* Revenue & Booking Stats (F14) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <StatCard icon={BarChart3} value={bookingStats.total} label="Total Bookings" color="bg-purple-100 text-purple-600" />
+            <StatCard icon={DollarSign} value={`₹${bookingStats.revenue.toLocaleString('en-IN')}`} label="Gross Booking Volume" color="bg-indigo-100 text-indigo-600" />
+            <StatCard icon={TrendingUp} value={`₹${bookingStats.platformFee.toLocaleString('en-IN')}`} label="Platform Revenue" color="bg-emerald-100 text-emerald-600" />
+            <StatCard icon={Clock} value={bookingStats.pending} label="Pending Interventions" color="bg-orange-100 text-orange-600" />
+          </div>
+        </>
       )}
 
       {/* Search & Filter Bar */}
@@ -308,25 +365,40 @@ const AdminDashboard = () => {
           />
         </div>
         {activeTab === 'vendors' && (
-          <div className="flex gap-2 flex-wrap">
-            {FILTER_TABS.map(f => (
-              <button
-                key={f}
-                onClick={() => setStatusFilter(f)}
-                className={`px-4 py-2.5 rounded-xl text-sm font-bold capitalize transition-all border ${
-                  statusFilter === f
-                    ? 'btn-liquid text-white border-brand-primary shadow-sm shadow-brand-primary/30'
-                    : 'bg-white text-gray-500 border-gray-200 hover:border-brand-primary hover:text-brand-primary'
-                }`}
-              >
-                {f === 'all' ? 'All' : f === 'rejected_with_feedback' ? 'Feedback' : f.charAt(0).toUpperCase() + f.slice(1)}
-                {f !== 'all' && (
-                  <span className="ml-1.5 bg-current/20 text-current rounded-full px-1.5 py-0.5 text-[10px]">
-                    {f === 'pending' ? stats.pending : f === 'approved' ? stats.approved : stats.feedback}
-                  </span>
-                )}
-              </button>
-            ))}
+          <div className="flex gap-2 flex-wrap items-center justify-between w-full">
+            <div className="flex gap-2 flex-wrap">
+              {FILTER_TABS.map(f => (
+                <button
+                  key={f}
+                  onClick={() => setStatusFilter(f)}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-bold capitalize transition-all border ${
+                    statusFilter === f
+                      ? 'btn-liquid text-white border-brand-primary shadow-sm shadow-brand-primary/30'
+                      : 'bg-white text-gray-500 border-gray-200 hover:border-brand-primary hover:text-brand-primary'
+                  }`}
+                >
+                  {f === 'all' ? 'All' : f === 'rejected_with_feedback' ? 'Feedback' : f.charAt(0).toUpperCase() + f.slice(1)}
+                  {f !== 'all' && (
+                    <span className="ml-1.5 bg-current/20 text-current rounded-full px-1.5 py-0.5 text-[10px]">
+                      {f === 'pending' ? stats.pending : f === 'approved' ? stats.approved : f === 'draft' ? stats.draft : stats.feedback}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Bulk Actions Menu (F13) */}
+            {selectedVendorIds.size > 0 && (
+              <div className="flex gap-2 items-center bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
+                <span className="text-sm font-bold text-gray-700 px-2">{selectedVendorIds.size} selected</span>
+                <button onClick={handleBulkApprove} className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-lg transition-colors">
+                  Approve All
+                </button>
+                <button onClick={handleBulkReject} className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-lg transition-colors">
+                  Reject All
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -380,6 +452,11 @@ const AdminDashboard = () => {
             <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 z-10 bg-gray-50/90 backdrop-blur-md">
                 <tr className="border-b border-gray-200">
+                  <th className="p-4 w-12">
+                    <button onClick={toggleAllSelection} className="text-gray-400 hover:text-brand-primary">
+                      {selectedVendorIds.size === filteredVendors.length && filteredVendors.length > 0 ? <CheckSquare size={18} /> : <Square size={18} />}
+                    </button>
+                  </th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Business</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Category</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Location</th>
@@ -393,7 +470,7 @@ const AdminDashboard = () => {
                   [1,2,3,4,5].map(i => <SkeletonRow key={i} />)
                 ) : filteredVendors.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="px-6 py-16 text-center">
+                    <td colSpan="7" className="px-6 py-16 text-center">
                       <Store size={40} className="mx-auto text-gray-300 mb-3" />
                       <p className="font-bold text-gray-400">No vendors found matching your search.</p>
                     </td>
@@ -405,6 +482,11 @@ const AdminDashboard = () => {
                     animate={{ opacity: 1 }}
                     className="hover:bg-gray-50 transition-colors group"
                   >
+                    <td className="px-6 py-4">
+                      <button onClick={() => toggleVendorSelection(vendor._id)} className="text-gray-400 hover:text-brand-primary">
+                        {selectedVendorIds.has(vendor._id) ? <CheckSquare size={18} className="text-brand-primary" /> : <Square size={18} />}
+                      </button>
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 shrink-0">

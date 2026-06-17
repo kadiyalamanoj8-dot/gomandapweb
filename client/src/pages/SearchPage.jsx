@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { CATEGORIES } from '../data/mockData';
 import LiquidVendorCard from '../components/common/LiquidVendorCard';
 import FilterSidebar from '../components/search/FilterSidebar';
-import { MapPin, SlidersHorizontal, Search as SearchIcon, ArrowLeft, ChevronRight, Home, ArrowUpDown } from 'lucide-react';
+import { MapPin, SlidersHorizontal, Search as SearchIcon, ArrowLeft, ChevronRight, Home, ArrowUpDown, Navigation } from 'lucide-react';
 import { API_URL } from '../config/api';
 import { useLocation, Link, useSearchParams } from 'react-router-dom';
 import CustomDropdown from '../components/ui/CustomDropdown';
 import * as Icons from 'lucide-react';
 import { motion } from 'framer-motion';
+import { usePermissions } from '../context/PermissionContext';
 
 const IconComponent = ({ name, ...props }) => {
   const Icon = Icons[name] || Icons.HelpCircle;
@@ -41,6 +42,7 @@ const ICON_MAP = {
 const SearchPage = () => {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const { requestPermission } = usePermissions();
 
   const targetCategories = searchParams.getAll('category');
   if (targetCategories.length === 0) {
@@ -55,6 +57,10 @@ const SearchPage = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [recommendedResults, setRecommendedResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const previousSearchParamsRef = useRef(searchParams.toString());
 
   const toggleCategory = (catLabel) => {
     const newParams = new URLSearchParams(searchParams);
@@ -72,6 +78,34 @@ const SearchPage = () => {
       newParams.append('category', catLabel);
     }
     setSearchParams(newParams);
+  };
+
+  const handleAutoLocate = async () => {
+    if ("geolocation" in navigator) {
+      const granted = await requestPermission('location');
+      if (!granted) return;
+
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+            const apiKey = import.meta.env.VITE_OLA_MAPS_API_KEY;
+            const res = await fetch(`https://api.olamaps.io/places/v1/reverse-geocode?latlng=${latitude},${longitude}&api_key=${apiKey}`);
+            const data = await res.json();
+            if (data.results && data.results.length > 0) {
+              const result = data.results[0];
+              const locName = result.address_components?.find(c => c.types.includes('locality'))?.short_name || result.name || "Current Location";
+              
+              const newParams = new URLSearchParams(searchParams);
+              newParams.set('lat', latitude);
+              newParams.set('lng', longitude);
+              newParams.set('locName', locName);
+              setSearchParams(newParams);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+      }, () => alert("Please allow location access to use this feature."));
+    } else alert("Geolocation is not supported by your browser.");
   };
 
   useEffect(() => {
@@ -102,6 +136,16 @@ const SearchPage = () => {
           }
         });
 
+        // Pagination
+        const currentSearchParamsStr = searchParams.toString();
+        let currentPage = page;
+        if (currentSearchParamsStr !== previousSearchParamsRef.current) {
+          currentPage = 1;
+          setPage(1);
+          previousSearchParamsRef.current = currentSearchParamsStr;
+        }
+        url += `&page=${currentPage}&limit=20`;
+
         const res  = await fetch(url);
         const data = await res.json();
         if (data.success) {
@@ -122,8 +166,15 @@ const SearchPage = () => {
           }));
           const recommended = mappedData.filter(v => v.rating >= 4.8 || v.isFeatured);
           const standard    = mappedData.filter(v => !(v.rating >= 4.8 || v.isFeatured));
-          setRecommendedResults(recommended);
-          setSearchResults(standard.length > 0 ? standard : mappedData);
+          
+          setHasMore(data.page < data.pages);
+
+          if (currentPage === 1) {
+            setRecommendedResults(recommended);
+            setSearchResults(standard.length > 0 ? standard : mappedData);
+          } else {
+            setSearchResults(prev => [...prev, ...(standard.length > 0 ? standard : mappedData)]);
+          }
         }
       } catch (error) {
         console.error('Error fetching vendors:', error);
@@ -132,15 +183,37 @@ const SearchPage = () => {
       }
     };
     fetchVendors();
-  }, [searchParams]);
+  }, [searchParams, page]);
 
   const memoizedRecommended = useMemo(() => recommendedResults.map(vendor => (
     <LiquidVendorCard key={vendor.id} vendor={vendor} layout="carousel" />
   )), [recommendedResults]);
 
-  const memoizedSearch = useMemo(() => searchResults.map(vendor => (
+  const sortedSearchResults = useMemo(() => {
+    let sorted = [...searchResults];
+    if (sortOption === 'Highest Rated') {
+      sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    } else if (sortOption === 'Popularity') {
+      sorted.sort((a, b) => (b.reviewsCount || 0) - (a.reviewsCount || 0));
+    } else if (sortOption === 'Price: Low to High') {
+      sorted.sort((a, b) => {
+        const pA = parseInt(a.pricePerPlate) || Infinity;
+        const pB = parseInt(b.pricePerPlate) || Infinity;
+        return pA - pB;
+      });
+    } else if (sortOption === 'Price: High to Low') {
+      sorted.sort((a, b) => {
+        const pA = parseInt(a.pricePerPlate) || 0;
+        const pB = parseInt(b.pricePerPlate) || 0;
+        return pB - pA;
+      });
+    }
+    return sorted;
+  }, [searchResults, sortOption]);
+
+  const memoizedSearch = useMemo(() => sortedSearchResults.map(vendor => (
     <LiquidVendorCard key={vendor.id} vendor={vendor} layout="list" />
-  )), [searchResults]);
+  )), [sortedSearchResults]);
 
   return (
     <div className="min-h-screen bg-gray-50/50 pt-28 pb-24 md:pb-16">
@@ -178,7 +251,14 @@ const SearchPage = () => {
             </button>
 
             <div className="flex flex-1 md:flex-none justify-between md:justify-start items-center gap-3">
-              <span className="text-sm text-gray-500 font-bold hidden md:inline whitespace-nowrap">Sort by:</span>
+              <button 
+                onClick={handleAutoLocate}
+                className="flex items-center gap-2 bg-brand-primary/10 border border-brand-primary/20 hover:bg-brand-primary/20 text-brand-primary px-4 py-2.5 rounded-xl font-bold transition-all text-sm whitespace-nowrap"
+              >
+                <Navigation size={16} /> <span className="hidden md:inline">Near Me</span>
+              </button>
+              
+              <span className="text-sm text-gray-500 font-bold hidden md:inline whitespace-nowrap ml-2">Sort by:</span>
               <div className="w-full md:w-48">
                 <CustomDropdown
                   options={['Popularity', 'Highest Rated', 'Price: Low to High', 'Price: High to Low']}
@@ -256,11 +336,17 @@ const SearchPage = () => {
             </div>
 
             {/* Load More */}
-            <div className="mt-8 flex justify-center pb-8">
-              <button className="bg-white border-2 border-brand-primary text-brand-primary px-8 py-3 rounded-xl font-black hover:bg-brand-primary hover:text-white transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5">
-                Load More Results
-              </button>
-            </div>
+            {hasMore && (
+              <div className="mt-8 flex justify-center pb-8">
+                <button 
+                  onClick={() => setPage(p => p + 1)}
+                  disabled={isLoading}
+                  className="bg-white border-2 border-brand-primary text-brand-primary px-8 py-3 rounded-xl font-black hover:bg-brand-primary hover:text-white transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 disabled:opacity-50"
+                >
+                  {isLoading ? 'Loading...' : 'Load More Results'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
