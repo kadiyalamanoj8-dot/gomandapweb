@@ -1,9 +1,0 @@
-[
-  {
-    "id": "admin_1",
-    "username": "admin",
-    "password": "password123",
-    "role": "admin",
-    "subscription": "Enterprise"
-  }
-]

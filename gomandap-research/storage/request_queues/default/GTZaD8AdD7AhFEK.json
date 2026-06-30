@@ -1,9 +1,0 @@
-{
-	"id": "GTZaD8AdD7AhFEK",
-	"json": "{\"id\":\"GTZaD8AdD7AhFEK\",\"url\":\"https://duckduckgo.com/l/?uddg=https%3A%2F%2Ftestmy.net%2F&rut=a4659abb3579a5b36ca4464e3c4f304a54a7af698ae168e84ee9f49ca50cc225\",\"loadedUrl\":\"https://testmy.net/\",\"uniqueKey\":\"https://duckduckgo.com/l?rut=a4659abb3579a5b36ca4464e3c4f304a54a7af698ae168e84ee9f49ca50cc225&uddg=https%3A%2F%2Ftestmy.net%2F\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"all\",\"state\":4}},\"handledAt\":\"2026-06-13T11:37:47.592Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://duckduckgo.com/l?rut=a4659abb3579a5b36ca4464e3c4f304a54a7af698ae168e84ee9f49ca50cc225&uddg=https%3A%2F%2Ftestmy.net%2F",
-	"url": "https://duckduckgo.com/l/?uddg=https%3A%2F%2Ftestmy.net%2F&rut=a4659abb3579a5b36ca4464e3c4f304a54a7af698ae168e84ee9f49ca50cc225"
-}

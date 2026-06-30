@@ -1,0 +1,1024 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-06-28T13:47:40Z",
+    "timestamp_areas_base": "2026-05-12T07:36:16Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+    {
+      "type": "node",
+      "id": 245635123,
+      "lat": 16.2377735,
+      "lon": 80.6464219,
+      "tags": {
+        "capital": "6",
+        "fixme": "boundary unprecise",
+        "name": "Tenali",
+        "name:ar": "تينالي",
+        "name:en": "Tenali",
+        "name:fa": "تنالی",
+        "name:hi": "तेनाली",
+        "name:ja": "テーナーリー",
+        "name:kn": "ತೆನಾಲಿ",
+        "name:ml": "തെനാലി",
+        "name:mr": "तेनाली",
+        "name:pa": "ਤੇਨਾਲੀ",
+        "name:ru": "Тенали",
+        "name:ta": "தெனாலி",
+        "name:te": "తెనాలి",
+        "place": "town",
+        "population": "164937",
+        "population:date": "2011",
+        "postal_code": "522200",
+        "wikidata": "Q1929712",
+        "wikipedia": "en:Tenali"
+      }
+    },
+    {
+      "type": "node",
+      "id": 245636315,
+      "lat": 16.4318209,
+      "lon": 80.5688069,
+      "tags": {
+        "capital": "6",
+        "name": "Mangalagiri",
+        "name:ja": "マンガルギリ",
+        "name:kn": "ಮಂಗಳಗಿರಿ",
+        "name:ko": "망갈라기리",
+        "name:ml": "മംഗളഗിരി",
+        "name:te": "మంగళగిరి",
+        "place": "suburb",
+        "population": "73613",
+        "population:date": "2011",
+        "postal_code": "522500",
+        "wikidata": "Q2349939"
+      }
+    },
+    {
+      "type": "node",
+      "id": 245636415,
+      "lat": 16.4791081,
+      "lon": 80.61834,
+      "tags": {
+        "name": "Tadepalle",
+        "name:kn": "ತಾಡೇಪಲ್ಲಿ",
+        "name:ml": "താഡേപ്പള്ളി",
+        "name:te": "తాడేపల్లి",
+        "place": "suburb",
+        "population": "64149",
+        "population:date": "2011",
+        "postal_code": "522501",
+        "source": "AND",
+        "wikidata": "Q3425864"
+      }
+    },
+    {
+      "type": "node",
+      "id": 936693300,
+      "lat": 16.2404061,
+      "lon": 80.6377803,
+      "tags": {
+        "name": "Chenchupeta",
+        "place": "suburb"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3478288121,
+      "lat": 16.2134694,
+      "lon": 80.6557257,
+      "tags": {
+        "name": "Pedaravuru",
+        "name:te": "పెదరావూరు",
+        "place": "suburb",
+        "wikidata": "Q7159010"
+      }
+    },
+    {
+      "type": "node",
+      "id": 4068566901,
+      "lat": 16.0683776,
+      "lon": 80.5522462,
+      "tags": {
+        "name": "Ponnuru",
+        "name:kn": "ಪೊನ್ನೂರು",
+        "name:ml": "പൊന്നൂർ",
+        "name:te": "పొన్నూరు",
+        "place": "town",
+        "population": "59913",
+        "population:date": "2011",
+        "postal_code": "522124",
+        "wikidata": "Q720891",
+        "wikipedia": "en:Ponnur"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5127911168,
+      "lat": 16.5284863,
+      "lon": 80.4687906,
+      "tags": {
+        "name": "Thulluru",
+        "name:te": "తుళ్ళూరు",
+        "place": "suburb",
+        "population": "7794",
+        "population:date": "2011",
+        "wikidata": "Q12999088"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5128169236,
+      "lat": 16.4532061,
+      "lon": 80.5693858,
+      "tags": {
+        "name": "Yerrapalem",
+        "place": "suburb"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5390584631,
+      "lat": 16.2517791,
+      "lon": 80.6515574,
+      "tags": {
+        "name": "Ithanagar",
+        "name:te": "ఇతనగర్",
+        "place": "suburb"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5390585026,
+      "lat": 16.2246056,
+      "lon": 80.6542182,
+      "tags": {
+        "name": "Chinaravuru",
+        "name:te": "చినరావూరు",
+        "place": "suburb",
+        "wikidata": "Q15700549"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5640389373,
+      "lat": 16.4470335,
+      "lon": 80.6114786,
+      "tags": {
+        "name": "Vaddeswaram",
+        "name:kn": "ವಡ್ಡೇಶ್ವರಂ",
+        "name:te": "వడ్డేశ్వరం",
+        "place": "town",
+        "wikidata": "Q19899111",
+        "wikipedia": "en:Vaddeswaram"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8122803742,
+      "lat": 16.3038497,
+      "lon": 80.431273,
+      "tags": {
+        "name": "Brodipet",
+        "place": "suburb"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8122803743,
+      "lat": 16.3051066,
+      "lon": 80.4402403,
+      "tags": {
+        "name": "Arundelpet",
+        "place": "suburb"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11383511947,
+      "lat": 16.3430975,
+      "lon": 80.4410948,
+      "tags": {
+        "name": "Gorantla",
+        "name:te": "గోరంట్ల",
+        "place": "suburb",
+        "wikidata": "Q15699506"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12086629658,
+      "lat": 16.4841487,
+      "lon": 80.6138623,
+      "tags": {
+        "name": "Navodaya Colony",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12265679702,
+      "lat": 16.3113655,
+      "lon": 80.4139149,
+      "tags": {
+        "name": "Pattabhipuram",
+        "place": "suburb"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12265679703,
+      "lat": 16.3080591,
+      "lon": 80.4128254,
+      "tags": {
+        "name": "Ravindra Nagar",
+        "name:en": "Ravindra Nagar",
+        "name:te": "రవీంద్ర నగర్",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12265679704,
+      "lat": 16.3000419,
+      "lon": 80.4164081,
+      "tags": {
+        "name": "Ananda Theertha Agraharam",
+        "place": "suburb"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12265679705,
+      "lat": 16.2962407,
+      "lon": 80.4203537,
+      "tags": {
+        "name": "Hanuman Nagar",
+        "place": "suburb"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12265679706,
+      "lat": 16.2971081,
+      "lon": 80.4348604,
+      "tags": {
+        "name": "Nagarampalem",
+        "place": "suburb"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12680790247,
+      "lat": 16.3092849,
+      "lon": 80.4087152,
+      "tags": {
+        "name": "Syamala Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12680790248,
+      "lat": 16.3128415,
+      "lon": 80.4087995,
+      "tags": {
+        "name": "Stambalagaruvu",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13013345634,
+      "lat": 16.492905,
+      "lon": 80.6117906,
+      "tags": {
+        "name": "Sundarayya Nagar",
+        "name:etymology:wikidata": "Q1846150",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13013396160,
+      "lat": 16.3391214,
+      "lon": 80.4170191,
+      "tags": {
+        "name": "Puchalapalli Sundaraiah Nagar",
+        "name:etymology:wikidata": "Q1846150",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13187975098,
+      "lat": 16.3140649,
+      "lon": 80.4156613,
+      "tags": {
+        "name": "Brindavan Gardens",
+        "place": "suburb"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13187975099,
+      "lat": 16.3177041,
+      "lon": 80.4167534,
+      "tags": {
+        "name": "Nalanda Nagar",
+        "place": "suburb"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000075,
+      "lat": 16.2861225,
+      "lon": 80.4265882,
+      "tags": {
+        "name": "KVP Colony",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000076,
+      "lat": 16.2837097,
+      "lon": 80.439157,
+      "tags": {
+        "name": "Sampath Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000077,
+      "lat": 16.2821723,
+      "lon": 80.4390534,
+      "tags": {
+        "name": "Nallacheruvu",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000078,
+      "lat": 16.2806475,
+      "lon": 80.4236371,
+      "tags": {
+        "name": "Krishna Babu Colony",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000079,
+      "lat": 16.2738648,
+      "lon": 80.4229684,
+      "tags": {
+        "name": "Bhavanipuram Colony",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000081,
+      "lat": 16.2914262,
+      "lon": 80.4300866,
+      "tags": {
+        "name": "Srinivasarao Pet",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000084,
+      "lat": 16.2767496,
+      "lon": 80.4509774,
+      "tags": {
+        "name": "I.P.D Colony",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000085,
+      "lat": 16.2778576,
+      "lon": 80.4551406,
+      "tags": {
+        "name": "Gandhi Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000086,
+      "lat": 16.2864862,
+      "lon": 80.4460943,
+      "tags": {
+        "name": "D.S. Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000088,
+      "lat": 16.2849821,
+      "lon": 80.4509013,
+      "tags": {
+        "name": "Sangadigunta",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000089,
+      "lat": 16.2887796,
+      "lon": 80.456539,
+      "tags": {
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000090,
+      "lat": 16.2905492,
+      "lon": 80.4506263,
+      "tags": {
+        "name": "Lalapet",
+        "place": "suburb"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000091,
+      "lat": 16.2904731,
+      "lon": 80.4410747,
+      "tags": {
+        "name": "R Agraharam",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000093,
+      "lat": 16.2871123,
+      "lon": 80.4562901,
+      "tags": {
+        "name": "Old Guntur",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000094,
+      "lat": 16.2932124,
+      "lon": 80.4635857,
+      "tags": {
+        "name": "Christian Pet",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000095,
+      "lat": 16.2975093,
+      "lon": 80.4627202,
+      "tags": {
+        "name": "Thamma Ranga Reddy Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000096,
+      "lat": 16.2949126,
+      "lon": 80.4626394,
+      "tags": {
+        "name": "Jakir Hussain Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000097,
+      "lat": 16.2970394,
+      "lon": 80.4677145,
+      "tags": {
+        "name": "Gandhi Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000098,
+      "lat": 16.2997653,
+      "lon": 80.4699166,
+      "tags": {
+        "name": "Ziyauddin Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000099,
+      "lat": 16.312267,
+      "lon": 80.4728366,
+      "tags": {
+        "name": "Vasavi Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188000100,
+      "lat": 16.3084977,
+      "lon": 80.4712166,
+      "tags": {
+        "name": "Tarakarama Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188002004,
+      "lat": 16.3010372,
+      "lon": 80.445765,
+      "tags": {
+        "name": "Railpet",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188002005,
+      "lat": 16.2991635,
+      "lon": 80.4490945,
+      "tags": {
+        "name": "Kothapeta",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188004047,
+      "lat": 16.2928583,
+      "lon": 80.4274612,
+      "tags": {
+        "name": "Nagarampalem",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188019241,
+      "lat": 16.2936882,
+      "lon": 80.4111314,
+      "tags": {
+        "name": "Sitaramanagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188019242,
+      "lat": 16.2898349,
+      "lon": 80.3836106,
+      "tags": {
+        "name": "Ayodhya nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040601,
+      "lat": 16.3224432,
+      "lon": 80.473766,
+      "tags": {
+        "name": "Ganesh Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040602,
+      "lat": 16.3187348,
+      "lon": 80.4808374,
+      "tags": {
+        "name": "Gaddipadu",
+        "place": "suburb"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040603,
+      "lat": 16.3266746,
+      "lon": 80.4807545,
+      "tags": {
+        "name": "Autonagar",
+        "place": "suburb"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040604,
+      "lat": 16.3138803,
+      "lon": 80.4645667,
+      "tags": {
+        "name": "Basava Tarakarama Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040605,
+      "lat": 16.3156885,
+      "lon": 80.4585344,
+      "tags": {
+        "name": "Agatha Varappadu",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040606,
+      "lat": 16.3129605,
+      "lon": 80.4469641,
+      "tags": {
+        "name": "Mallikarjunpet",
+        "place": "suburb"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040607,
+      "lat": 16.3099336,
+      "lon": 80.4402919,
+      "tags": {
+        "name": "Srinagar Colony",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040608,
+      "lat": 16.316452,
+      "lon": 80.4430692,
+      "tags": {
+        "name": "Sarada Colony",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040609,
+      "lat": 16.3226542,
+      "lon": 80.4409427,
+      "tags": {
+        "name": "Velangini Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040610,
+      "lat": 16.3291661,
+      "lon": 80.4433395,
+      "tags": {
+        "name": "Reddypalem",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040611,
+      "lat": 16.3220359,
+      "lon": 80.4480559,
+      "tags": {
+        "name": "Mother Teresa Colony",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040613,
+      "lat": 16.3366464,
+      "lon": 80.415947,
+      "tags": {
+        "name": "Swarnabharathi Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040614,
+      "lat": 16.3279101,
+      "lon": 80.4122137,
+      "tags": {
+        "name": "Srinivasa Nagar Colony",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040615,
+      "lat": 16.3261073,
+      "lon": 80.4135497,
+      "tags": {
+        "name": "Nethaji Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040616,
+      "lat": 16.3246697,
+      "lon": 80.4098169,
+      "tags": {
+        "name": "Udyoga Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040618,
+      "lat": 16.3218219,
+      "lon": 80.4203285,
+      "tags": {
+        "name": "Navabharath Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040619,
+      "lat": 16.3249473,
+      "lon": 80.4230776,
+      "tags": {
+        "name": "Vidyanagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040620,
+      "lat": 16.3267204,
+      "lon": 80.4197744,
+      "tags": {
+        "name": "Vijayapuri Colony",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040621,
+      "lat": 16.3220493,
+      "lon": 80.4152315,
+      "tags": {
+        "name": "SVN Colony",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040622,
+      "lat": 16.3297498,
+      "lon": 80.4165027,
+      "tags": {
+        "name": "Tarakarama Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040624,
+      "lat": 16.3237465,
+      "lon": 80.4235598,
+      "tags": {
+        "name": "Vidyanagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040625,
+      "lat": 16.3248271,
+      "lon": 80.4282073,
+      "tags": {
+        "name": "Kommineni Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040626,
+      "lat": 16.3247054,
+      "lon": 80.4365534,
+      "tags": {
+        "name": "Panduranga Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040627,
+      "lat": 16.3220541,
+      "lon": 80.4312413,
+      "tags": {
+        "name": "Gauthami Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040628,
+      "lat": 16.318709,
+      "lon": 80.438777,
+      "tags": {
+        "name": "Nagaral",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040629,
+      "lat": 16.3325697,
+      "lon": 80.4406489,
+      "tags": {
+        "name": "Bharath Peta",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040630,
+      "lat": 16.3186909,
+      "lon": 80.4064817,
+      "tags": {
+        "name": "Ratnagiri nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040631,
+      "lat": 16.3202598,
+      "lon": 80.4120742,
+      "tags": {
+        "name": "Maruthi Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040632,
+      "lat": 16.3165546,
+      "lon": 80.4087524,
+      "tags": {
+        "name": "LIC Colony",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040633,
+      "lat": 16.3143564,
+      "lon": 80.4123029,
+      "tags": {
+        "name": "Stambalagaruvu",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040635,
+      "lat": 16.30921,
+      "lon": 80.4295954,
+      "tags": {
+        "name": "Ashok Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040638,
+      "lat": 16.3004144,
+      "lon": 80.4356088,
+      "tags": {
+        "name": "Goodwill Colony",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040639,
+      "lat": 16.2975919,
+      "lon": 80.4363322,
+      "tags": {
+        "name": "R and B Quaters",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188040640,
+      "lat": 16.298827,
+      "lon": 80.4061494,
+      "tags": {
+        "name": "APHB Colony",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13188373660,
+      "lat": 16.0652942,
+      "lon": 80.5625671,
+      "tags": {
+        "name": "Vidyanagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13608649056,
+      "lat": 16.4403455,
+      "lon": 80.5680732,
+      "tags": {
+        "name": "B.R Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13608649057,
+      "lat": 16.4387334,
+      "lon": 80.5658231,
+      "tags": {
+        "name": "Baptist Peta",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13608649058,
+      "lat": 16.4230874,
+      "lon": 80.5698998,
+      "tags": {
+        "name": "Bhadravathi Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13608649059,
+      "lat": 16.4427824,
+      "lon": 80.5597782,
+      "tags": {
+        "name": "Nowluru",
+        "place": "suburb"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13608649061,
+      "lat": 16.404588,
+      "lon": 80.5483595,
+      "tags": {
+        "name": "Yarlagadda Subbarao Colony",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13608689298,
+      "lat": 16.4189288,
+      "lon": 80.5600109,
+      "tags": {
+        "name": "Auto Nagar",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13944946042,
+      "lat": 16.494396,
+      "lon": 80.6095584,
+      "tags": {
+        "name": "Sitanagaram",
+        "place": "neighbourhood"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13944946043,
+      "lat": 16.4920298,
+      "lon": 80.6141248,
+      "tags": {
+        "name": "Mahanadu",
+        "place": "neighbourhood"
+      }
+    }
+  ]
+}

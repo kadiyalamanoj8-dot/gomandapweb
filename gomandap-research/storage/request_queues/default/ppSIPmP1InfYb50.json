@@ -1,9 +1,0 @@
-{
-	"id": "ppSIPmP1InfYb50",
-	"json": "{\"id\":\"ppSIPmP1InfYb50\",\"url\":\"https://html.duckduckgo.com/html/?q=test+filetype:pdf\",\"loadedUrl\":\"https://html.duckduckgo.com/html/?q=test+filetype:pdf\",\"uniqueKey\":\"https://html.duckduckgo.com/html?q=test+filetype%3Apdf\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"state\":4}},\"handledAt\":\"2026-06-13T11:35:33.229Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://html.duckduckgo.com/html?q=test+filetype%3Apdf",
-	"url": "https://html.duckduckgo.com/html/?q=test+filetype:pdf"
-}

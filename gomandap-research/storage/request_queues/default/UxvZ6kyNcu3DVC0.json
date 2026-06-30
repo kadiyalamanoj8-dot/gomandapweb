@@ -1,9 +1,0 @@
-{
-	"id": "UxvZ6kyNcu3DVC0",
-	"json": "{\"id\":\"UxvZ6kyNcu3DVC0\",\"url\":\"https://duckduckgo.com/l/?uddg=https%3A%2F%2Ffast.com%2F&rut=1f2bc472fab4b57dcca3a4b299aa5bd66e5b4dbbbb217e8d836eb66b29fd1fec\",\"loadedUrl\":\"https://fast.com/\",\"uniqueKey\":\"https://duckduckgo.com/l?rut=1f2bc472fab4b57dcca3a4b299aa5bd66e5b4dbbbb217e8d836eb66b29fd1fec&uddg=https%3A%2F%2Ffast.com%2F\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"all\",\"state\":4}},\"handledAt\":\"2026-06-13T11:37:38.466Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://duckduckgo.com/l?rut=1f2bc472fab4b57dcca3a4b299aa5bd66e5b4dbbbb217e8d836eb66b29fd1fec&uddg=https%3A%2F%2Ffast.com%2F",
-	"url": "https://duckduckgo.com/l/?uddg=https%3A%2F%2Ffast.com%2F&rut=1f2bc472fab4b57dcca3a4b299aa5bd66e5b4dbbbb217e8d836eb66b29fd1fec"
-}
